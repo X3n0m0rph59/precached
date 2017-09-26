@@ -1,0 +1,12 @@
+[package]
+name ="procmon_sys"
+version = "0.0.1"
+build = "build.rs"
+
+[lib]
+
+[dependencies]
+libc = "0.2.30" 
+
+[build-dependencies]
+gcc = "0.3"
