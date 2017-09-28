@@ -1,0 +1,12 @@
+[Unit]
+Description=Process monitor and pre-caching daemon
+
+[Service]
+ExecStart=/usr/sbin/precached -f
+ExecReload=/bin/kill -HUP $MAINPID
+Type=simple
+StandardOutput=syslog
+Restart=always
+
+[Install]
+WantedBy=local-fs.target
