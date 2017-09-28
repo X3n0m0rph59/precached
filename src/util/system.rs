@@ -18,11 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+pub fn check_system() -> Result<bool, &'static str> {
+    // TODO: Check sysctl tunable 'vm.max_map_count'
+    // and ulimit -l 'max locked memory' rlimit
 
-fn main() {
-    gcc::Build::new()
-                .file("src/c/procmon.c")
-                .include("src")
-                .compile("procmon");
+    Ok(true)
 }

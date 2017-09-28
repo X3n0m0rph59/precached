@@ -18,11 +18,16 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+use procmon;
 
-fn main() {
-    gcc::Build::new()
-                .file("src/c/procmon.c")
-                .include("src")
-                .compile("procmon");
+pub type HookId = usize;
+
+pub trait Hook {
+    // fn get_id(&self) -> HookId;
+
+    fn on_register(&mut self);
+    fn on_unregister(&mut self);
+
+    fn on_internal_event(&mut self);
+    fn on_process_event(&mut self, event: &procmon::Event);
 }

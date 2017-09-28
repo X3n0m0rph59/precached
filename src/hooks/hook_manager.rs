@@ -18,11 +18,37 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-fn main() {
-    gcc::Build::new()
-                .file("src/c/procmon.c")
-                .include("src")
-                .compile("procmon");
+use procmon;
+use super::hook::Hook;
+
+pub struct HookManager {
+    hooks: Arc<Mutex<Vec<Box<Hook + Send>>>>,
+}
+
+impl HookManager {
+    pub fn new() -> HookManager {
+        HookManager { hooks: Arc::new(Mutex::new(Vec::new())), }
+    }
+
+    pub fn register_hook(&mut self, hook: Box<Hook + Send>) {
+        let mut hooks = self.hooks.lock().unwrap();
+        hooks.push(hook);
+
+        let last = hooks.len() - 1;
+        hooks[last].on_register();
+    }
+
+    pub fn unregister_hook(&mut self) {
+        // hook.on_unregister();
+    }
+
+    pub fn dispatch_event(&mut self, event: &procmon::Event) {
+        let mut hooks = self.hooks.lock().unwrap();
+        for h in hooks.iter_mut() {
+            h.on_process_event(event);
+        }
+    }
 }

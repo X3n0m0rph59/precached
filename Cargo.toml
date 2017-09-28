@@ -1,14 +1,18 @@
 [package]
-name = "precache"
+name = "precached"
 version = "0.1.0"
 authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
 
 [dependencies]
+procmon_sys = { version = "0.0.1", path = 'src/procmon_sys' }
+libc = "0.2.30"
+nix = "0.9"
 log = "0.3"
 pretty_env_logger = "0.1.1"
+lazy_static = "0.2.8"
 netlink-rs = "0.0.3"
-nix = "0.9"
+regex = "0.2"
 byteorder = "1.1.0"
 bytevec = "0.2.0"
-libc = "0.2.30"
-procmon_sys = { version = "0.0.1", path = 'src/procmon_sys' }
+threadpool = "1.0"
+num_cpus = "1.6.2"

@@ -18,11 +18,35 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-fn main() {
-    gcc::Build::new()
-                .file("src/c/procmon.c")
-                .include("src")
-                .compile("procmon");
+use super::plugin::Plugin;
+
+pub struct PluginManager {
+    plugins: Arc<Mutex<Vec<Box<Plugin + Send>>>>,
+}
+
+impl PluginManager {
+    pub fn new() -> PluginManager {
+        PluginManager { plugins: Arc::new(Mutex::new(Vec::new())), }
+    }
+
+    pub fn register_plugin(&mut self, plugin: Box<Plugin + Send>) {
+        let mut plugins = self.plugins.lock().unwrap();
+        plugins.push(plugin);
+
+        let last = plugins.len() - 1;
+        plugins[last].register();
+    }
+
+    pub fn unregister_plugin(&mut self) {
+        // plugin.unregister();
+    }
+
+    // pub fn dispatch_event(&mut self) {
+    //     for p in self.plugins.iter_mut() {
+    //         p.handle_event(event);
+    //     }
+    // }
 }

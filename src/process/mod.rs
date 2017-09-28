@@ -18,11 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+mod process;
+mod prefault;
 
-fn main() {
-    gcc::Build::new()
-                .file("src/c/procmon.c")
-                .include("src")
-                .compile("procmon");
-}
+pub use self::process::*;
+pub use self::prefault::*;

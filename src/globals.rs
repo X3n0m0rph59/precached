@@ -18,11 +18,26 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-fn main() {
-    gcc::Build::new()
-                .file("src/c/procmon.c")
-                .include("src")
-                .compile("procmon");
+use plugins::PluginManager;
+use hooks::HookManager;
+
+use plugins::thread_pool::ThreadPool;
+
+pub struct Globals {
+    pub plugin_manager: Arc<Mutex<PluginManager>>,
+    pub hook_manager: Arc<Mutex<HookManager>>,
+    pub thread_pool: Option<Box<ThreadPool>>,
+}
+
+impl Globals {
+    pub fn new() -> Globals {
+        Globals {
+            plugin_manager: Arc::new(Mutex::new(PluginManager::new())),
+            hook_manager: Arc::new(Mutex::new(HookManager::new())),
+            thread_pool: None,
+        }
+    }
 }

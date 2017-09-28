@@ -18,11 +18,27 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+use std::io;
+use std::io::prelude::*;
+use std::io::BufReader;
+use std::io::Write;
+use std::fs::OpenOptions;
+use std::path::Path;
 
-fn main() {
-    gcc::Build::new()
-                .file("src/c/procmon.c")
-                .include("src")
-                .compile("procmon");
+
+pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
+    let path = Path::new(filename);
+    let file = try!(OpenOptions::new().read(true).open(&path));
+
+    let reader = BufReader::new(file);
+    Ok(reader.lines().map(|l| l.expect("Could not read line")).collect())
+}
+
+pub fn append_to_file(data: &str, filename: &str) -> io::Result<()> {
+    let path = Path::new(filename);
+
+    let mut file = OpenOptions::new().append(true).write(true).open(&path)?;
+    file.write_all(data.as_bytes())?;
+
+    Ok(())
 }

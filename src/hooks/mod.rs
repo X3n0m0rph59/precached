@@ -18,11 +18,17 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-fn main() {
-    gcc::Build::new()
-                .file("src/c/procmon.c")
-                .include("src")
-                .compile("procmon");
+mod hook_manager;
+mod hook;
+use globals::Globals;
+
+pub use self::hook_manager::*;
+
+mod process_tracker;
+
+pub fn register_default_hooks(globals: &mut Arc<Mutex<Globals>>) {
+    process_tracker::register_hook(globals);
 }

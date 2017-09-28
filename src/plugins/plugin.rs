@@ -18,11 +18,11 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+pub type PluginId = usize;
 
-fn main() {
-    gcc::Build::new()
-                .file("src/c/procmon.c")
-                .include("src")
-                .compile("procmon");
+pub trait Plugin {
+    // fn get_id(&self) -> Plugin;
+
+    fn register(&self);
+    fn unregister(&self);
 }
