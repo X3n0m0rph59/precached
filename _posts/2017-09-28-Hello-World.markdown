@@ -1,6 +1,6 @@
 ---
 title: "Project Site Now Online"
-layout: post
+layout: default
 date:   2017-09-28 08:00:59
 categories: update
 ---
