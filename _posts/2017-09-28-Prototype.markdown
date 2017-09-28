@@ -7,10 +7,10 @@ categories: update release
 # First Prototype Implementation released
 
 We just released the first working prototype!
-It is currently able to monitor events sent by the Linux kernel, whenever a
-fork()/execve() syscall is executed, and subsequently scan the new process'
-file mappings. Valid mappings are then mlocked() to the virtual memory of the
-precached process.
+It is currently able to monitor events sent by the Linux kernel whenever a
+fork()/execve() syscall is executed, and subsequently scan the newly created
+process' file mappings. Valid mappings are then mlocked() to the virtual
+memory of our precached process.
 
 ![Code](/precached/images/code.png)
 *Rust language*
@@ -21,6 +21,7 @@ precached process.
 ## TODO List (non-exhaustive):
 	* Implement ceiling on mlocked() memory
 	* Implement VFS statx() caching (pre-read file metadata)
+	* Possibly implement fork-bomb mitigation
 	* Implement a persistence layer
 	* Prime caches on daemon startup
 	* Systemd init scripts
