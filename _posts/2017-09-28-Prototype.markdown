@@ -11,10 +11,12 @@ It is currently able to monitor fork()/execve() events sent by the Linux kernel
 and subsequently scan process file mappings. Valid mappings are then mlocked()
 to the memory of the precached process.
 
-![Code](../images/code.png)
+![Code](/precached/images/code.png)
+
 *Rust language*
 
-![Screenshot](../images/screenshot.png)
+![Screenshot](/precached/images/screenshot.png)
+
 *precached running on Linux*
 
 ## TODO List (non-exhaustive):
