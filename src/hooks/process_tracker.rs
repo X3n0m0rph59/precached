@@ -146,10 +146,32 @@ impl ProcessTracker {
                                        libc::MAP_PRIVATE, fd, 0) };
 
         if addr < 0 as *mut libc::c_void {
-           Err(std::io::Error::last_os_error())
-       } else {
-           Ok(())
-       }
+            Err(std::io::Error::last_os_error())
+        } else {
+            trace!("Successfuly called mmap() for: '{}'", filename);
+
+            let result = unsafe { libc::madvise(addr as *mut libc::c_void, stat.st_size as usize,
+                                                libc::MADV_WILLNEED
+                                            /*| libc::MADV_SEQUENTIAL*/
+                                            /*| libc::MADV_MERGEABLE*/) };
+
+            if result < 0 as libc::c_int {
+                Err(std::io::Error::last_os_error())
+            } else {
+                trace!("Successfuly called madvise() for: '{}'", filename);
+
+                // FIXME: Maybe redundant with previous call to mlockall()?
+                let result = unsafe { libc::mlock(addr as *mut libc::c_void, stat.st_size as usize) };
+
+                if result < 0 as libc::c_int {
+                    Err(std::io::Error::last_os_error())
+                } else {
+                    trace!("Successfuly called mlock() for: '{}'", filename);
+
+                    Ok(())
+                }
+            }
+        }
     }
 }
 
@@ -193,7 +215,10 @@ impl hook::Hook for ProcessTracker {
 
             procmon::EventType::Exit => {
                 let process = self.get_tracked_processes().remove(&event.pid);
-                info!("Removed tracked process: {:?}", process);
+                match process {
+                    Some(process) => info!("Removed tracked process: {:?}", process),
+                    None => {}
+                }
             }
 
             _ => {

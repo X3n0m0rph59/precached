@@ -47,7 +47,7 @@ impl ThreadPool {
         let num_cpus = num_cpus::get();
         ThreadPool {
             pool: threadpool::Builder::new()
-                                .num_threads(num_cpus)
+                                .num_threads(num_cpus*2)
                                 .thread_name(String::from("worker thread"))
                                 .build()
         }
