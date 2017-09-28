@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 title: Precached - A Linux process monitor and pre-caching daemon
 ---
 Precached is written in Rust and utilises the Linux netlink connector interface
