@@ -1,4 +1,7 @@
-# Precached - A Linux process monitor and pre-caching daemon
+---
+layout: post
+title: Precached - A Linux process monitor and pre-caching daemon
+---
 Precached is written in Rust and utilises the Linux netlink connector interface
 to monitor the system for process events. It can act upon such events via
 multiple means. E.g. in the future it will be able to pre-fault pages into
