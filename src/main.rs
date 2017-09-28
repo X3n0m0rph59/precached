@@ -32,7 +32,6 @@ use pretty_env_logger as logger;
 #[macro_use] extern crate lazy_static;
 
 use std::thread;
-use std::time;
 use nix::sys::signal;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -56,10 +55,31 @@ mod util;
 
 /// Global exit flag
 static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
+static RELOAD_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 
-/// Signal handler
-extern fn early_exit(_: i32) {
+/// Signal handler for SIGINT and SIGTERM
+extern fn exit_signal(_: i32) {
     EXIT_NOW.store(true, Ordering::Relaxed);
+}
+
+/// Signal handler for SIGHUP
+extern fn reload_signal(_: i32) {
+    RELOAD_NOW.store(true, Ordering::Relaxed);
+}
+
+fn setup_signal_handlers() {
+    let sig_action = signal::SigAction::new(signal::SigHandler::Handler(exit_signal),
+                                            signal::SaFlags::empty(),
+                                            signal::SigSet::empty());
+
+    #[allow(unused_must_use)] unsafe { signal::sigaction(signal::SIGINT, &sig_action); }
+    #[allow(unused_must_use)] unsafe { signal::sigaction(signal::SIGTERM, &sig_action); }
+
+    let sig_action = signal::SigAction::new(signal::SigHandler::Handler(reload_signal),
+                                            signal::SaFlags::empty(),
+                                            signal::SigSet::empty());
+
+    #[allow(unused_must_use)] unsafe { signal::sigaction(signal::SIGHUP, &sig_action); }
 }
 
 /// Print a license header to the console
@@ -73,9 +93,8 @@ under certain conditions.
 
 /// Program entrypoint
 fn main() {
+    // Initialize logging subsystem
     logger::init().unwrap();
-
-    let mut _config = Arc::new(Mutex::new(Config::new(&std::env::args().collect())));
 
     if unsafe { nix::libc::isatty(0) } == 1 {
         print_license_header();
@@ -88,6 +107,9 @@ fn main() {
         Err(s) => { error!("System check FAILED: {}", s); return }
     }
 
+    // Register signal handlers
+    setup_signal_handlers();
+
     match dbus::register_with_dbus() {
         Ok(()) => {},
         Err(s) => { error!("Could not register DBUS interface: {}", s); return }
@@ -98,15 +120,8 @@ fn main() {
         Err(s)   => { error!("Could not create process events monitor: {}", s); return }
     };
 
-    // Register signal handlers
-    let sig_action = signal::SigAction::new(signal::SigHandler::Handler(early_exit),
-                                            signal::SaFlags::empty(),
-                                            signal::SigSet::empty());
 
-    #[allow(unused_must_use)] unsafe { signal::sigaction(signal::SIGINT, &sig_action); }
-    #[allow(unused_must_use)] unsafe { signal::sigaction(signal::SIGTERM, &sig_action); }
-
-    let mut globals = Arc::new(Mutex::new(Globals::new()));
+    let mut globals = Arc::new(Mutex::new(Globals::new(&std::env::args().collect())));
     plugins::register_default_plugins(&mut globals);
     hooks::register_default_hooks(&mut globals);
 
@@ -121,10 +136,35 @@ fn main() {
                 break 'event_loop;
             }
 
+            if RELOAD_NOW.load(Ordering::Relaxed) {
+                RELOAD_NOW.store(false, Ordering::Relaxed);
+                trace!("Reloading configuration...");
+
+                match globals.lock() {
+                    Err(_) => { error!("Could not lock a shared data structure!"); },
+                    Ok(mut g) => {
+                        let config = Arc::new(Mutex::new(Config::new(&std::env::args().collect())));
+                        g.config = config;
+                    }
+                };
+            }
+
+            // blocking call into procmon_sys
             let event = procmon.wait_for_event();
 
-            let globals_locked = globals.lock().unwrap();
-            globals_locked.hook_manager.lock().unwrap().dispatch_event(&event);
+            // We got an event, now dispatch it to all registered hooks
+            match globals.lock() {
+                Err(_) => { error!("Could not lock a shared data structure!"); },
+                Ok(g) => {
+                    match g.hook_manager.lock() {
+                        Err(_) => { error!("Could not lock a shared data structure!"); },
+                        Ok(mut h) => {
+                            // dispatch the event to all registered hooks
+                            h.dispatch_event(&event);
+                        }
+                    };
+                }
+            };
         }
 
     }).unwrap();
@@ -141,7 +181,10 @@ fn main() {
     }*/
 
     // main thread blocks here
-    handle.join().unwrap();
+    match handle.join() {
+        Ok(_) => { trace!("Successfuly joined event loop thread"); },
+        Err(_) => { error!("Could not join the event loop thread!"); }
+    };
 
     // Clean up now
     trace!("Cleaning up...");

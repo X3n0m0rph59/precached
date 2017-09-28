@@ -34,21 +34,29 @@ impl HookManager {
     }
 
     pub fn register_hook(&mut self, hook: Box<Hook + Send>) {
-        let mut hooks = self.hooks.lock().unwrap();
-        hooks.push(hook);
+        match self.hooks.lock() {
+            Err(_) => { error!("Could not lock a shared data structure!"); },
+            Ok(mut hooks) => {
+                hooks.push(hook);
 
-        let last = hooks.len() - 1;
-        hooks[last].on_register();
+                let last = hooks.len() - 1;
+                hooks[last].on_register();
+            }
+        };
     }
 
-    pub fn unregister_hook(&mut self) {
+    /*pub fn unregister_hook(&mut self) {
         // hook.on_unregister();
-    }
+    }*/
 
     pub fn dispatch_event(&mut self, event: &procmon::Event) {
-        let mut hooks = self.hooks.lock().unwrap();
-        for h in hooks.iter_mut() {
-            h.on_process_event(event);
-        }
+        match self.hooks.lock() {
+            Err(_) => { error!("Could not lock a shared data structure!"); },
+            Ok(mut hooks) => {
+                for h in hooks.iter_mut() {
+                    h.on_process_event(event);
+                }
+            }
+        };
     }
 }

@@ -18,11 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub type PluginId = usize;
-
 pub trait Plugin {
-    // fn get_id(&self) -> Plugin;
-
     fn register(&self);
     fn unregister(&self);
 }

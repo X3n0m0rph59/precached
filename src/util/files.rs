@@ -21,24 +21,30 @@
 use std::io;
 use std::io::prelude::*;
 use std::io::BufReader;
-use std::io::Write;
 use std::fs::OpenOptions;
 use std::path::Path;
-
 
 pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     let path = Path::new(filename);
     let file = try!(OpenOptions::new().read(true).open(&path));
 
     let reader = BufReader::new(file);
-    Ok(reader.lines().map(|l| l.expect("Could not read line")).collect())
+    Ok(reader.lines().filter_map(|l| {
+        match l {
+            Ok(s) => Some(s),
+            Err(_) => {
+                error!("Error while reading file!");
+                None
+            }
+        }
+    }).collect())
 }
 
-pub fn append_to_file(data: &str, filename: &str) -> io::Result<()> {
+/*pub fn append_to_file(data: &str, filename: &str) -> io::Result<()> {
     let path = Path::new(filename);
 
     let mut file = OpenOptions::new().append(true).write(true).open(&path)?;
     file.write_all(data.as_bytes())?;
 
     Ok(())
-}
+}*/

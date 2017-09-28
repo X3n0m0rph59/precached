@@ -21,20 +21,23 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use config::Config;
 use plugins::PluginManager;
 use hooks::HookManager;
 
 use plugins::thread_pool::ThreadPool;
 
 pub struct Globals {
+    pub config: Arc<Mutex<Config>>,
     pub plugin_manager: Arc<Mutex<PluginManager>>,
     pub hook_manager: Arc<Mutex<HookManager>>,
     pub thread_pool: Option<Box<ThreadPool>>,
 }
 
 impl Globals {
-    pub fn new() -> Globals {
+    pub fn new(args: &Vec<String>) -> Globals {
         Globals {
+            config: Arc::new(Mutex::new(Config::new(&args))),
             plugin_manager: Arc::new(Mutex::new(PluginManager::new())),
             hook_manager: Arc::new(Mutex::new(HookManager::new())),
             thread_pool: None,

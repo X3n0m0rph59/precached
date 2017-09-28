@@ -22,7 +22,6 @@ extern crate libc;
 
 use std;
 use std::io::Result;
-use std::io::prelude::*;
 use std::fs::File;
 use std::os::unix::io::IntoRawFd;
 use std::sync::Arc;
@@ -38,10 +37,19 @@ use plugins::thread_pool::ThreadPool;
 
 /// Register this hook implementation with the system
 pub fn register_hook(globals: &mut Arc<Mutex<Globals>>) {
-    let mut globals_locked = globals.lock().unwrap();
+    match globals.lock() {
+        Err(_) => { error!("Could not lock a shared data structure!"); },
+        Ok(mut g) => {
+            let hook = Box::new(ProcessTracker::new(&mut g));
 
-    let hook = Box::new(ProcessTracker::new(&mut globals_locked));
-    globals_locked.hook_manager.lock().unwrap().register_hook(hook);
+            match g.hook_manager.lock() {
+                Err(_) => { error!("Could not lock a shared data structure!"); },
+                Ok(mut h) => {
+                    h.register_hook(hook);
+                }
+            };
+        }
+    };
 }
 
 struct ActiveMapping {

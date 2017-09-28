@@ -33,13 +33,13 @@ pub struct Process {
     pub pid: libc::pid_t
 }
 
-#[derive(Debug)]
+/*#[derive(Debug)]
 pub struct Mapping {
     pub file: String,
     pub flags: String,
     pub start: usize,
     pub end: usize
-}
+}*/
 
 lazy_static! {
     static ref RE_PROC_MAPS: Regex = Regex::new(r"^(?P<start>[0-9A-Fa-f]+)-(?P<end>[0-9A-Fa-f]+)\s+(?P<mode>\S{4})\s+(\d+)\s+([0-9A-Fa-f]+):([0-9A-Fa-f]+)\s+(\d+)\s+(?P<filename>.*)$").unwrap();
@@ -65,7 +65,7 @@ impl Process {
         Ok(result)
     }
 
-    pub fn get_mappings(&self) -> io::Result<Vec<Mapping>> {
+    /*pub fn get_mappings(&self) -> io::Result<Vec<Mapping>> {
         let filename = format!("/proc/{}/maps", self.pid);
         let maps = try!(util::get_lines_from_file(&filename));
 
@@ -90,7 +90,7 @@ impl Process {
         let ref result = try!(util::get_lines_from_file(&filename))[0];
 
         Ok(result.clone())
-    }
+    }*/
 }
 
 impl prefault::Prefault for Process {

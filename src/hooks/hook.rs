@@ -20,11 +20,7 @@
 
 use procmon;
 
-pub type HookId = usize;
-
 pub trait Hook {
-    // fn get_id(&self) -> HookId;
-
     fn on_register(&mut self);
     fn on_unregister(&mut self);
 

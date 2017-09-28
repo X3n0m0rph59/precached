@@ -32,17 +32,21 @@ impl PluginManager {
         PluginManager { plugins: Arc::new(Mutex::new(Vec::new())), }
     }
 
-    pub fn register_plugin(&mut self, plugin: Box<Plugin + Send>) {
-        let mut plugins = self.plugins.lock().unwrap();
-        plugins.push(plugin);
+    /*pub fn register_plugin(&mut self, plugin: Box<Plugin + Send>) {
+        match self.plugins.lock() {
+            Err(_) => { error!("Could not lock a shared data structure!"); },
+            Ok(mut plugins) => {
+                plugins.push(plugin);
 
-        let last = plugins.len() - 1;
-        plugins[last].register();
+                let last = plugins.len() - 1;
+                plugins[last].register();
+            }
+        };
     }
 
     pub fn unregister_plugin(&mut self) {
         // plugin.unregister();
-    }
+    }*/
 
     // pub fn dispatch_event(&mut self) {
     //     for p in self.plugins.iter_mut() {
