@@ -1,0 +1,31 @@
+---
+layout: default
+title: Precached - A Linux process monitor and pre-caching daemon
+---
+
+<p>Precached is written in Rust and utilises the Linux netlink connector interface
+to monitor the system for process events. It can act upon such events via
+multiple means. E.g. in the future it will be able to pre-fault pages into
+memory to speed up loading of programs and increase the
+perceived snappiness of the system.</p>
+
+<h3>Quick install guide</h3>
+    $ git clone https://github.com/X3n0m0rph59/precached.git  
+    $ cd precached/
+    $ cargo build
+
+<h3>Notes</h3>
+<p>This project is in a very early stage of development and you may
+possibly encounter serious bugs.</p>
+
+<h3>Authors</h3>
+<p>precached - Copyright (C) 2017 the precached developers</p>
+
+<div id="home">
+  <h1>Blog Posts</h1>
+  <ul class="posts">
+    {% for post in site.posts %}
+      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
