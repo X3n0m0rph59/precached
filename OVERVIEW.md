@@ -5,6 +5,18 @@
 * What problem does it try to solve
 
 
+### Current State
+
+#### What is working right now
+
+* mlock()
+
+#### What remains to be done 
+
+* Much stuff
+* ...
+
+
 ### Software Architecture
 
 * Describe how it is implemented
