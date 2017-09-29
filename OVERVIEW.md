@@ -13,7 +13,15 @@
 
 #### What remains to be done 
 
-* Much stuff
+* Implement ceiling on mlocked() memory
+* Implement VFS statx() caching (pre-read file metadata)
+* Possibly implement fork-bomb mitigation
+* Implement a persistence layer
+* Prime caches on daemon startup
+* Daemonization support
+* Implement a DBUS interface
+* Write a nice CLI tool to control the daemon
+* And write a precached GUI in GTK+
 * ...
 
 
@@ -33,7 +41,7 @@
 * Virtual memory
 * Shared mappings
 * mmap() and mlock() syscalls
-* madvise() sycall
+* madvise() syscall
 * Linux page cache and fs buffer cache
 * dentry cache
 * ```# echo 3 > /proc/sys/vm_drop_caches" ```
