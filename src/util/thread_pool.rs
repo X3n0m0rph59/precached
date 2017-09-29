@@ -24,19 +24,6 @@ extern crate num_cpus;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use globals::Globals;
-use plugins::plugin::Plugin;
-
-/// Register this plugin implementation with the system
-pub fn register_plugin(globals: &mut Arc<Mutex<Globals>>) {
-    let plugin = Box::new(ThreadPool::new());
-
-    // TODO: Fix this ugly hack
-    globals.lock().unwrap().thread_pool = Some(plugin);
-
-    // globals.get_plugin_manager().register_plugin(plugin);
-}
-
 #[derive(Debug)]
 pub struct ThreadPool {
     pool: threadpool::ThreadPool
@@ -59,12 +46,6 @@ impl ThreadPool {
     }
 }
 
-impl Plugin for ThreadPool {
-    fn register(&self) {
-        info!("Registered Plugin: 'Thread Pool'");
-    }
-
-    fn unregister(&self) {
-        info!("Unregistered Plugin: 'Thread Pool'");
-    }
+lazy_static! {
+    pub static ref POOL: Arc<Mutex<ThreadPool>> = { Arc::new(Mutex::new(ThreadPool::new())) };
 }

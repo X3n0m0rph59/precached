@@ -18,33 +18,39 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::sync::Arc;
-use std::sync::Mutex;
+use globals;
+use plugins::plugin::Plugin;
 
-use config::Config;
-use plugins::PluginManager;
-use hooks::HookManager;
-
-use util::ThreadPool;
-
-pub struct Globals {
-    pub config: Config,
-    pub plugin_manager: PluginManager,
-    pub hook_manager: HookManager,
-    pub thread_pool: Option<Box<ThreadPool>>,
+/// Register this plugin implementation with the system
+pub fn register_plugin() {
+    match globals::GLOBALS.lock() {
+        Err(_)    => { error!("Could not lock a shared data structure!"); },
+        Ok(mut g) => {
+            let plugin = Box::new(Whitelist::new());
+            g.plugin_manager.register_plugin(plugin);
+        }
+    };
 }
 
-impl Globals {
-    pub fn new() -> Globals {
-        Globals {
-            config: Config::new(),
-            plugin_manager: PluginManager::new(),
-            hook_manager: HookManager::new(),
-            thread_pool: None,
+#[derive(Debug)]
+pub struct Whitelist {
+
+}
+
+impl Whitelist {
+    pub fn new() -> Whitelist {
+        Whitelist {
+
         }
     }
 }
 
-lazy_static! {
-    pub static ref GLOBALS: Arc<Mutex<Globals>> = { Arc::new(Mutex::new(Globals::new())) };
+impl Plugin for Whitelist {
+    fn register(&self) {
+        info!("Registered Plugin: 'Whitelist'");
+    }
+
+    fn unregister(&self) {
+        info!("Unregistered Plugin: 'Whitelist'");
+    }
 }

@@ -18,33 +18,4 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::sync::Arc;
-use std::sync::Mutex;
-
-use config::Config;
-use plugins::PluginManager;
-use hooks::HookManager;
-
-use util::ThreadPool;
-
-pub struct Globals {
-    pub config: Config,
-    pub plugin_manager: PluginManager,
-    pub hook_manager: HookManager,
-    pub thread_pool: Option<Box<ThreadPool>>,
-}
-
-impl Globals {
-    pub fn new() -> Globals {
-        Globals {
-            config: Config::new(),
-            plugin_manager: PluginManager::new(),
-            hook_manager: HookManager::new(),
-            thread_pool: None,
-        }
-    }
-}
-
-lazy_static! {
-    pub static ref GLOBALS: Arc<Mutex<Globals>> = { Arc::new(Mutex::new(Globals::new())) };
-}
+// TODO: Implement this!

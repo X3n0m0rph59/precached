@@ -20,6 +20,8 @@
 
 mod files;
 mod system;
+mod thread_pool;
 
 pub use self::files::*;
 pub use self::system::*;
+pub use self::thread_pool::*;

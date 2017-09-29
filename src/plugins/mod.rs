@@ -18,16 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::sync::Arc;
-use std::sync::Mutex;
-
 mod plugin_manager;
 mod plugin;
-use globals::Globals;
 
 pub use self::plugin_manager::*;
-pub mod thread_pool;
+pub mod vfs_stat_cache;
+pub mod whitelist;
 
-pub fn register_default_plugins(globals: &mut Arc<Mutex<Globals>>) {
-    thread_pool::register_plugin(globals);
+pub fn register_default_plugins() {    
+    vfs_stat_cache::register_plugin();
+    whitelist::register_plugin();
 }

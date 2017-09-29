@@ -18,17 +18,13 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::sync::Arc;
-use std::sync::Mutex;
-
 mod hook_manager;
 mod hook;
-use globals::Globals;
 
 pub use self::hook_manager::*;
 
 mod process_tracker;
 
-pub fn register_default_hooks(globals: &mut Arc<Mutex<Globals>>) {
-    process_tracker::register_hook(globals);
+pub fn register_default_hooks() {
+    process_tracker::register_hook();
 }

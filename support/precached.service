@@ -2,7 +2,7 @@
 Description=Process monitor and pre-caching daemon
 
 [Service]
-ExecStart=/usr/sbin/precached -f
+ExecStart=/usr/sbin/precached -f -c /etc/precached/precached.conf
 ExecReload=/bin/kill -HUP $MAINPID
 Type=simple
 StandardOutput=syslog

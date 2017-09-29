@@ -24,30 +24,23 @@ use std;
 use std::io::Result;
 use std::fs::File;
 use std::os::unix::io::IntoRawFd;
-use std::sync::Arc;
-use std::sync::Mutex;
 
 use std::collections::HashMap;
-use globals::Globals;
 use process::Process;
+use globals;
 use procmon;
+
+use util;
+
 use super::hook;
 
-use plugins::thread_pool::ThreadPool;
-
 /// Register this hook implementation with the system
-pub fn register_hook(globals: &mut Arc<Mutex<Globals>>) {
-    match globals.lock() {
-        Err(_) => { error!("Could not lock a shared data structure!"); },
+pub fn register_hook() {
+    match globals::GLOBALS.lock() {
+        Err(_)    => { error!("Could not lock a shared data structure!"); },
         Ok(mut g) => {
-            let hook = Box::new(ProcessTracker::new(&mut g));
-
-            match g.hook_manager.lock() {
-                Err(_) => { error!("Could not lock a shared data structure!"); },
-                Ok(mut h) => {
-                    h.register_hook(hook);
-                }
-            };
+            let hook = Box::new(ProcessTracker::new());
+            g.hook_manager.register_hook(hook);
         }
     };
 }
@@ -61,12 +54,11 @@ pub struct ProcessTracker {
     tracked_processes: HashMap<libc::pid_t, Process>,
     mapped_files_histogram: HashMap<String, usize>,
     mapped_files: HashMap<String, ActiveMapping>,
-    thread_pool: Box<ThreadPool>,
     blacklist: Box<Vec<String>>,
 }
 
 impl ProcessTracker {
-    pub fn new(globals: &mut Globals) -> ProcessTracker {
+    pub fn new() -> ProcessTracker {
         let result = unsafe { libc::mlockall(libc::MCL_CURRENT | libc::MCL_FUTURE) };
         if result < 0 as libc::c_int {
             error!("mlockall() failed!");
@@ -77,7 +69,6 @@ impl ProcessTracker {
         ProcessTracker { tracked_processes: HashMap::new(),
                          mapped_files_histogram: HashMap::new(),
                          mapped_files: HashMap::new(),
-                         thread_pool: globals.thread_pool.take().unwrap(),
                          blacklist: Box::new(ProcessTracker::get_file_blacklist()),
         }
     }
@@ -112,8 +103,6 @@ impl ProcessTracker {
     pub fn update_maps_and_lock(&mut self) {
         trace!("Updating mmaps and mlocks...");
 
-        let thread_pool = &self.thread_pool;
-
         for (k, _v) in self.mapped_files_histogram.iter() {
             let filename = k.clone();
 
@@ -121,6 +110,7 @@ impl ProcessTracker {
             // and if it is not already mapped
             if !self.blacklist.contains(&filename) &&
                !self.mapped_files.contains_key(&filename) {
+                    let thread_pool = util::POOL.lock().unwrap();
                     thread_pool.submit_work(move || {
                         match ProcessTracker::map_and_lock_file(&filename) {
                             Err(s) => { error!("Could not cache file '{}'", s); },

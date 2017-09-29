@@ -28,20 +28,19 @@
 extern crate nix;
 extern crate pretty_env_logger;
 use pretty_env_logger as logger;
+extern crate toml;
 #[macro_use] extern crate log;
 #[macro_use] extern crate lazy_static;
+#[macro_use] extern crate serde_derive;
 
 use std::thread;
 use nix::sys::signal;
-use std::sync::Arc;
-use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 
 mod config;
 use config::Config;
 
 mod globals;
-use globals::Globals;
 
 mod procmon;
 use procmon::ProcMon;
@@ -51,6 +50,7 @@ mod process;
 mod plugins;
 mod hooks;
 mod dbus;
+mod storage;
 mod util;
 
 /// Global exit flag
@@ -100,6 +100,12 @@ fn main() {
         print_license_header();
     }
 
+    // Parse external configuration file
+    match storage::parse_config_file() {
+        Ok(_)  => { info!("Successfuly parsed configuration!") },
+        Err(s) => { error!("Error in configuration file: {}", s); return }
+    }
+
     // Check if we are able to run precache
     // (check system for conformance)
     match util::check_system() {
@@ -111,7 +117,7 @@ fn main() {
     setup_signal_handlers();
 
     match dbus::register_with_dbus() {
-        Ok(()) => {},
+        Ok(()) => { info!("DBUS interface registered successfuly!") },
         Err(s) => { error!("Could not register DBUS interface: {}", s); return }
     };
 
@@ -120,10 +126,9 @@ fn main() {
         Err(s)   => { error!("Could not create process events monitor: {}", s); return }
     };
 
-
-    let mut globals = Arc::new(Mutex::new(Globals::new(&std::env::args().collect())));
-    plugins::register_default_plugins(&mut globals);
-    hooks::register_default_hooks(&mut globals);
+    // Register plugins and hooks
+    plugins::register_default_plugins();
+    hooks::register_default_hooks();
 
     // spawn the event loop thread
     let handle = thread::Builder::new()
@@ -140,11 +145,10 @@ fn main() {
                 RELOAD_NOW.store(false, Ordering::Relaxed);
                 trace!("Reloading configuration...");
 
-                match globals.lock() {
+                match globals::GLOBALS.lock() {
                     Err(_) => { error!("Could not lock a shared data structure!"); },
                     Ok(mut g) => {
-                        let config = Arc::new(Mutex::new(Config::new(&std::env::args().collect())));
-                        g.config = config;
+                        g.config = Config::new();
                     }
                 };
             }
@@ -153,16 +157,11 @@ fn main() {
             let event = procmon.wait_for_event();
 
             // We got an event, now dispatch it to all registered hooks
-            match globals.lock() {
+            match globals::GLOBALS.lock() {
                 Err(_) => { error!("Could not lock a shared data structure!"); },
-                Ok(g) => {
-                    match g.hook_manager.lock() {
-                        Err(_) => { error!("Could not lock a shared data structure!"); },
-                        Ok(mut h) => {
-                            // dispatch the event to all registered hooks
-                            h.dispatch_event(&event);
-                        }
-                    };
+                Ok(mut g) => {
+                    // dispatch the event to all registered hooks
+                    g.hook_manager.dispatch_event(&event);
                 }
             };
         }

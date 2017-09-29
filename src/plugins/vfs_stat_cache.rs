@@ -18,4 +18,39 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// TODO: Implement this!
+use globals;
+use plugins::plugin::Plugin;
+
+/// Register this plugin implementation with the system
+pub fn register_plugin() {
+    match globals::GLOBALS.lock() {
+        Err(_)    => { error!("Could not lock a shared data structure!"); },
+        Ok(mut g) => {
+            let plugin = Box::new(VFSStatCache::new());
+            g.plugin_manager.register_plugin(plugin);
+        }
+    };
+}
+
+#[derive(Debug)]
+pub struct VFSStatCache {
+
+}
+
+impl VFSStatCache {
+    pub fn new() -> VFSStatCache {
+        VFSStatCache {
+
+        }
+    }
+}
+
+impl Plugin for VFSStatCache {
+    fn register(&self) {
+        info!("Registered Plugin: 'VFS statx() Cache'");
+    }
+
+    fn unregister(&self) {
+        info!("Unregistered Plugin: 'VFS statx() Cache'");
+    }
+}
