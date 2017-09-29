@@ -18,7 +18,11 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use events;
+
 pub trait Plugin {
-    fn register(&self);
-    fn unregister(&self);
+    fn register(&mut self);
+    fn unregister(&mut self);
+
+    fn internal_event(&mut self, event: &events::InternalEvent);
 }

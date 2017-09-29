@@ -18,13 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use procmon;
+mod internal_event;
 
-pub trait Hook {
-    fn register(&mut self);
-    fn unregister(&mut self);
-
-    fn internal_event(&mut self, event: &events::InternalEvent);
-    fn process_event(&mut self, event: &procmon::Event);
-}
+pub use self::internal_event::*;

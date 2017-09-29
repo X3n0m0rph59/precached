@@ -21,11 +21,13 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use events;
 use procmon;
+
 use super::hook::Hook;
 
 pub struct HookManager {
-    hooks: Arc<Mutex<Vec<Box<Hook + Send>>>>,
+    hooks: Arc<Mutex<Vec<Box<Hook + Sync + Send>>>>,
 }
 
 impl HookManager {
@@ -33,20 +35,20 @@ impl HookManager {
         HookManager { hooks: Arc::new(Mutex::new(Vec::new())), }
     }
 
-    pub fn register_hook(&mut self, hook: Box<Hook + Send>) {
+    pub fn register_hook(&mut self, hook: Box<Hook + Sync + Send>) {
         match self.hooks.lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(mut hooks) => {
                 hooks.push(hook);
 
                 let last = hooks.len() - 1;
-                hooks[last].on_register();
+                hooks[last].register();
             }
         };
     }
 
     /*pub fn unregister_hook(&mut self) {
-        // hook.on_unregister();
+        // hook.unregister();
     }*/
 
     pub fn dispatch_event(&mut self, event: &procmon::Event) {
@@ -54,7 +56,18 @@ impl HookManager {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(mut hooks) => {
                 for h in hooks.iter_mut() {
-                    h.on_process_event(event);
+                    h.process_event(event);
+                }
+            }
+        };
+    }
+
+    pub fn dispatch_internal_event(&mut self, event: &events::InternalEvent) {
+        match self.hooks.lock() {
+            Err(_) => { error!("Could not lock a shared data structure!"); },
+            Ok(mut hooks) => {
+                for h in hooks.iter_mut() {
+                    h.internal_event(event);
                 }
             }
         };

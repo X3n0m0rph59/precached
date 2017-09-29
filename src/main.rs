@@ -34,6 +34,7 @@ extern crate toml;
 #[macro_use] extern crate serde_derive;
 
 use std::thread;
+use std::time;
 use nix::sys::signal;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 
@@ -46,6 +47,9 @@ mod procmon;
 use procmon::ProcMon;
 
 mod process;
+
+mod events;
+use events::*;
 
 mod plugins;
 mod hooks;
@@ -138,6 +142,8 @@ fn main() {
         'event_loop: loop {
             if EXIT_NOW.load(Ordering::Relaxed) {
                 trace!("Leaving the event loop...");
+                events::fire_internal_event(EventType::Shutdown);
+
                 break 'event_loop;
             }
 
@@ -149,6 +155,8 @@ fn main() {
                     Err(_) => { error!("Could not lock a shared data structure!"); },
                     Ok(mut g) => {
                         g.config = Config::new();
+
+                        events::fire_internal_event(EventType::ConfigurationReloaded);
                     }
                 };
             }
@@ -168,16 +176,26 @@ fn main() {
 
     }).unwrap();
 
-    /*'main_loop: loop {
+    'main_loop: loop {
         trace!("Main thread going to sleep...");
         thread::sleep(time::Duration::from_millis(1000));
         trace!("Main thread woken up...");
+
+        events::fire_internal_event(EventType::Ping);
+
+        // Let the task scheduler run it's queued jobs
+        match util::SCHEDULER.lock() {
+            Err(_) => { error!("Could not lock a shared data structure!"); },
+            Ok(mut s) => {
+                s.run_jobs();
+            }
+        };
 
         if EXIT_NOW.load(Ordering::Relaxed) {
             trace!("Leaving the main loop...");
             break 'main_loop;
         }
-    }*/
+    }
 
     // main thread blocks here
     match handle.join() {

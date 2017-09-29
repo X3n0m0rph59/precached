@@ -18,13 +18,33 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use procmon;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-pub trait Hook {
-    fn register(&mut self);
-    fn unregister(&mut self);
+use util;
 
-    fn internal_event(&mut self, event: &events::InternalEvent);
-    fn process_event(&mut self, event: &procmon::Event);
+pub struct TaskScheduler {
+    backlog: Vec<Box<FnOnce() + Sync + Send + 'static>>,
+}
+
+impl TaskScheduler {
+    pub fn new() -> TaskScheduler {
+        TaskScheduler {
+            backlog: Vec::new(),
+        }
+    }
+
+    pub fn schedule_job<F>(&mut self, job: F)
+        where F: FnOnce() + Sync + Send + 'static {
+        self.backlog.push(Box::new(job));
+    }
+
+    pub fn run_jobs(&mut self) {
+        let thread_pool = util::POOL.lock().unwrap();
+        //thread_pool.submit_work(move || { self.backlog[0](); });
+    }
+}
+
+lazy_static! {
+    pub static ref SCHEDULER: Arc<Mutex<TaskScheduler>> = { Arc::new(Mutex::new(TaskScheduler::new())) };
 }

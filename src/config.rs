@@ -28,8 +28,8 @@ use storage;
 pub struct Config {
     pub verbosity: u8,
     pub daemonize: bool,
-    pub config_file: String,
-    pub daemon_config: Option<storage::ConfigFile>,
+    pub config_filename: String,
+    pub config_file: Option<storage::ConfigFile>,
 }
 
 impl Config {
@@ -58,8 +58,8 @@ impl Config {
         Config {
             verbosity: matches.occurrences_of("v") as u8,
             daemonize: !matches.is_present("foreground"),
-            config_file: String::from(matches.value_of("config").unwrap_or("/etc/precached/precached.conf")),
-            daemon_config: None,
+            config_filename: String::from(matches.value_of("config").unwrap_or("/etc/precached/precached.conf")),
+            config_file: None,
         }
     }
 }

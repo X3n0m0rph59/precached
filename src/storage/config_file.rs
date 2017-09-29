@@ -26,12 +26,12 @@ use util;
 
 #[derive(Debug, Deserialize)]
 pub struct ConfigFile {
-    user: Option<String>,
-    group: Option<String>,
-    worker_threads: Option<String>,
-    whitelist: Option<Vec<String>>,
-    blacklist: Option<Vec<String>>,
-    state_cache: Option<String>,
+    pub user: Option<String>,
+    pub group: Option<String>,
+    pub worker_threads: Option<String>,
+    pub state_cache: Option<String>,
+    pub whitelist: Option<Vec<String>>,
+    pub blacklist: Option<Vec<String>>,
 }
 
 impl Default for ConfigFile {
@@ -40,9 +40,9 @@ impl Default for ConfigFile {
             user: Some(String::from("root")),
             group: Some(String::from("root")),
             worker_threads: Some(String::from("auto")),
+            state_cache: Some(String::from("/var/cache/precached.state")),
             whitelist: Some(vec![String::from("")]),
             blacklist: Some(vec![String::from("")]),
-            state_cache: Some(String::from("/var/cache/precached.state")),
         }
     }
 }
@@ -53,7 +53,7 @@ pub fn parse_config_file() -> io::Result<()> {
             Err(io::Error::new(io::ErrorKind::Other, "Could not lock a shared data structure!"))
         },
         Ok(mut g) => {
-            let input = util::get_lines_from_file(&g.config.config_file)?;
+            let input = util::get_lines_from_file(&g.config.config_filename)?;
 
             let mut s = String::new();
             for l in input {
@@ -66,9 +66,9 @@ pub fn parse_config_file() -> io::Result<()> {
                 Ok(res) => { res }
             };
 
-            g.config.daemon_config = Some(config_file);
+            g.config.config_file = Some(config_file);
             trace!("Precached internal configuration dump");
-            trace!("{:#?}", g.config.daemon_config);
+            trace!("{:#?}", g.config.config_file);
 
             Ok(())
         }

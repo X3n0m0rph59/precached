@@ -20,16 +20,12 @@
 
 extern crate libc;
 
-use std;
-use std::io::Result;
-use std::fs::File;
-use std::os::unix::io::IntoRawFd;
-
 use std::collections::HashMap;
 use process::Process;
 use globals;
 use procmon;
 
+use events;
 use util;
 
 use super::hook;
@@ -45,11 +41,13 @@ pub fn register_hook() {
     };
 }
 
+#[derive(Debug)]
 struct ActiveMapping {
     pub fd: usize,
     pub addr: usize,
 }
 
+#[derive(Debug)]
 pub struct ProcessTracker {
     tracked_processes: HashMap<libc::pid_t, Process>,
     mapped_files_histogram: HashMap<String, usize>,
@@ -59,12 +57,12 @@ pub struct ProcessTracker {
 
 impl ProcessTracker {
     pub fn new() -> ProcessTracker {
-        let result = unsafe { libc::mlockall(libc::MCL_CURRENT | libc::MCL_FUTURE) };
-        if result < 0 as libc::c_int {
-            error!("mlockall() failed!");
-        } else {
-            info!("mlockall() succeeded");
-        }
+        // let result = unsafe { libc::mlockall(libc::MCL_CURRENT | libc::MCL_FUTURE) };
+        // if result < 0 as libc::c_int {
+        //     error!("mlockall() failed!");
+        // } else {
+        //     info!("mlockall() succeeded");
+        // }
 
         ProcessTracker { tracked_processes: HashMap::new(),
                          mapped_files_histogram: HashMap::new(),
@@ -112,73 +110,34 @@ impl ProcessTracker {
                !self.mapped_files.contains_key(&filename) {
                     let thread_pool = util::POOL.lock().unwrap();
                     thread_pool.submit_work(move || {
-                        match ProcessTracker::map_and_lock_file(&filename) {
+                        match util::map_and_lock_file(&filename) {
                             Err(s) => { error!("Could not cache file '{}'", s); },
                             Ok(_) => {}
                         }
                     });
 
+                // TODO: fix this!
                 let mapping = ActiveMapping { addr: 0, fd: 0 };
                 self.mapped_files.insert(k.clone(), mapping);
-            }
-        }
-    }
-
-    fn map_and_lock_file(filename: &str) -> Result<()> {
-        trace!("Caching file: '{}'", filename);
-
-        let file = File::open(filename)?;
-        let fd = file.into_raw_fd();
-
-        let mut stat: libc::stat = unsafe { std::mem::zeroed() };
-        unsafe { libc::fstat(fd, &mut stat); };
-        let addr = unsafe { libc::mmap(0 as *mut libc::c_void, stat.st_size as usize, libc::PROT_READ,
-                                       libc::MAP_PRIVATE, fd, 0) };
-
-        if addr < 0 as *mut libc::c_void {
-            Err(std::io::Error::last_os_error())
-        } else {
-            trace!("Successfuly called mmap() for: '{}'", filename);
-
-            let result = unsafe { libc::madvise(addr as *mut libc::c_void, stat.st_size as usize,
-                                                libc::MADV_WILLNEED
-                                            /*| libc::MADV_SEQUENTIAL*/
-                                            /*| libc::MADV_MERGEABLE*/) };
-
-            if result < 0 as libc::c_int {
-                Err(std::io::Error::last_os_error())
-            } else {
-                trace!("Successfuly called madvise() for: '{}'", filename);
-
-                // FIXME: Maybe redundant with previous call to mlockall()?
-                let result = unsafe { libc::mlock(addr as *mut libc::c_void, stat.st_size as usize) };
-
-                if result < 0 as libc::c_int {
-                    Err(std::io::Error::last_os_error())
-                } else {
-                    trace!("Successfuly called mlock() for: '{}'", filename);
-
-                    Ok(())
-                }
             }
         }
     }
 }
 
 impl hook::Hook for ProcessTracker {
-    fn on_register(&mut self) {
+    fn register(&mut self) {
         info!("Registered Hook: 'Process Tracker'");
     }
 
-    fn on_unregister(&mut self) {
+    fn unregister(&mut self) {
         info!("Unregistered Hook: 'Process Tracker'");
     }
 
-    fn on_internal_event(&mut self) {
+    fn internal_event(&mut self, event: &events::InternalEvent) {
         // trace!("Skipped internal event (not handled)");
     }
 
-    fn on_process_event(&mut self, event: &procmon::Event) {
+    fn process_event(&mut self, event: &procmon::Event) {
         match event.event_type {
             procmon::EventType::Exec => {
                  let process = Process::new(event.pid);

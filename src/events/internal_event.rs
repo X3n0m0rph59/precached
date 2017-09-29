@@ -18,13 +18,38 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use procmon;
+use globals;
 
-pub trait Hook {
-    fn register(&mut self);
-    fn unregister(&mut self);
+#[derive(Debug)]
+pub enum EventType {
+    Invalid,
+    Ping,
+    Startup,
+    Shutdown,
+    ConfigurationReloaded,
+}
 
-    fn internal_event(&mut self, event: &events::InternalEvent);
-    fn process_event(&mut self, event: &procmon::Event);
+#[derive(Debug)]
+pub struct InternalEvent {
+    pub event_type: EventType
+}
+
+impl InternalEvent {
+    pub fn new(event_type: EventType) -> InternalEvent {
+        InternalEvent {
+            event_type: event_type,
+        }
+    }
+}
+
+pub fn fire_internal_event(event_type: EventType) {
+    match globals::GLOBALS.lock() {
+        Err(_) => { error!("Could not lock a shared data structure!"); },
+        Ok(mut g) => {
+            let event = InternalEvent::new(event_type);
+
+            g.plugin_manager.dispatch_internal_event(&event);
+            g.hook_manager.dispatch_internal_event(&event);
+        }
+    };
 }

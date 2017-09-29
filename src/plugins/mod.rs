@@ -22,10 +22,11 @@ mod plugin_manager;
 mod plugin;
 
 pub use self::plugin_manager::*;
+
 pub mod vfs_stat_cache;
 pub mod whitelist;
 
-pub fn register_default_plugins() {    
+pub fn register_default_plugins() {
     vfs_stat_cache::register_plugin();
     whitelist::register_plugin();
 }

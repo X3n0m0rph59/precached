@@ -41,7 +41,7 @@ impl ThreadPool {
     }
 
     pub fn submit_work<F>(&self, job: F)
-        where F: FnOnce() + Send + 'static {
+        where F: FnOnce() + Sync + Send + 'static {
         self.pool.execute(job);
     }
 }
