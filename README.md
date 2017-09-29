@@ -16,5 +16,24 @@ perceived snappiness of the system.
 This project is in a very early stage of development and you may
 possibly encounter serious bugs.
 
+### Current State
+
+#### What is working right now
+
+* mlock() of mapped files
+
+#### What remains to be done 
+
+* Implement ceiling on mlocked() memory
+* Implement VFS statx() caching (pre-read file metadata)
+* Possibly implement fork-bomb mitigation
+* Implement a persistence layer
+* Prime caches on daemon startup
+* Daemonization support
+* Implement a DBUS interface
+* Write a nice CLI tool to control the daemon
+* And write a precached GUI in GTK+
+* ...
+
 ### Authors
 precached - Copyright (C) 2017 the precached developers
