@@ -161,6 +161,16 @@ fn main() {
                 };
             }
 
+            // events::fire_internal_event(EventType::Ping);
+
+            // Let the task scheduler run it's queued jobs
+            // match util::SCHEDULER.lock() {
+            //     Err(_) => { error!("Could not lock a shared data structure!"); },
+            //     Ok(mut s) => {
+            //         s.run_jobs();
+            //     }
+            // };
+
             // blocking call into procmon_sys
             let event = procmon.wait_for_event();
 
@@ -176,26 +186,26 @@ fn main() {
 
     }).unwrap();
 
-    'main_loop: loop {
+    /*'main_loop: loop {
         trace!("Main thread going to sleep...");
         thread::sleep(time::Duration::from_millis(1000));
         trace!("Main thread woken up...");
 
-        events::fire_internal_event(EventType::Ping);
+        // events::fire_internal_event(EventType::Ping);
 
         // Let the task scheduler run it's queued jobs
-        match util::SCHEDULER.lock() {
-            Err(_) => { error!("Could not lock a shared data structure!"); },
-            Ok(mut s) => {
-                s.run_jobs();
-            }
-        };
+        // match util::SCHEDULER.lock() {
+        //     Err(_) => { error!("Could not lock a shared data structure!"); },
+        //     Ok(mut s) => {
+        //         s.run_jobs();
+        //     }
+        // };
 
         if EXIT_NOW.load(Ordering::Relaxed) {
             trace!("Leaving the main loop...");
             break 'main_loop;
         }
-    }
+    }*/
 
     // main thread blocks here
     match handle.join() {

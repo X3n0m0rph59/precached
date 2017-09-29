@@ -99,13 +99,11 @@ impl Plugin for Whitelist {
     fn internal_event(&mut self, event: &events::InternalEvent) {
         match event.event_type {
             events::EventType::Ping => {
-                // Schedule pre-caching run
-                match util::POOL.lock() {
-                    Err(_) => { error!("Could not lock a shared data structure!"); },
-                    Ok(mut s) => {
-                        s.submit_work(move || { self.cache_whitelisted_files(); });
-                    }
-                };
+                self.cache_whitelisted_files();
+            },
+
+            _ => {
+                // Ignore all other events
             }
         }
     }

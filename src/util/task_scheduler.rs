@@ -24,24 +24,29 @@ use std::sync::Mutex;
 use util;
 
 pub struct TaskScheduler {
-    backlog: Vec<Box<FnOnce() + Sync + Send + 'static>>,
+    backlog: Vec<Box<Fn() + Sync + Send + 'static>>,
 }
 
 impl TaskScheduler {
     pub fn new() -> TaskScheduler {
         TaskScheduler {
-            backlog: Vec::new(),
+            backlog: Vec::<Box<Fn() + Sync + Send + 'static>>::new(),
         }
     }
 
     pub fn schedule_job<F>(&mut self, job: F)
-        where F: FnOnce() + Sync + Send + 'static {
+        where F: Fn() + Sync + Send + 'static {
         self.backlog.push(Box::new(job));
     }
 
-    pub fn run_jobs(&mut self) {
+    pub fn run_jobs(&'static mut self) {
         let thread_pool = util::POOL.lock().unwrap();
-        //thread_pool.submit_work(move || { self.backlog[0](); });
+        let backlog = Arc::new(&self.backlog);
+        thread_pool.submit_work(move || {
+            for j in backlog.iter() {
+                j();
+            }
+        });
     }
 }
 

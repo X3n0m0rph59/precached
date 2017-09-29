@@ -89,13 +89,11 @@ impl Plugin for VFSStatCache {
     fn internal_event(&mut self, event: &events::InternalEvent) {
         match event.event_type {
             events::EventType::Ping => {
-                // Schedule pre-caching run
-                match util::POOL.lock() {
-                    Err(_) => { error!("Could not lock a shared data structure!"); },
-                    Ok(mut s) => {
-                        s.submit_work(move || { self.prime_statx_cache(); });
-                    }
-                };
+                self.prime_statx_cache();
+            },
+
+            _ => {
+                // Ignore all other events
             }
         }
     }
