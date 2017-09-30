@@ -72,8 +72,9 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
 
     let mut stat: libc::stat = unsafe { std::mem::zeroed() };
     unsafe { libc::fstat(fd, &mut stat); };
-    let addr = unsafe { libc::mmap(0 as *mut libc::c_void, stat.st_size as usize, libc::PROT_READ,
-                                   libc::MAP_PRIVATE, fd, 0) };
+    let addr = unsafe { libc::mmap(0 as *mut libc::c_void, stat.st_size as usize,
+                                   libc::PROT_READ,
+                                   libc::MAP_SHARED, fd, 0) };
 
     if addr < 0 as *mut libc::c_void {
         Err(std::io::Error::last_os_error())
