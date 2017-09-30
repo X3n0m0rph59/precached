@@ -7,21 +7,24 @@ multiple means. E.g. in the future it will be able to pre-fault pages into
 memory to speed up loading of programs and increase the perceived overall
 'snappiness' of the system.
 
-### Quick install guide
+### Quick Install Guide
     $ git clone https://github.com/X3n0m0rph59/precached.git  
     $ cd precached/
     $ cargo build
 
 ### Notes
+
 This project is in a very early stage of development and you may
 possibly encounter serious bugs.
 
 ### Current State
 
 #### What is working right now
+
 * mlock() of mapped files
 
 #### What remains to be done
+
 * Implement ceiling on mlocked() memory
 * Implement VFS statx() caching (pre-read file metadata)
 * Possibly implement fork-bomb mitigation
@@ -33,7 +36,8 @@ possibly encounter serious bugs.
 * And write a precached GUI in GTK+
 * ...
 
-### Getting involved
+### Getting Involved
+
 We are actively looking for contributions! Besides from code contributions,
 we could especially well use:
 * Project logo designs
@@ -47,7 +51,9 @@ If you are new to Open Source software, you may want to read
 [How to Contribute](https://opensource.guide/how-to-contribute/)
 
 ### Website
+
 [Project Website](https://x3n0m0rph59.github.io/precached/)
 
 ### Authors
+
 precached - Copyright (C) 2017 the precached developers
