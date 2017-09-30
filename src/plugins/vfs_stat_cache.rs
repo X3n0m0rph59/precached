@@ -22,6 +22,7 @@ use globals;
 use events;
 use util;
 
+use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 
 /// Register this plugin implementation with the system
@@ -47,15 +48,29 @@ impl VFSStatCache {
         }
     }
 
+    fn get_globaly_tracked_files(&self, globals: &mut globals::Globals) -> Vec<String> {
+        let mut result = Vec::new();
+
+        // if let Some(hook) = &globals.get_hook_manager()
+        //                             .get_hook_by_name(&String::from("process_tracker")) {
+        //
+        //     // hook.get_mapped_files_histogram();
+        //     // result.append();
+        // }
+
+        result
+    }
+
     pub fn prime_statx_cache(&mut self, globals: &mut globals::Globals) {
-        info!("Started reading of statx() metadata...");
+        trace!("Started reading of statx() metadata...");
 
         let config_file = globals.config.config_file.clone().unwrap();
-        let files = config_file.whitelist.unwrap();
 
-        for filename in files {
-            // mmap and mlock file if it is not contained in the blacklist
-            // and if it is not already mapped
+        let mut tracked_files = Vec::<String>::new();
+        tracked_files.append(&mut config_file.whitelist.unwrap());
+        tracked_files.append(&mut self.get_globaly_tracked_files(globals));
+
+        for filename in tracked_files {
             let f = filename.clone();
 
             let thread_pool = util::POOL.try_lock().unwrap();
@@ -64,9 +79,9 @@ impl VFSStatCache {
 
             thread_pool.submit_work(move || {
                 match util::prime_metadata_cache(&f) {
-                    Err(s) => { error!("Could not read file metadata for '{}': {}", &f, &s); },
+                    Err(s) => { error!("Could not read metadata for '{}': {}", &f, &s); },
                     Ok(_) => {
-                        trace!("Successfuly read file metadata for '{}'", &f);
+                        trace!("Successfuly read metadata for '{}'", &f);
                         // sc.lock().unwrap().send(r).unwrap();
                     }
                 }
@@ -87,6 +102,10 @@ impl Plugin for VFSStatCache {
 
     fn unregister(&mut self) {
         info!("Unregistered Plugin: 'VFS statx() Cache'");
+    }
+
+    fn get_name(&self) -> &'static str {
+        "vfs_stat_cache"
     }
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals) {

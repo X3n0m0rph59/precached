@@ -23,7 +23,7 @@ mod hook;
 
 pub use self::hook_manager::*;
 
-mod process_tracker;
+pub mod process_tracker;
 
 pub fn register_default_hooks() {
     process_tracker::register_hook();

@@ -21,6 +21,9 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use std::collections::HashMap;
+use std::collections::hash_map::Entry::{Occupied, Vacant};
+
 use events;
 use globals;
 use procmon;
@@ -29,22 +32,20 @@ use super::hook::Hook;
 
 #[derive(Clone)]
 pub struct HookManager {
-    hooks: Arc<Mutex<Vec<Box<Hook + Sync + Send>>>>,
+    hooks: Arc<Mutex<HashMap<String, Box<Hook + Sync + Send>>>>,
 }
 
 impl HookManager {
     pub fn new() -> HookManager {
-        HookManager { hooks: Arc::new(Mutex::new(Vec::new())), }
+        HookManager { hooks: Arc::new(Mutex::new(HashMap::new())), }
     }
 
-    pub fn register_hook(&mut self, hook: Box<Hook + Sync + Send>) {
+    pub fn register_hook(&mut self, mut hook: Box<Hook + Sync + Send>) {
         match self.hooks.try_lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(mut hooks) => {
-                hooks.push(hook);
-
-                let last = hooks.len() - 1;
-                hooks[last].register();
+                hook.register();
+                hooks.insert(String::from(hook.get_name()), hook);
             }
         };
     }
@@ -53,11 +54,23 @@ impl HookManager {
         // hook.unregister();
     }*/
 
+    // pub fn get_hook_by_name(&mut self, name: String) -> Option<&Box<Hook + Sync + Send>> {
+    //     match self.hooks.try_lock() {
+    //         Err(_) => { error!("Could not lock a shared data structure!"); None },
+    //         Ok(hooks) => {
+    //             match hooks.entry(name) {
+    //                 Vacant(_)       => { None },
+    //                 Occupied(entry) => { Some(entry.into_mut()) }
+    //             }
+    //         }
+    //     }
+    // }
+
     pub fn dispatch_event(&self, event: &procmon::Event, globals: &mut globals::Globals) {
         match self.hooks.try_lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(ref mut hooks) => {
-                for h in hooks.iter_mut() {
+                for (_, h) in hooks.iter_mut() {
                     h.process_event(event, globals);
                 }
             }
@@ -68,7 +81,7 @@ impl HookManager {
         match self.hooks.try_lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(ref mut hooks) => {
-                for h in hooks.iter_mut() {
+                for (_, h) in hooks.iter_mut() {
                     h.internal_event(event, globals);
                 }
             }

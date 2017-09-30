@@ -25,5 +25,7 @@ pub trait Plugin {
     fn register(&mut self);
     fn unregister(&mut self);
 
+    fn get_name(&self) -> &'static str;
+
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals);
 }

@@ -20,8 +20,8 @@
 
 use std::collections::HashMap;
 
-use std::sync::{Arc, Mutex};
-use std::sync::mpsc::{Sender, Receiver, channel};
+use std::sync::Mutex;
+use std::sync::mpsc::{Sender, channel};
 
 use globals;
 use events;
@@ -53,15 +53,16 @@ impl Whitelist {
     }
 
     pub fn cache_whitelisted_files(&mut self, globals: &mut globals::Globals) {
-        info!("Started caching of whitelisted files...");
+        trace!("Started caching of whitelisted files...");
 
         let config_file = globals.config.config_file.clone().unwrap();
-        let files = config_file.whitelist.unwrap();
+        let tracked_files = util::expand_path_list(&mut config_file.whitelist.unwrap());
 
-        for filename in files {
+        for filename in tracked_files {
             // mmap and mlock file if it is not contained in the blacklist
             // and if it is not already mapped
-            let f = filename.clone();
+            let f  = filename;
+            let f2 = f.clone();
             if !self.mapped_files.contains_key(&f) {
                 let thread_pool = util::POOL.try_lock().unwrap();
                 let (sender, receiver): (Sender<util::MemoryMapping>, _) = channel();
@@ -69,9 +70,9 @@ impl Whitelist {
 
                 thread_pool.submit_work(move || {
                     match util::map_and_lock_file(&f) {
-                        Err(s) => { error!("Could not cache file '{}' from whitelist: {}", &f, &s); },
+                        Err(s) => { error!("Could not cache file '{}': {}", &f, &s); },
                         Ok(r) => {
-                            trace!("Successfuly read file metadata for '{}'", &f);
+                            trace!("Successfuly cached file '{}'", &f);
                             sc.lock().unwrap().send(r).unwrap();
                         }
                     }
@@ -79,7 +80,7 @@ impl Whitelist {
 
                 // blocking call; wait for event loop thread
                 let mapping = receiver.recv().unwrap();
-                self.mapped_files.insert(filename, mapping);
+                self.mapped_files.insert(f2, mapping);
             }
         }
 
@@ -94,6 +95,10 @@ impl Plugin for Whitelist {
 
     fn unregister(&mut self) {
         info!("Unregistered Plugin: 'Whitelist'");
+    }
+
+    fn get_name(&self) -> &'static str {
+        "whitelist"
     }
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals) {

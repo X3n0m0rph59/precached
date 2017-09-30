@@ -137,6 +137,10 @@ impl hook::Hook for ProcessTracker {
         info!("Unregistered Hook: 'Process Tracker'");
     }
 
+    fn get_name(&self) -> &'static str {
+        "process_tracker"
+    }
+
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals) {
         // trace!("Skipped internal event (not handled)");
     }
@@ -157,11 +161,9 @@ impl hook::Hook for ProcessTracker {
                  // add process to tracking map
                  self.get_tracked_processes().insert(event.pid, process);
 
-                 info!("=======================================================================");
                  for (k,v) in self.get_mapped_files_histogram() {
-                     info!("File '{}' mapped: {}", k,v);
+                     trace!("File '{}' mapped: {}", k, v);
                  }
-                 info!("=======================================================================");
 
                  self.update_maps_and_lock(globals);
             },

@@ -21,6 +21,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use std::collections::HashMap;
+
 use events;
 use globals;
 
@@ -28,22 +30,20 @@ use super::plugin::Plugin;
 
 #[derive(Clone)]
 pub struct PluginManager {
-    plugins: Arc<Mutex<Vec<Box<Plugin + Sync + Send>>>>,
+    plugins: Arc<Mutex<HashMap<String, Box<Plugin + Sync + Send>>>>,
 }
 
 impl PluginManager {
     pub fn new() -> PluginManager {
-        PluginManager { plugins: Arc::new(Mutex::new(Vec::new())), }
+        PluginManager { plugins: Arc::new(Mutex::new(HashMap::new())), }
     }
 
-    pub fn register_plugin(&mut self, plugin: Box<Plugin + Sync + Send>) {
+    pub fn register_plugin(&mut self, mut plugin: Box<Plugin + Sync + Send>) {
         match self.plugins.try_lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(mut plugins) => {
-                plugins.push(plugin);
-
-                let last = plugins.len() - 1;
-                plugins[last].register();
+                plugin.register();
+                plugins.insert(String::from(plugin.get_name()), plugin);
             }
         };
     }
@@ -52,11 +52,20 @@ impl PluginManager {
     //     // plugin.unregister();
     // }
 
+    // pub fn get_plugin_by_name(&self, name: &String) -> &Option<&Box<Plugin + Sync + Send>> {
+    //     match self.plugins.try_lock() {
+    //         Err(_) => { error!("Could not lock a shared data structure!"); &None },
+    //         Ok(plugins) => {
+    //             &plugins.get(name)
+    //         }
+    //     }
+    // }
+
     pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut globals::Globals) {
         match self.plugins.try_lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(mut plugins) => {
-                for p in plugins.iter_mut() {
+                for (_, p) in plugins.iter_mut() {
                     p.internal_event(event, globals);
                 }
             }

@@ -23,10 +23,12 @@ mod plugin;
 
 pub use self::plugin_manager::*;
 
+pub mod dbus_interface;
 pub mod vfs_stat_cache;
 pub mod whitelist;
 
 pub fn register_default_plugins() {
+    dbus_interface::register_plugin();
     vfs_stat_cache::register_plugin();
     whitelist::register_plugin();
 }

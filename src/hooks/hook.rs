@@ -26,6 +26,8 @@ pub trait Hook {
     fn register(&mut self);
     fn unregister(&mut self);
 
+    fn get_name(&self) -> &'static str;
+
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals);
     fn process_event(&mut self, event: &procmon::Event, globals: &mut globals::Globals);
 }

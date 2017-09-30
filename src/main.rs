@@ -18,6 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//! ==========================================================
 //! precached - A Linux process monitor and pre-caching daemon
 //! ==========================================================
 //! Precached utilises the Linux netlink connector interface to
@@ -25,18 +26,18 @@
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system
 
-extern crate nix;
-extern crate flexi_logger;
+extern crate fern;
+extern crate chrono;
 
-use flexi_logger::{Logger, opt_format};
-
-extern crate toml;
 #[macro_use] extern crate log;
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate serde_derive;
 
+extern crate nix;
+extern crate toml;
+
 use std::thread;
-use std::time::{Instant, Duration};
+use std::time::{Instant};
 use nix::sys::signal;
 use std::sync::mpsc::channel;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
@@ -60,9 +61,12 @@ mod dbus;
 mod storage;
 mod util;
 
-/// Global exit flag
+/// Global 'shall we exit now' flag
 static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
+
+/// Global 'reload of daemon config pending' flag
 static RELOAD_NOW: AtomicBool = ATOMIC_BOOL_INIT;
+
 
 /// Signal handler for SIGINT and SIGTERM
 extern fn exit_signal(_: i32) {
@@ -74,6 +78,7 @@ extern fn reload_signal(_: i32) {
     RELOAD_NOW.store(true, Ordering::Relaxed);
 }
 
+/// Set up signal handlers
 fn setup_signal_handlers() {
     let sig_action = signal::SigAction::new(signal::SigHandler::Handler(exit_signal),
                                             signal::SaFlags::empty(),
@@ -98,17 +103,18 @@ under certain conditions.
 ");
 }
 
+/// Process daemon internal events
 fn process_internal_events() {
     match globals::GLOBALS.lock() {
         Err(_) => { error!("Could not lock a shared data structure!"); },
         Ok(g)  => {
-            // dispatch daemon internal events
             let mut queue = g.get_event_queue().clone();
 
             while let Some(internal_event) = queue.pop_front() {
                 let plugin_manager = g.get_plugin_manager();
                 let hook_manager = g.get_hook_manager();
 
+                // dispatch daemon internal events
                 plugin_manager.dispatch_internal_event(&internal_event, &mut g.clone());
                 hook_manager.dispatch_internal_event(&internal_event, &mut g.clone());
             }
@@ -116,6 +122,7 @@ fn process_internal_events() {
     };
 }
 
+/// Process events that come in via the procmon interface of the Linux kernel
 fn process_procmon_event(event: &procmon::Event) {
     trace!("Processing procmon event...");
 
@@ -131,10 +138,20 @@ fn process_procmon_event(event: &procmon::Event) {
 /// Program entrypoint
 fn main() {
     // Initialize logging subsystem
-    Logger::with_str("precached=debug")
-            .format(opt_format)
-            .start()
-            .unwrap_or_else(|e| { panic!("Logger initialization failed with {}", e) });
+    fern::Dispatch::new()
+            .format(|out, message, record| {
+                out.finish(format_args!(
+                    "{}[{}][{}] {}",
+                    chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                    record.level(),
+                    record.target(),
+                    message
+                ))
+             })
+            .level(log::LogLevelFilter::Trace)
+            .chain(std::io::stdout())
+            .chain(fern::log_file("debug.log").unwrap())
+            .apply().expect("Could not initialize the logging subsystem!");
 
     if unsafe { nix::libc::isatty(0) } == 1 {
         print_license_header();
@@ -248,12 +265,12 @@ fn main() {
 
     // main thread blocks here
     match handle.join() {
-        Ok(_)  => { trace!("Successfuly joined event loop thread"); },
+        Ok(_)  => { trace!("Successfuly joined event loop thread!"); },
         Err(_) => { error!("Could not join the event loop thread!"); }
     };
 
     // Clean up now
     trace!("Cleaning up...");
 
-    trace!("Exit");
+    trace!("Exiting now.");
 }
