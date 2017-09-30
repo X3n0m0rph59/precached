@@ -24,7 +24,7 @@ use self::clap::{Arg, App};
 
 use storage;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Config {
     pub verbosity: u8,
     pub daemonize: bool,

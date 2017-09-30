@@ -24,7 +24,7 @@ use globals;
 use toml;
 use util;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ConfigFile {
     pub user: Option<String>,
     pub group: Option<String>,
@@ -48,7 +48,7 @@ impl Default for ConfigFile {
 }
 
 pub fn parse_config_file() -> io::Result<()> {
-    match globals::GLOBALS.lock() {
+    match globals::GLOBALS.try_lock() {
         Err(_) => {
             Err(io::Error::new(io::ErrorKind::Other, "Could not lock a shared data structure!"))
         },

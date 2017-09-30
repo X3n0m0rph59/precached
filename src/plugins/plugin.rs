@@ -19,10 +19,11 @@
 */
 
 use events;
+use globals;
 
 pub trait Plugin {
     fn register(&mut self);
     fn unregister(&mut self);
 
-    fn internal_event(&mut self, event: &events::InternalEvent);
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals);
 }

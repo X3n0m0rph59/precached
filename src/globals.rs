@@ -21,17 +21,19 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use std::collections::LinkedList;
+
+use events;
 use config::Config;
 use plugins::PluginManager;
 use hooks::HookManager;
 
-use util::ThreadPool;
-
+#[derive(Clone)]
 pub struct Globals {
     pub config: Config,
-    pub plugin_manager: PluginManager,
-    pub hook_manager: HookManager,
-    pub thread_pool: Option<Box<ThreadPool>>,
+    plugin_manager: PluginManager,
+    hook_manager: HookManager,
+    event_queue: LinkedList<events::InternalEvent>,
 }
 
 impl Globals {
@@ -40,8 +42,32 @@ impl Globals {
             config: Config::new(),
             plugin_manager: PluginManager::new(),
             hook_manager: HookManager::new(),
-            thread_pool: None,
+            event_queue: LinkedList::new(),
         }
+    }
+
+    pub fn get_plugin_manager(&self) -> &PluginManager {
+        &self.plugin_manager
+    }
+
+    pub fn get_plugin_manager_mut(&mut self) -> &mut PluginManager {
+        &mut self.plugin_manager
+    }
+
+    pub fn get_hook_manager(&self) -> &HookManager {
+        &self.hook_manager
+    }
+
+    pub fn get_hook_manager_mut(&mut self) -> &mut HookManager {
+        &mut self.hook_manager
+    }
+
+    pub fn get_event_queue(&self) -> &LinkedList<events::InternalEvent> {
+        &self.event_queue
+    }
+
+    pub fn get_event_queue_mut(&mut self) -> &mut LinkedList<events::InternalEvent> {
+        &mut self.event_queue
     }
 }
 

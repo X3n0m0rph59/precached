@@ -22,9 +22,11 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use events;
+use globals;
 
 use super::plugin::Plugin;
 
+#[derive(Clone)]
 pub struct PluginManager {
     plugins: Arc<Mutex<Vec<Box<Plugin + Sync + Send>>>>,
 }
@@ -35,7 +37,7 @@ impl PluginManager {
     }
 
     pub fn register_plugin(&mut self, plugin: Box<Plugin + Sync + Send>) {
-        match self.plugins.lock() {
+        match self.plugins.try_lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(mut plugins) => {
                 plugins.push(plugin);
@@ -50,12 +52,12 @@ impl PluginManager {
     //     // plugin.unregister();
     // }
 
-    pub fn dispatch_internal_event(&mut self, event: &events::InternalEvent) {
-        match self.plugins.lock() {
+    pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut globals::Globals) {
+        match self.plugins.try_lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(mut plugins) => {
                 for p in plugins.iter_mut() {
-                    p.internal_event(event);
+                    p.internal_event(event, globals);
                 }
             }
         };

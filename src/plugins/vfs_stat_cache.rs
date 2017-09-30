@@ -26,11 +26,11 @@ use plugins::plugin::Plugin;
 
 /// Register this plugin implementation with the system
 pub fn register_plugin() {
-    match globals::GLOBALS.lock() {
+    match globals::GLOBALS.try_lock() {
         Err(_)    => { error!("Could not lock a shared data structure!"); },
         Ok(mut g) => {
             let plugin = Box::new(VFSStatCache::new());
-            g.plugin_manager.register_plugin(plugin);
+            g.get_plugin_manager_mut().register_plugin(plugin);
         }
     };
 }
@@ -47,33 +47,36 @@ impl VFSStatCache {
         }
     }
 
-    pub fn prime_statx_cache(& mut self) {
-        info!("Commencing reading of statx() metadata...");
+    pub fn prime_statx_cache(&mut self, globals: &mut globals::Globals) {
+        info!("Started reading of statx() metadata...");
 
-        match globals::GLOBALS.lock() {
-            Err(_)    => { error!("Could not lock a shared data structure!"); },
-            Ok(mut g) => {
-                let mut config_file = g.config.config_file.take().unwrap_or_default();
-                let files = config_file.whitelist.take().unwrap();
+        let config_file = globals.config.config_file.clone().unwrap();
+        let files = config_file.whitelist.unwrap();
 
-                for f in files {
-                    // let filename: String = f.clone();
-                    // if !self.mapped_files.contains_key(&filename) {
-                    //     let thread_pool = util::POOL.lock().unwrap();
-                    //     thread_pool.submit_work(move || {
-                    //         match util::map_and_lock_file(f.as_ref()) {
-                    //             Err(s) => { error!("Could not cache file from whitelist: '{}'", s); },
-                    //             Ok(_) => {}
-                    //         }
-                    //     });
-                    //
-                    //     // TODO: fix this!
-                    //     let mapping = ActiveMapping { addr: 0, fd: 0 };
-                    //     self.mapped_files.insert(filename, mapping);
-                    // }
+        for filename in files {
+            // mmap and mlock file if it is not contained in the blacklist
+            // and if it is not already mapped
+            let f = filename.clone();
+
+            let thread_pool = util::POOL.try_lock().unwrap();
+            // let (sender, receiver): (_, _) = channel();
+            // let sc = Mutex::new(sender.clone());
+
+            thread_pool.submit_work(move || {
+                match util::prime_metadata_cache(&f) {
+                    Err(s) => { error!("Could not read file metadata for '{}': {}", &f, &s); },
+                    Ok(_) => {
+                        trace!("Successfuly read file metadata for '{}'", &f);
+                        // sc.lock().unwrap().send(r).unwrap();
+                    }
                 }
-            }
-        };
+            });
+
+            // blocking call; wait for event loop thread
+            // let result = receiver.recv().unwrap();
+        }
+
+        info!("Finished reading of statx() metadata");
     }
 }
 
@@ -86,10 +89,10 @@ impl Plugin for VFSStatCache {
         info!("Unregistered Plugin: 'VFS statx() Cache'");
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals) {
         match event.event_type {
             events::EventType::Ping => {
-                self.prime_statx_cache();
+                self.prime_statx_cache(globals);
             },
 
             _ => {

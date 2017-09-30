@@ -20,16 +20,15 @@
 
 use globals;
 
-#[derive(Debug)]
-pub enum EventType {
-    Invalid,
+#[derive(Debug, Clone)]
+pub enum EventType {    
     Ping,
     Startup,
     Shutdown,
     ConfigurationReloaded,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct InternalEvent {
     pub event_type: EventType
 }
@@ -43,13 +42,11 @@ impl InternalEvent {
 }
 
 pub fn fire_internal_event(event_type: EventType) {
-    match globals::GLOBALS.lock() {
+    match globals::GLOBALS.try_lock() {
         Err(_) => { error!("Could not lock a shared data structure!"); },
         Ok(mut g) => {
             let event = InternalEvent::new(event_type);
-
-            g.plugin_manager.dispatch_internal_event(&event);
-            g.hook_manager.dispatch_internal_event(&event);
+            g.get_event_queue_mut().push_back(event);
         }
     };
 }

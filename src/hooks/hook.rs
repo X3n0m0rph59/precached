@@ -19,12 +19,13 @@
 */
 
 use events;
+use globals;
 use procmon;
 
 pub trait Hook {
     fn register(&mut self);
     fn unregister(&mut self);
 
-    fn internal_event(&mut self, event: &events::InternalEvent);
-    fn process_event(&mut self, event: &procmon::Event);
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals);
+    fn process_event(&mut self, event: &procmon::Event, globals: &mut globals::Globals);
 }

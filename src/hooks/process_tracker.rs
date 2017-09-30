@@ -20,11 +20,14 @@
 
 extern crate libc;
 
+use std::sync::Mutex;
+use std::sync::mpsc::{Sender, channel};
 use std::collections::HashMap;
+
 use process::Process;
-use globals;
 use procmon;
 
+use globals;
 use events;
 use util;
 
@@ -32,26 +35,20 @@ use super::hook;
 
 /// Register this hook implementation with the system
 pub fn register_hook() {
-    match globals::GLOBALS.lock() {
+    match globals::GLOBALS.try_lock() {
         Err(_)    => { error!("Could not lock a shared data structure!"); },
         Ok(mut g) => {
             let hook = Box::new(ProcessTracker::new());
-            g.hook_manager.register_hook(hook);
+            g.get_hook_manager_mut().register_hook(hook);
         }
     };
-}
-
-#[derive(Debug)]
-struct ActiveMapping {
-    pub fd: usize,
-    pub addr: usize,
 }
 
 #[derive(Debug)]
 pub struct ProcessTracker {
     tracked_processes: HashMap<libc::pid_t, Process>,
     mapped_files_histogram: HashMap<String, usize>,
-    mapped_files: HashMap<String, ActiveMapping>,
+    mapped_files: HashMap<String, util::MemoryMapping>,
     blacklist: Box<Vec<String>>,
 }
 
@@ -64,10 +61,11 @@ impl ProcessTracker {
         //     info!("mlockall() succeeded");
         // }
 
-        ProcessTracker { tracked_processes: HashMap::new(),
-                         mapped_files_histogram: HashMap::new(),
-                         mapped_files: HashMap::new(),
-                         blacklist: Box::new(ProcessTracker::get_file_blacklist()),
+        ProcessTracker {
+            tracked_processes: HashMap::new(),
+            mapped_files_histogram: HashMap::new(),
+            mapped_files: HashMap::new(),
+            blacklist: Box::new(ProcessTracker::get_file_blacklist()),
         }
     }
 
@@ -98,27 +96,33 @@ impl ProcessTracker {
         }
     }
 
-    pub fn update_maps_and_lock(&mut self) {
+    pub fn update_maps_and_lock(&mut self, globals: &mut globals::Globals) {
         trace!("Updating mmaps and mlocks...");
 
         for (k, _v) in self.mapped_files_histogram.iter() {
             let filename = k.clone();
+            let k_clone  = k.clone();
 
             // mmap and mlock file if it is not contained in the blacklist
             // and if it is not already mapped
             if !self.blacklist.contains(&filename) &&
                !self.mapped_files.contains_key(&filename) {
-                    let thread_pool = util::POOL.lock().unwrap();
+                    let thread_pool = util::POOL.try_lock().unwrap();
+                    let (sender, receiver): (Sender<util::MemoryMapping>, _) = channel();
+                    let sc = Mutex::new(sender.clone());
+
                     thread_pool.submit_work(move || {
                         match util::map_and_lock_file(&filename) {
                             Err(s) => { error!("Could not cache file '{}'", s); },
-                            Ok(_) => {}
+                            Ok(r)  => {
+                                sc.lock().unwrap().send(r).unwrap();
+                            }
                         }
                     });
 
-                // TODO: fix this!
-                let mapping = ActiveMapping { addr: 0, fd: 0 };
-                self.mapped_files.insert(k.clone(), mapping);
+                // blocking call; wait for event loop thread
+                let mapping = receiver.recv().unwrap();
+                self.mapped_files.insert(k_clone, mapping);
             }
         }
     }
@@ -133,11 +137,11 @@ impl hook::Hook for ProcessTracker {
         info!("Unregistered Hook: 'Process Tracker'");
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals) {
         // trace!("Skipped internal event (not handled)");
     }
 
-    fn process_event(&mut self, event: &procmon::Event) {
+    fn process_event(&mut self, event: &procmon::Event, globals: &mut globals::Globals) {
         match event.event_type {
             procmon::EventType::Exec => {
                  let process = Process::new(event.pid);
@@ -159,7 +163,7 @@ impl hook::Hook for ProcessTracker {
                  }
                  info!("=======================================================================");
 
-                 self.update_maps_and_lock();
+                 self.update_maps_and_lock(globals);
             },
 
             procmon::EventType::Exit => {

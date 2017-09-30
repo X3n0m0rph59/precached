@@ -39,14 +39,14 @@ impl TaskScheduler {
         self.backlog.push(Box::new(job));
     }
 
-    pub fn run_jobs(&'static mut self) {
-        let thread_pool = util::POOL.lock().unwrap();
-        let backlog = Arc::new(&self.backlog);
-        thread_pool.submit_work(move || {
-            for j in backlog.iter() {
-                j();
-            }
-        });
+    pub fn run_jobs(&mut self) {
+        let thread_pool = util::POOL.try_lock().unwrap();
+        // let backlog = Arc::new(&self.backlog);
+        // thread_pool.submit_work(move || {
+        //     for j in backlog.iter() {
+        //         j();
+        //     }
+        // });
     }
 }
 

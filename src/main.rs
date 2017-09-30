@@ -26,16 +26,19 @@
 //! pages to speed up the system
 
 extern crate nix;
-extern crate pretty_env_logger;
-use pretty_env_logger as logger;
+extern crate flexi_logger;
+
+use flexi_logger::{Logger, opt_format};
+
 extern crate toml;
 #[macro_use] extern crate log;
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate serde_derive;
 
 use std::thread;
-use std::time;
+use std::time::{Instant, Duration};
 use nix::sys::signal;
+use std::sync::mpsc::channel;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 
 mod config;
@@ -95,10 +98,43 @@ under certain conditions.
 ");
 }
 
+fn process_internal_events() {
+    match globals::GLOBALS.lock() {
+        Err(_) => { error!("Could not lock a shared data structure!"); },
+        Ok(g)  => {
+            // dispatch daemon internal events
+            let mut queue = g.get_event_queue().clone();
+
+            while let Some(internal_event) = queue.pop_front() {
+                let plugin_manager = g.get_plugin_manager();
+                let hook_manager = g.get_hook_manager();
+
+                plugin_manager.dispatch_internal_event(&internal_event, &mut g.clone());
+                hook_manager.dispatch_internal_event(&internal_event, &mut g.clone());
+            }
+        }
+    };
+}
+
+fn process_procmon_event(event: &procmon::Event) {
+    trace!("Processing procmon event...");
+
+    match globals::GLOBALS.lock() {
+        Err(_) => { error!("Could not lock a shared data structure!"); },
+        Ok(g)  => {
+            // dispatch the procmon event to all registered hooks
+            g.get_hook_manager().dispatch_event(&event, &mut g.clone());
+        }
+    };
+}
+
 /// Program entrypoint
 fn main() {
     // Initialize logging subsystem
-    logger::init().unwrap();
+    Logger::with_str("precached=debug")
+            .format(opt_format)
+            .start()
+            .unwrap_or_else(|e| { panic!("Logger initialization failed with {}", e) });
 
     if unsafe { nix::libc::isatty(0) } == 1 {
         print_license_header();
@@ -134,6 +170,11 @@ fn main() {
     plugins::register_default_plugins();
     hooks::register_default_hooks();
 
+    let (sender, receiver) = channel();
+
+    let mut last = Instant::now();
+    events::fire_internal_event(EventType::Startup);
+
     // spawn the event loop thread
     let handle = thread::Builder::new()
                     .name("event loop".to_string())
@@ -142,56 +183,50 @@ fn main() {
         'event_loop: loop {
             if EXIT_NOW.load(Ordering::Relaxed) {
                 trace!("Leaving the event loop...");
-                events::fire_internal_event(EventType::Shutdown);
-
                 break 'event_loop;
             }
 
-            if RELOAD_NOW.load(Ordering::Relaxed) {
-                RELOAD_NOW.store(false, Ordering::Relaxed);
-                trace!("Reloading configuration...");
-
-                match globals::GLOBALS.lock() {
-                    Err(_) => { error!("Could not lock a shared data structure!"); },
-                    Ok(mut g) => {
-                        g.config = Config::new();
-
-                        events::fire_internal_event(EventType::ConfigurationReloaded);
-                    }
-                };
-            }
-
-            // events::fire_internal_event(EventType::Ping);
-
-            // Let the task scheduler run it's queued jobs
-            // match util::SCHEDULER.lock() {
-            //     Err(_) => { error!("Could not lock a shared data structure!"); },
-            //     Ok(mut s) => {
-            //         s.run_jobs();
-            //     }
-            // };
-
             // blocking call into procmon_sys
             let event = procmon.wait_for_event();
-
-            // We got an event, now dispatch it to all registered hooks
-            match globals::GLOBALS.lock() {
-                Err(_) => { error!("Could not lock a shared data structure!"); },
-                Ok(mut g) => {
-                    // dispatch the event to all registered hooks
-                    g.hook_manager.dispatch_event(&event);
-                }
-            };
+            sender.send(event).unwrap();
         }
 
     }).unwrap();
 
-    /*'main_loop: loop {
+    // let timeout = Duration::from_secs(5);
+    // let beginning_park = Instant::now();
+    //
+    // let mut timeout_remaining = timeout;
+
+    'main_loop: loop {
         trace!("Main thread going to sleep...");
-        thread::sleep(time::Duration::from_millis(1000));
+        let event = receiver.recv().unwrap();
+
         trace!("Main thread woken up...");
 
-        // events::fire_internal_event(EventType::Ping);
+        // Check if we shall reload the external text configuration
+        if RELOAD_NOW.load(Ordering::Relaxed) {
+            RELOAD_NOW.store(false, Ordering::Relaxed);
+            trace!("Reloading configuration...");
+
+            match globals::GLOBALS.try_lock() {
+                Err(_) => { error!("Could not lock a shared data structure!"); },
+                Ok(mut g) => {
+                    g.config = Config::new();
+
+                    events::fire_internal_event(EventType::ConfigurationReloaded);
+                }
+            };
+        }
+
+        // Dispatch events
+        process_procmon_event(&event);
+        process_internal_events();
+
+        if last.elapsed().as_secs() > 5 {
+            last = Instant::now();
+            events::fire_internal_event(EventType::Ping);
+        }
 
         // Let the task scheduler run it's queued jobs
         // match util::SCHEDULER.lock() {
@@ -203,13 +238,17 @@ fn main() {
 
         if EXIT_NOW.load(Ordering::Relaxed) {
             trace!("Leaving the main loop...");
+
+            events::fire_internal_event(EventType::Shutdown);
+            process_internal_events();
+
             break 'main_loop;
         }
-    }*/
+    }
 
     // main thread blocks here
     match handle.join() {
-        Ok(_) => { trace!("Successfuly joined event loop thread"); },
+        Ok(_)  => { trace!("Successfuly joined event loop thread"); },
         Err(_) => { error!("Could not join the event loop thread!"); }
     };
 

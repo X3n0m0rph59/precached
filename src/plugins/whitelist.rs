@@ -20,6 +20,9 @@
 
 use std::collections::HashMap;
 
+use std::sync::{Arc, Mutex};
+use std::sync::mpsc::{Sender, Receiver, channel};
+
 use globals;
 use events;
 use util;
@@ -28,24 +31,18 @@ use super::plugin::Plugin;
 
 /// Register this plugin implementation with the system
 pub fn register_plugin() {
-    match globals::GLOBALS.lock() {
+    match globals::GLOBALS.try_lock() {
         Err(_)    => { error!("Could not lock a shared data structure!"); },
         Ok(mut g) => {
             let plugin = Box::new(Whitelist::new());
-            g.plugin_manager.register_plugin(plugin);
+            g.get_plugin_manager_mut().register_plugin(plugin);
         }
     };
 }
 
 #[derive(Debug)]
-struct ActiveMapping {
-    pub fd: usize,
-    pub addr: usize,
-}
-
-#[derive(Debug)]
 pub struct Whitelist {
-    mapped_files: HashMap<String, ActiveMapping>,
+    mapped_files: HashMap<String, util::MemoryMapping>,
 }
 
 impl Whitelist {
@@ -55,35 +52,38 @@ impl Whitelist {
         }
     }
 
-    pub fn cache_whitelisted_files(&mut self) {
-        info!("Commencing caching of whitelisted files...");
+    pub fn cache_whitelisted_files(&mut self, globals: &mut globals::Globals) {
+        info!("Started caching of whitelisted files...");
 
-        match globals::GLOBALS.lock() {
-            Err(_)    => { error!("Could not lock a shared data structure!"); },
-            Ok(mut g) => {
-                let mut config_file = g.config.config_file.take().unwrap_or_default();
-                let files = config_file.whitelist.take().unwrap();
+        let config_file = globals.config.config_file.clone().unwrap();
+        let files = config_file.whitelist.unwrap();
 
-                for f in files {
-                    // mmap and mlock file if it is not contained in the blacklist
-                    // and if it is not already mapped
-                    let filename: String = f.clone();
-                    if !self.mapped_files.contains_key(&filename) {
-                        let thread_pool = util::POOL.lock().unwrap();
-                        thread_pool.submit_work(move || {
-                            match util::map_and_lock_file(f.as_ref()) {
-                                Err(s) => { error!("Could not cache file from whitelist: '{}'", s); },
-                                Ok(_) => {}
-                            }
-                        });
+        for filename in files {
+            // mmap and mlock file if it is not contained in the blacklist
+            // and if it is not already mapped
+            let f = filename.clone();
+            if !self.mapped_files.contains_key(&f) {
+                let thread_pool = util::POOL.try_lock().unwrap();
+                let (sender, receiver): (Sender<util::MemoryMapping>, _) = channel();
+                let sc = Mutex::new(sender.clone());
 
-                        // TODO: fix this!
-                        let mapping = ActiveMapping { addr: 0, fd: 0 };
-                        self.mapped_files.insert(filename, mapping);
+                thread_pool.submit_work(move || {
+                    match util::map_and_lock_file(&f) {
+                        Err(s) => { error!("Could not cache file '{}' from whitelist: {}", &f, &s); },
+                        Ok(r) => {
+                            trace!("Successfuly read file metadata for '{}'", &f);
+                            sc.lock().unwrap().send(r).unwrap();
+                        }
                     }
-                }
+                });
+
+                // blocking call; wait for event loop thread
+                let mapping = receiver.recv().unwrap();
+                self.mapped_files.insert(filename, mapping);
             }
-        };
+        }
+
+        info!("Finished caching of whitelisted files");
     }
 }
 
@@ -96,10 +96,10 @@ impl Plugin for Whitelist {
         info!("Unregistered Plugin: 'Whitelist'");
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals) {
         match event.event_type {
             events::EventType::Ping => {
-                self.cache_whitelisted_files();
+                self.cache_whitelisted_files(globals);
             },
 
             _ => {

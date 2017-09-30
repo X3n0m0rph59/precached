@@ -29,6 +29,8 @@ use std::fs::File;
 use std::fs::OpenOptions;
 use std::os::unix::io::IntoRawFd;
 use std::path::Path;
+use std::sync::{Arc,Mutex};
+use std::ffi::CString;
 
 pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     let path = Path::new(filename);
@@ -46,16 +48,33 @@ pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     }).collect())
 }
 
-/*pub fn append_to_file(data: &str, filename: &str) -> io::Result<()> {
+pub fn append_to_file(data: &str, filename: &str) -> io::Result<()> {
     let path = Path::new(filename);
 
     let mut file = OpenOptions::new().append(true).write(true).open(&path)?;
     file.write_all(data.as_bytes())?;
 
     Ok(())
-}*/
+}
 
-pub fn map_and_lock_file(filename: &str) -> Result<()> {
+#[derive(Debug, Clone)]
+pub struct MemoryMapping {
+    pub fd: i32,
+    pub addr: usize,
+    pub len: usize,
+}
+
+impl MemoryMapping {
+    pub fn new(fd: i32, addr: usize, len: usize) -> MemoryMapping {
+        MemoryMapping {
+            fd: fd,
+            addr: addr,
+            len: len,
+        }
+    }
+}
+
+pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
     trace!("Caching file: '{}'", filename);
 
     let file = File::open(filename)?;
@@ -88,8 +107,24 @@ pub fn map_and_lock_file(filename: &str) -> Result<()> {
             } else {
                 trace!("Successfuly called mlock() for: '{}'", filename);
 
-                Ok(())
+                let mapping = MemoryMapping::new(fd, addr as usize, stat.st_size as usize);
+                Ok(mapping)
             }
         }
+    }
+}
+
+pub fn prime_metadata_cache(filename: &str) -> Result<()> {
+    trace!("Caching metadata of file : '{}'", filename);
+
+    let mut stat: libc::stat = unsafe { std::mem::zeroed() };
+    let f = CString::new(filename).unwrap();
+    let result = unsafe { libc::stat(f.as_ptr(), &mut stat) };
+
+    if result < 0 as libc::c_int {
+        Err(std::io::Error::last_os_error())
+    } else {
+        trace!("Successfuly called stat() for: '{}'", filename);
+        Ok(())
     }
 }
