@@ -24,3 +24,8 @@ pub fn check_system() -> Result<bool, &'static str> {
 
     Ok(true)
 }
+
+pub fn prepare_system_config() -> Result<bool, &'static str> {
+    
+    Ok(true)
+}

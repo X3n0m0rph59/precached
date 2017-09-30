@@ -67,8 +67,10 @@ pub fn parse_config_file() -> io::Result<()> {
             };
 
             g.config.config_file = Some(config_file);
-            trace!("Precached internal configuration dump");
+            trace!("============================================================================");
+            trace!("Configuration dump:");
             trace!("{:#?}", g.config.config_file);
+            trace!("============================================================================");
 
             Ok(())
         }

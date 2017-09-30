@@ -65,22 +65,26 @@ impl Whitelist {
             let f2 = f.clone();
             if !self.mapped_files.contains_key(&f) {
                 let thread_pool = util::POOL.try_lock().unwrap();
-                let (sender, receiver): (Sender<util::MemoryMapping>, _) = channel();
+                let (sender, receiver): (Sender<Option<util::MemoryMapping>>, _) = channel();
                 let sc = Mutex::new(sender.clone());
 
                 thread_pool.submit_work(move || {
                     match util::map_and_lock_file(&f) {
-                        Err(s) => { error!("Could not cache file '{}': {}", &f, &s); },
+                        Err(s) => {
+                            error!("Could not cache file '{}': {}", &f, &s);
+                            sc.lock().unwrap().send(None).unwrap();
+                        },
                         Ok(r) => {
                             trace!("Successfuly cached file '{}'", &f);
-                            sc.lock().unwrap().send(r).unwrap();
+                            sc.lock().unwrap().send(Some(r)).unwrap();
                         }
                     }
                 });
 
                 // blocking call; wait for event loop thread
-                let mapping = receiver.recv().unwrap();
-                self.mapped_files.insert(f2, mapping);
+                if let Some(mapping) = receiver.recv().unwrap() {
+                    self.mapped_files.insert(f2, mapping);
+                }
             }
         }
 
@@ -90,11 +94,11 @@ impl Whitelist {
 
 impl Plugin for Whitelist {
     fn register(&mut self) {
-        info!("Registered Plugin: 'Whitelist'");
+        info!("Registered Plugin: 'Cache Whitelist'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'Whitelist'");
+        info!("Unregistered Plugin: 'Cache Whitelist'");
     }
 
     fn get_name(&self) -> &'static str {

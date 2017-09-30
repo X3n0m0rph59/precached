@@ -104,8 +104,15 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
                 //     let _tmp = v;
                 // }
 
-                let mapping = MemoryMapping::new(fd, addr as usize, stat.st_size as usize);
-                Ok(mapping)
+                let result = unsafe { libc::close(fd) };
+                if result < 0 as libc::c_int {
+                    Err(std::io::Error::last_os_error())
+                } else {
+                    trace!("Successfuly called close() for: '{}'", filename);
+
+                    let mapping = MemoryMapping::new(fd, addr as usize, stat.st_size as usize);
+                    Ok(mapping)
+                }
             }
         }
     }

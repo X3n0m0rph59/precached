@@ -108,21 +108,26 @@ impl ProcessTracker {
             if !self.blacklist.contains(&filename) &&
                !self.mapped_files.contains_key(&filename) {
                     let thread_pool = util::POOL.try_lock().unwrap();
-                    let (sender, receiver): (Sender<util::MemoryMapping>, _) = channel();
+                    let (sender, receiver): (Sender<Option<util::MemoryMapping>>, _) = channel();
                     let sc = Mutex::new(sender.clone());
 
                     thread_pool.submit_work(move || {
                         match util::map_and_lock_file(&filename) {
-                            Err(s) => { error!("Could not cache file '{}'", s); },
+                            Err(s) => {
+                                error!("Could not cache file '{}': {}", &filename, &s);
+                                sc.lock().unwrap().send(None).unwrap();
+                            },
                             Ok(r)  => {
-                                sc.lock().unwrap().send(r).unwrap();
+                                trace!("Successfuly cached file '{}'", &filename);
+                                sc.lock().unwrap().send(Some(r)).unwrap();
                             }
                         }
                     });
 
                 // blocking call; wait for event loop thread
-                let mapping = receiver.recv().unwrap();
-                self.mapped_files.insert(k_clone, mapping);
+                if let Some(mapping) = receiver.recv().unwrap() {
+                    self.mapped_files.insert(k_clone, mapping);
+                }
             }
         }
     }

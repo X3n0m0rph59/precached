@@ -150,7 +150,7 @@ fn main() {
              })
             .level(log::LogLevelFilter::Trace)
             .chain(std::io::stdout())
-            .chain(fern::log_file("debug.log").unwrap())
+            //.chain(fern::log_file("debug.log").unwrap())
             .apply().expect("Could not initialize the logging subsystem!");
 
     if unsafe { nix::libc::isatty(0) } == 1 {
@@ -168,6 +168,13 @@ fn main() {
     match util::check_system() {
         Ok(_)  => { info!("System check passed!") },
         Err(s) => { error!("System check FAILED: {}", s); return }
+    }
+
+    // If we get here, the check if we are able to run precache succeeded
+    // Now reconfigure the system (e.g. tune sysctl parameterss)
+    match util::prepare_system_config() {
+        Ok(_)  => { info!("System configuration applied successfuly!") },
+        Err(s) => { error!("System configuration FAILED: {}", s); return }
     }
 
     // Register signal handlers

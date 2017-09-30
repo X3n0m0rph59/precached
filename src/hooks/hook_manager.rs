@@ -50,9 +50,9 @@ impl HookManager {
         };
     }
 
-    /*pub fn unregister_hook(&mut self) {
-        // hook.unregister();
-    }*/
+    // pub fn unregister_hook(&mut self) {
+    //     // hook.unregister();
+    // }
 
     // pub fn get_hook_by_name(&mut self, name: String) -> Option<&Box<Hook + Sync + Send>> {
     //     match self.hooks.try_lock() {
