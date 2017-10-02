@@ -10,5 +10,4 @@ StandardOutput=syslog
 Restart=always
 
 [Install]
-#WantedBy=local-fs.target
 WantedBy=multi-user.target
