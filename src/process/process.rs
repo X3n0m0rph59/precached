@@ -27,7 +27,7 @@ use util;
 use self::regex::*;
 use super::prefault;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Process {
     pub pid: libc::pid_t
 }

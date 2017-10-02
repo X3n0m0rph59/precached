@@ -21,10 +21,8 @@
 extern crate libc;
 extern crate dbus;
 
-use std::thread;
 use std::sync::Arc;
 use std::sync::mpsc;
-use std::cell::Cell;
 use std::result::Result;
 use self::dbus::{Connection, BusType, tree, Path};
 use self::dbus::tree::{Interface, Signal, MTFn, Access, MethodErr, EmitsChangedSignal};
@@ -34,44 +32,49 @@ use globals::*;
 use manager::*;
 
 use events;
+use events::EventType;
 use storage;
-use util;
 
-use super::plugin::Plugin;
+use procmon;
 
-static NAME: &str = "dbus_interface";
+use hooks::process_tracker::*;
+use plugins::plugin::Plugin;
+use plugins::plugin::PluginDescription;
+
+static NAME:        &str = "dbus_interface";
+static DESCRIPTION: &str = "Provide a DBUS interface to control precached from other programs";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(DBUSInterface::new());
-        manager.get_plugin_manager_mut().register_plugin(plugin);
+
+        let mut m = manager.plugin_manager.borrow_mut();
+        m.register_plugin(plugin);
     }
 }
 
 //
 #[derive(Debug)]
 struct ProcessStats {
-    process: Process,
-    path: Path<'static>,
-    index: i32,
-    online: Cell<bool>,
-    checking: Cell<bool>,
+    pub path: Path<'static>,
+    pub process: Process,
+    pub comm: String,
+    pub pid: libc::pid_t,
 }
 
 impl ProcessStats {
-    fn new_bogus(index: i32) -> ProcessStats {
+    fn new(pid: libc::pid_t, process: Process) -> ProcessStats {
         ProcessStats {
-            process: Process::new(1 as libc::pid_t),
-            path: format!("/ProcessStats{}", index).into(),
-            index: index,
-            online: Cell::new(index % 2 == 0),
-            checking: Cell::new(false),
+            path: format!("/Process/{}", pid).into(),
+            process: process,
+            comm: process.get_comm().unwrap_or(String::from("<unknown>")),
+            pid: pid,
         }
     }
 }
 
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Debug, Copy, Clone, Default)]
 struct TData;
 impl tree::DataType for TData {
     type Tree = ();
@@ -82,75 +85,75 @@ impl tree::DataType for TData {
     type Signal = ();
 }
 
-fn create_iface(check_complete_s: mpsc::Sender<i32>) -> (Interface<MTFn<TData>, TData>, Arc<Signal<TData>>) {
+fn create_iface(process_event_s: mpsc::Sender<i32>) -> (Interface<MTFn<TData>, TData>, Arc<Signal<TData>>) {
     let f = tree::Factory::new_fn();
 
-    let process_event = Arc::new(f.signal("CheckComplete", ()));
+    let process_event = Arc::new(f.signal("ProcessEvent", ()));
 
-    (f.interface("org.precached.precached1.process", ())
+    (f.interface("org.precached.precached1.statistics", ())
         // The online property can be both set and get
-        .add_p(f.property::<bool,_>("online", ())
-            .access(Access::ReadWrite)
-            .on_get(|i, m| {
-                let dev: &Arc<ProcessStats> = m.path.get_data();
-                i.append(dev.online.get());
-                Ok(())
-            })
-            .on_set(|i, m| {
-                let dev: &Arc<ProcessStats> = m.path.get_data();
-                let b: bool = try!(i.read());
-                if b && dev.checking.get() {
-                    return Err(MethodErr::failed(&"Device currently under check, cannot bring online"))
-                }
-                dev.online.set(b);
-                Ok(())
-            })
-        )
+        // .add_p(f.property::<bool,_>("online", ())
+        //     .access(Access::ReadWrite)
+        //     .on_get(|i, m| {
+        //         let dev: &Arc<ProcessStats> = m.path.get_data();
+        //         i.append(dev.online.get());
+        //         Ok(())
+        //     })
+        //     .on_set(|i, m| {
+        //         let dev: &Arc<ProcessStats> = m.path.get_data();
+        //         let b: bool = try!(i.read());
+        //         if b && dev.checking.get() {
+        //             return Err(MethodErr::failed(&"Device currently under check, cannot bring online"))
+        //         }
+        //         dev.online.set(b);
+        //         Ok(())
+        //     })
+        // )
         // The "checking" property is read only
-        .add_p(f.property::<bool,_>("checking", ())
-            .emits_changed(EmitsChangedSignal::False)
-            .on_get(|i, m| {
-                let dev: &Arc<ProcessStats> = m.path.get_data();
-                i.append(dev.checking.get());
-                Ok(())
-            })
-        )
-        // ...and so is the "description" property
-        .add_p(f.property::<&str,_>("description", ())
+        // .add_p(f.property::<bool,_>("checking", ())
+        //     .emits_changed(EmitsChangedSignal::False)
+        //     .on_get(|i, m| {
+        //         let dev: &Arc<ProcessStats> = m.path.get_data();
+        //         i.append(dev.checking.get());
+        //         Ok(())
+        //     })
+        // )
+
+        .add_p(f.property::<&str,_>("comm", ())
             .emits_changed(EmitsChangedSignal::Const)
             .on_get(|i, m| {
-                let dev: &Arc<ProcessStats> = m.path.get_data();
-                i.append(&dev.process.get_comm().unwrap_or(String::from("<unknown>")));
+                let process: &Arc<ProcessStats> = m.path.get_data();
+                i.append(&process.comm);
                 Ok(())
             })
         )
         // ...add a method for starting a device check...
-        .add_m(f.method("check", (), move |m| {
-            let dev: &Arc<ProcessStats> = m.path.get_data();
-            if dev.checking.get() {
-                return Err(MethodErr::failed(&"Device currently under check, cannot start another check"))
-            }
-            if dev.online.get() {
-                return Err(MethodErr::failed(&"Device is currently online, cannot start check"))
-            }
-            dev.checking.set(true);
-
-            // Start some lengthy processing in a separate thread...
-            let devindex = dev.index;
-            let ch = check_complete_s.clone();
-            thread::spawn(move || {
-
-                // Bogus check of device
-                use std::time::Duration;
-                thread::sleep(Duration::from_secs(15));
-
-                // Tell main thread that we finished
-                ch.send(devindex).unwrap();
-            });
-            Ok(vec!(m.msg.method_return()))
-        }))
+        // .add_m(f.method("check", (), move |m| {
+        //     let dev: &Arc<ProcessStats> = m.path.get_data();
+        //     if dev.checking.get() {
+        //         return Err(MethodErr::failed(&"Device currently under check, cannot start another check"))
+        //     }
+        //     if dev.online.get() {
+        //         return Err(MethodErr::failed(&"Device is currently online, cannot start check"))
+        //     }
+        //     dev.checking.set(true);
+        //
+        //     // Start some lengthy processing in a separate thread...
+        //     let devindex = dev.index;
+        //     let ch = check_complete_s.clone();
+        //     thread::spawn(move || {
+        //
+        //         // Bogus check of device
+        //         use std::time::Duration;
+        //         thread::sleep(Duration::from_secs(15));
+        //
+        //         // Tell main thread that we finished
+        //         ch.send(devindex).unwrap();
+        //     });
+        //     Ok(vec!(m.msg.method_return()))
+        // }))
         // Indicate that we send a special signal once checking has completed.
-        .add_s(process_event.clone())
+        // .add_s(process_event.clone())
     , process_event)
 }
 
@@ -172,6 +175,7 @@ fn create_tree(processes: &[Arc<ProcessStats>], iface: &Arc<Interface<MTFn<TData
 pub struct DBUSInterface {
     connection: Option<Connection>,
     tree: Option<tree::Tree<MTFn<TData>, TData>>,
+    process_stats: Vec<Arc<ProcessStats>>,
 }
 
 impl DBUSInterface {
@@ -179,19 +183,24 @@ impl DBUSInterface {
         DBUSInterface {
             connection: None,
             tree: None,
+            process_stats: vec!(),
         }
     }
 
     pub fn register_connection(&mut self) -> Result<(), &'static str >{
         trace!("Registering DBUS connection");
 
-        // Create our bogus data
-        let processes: Vec<Arc<ProcessStats>> = (0..10).map(|i| Arc::new(ProcessStats::new_bogus(i))).collect();
+        // TODO: fix this!
+        // populate initial dummy data
+        let mut process_stats: Vec<Arc<ProcessStats>> = vec!();
+        process_stats.push(Arc::new(ProcessStats::new(1, Process::new(1))));
+
+        self.process_stats = process_stats;
 
         // Create tree
-        let (check_complete_s, check_complete_r) = mpsc::channel::<i32>();
-        let (iface, sig) = create_iface(check_complete_s);
-        let tree = create_tree(&processes, &Arc::new(iface));
+        let (process_event_s, process_event_r) = mpsc::channel::<i32>();
+        let (iface, sig) = create_iface(process_event_s);
+        let tree = create_tree(&self.process_stats, &Arc::new(iface));
 
         // Setup DBus connection
         let c = Connection::get_private(BusType::System).unwrap();
@@ -202,6 +211,20 @@ impl DBUSInterface {
         self.tree = Some(tree);
 
         Ok(())
+    }
+
+    pub fn populate_process_statistics(&mut self, e: &procmon::Event, _globals: &Globals, manager: &Manager) {
+        let mut m = manager.hook_manager.borrow_mut();
+        let hook = m.get_hook_by_name(&String::from("process_tracker")).unwrap();
+        let process_tracker = hook.as_any().downcast_ref::<ProcessTracker>().unwrap();
+
+        // populate data
+        let mut process_stats: Vec<Arc<ProcessStats>> = vec!();
+        for (k, v) in process_tracker.tracked_processes.iter() {
+            process_stats.push(Arc::new(ProcessStats::new(*k, *v)));
+        }
+
+        self.process_stats = process_stats;
     }
 }
 
@@ -223,25 +246,25 @@ impl Plugin for DBUSInterface {
         NAME
     }
 
+    fn get_description(&self) -> PluginDescription {
+        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+    }
+
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
         let ref c = self.connection.as_ref().unwrap();
         let ref t = self.tree.as_ref().unwrap();
 
-        for x in t.run(c, c.iter(1000)) {
-            match x {
-                Nothing => {
-                    trace!("DBUS listener: yielding now");
-                    break;
-                },
-                _ => {
-                    trace!("DBUS listener: processing request");
-                },
-            }
+        for _ in t.run(c, c.iter(200)) {
+            trace!("DBUS listener: yielding now...");
+            break;
         }
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &Globals) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
+            EventType::TrackedProcessChanged(e) => {
+                self.populate_process_statistics(&e, globals, manager);
+            },
             _ => {
                 // Ignore all other events
             }

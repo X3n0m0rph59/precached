@@ -33,5 +33,5 @@ pub fn register_default_hooks(globals: &mut Globals, manager: &mut Manager) {
 }
 
 pub fn unregister_hooks(_globals: &mut Globals, manager: &mut Manager) {
-    manager.get_hook_manager_mut().unregister_all_hooks();
+    manager.hook_manager.borrow_mut().unregister_all_hooks();
 }

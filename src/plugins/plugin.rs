@@ -20,14 +20,21 @@
 
 use events;
 use globals::*;
+use manager::*;
+
+pub struct PluginDescription {
+    pub name: String,
+    pub description: String,
+}
 
 pub trait Plugin {
     fn register(&mut self);
     fn unregister(&mut self);
 
     fn get_name(&self) -> &'static str;
+    fn get_description(&self) -> PluginDescription;
 
     fn main_loop_hook(&mut self, globals: &mut Globals);
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &Globals);
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager);
 }

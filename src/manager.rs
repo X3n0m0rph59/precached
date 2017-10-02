@@ -18,35 +18,37 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::cell::RefCell;
+
 use plugins::PluginManager;
 use hooks::HookManager;
 
 pub struct Manager {
-    plugin_manager: PluginManager,
-    hook_manager: HookManager,
+    pub plugin_manager: RefCell<PluginManager>,
+    pub hook_manager: RefCell<HookManager>,
 }
 
 impl Manager {
     pub fn new() -> Manager {
         Manager {
-            plugin_manager: PluginManager::new(),
-            hook_manager: HookManager::new(),
+            plugin_manager: RefCell::new(PluginManager::new()),
+            hook_manager: RefCell::new(HookManager::new()),
         }
     }
 
-    pub fn get_plugin_manager(&self) -> &PluginManager {
-        &self.plugin_manager
-    }
-
-    pub fn get_plugin_manager_mut(&mut self) -> &mut PluginManager {
-        &mut self.plugin_manager
-    }
-
-    pub fn get_hook_manager(&self) -> &HookManager {
-        &self.hook_manager
-    }
-
-    pub fn get_hook_manager_mut(&mut self) -> &mut HookManager {
-        &mut self.hook_manager
-    }
+    // pub fn get_plugin_manager(&self) -> &PluginManager {
+    //     &self.plugin_manager.borrow()
+    // }
+    //
+    // pub fn get_plugin_manager_mut(&self) -> &mut PluginManager {
+    //     &mut self.plugin_manager.borrow_mut()
+    // }
+    //
+    // pub fn get_hook_manager(&self) -> &HookManager {
+    //     &self.hook_manager.borrow()
+    // }
+    //
+    // pub fn get_hook_manager_mut(&self) -> &mut HookManager {
+    //     &mut self.hook_manager.borrow_mut()
+    // }
 }

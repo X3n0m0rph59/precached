@@ -12,6 +12,8 @@ BuildRequires: systemd
 BuildRequires: dbus-devel
 BuildRequires: cargo
 
+Requires: dbus
+
 %global gittag master
 %global debug_package %{nil}
 
@@ -38,6 +40,7 @@ cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.conf.5 %{buildroot}/%
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{gittag}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
+cp -a %{_builddir}/%{name}-%{gittag}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/
 install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{buildroot}%{_sbindir}/%{name}
 
 %post
@@ -56,6 +59,8 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{bu
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sbindir}/%{name}
 %{_unitdir}/%{name}.service
+%config(noreplace) %{_sysconfdir}/dbus-1/org.precached.precached1.conf
+%{_sharedstatedir}/%{name}/
 #%{_datadir}/%{name}/
 
 %changelog

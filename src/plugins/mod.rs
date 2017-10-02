@@ -41,5 +41,6 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
 }
 
 pub fn unregister_plugins(_globals: &mut Globals, manager: &mut Manager) {
-    manager.get_plugin_manager_mut().unregister_all_plugins();
+    let mut m = manager.plugin_manager.borrow_mut();
+    m.unregister_all_plugins();
 }

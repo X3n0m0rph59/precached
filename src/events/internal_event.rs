@@ -20,12 +20,15 @@
 
 use globals::*;
 
+use procmon;
+
 #[derive(Debug, Clone)]
 pub enum EventType {
-    Ping,
-    Startup,
-    Shutdown,
-    ConfigurationReloaded,
+    Ping,                   // occurs every n second
+    Startup,                // sent on daemon startup (after initialization)
+    Shutdown,               // sent on daemon shutdown (before finalization)
+    ConfigurationReloaded,  // occurs after the daemon has successfuly reloaded its configuration
+    TrackedProcessChanged(procmon::Event),  // occurs when the state of a tracked process changed
 }
 
 #[derive(Debug, Clone)]

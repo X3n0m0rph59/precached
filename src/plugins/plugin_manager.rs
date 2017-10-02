@@ -68,9 +68,9 @@ impl PluginManager {
         }
     }
 
-    pub fn dispatch_internal_event(&mut self, event: &events::InternalEvent, globals: &Globals) {
+    pub fn dispatch_internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         for (_, p) in self.plugins.iter_mut() {
-            p.internal_event(event, globals);
+            p.internal_event(event, globals, manager);
         }
     }
 
@@ -82,5 +82,6 @@ impl PluginManager {
 }
 
 pub fn call_main_loop_hook(globals: &mut Globals, manager: &mut Manager) {
-    manager.get_plugin_manager_mut().call_main_loop_hooks(globals);
+    let mut m = manager.plugin_manager.borrow_mut();
+    m.call_main_loop_hooks(globals);
 }

@@ -32,14 +32,18 @@ use storage;
 
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
+use plugins::plugin::PluginDescription;
 
-static NAME: &str = "notifications";
+static NAME:        &str = "notifications";
+static DESCRIPTION: &str = "Send notifications to logged in users via DBUS";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Notifications::new());
-        manager.get_plugin_manager_mut().register_plugin(plugin);
+
+        let mut m = manager.plugin_manager.borrow_mut();
+        m.register_plugin(plugin);
     }
 }
 
@@ -86,11 +90,15 @@ impl Plugin for Notifications {
         NAME
     }
 
+    fn get_description(&self) -> PluginDescription {
+        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+    }
+
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &Globals) {
+    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             EventType::Ping => {
                 self.notify(&String::from("Ping!"))

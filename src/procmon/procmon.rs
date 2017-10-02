@@ -27,7 +27,7 @@ pub struct ProcMon {
     nls: libc::int32_t
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum EventType {
     Nothing,
     Fork,
@@ -36,7 +36,7 @@ pub enum EventType {
     Invalid
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Event {
     pub event_type: EventType,
     pub pid: libc::pid_t,

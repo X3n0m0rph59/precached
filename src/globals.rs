@@ -24,6 +24,7 @@ use events;
 use config::Config;
 
 /// Global system state
+#[derive(Debug, Clone)]
 pub struct Globals {
     /// Global configuration
     pub config: Config,

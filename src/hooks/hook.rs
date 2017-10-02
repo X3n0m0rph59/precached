@@ -18,8 +18,12 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::any::Any;
+
 use events;
 use globals::*;
+use manager::*;
+
 use procmon;
 
 pub trait Hook {
@@ -28,6 +32,8 @@ pub trait Hook {
 
     fn get_name(&self) -> &'static str;
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &Globals);
-    fn process_event(&mut self, event: &procmon::Event, globals: &Globals);
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager);
+    fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, manager: &Manager);
+
+    fn as_any(&self) -> &Any;
 }

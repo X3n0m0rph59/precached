@@ -29,9 +29,12 @@
 // extern crate chrono;
 extern crate pretty_env_logger;
 
-#[macro_use] extern crate log;
-#[macro_use] extern crate serde_derive;
-#[macro_use] extern crate lazy_static;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate lazy_static;
 
 extern crate nix;
 extern crate toml;
@@ -114,18 +117,18 @@ fn print_disabled_plugins_notice(globals: &mut Globals) {
 // }
 
 /// Process daemon internal events
-fn process_internal_events(globals: &mut Globals, manager: &mut Manager) {
+fn process_internal_events(globals: &mut Globals, manager: &Manager) {
     while let Some(internal_event) = globals.get_event_queue_mut().pop_front() {
         {
             // dispatch daemon internal events to plugins
-            let plugin_manager = manager.get_plugin_manager_mut();
-            plugin_manager.dispatch_internal_event(&internal_event, globals);
+            let mut plugin_manager = manager.plugin_manager.borrow_mut();
+            plugin_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
 
         {
             // dispatch daemon internal events to hooks
-            let hook_manager = manager.get_hook_manager_mut();
-            hook_manager.dispatch_internal_event(&internal_event, globals);
+            let mut hook_manager = manager.hook_manager.borrow_mut();
+            hook_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
     }
 }
@@ -135,7 +138,8 @@ fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager:
     trace!("Processing procmon event...");
 
     // dispatch the procmon event to all registered hooks
-    manager.get_hook_manager().dispatch_event(&event, globals);
+    let mut m = manager.hook_manager.borrow_mut();
+    m.dispatch_event(&event, globals, manager);
 }
 
 /// Program entrypoint
@@ -195,9 +199,9 @@ fn main() {
         Err(s)   => { error!("Could not create process events monitor: {}", s); return }
     };
 
-    // Register plugins and hooks
-    plugins::register_default_plugins(&mut globals, &mut manager);
+    // Register hooks and plugins
     hooks::register_default_hooks(&mut globals, &mut manager);
+    plugins::register_default_plugins(&mut globals, &mut manager);
 
     // Log disabled plugins and hooks
     print_disabled_plugins_notice(&mut globals);

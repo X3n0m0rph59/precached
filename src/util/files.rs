@@ -188,7 +188,7 @@ pub fn is_file_accessible(filename: &String) -> bool {
 /// Walk the filesystem and build a list of all files
 /// that reside in the directories listed in 'paths'
 pub fn expand_path_list(paths: &Vec<String>) -> Vec<String> {
-    trace!("Expanding paths from: {:#?}", paths);
+    trace!("Expanding paths from: {:?}", paths);
 
     let mut result = Vec::new();
 

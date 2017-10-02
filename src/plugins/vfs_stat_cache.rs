@@ -27,14 +27,18 @@ use util;
 
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
+use plugins::plugin::PluginDescription;
 
-static NAME: &str = "vfs_stat_cache";
+static NAME:        &str = "vfs_stat_cache";
+static DESCRIPTION: &str = "Try to keep file metadata in the kernel caches";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(VFSStatCache::new());
-        manager.get_plugin_manager_mut().register_plugin(plugin);
+
+        let mut m = manager.plugin_manager.borrow_mut();
+        m.register_plugin(plugin);
     }
 }
 
@@ -115,11 +119,15 @@ impl Plugin for VFSStatCache {
         NAME
     }
 
+    fn get_description(&self) -> PluginDescription {
+        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+    }
+
     fn main_loop_hook(&mut self, globals: &mut Globals) {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &Globals) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::Ping => {
                 self.prime_statx_cache(globals);

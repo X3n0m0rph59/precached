@@ -20,6 +20,7 @@
 
 extern crate libc;
 
+use std::any::Any;
 use std::sync::Mutex;
 use std::sync::mpsc::{Sender, channel};
 use std::collections::HashMap;
@@ -31,24 +32,28 @@ use globals::*;
 use manager::*;
 
 use events;
+use events::EventType;
 use util;
 
-use super::hook;
+use hooks::hook;
+use hooks::hook::Hook;
 
 static NAME: &str = "process_tracker";
 
 /// Register this hook implementation with the system
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
     let hook = Box::new(ProcessTracker::new());
-    manager.get_hook_manager_mut().register_hook(hook);
+
+    let mut m = manager.hook_manager.borrow_mut();
+    m.register_hook(hook);
 }
 
 #[derive(Debug, Clone)]
 pub struct ProcessTracker {
-    tracked_processes: HashMap<libc::pid_t, Process>,
-    mapped_files_histogram: HashMap<String, usize>,
-    mapped_files: HashMap<String, util::MemoryMapping>,
-    blacklist: Box<Vec<String>>,
+    pub tracked_processes: HashMap<libc::pid_t, Process>,
+    pub mapped_files_histogram: HashMap<String, usize>,
+    pub mapped_files: HashMap<String, util::MemoryMapping>,
+    pub blacklist: Box<Vec<String>>,
 }
 
 impl ProcessTracker {
@@ -130,6 +135,7 @@ impl ProcessTracker {
             }
         }
     }
+
 }
 
 impl hook::Hook for ProcessTracker {
@@ -145,11 +151,11 @@ impl hook::Hook for ProcessTracker {
         NAME
     }
 
-    fn internal_event(&mut self, _event: &events::InternalEvent, _globals: &Globals) {
+    fn internal_event(&mut self, _event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         // trace!("Skipped internal event (not handled)");
     }
 
-    fn process_event(&mut self, event: &procmon::Event, globals: &Globals) {
+    fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             procmon::EventType::Exec => {
                  let process = Process::new(event.pid);
@@ -187,5 +193,11 @@ impl hook::Hook for ProcessTracker {
                 // trace!("Ignored process event");
             }
         }
+
+        events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
+    }
+
+    fn as_any(&self) -> &Any {
+        self
     }
 }
