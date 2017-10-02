@@ -1,7 +1,7 @@
 addons:
   apt:
     packages:
-      - dbus-1-dev
+      - libdbus-1-dev
 language: rust
 rust:
   - stable
