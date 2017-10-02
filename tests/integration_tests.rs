@@ -17,10 +17,3 @@
     You should have received a copy of the GNU General Public License
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-use std::result::Result;
-
-pub fn register_with_dbus() -> Result<(), &'static str >{
-    trace!("Registering DBUS connection");
-    Ok(())
-}

@@ -18,10 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use globals;
+use globals::*;
 
 #[derive(Debug, Clone)]
-pub enum EventType {    
+pub enum EventType {
     Ping,
     Startup,
     Shutdown,
@@ -41,12 +41,7 @@ impl InternalEvent {
     }
 }
 
-pub fn fire_internal_event(event_type: EventType) {
-    match globals::GLOBALS.try_lock() {
-        Err(_) => { error!("Could not lock a shared data structure!"); },
-        Ok(mut g) => {
-            let event = InternalEvent::new(event_type);
-            g.get_event_queue_mut().push_back(event);
-        }
-    };
+pub fn queue_internal_event(event_type: EventType, globals: &mut Globals) {
+    let event = InternalEvent::new(event_type);
+    globals.get_event_queue_mut().push_back(event);
 }

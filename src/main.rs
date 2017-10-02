@@ -18,34 +18,35 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//! ==========================================================
-//! precached - A Linux process monitor and pre-caching daemon
-//! ==========================================================
+//! # precached - A Linux process monitor and pre-caching daemon
+//!
 //! Precached utilises the Linux netlink connector interface to
 //! monitor the system for process events. It can act upon
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system
 
-extern crate fern;
-extern crate chrono;
+// extern crate fern;
+// extern crate chrono;
+extern crate pretty_env_logger;
 
 #[macro_use] extern crate log;
-#[macro_use] extern crate lazy_static;
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate lazy_static;
 
 extern crate nix;
 extern crate toml;
 
 use std::thread;
-use std::time::{Instant};
 use nix::sys::signal;
+use std::time::{Instant, Duration};
 use std::sync::mpsc::channel;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 
-mod config;
-use config::Config;
-
 mod globals;
+use globals::*;
+
+mod manager;
+use manager::*;
 
 mod procmon;
 use procmon::ProcMon;
@@ -55,9 +56,9 @@ mod process;
 mod events;
 use events::*;
 
+mod config;
 mod plugins;
 mod hooks;
-mod dbus;
 mod storage;
 mod util;
 
@@ -103,68 +104,77 @@ under certain conditions.
 ");
 }
 
+fn print_disabled_plugins_notice(globals: &mut Globals) {
+    info!("Disabled Plugins: {:?}", storage::get_disabled_plugins(globals));
+}
+
+// Disabling of hooks is currently not supported
+// fn print_disabled_hooks_notice(globals: &mut Globals) {
+//     info!("Disabled Hooks: {:#?}", storage::get_disabled_hooks(globals));
+// }
+
 /// Process daemon internal events
-fn process_internal_events() {
-    match globals::GLOBALS.lock() {
-        Err(_) => { error!("Could not lock a shared data structure!"); },
-        Ok(g)  => {
-            let mut queue = g.get_event_queue().clone();
-
-            while let Some(internal_event) = queue.pop_front() {
-                let plugin_manager = g.get_plugin_manager();
-                let hook_manager = g.get_hook_manager();
-
-                // dispatch daemon internal events
-                plugin_manager.dispatch_internal_event(&internal_event, &mut g.clone());
-                hook_manager.dispatch_internal_event(&internal_event, &mut g.clone());
-            }
+fn process_internal_events(globals: &mut Globals, manager: &mut Manager) {
+    while let Some(internal_event) = globals.get_event_queue_mut().pop_front() {
+        {
+            // dispatch daemon internal events to plugins
+            let plugin_manager = manager.get_plugin_manager_mut();
+            plugin_manager.dispatch_internal_event(&internal_event, globals);
         }
-    };
+
+        {
+            // dispatch daemon internal events to hooks
+            let hook_manager = manager.get_hook_manager_mut();
+            hook_manager.dispatch_internal_event(&internal_event, globals);
+        }
+    }
 }
 
 /// Process events that come in via the procmon interface of the Linux kernel
-fn process_procmon_event(event: &procmon::Event) {
+fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager: &mut Manager) {
     trace!("Processing procmon event...");
 
-    match globals::GLOBALS.lock() {
-        Err(_) => { error!("Could not lock a shared data structure!"); },
-        Ok(g)  => {
-            // dispatch the procmon event to all registered hooks
-            g.get_hook_manager().dispatch_event(&event, &mut g.clone());
-        }
-    };
+    // dispatch the procmon event to all registered hooks
+    manager.get_hook_manager().dispatch_event(&event, globals);
 }
 
 /// Program entrypoint
 fn main() {
     // Initialize logging subsystem
-    fern::Dispatch::new()
-            .format(|out, message, record| {
-                out.finish(format_args!(
-                    "{}[{}][{}] {}",
-                    chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
-                    record.level(),
-                    record.target(),
-                    message
-                ))
-             })
-            .level(log::LogLevelFilter::Trace)
-            .chain(std::io::stdout())
-            //.chain(fern::log_file("debug.log").unwrap())
-            .apply().expect("Could not initialize the logging subsystem!");
+    // fern::Dispatch::new()
+    //         .format(|out, message, record| {
+    //             out.finish(format_args!(
+    //                 "{}[{}][{}] {}",
+    //                 chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+    //                 record.level(),
+    //                 record.target(),
+    //                 message
+    //             ))
+    //          })
+    //         .level(log::LogLevelFilter::Trace)
+    //         .chain(std::io::stdout())
+    //         //.chain(fern::log_file("debug.log").unwrap())
+    //         .apply().expect("Could not initialize the logging subsystem!");
+
+    pretty_env_logger::init().expect("Could not initialize the logging subsystem!");
+
 
     if unsafe { nix::libc::isatty(0) } == 1 {
         print_license_header();
     }
 
+    // Construct system global state
+    let mut globals = Globals::new();
+    let mut manager = Manager::new();
+
     // Parse external configuration file
-    match storage::parse_config_file() {
-        Ok(_)  => { info!("Successfuly parsed configuration!") },
+    match storage::parse_config_file(&mut globals) {
+        Ok(_)  => { info!("Successfuly parsed configuration file!") },
         Err(s) => { error!("Error in configuration file: {}", s); return }
     }
 
     // Check if we are able to run precache
-    // (check system for conformance)
+    // (verify system for conformance)
     match util::check_system() {
         Ok(_)  => { info!("System check passed!") },
         Err(s) => { error!("System check FAILED: {}", s); return }
@@ -180,24 +190,23 @@ fn main() {
     // Register signal handlers
     setup_signal_handlers();
 
-    match dbus::register_with_dbus() {
-        Ok(()) => { info!("DBUS interface registered successfuly!") },
-        Err(s) => { error!("Could not register DBUS interface: {}", s); return }
-    };
-
     let procmon = match ProcMon::new() {
         Ok(inst) => inst,
         Err(s)   => { error!("Could not create process events monitor: {}", s); return }
     };
 
     // Register plugins and hooks
-    plugins::register_default_plugins();
-    hooks::register_default_hooks();
+    plugins::register_default_plugins(&mut globals, &mut manager);
+    hooks::register_default_hooks(&mut globals, &mut manager);
+
+    // Log disabled plugins and hooks
+    print_disabled_plugins_notice(&mut globals);
+    // print_disabled_hooks_notice(&mut globals);
 
     let (sender, receiver) = channel();
 
     let mut last = Instant::now();
-    events::fire_internal_event(EventType::Startup);
+    events::queue_internal_event(EventType::Startup, &mut globals);
 
     // spawn the event loop thread
     let handle = thread::Builder::new()
@@ -217,54 +226,63 @@ fn main() {
 
     }).unwrap();
 
-    // let timeout = Duration::from_secs(5);
-    // let beginning_park = Instant::now();
-    //
-    // let mut timeout_remaining = timeout;
-
+    // ... on the main thread again
     'main_loop: loop {
         trace!("Main thread going to sleep...");
-        let event = receiver.recv().unwrap();
 
-        trace!("Main thread woken up...");
+        // Blocking call
+        // wait for the event loop thread to submit an event
+        // or up to n msecs until a timeout occurs
+        let event = match receiver.recv_timeout(Duration::from_millis(2000)) {
+            Ok(result) => {
+                trace!("Main thread woken up to process a message...");
+                Some(result)
+            },
+            Err(_) => {
+                trace!("Main thread woken up (timeout)...");
+                None
+            }
+        };
 
-        // Check if we shall reload the external text configuration
+        // Check if we shall reload the external text configuration file
         if RELOAD_NOW.load(Ordering::Relaxed) {
             RELOAD_NOW.store(false, Ordering::Relaxed);
-            trace!("Reloading configuration...");
+            warn!("Reloading configuration now...");
 
-            match globals::GLOBALS.try_lock() {
-                Err(_) => { error!("Could not lock a shared data structure!"); },
-                Ok(mut g) => {
-                    g.config = Config::new();
+            // Parse external configuration file
+            match storage::parse_config_file(&mut globals) {
+                Ok(_)  => { info!("Successfuly parsed configuration!") },
+                Err(s) => { error!("Error in configuration file: {}", s); return }
+            }
 
-                    events::fire_internal_event(EventType::ConfigurationReloaded);
-                }
-            };
+            events::queue_internal_event(EventType::ConfigurationReloaded, &mut globals);
+        }
+
+        // Allow plugins to integrate into the main loop
+        plugins::call_main_loop_hook(&mut globals, &mut manager);
+
+        // Queue a "Ping"-event every n seconds
+        if last.elapsed() > Duration::from_millis(5000){
+            last = Instant::now();
+            events::queue_internal_event(EventType::Ping, &mut globals);
         }
 
         // Dispatch events
-        process_procmon_event(&event);
-        process_internal_events();
+        match event {
+            Some(e) => { process_procmon_event(&e, &mut globals, &mut manager) },
+            None    => { /* We woke up because of a timeout, just do nothing */ }
+        };
 
-        if last.elapsed().as_secs() > 5 {
-            last = Instant::now();
-            events::fire_internal_event(EventType::Ping);
-        }
+        process_internal_events(&mut globals, &mut manager);
 
         // Let the task scheduler run it's queued jobs
-        // match util::SCHEDULER.lock() {
-        //     Err(_) => { error!("Could not lock a shared data structure!"); },
-        //     Ok(mut s) => {
-        //         s.run_jobs();
-        //     }
-        // };
+        // util::SCHEDULER.try_lock().unwrap().run_jobs();
 
         if EXIT_NOW.load(Ordering::Relaxed) {
             trace!("Leaving the main loop...");
 
-            events::fire_internal_event(EventType::Shutdown);
-            process_internal_events();
+            events::queue_internal_event(EventType::Shutdown, &mut globals);
+            process_internal_events(&mut globals, &mut manager);
 
             break 'main_loop;
         }
@@ -272,12 +290,16 @@ fn main() {
 
     // main thread blocks here
     match handle.join() {
-        Ok(_)  => { trace!("Successfuly joined event loop thread!"); },
+        Ok(_)  => { trace!("Successfuly joined the event loop thread!"); },
         Err(_) => { error!("Could not join the event loop thread!"); }
     };
 
     // Clean up now
     trace!("Cleaning up...");
 
-    trace!("Exiting now.");
+    // Unregister plugins and hooks
+    plugins::unregister_plugins(&mut globals, &mut manager);
+    hooks::unregister_hooks(&mut globals, &mut manager);
+
+    info!("Exiting now.");
 }

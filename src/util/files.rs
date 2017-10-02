@@ -77,6 +77,9 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
                                    libc::MAP_SHARED, fd, 0) };
 
     if addr < 0 as *mut libc::c_void {
+        // Try to close the file descriptor
+        unsafe { libc::close(fd) };
+
         Err(std::io::Error::last_os_error())
     } else {
         trace!("Successfuly called mmap() for: '{}'", filename);
@@ -87,6 +90,9 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
                                         /*| libc::MADV_MERGEABLE*/) };
 
         if result < 0 as libc::c_int {
+            // Try to close the file descriptor
+            unsafe { libc::close(fd) };
+
             Err(std::io::Error::last_os_error())
         } else {
             trace!("Successfuly called madvise() for: '{}'", filename);
@@ -94,6 +100,9 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
             let result = unsafe { libc::mlock(addr as *mut libc::c_void, stat.st_size as usize) };
 
             if result < 0 as libc::c_int {
+                // Try to close the file descriptor
+                unsafe { libc::close(fd) };
+
                 Err(std::io::Error::last_os_error())
             } else {
                 trace!("Successfuly called mlock() for: '{}'", filename);
@@ -167,7 +176,7 @@ pub fn get_files_recursive(path: &String) -> Vec<String> {
     });
 
     match ret {
-        Err(e)  => { error!("Error while enumerating files in directory {}", e); Vec::new() },
+        Err(e)  => { error!("Error while enumerating files in directory: {}", e); Vec::new() },
         Ok(_)   => { result }
     }
 }

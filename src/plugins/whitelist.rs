@@ -23,21 +23,23 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::sync::mpsc::{Sender, channel};
 
-use globals;
+use globals::*;
+use manager::*;
+
 use events;
+use storage;
 use util;
 
 use super::plugin::Plugin;
 
+static NAME: &str = "whitelist";
+
 /// Register this plugin implementation with the system
-pub fn register_plugin() {
-    match globals::GLOBALS.try_lock() {
-        Err(_)    => { error!("Could not lock a shared data structure!"); },
-        Ok(mut g) => {
-            let plugin = Box::new(Whitelist::new());
-            g.get_plugin_manager_mut().register_plugin(plugin);
-        }
-    };
+pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
+    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+        let plugin = Box::new(Whitelist::new());
+        manager.get_plugin_manager_mut().register_plugin(plugin);
+    }
 }
 
 #[derive(Debug)]
@@ -52,43 +54,49 @@ impl Whitelist {
         }
     }
 
-    pub fn cache_whitelisted_files(&mut self, globals: &mut globals::Globals) {
+    pub fn cache_whitelisted_files(&mut self, globals: &Globals) {
         trace!("Started caching of whitelisted files...");
 
-        let config_file = globals.config.config_file.clone().unwrap();
-        let tracked_files = util::expand_path_list(&mut config_file.whitelist.unwrap());
+        match globals.config.config_file.clone() {
+            Some(config_file) => {
+                let tracked_files = util::expand_path_list(&mut config_file.whitelist.unwrap());
 
-        for filename in tracked_files {
-            // mmap and mlock file if it is not contained in the blacklist
-            // and if it is not already mapped
-            let f  = filename;
-            let f2 = f.clone();
-            if !self.mapped_files.contains_key(&f) {
-                let thread_pool = util::POOL.try_lock().unwrap();
-                let (sender, receiver): (Sender<Option<util::MemoryMapping>>, _) = channel();
-                let sc = Mutex::new(sender.clone());
+                for filename in tracked_files {
+                    // mmap and mlock file if it is not contained in the blacklist
+                    // and if it is not already mapped
+                    let f  = filename;
+                    let f2 = f.clone();
+                    if !self.mapped_files.contains_key(&f) {
+                        let thread_pool = util::POOL.try_lock().unwrap();
+                        let (sender, receiver): (Sender<Option<util::MemoryMapping>>, _) = channel();
+                        let sc = Mutex::new(sender.clone());
 
-                thread_pool.submit_work(move || {
-                    match util::map_and_lock_file(&f) {
-                        Err(s) => {
-                            error!("Could not cache file '{}': {}", &f, &s);
-                            sc.lock().unwrap().send(None).unwrap();
-                        },
-                        Ok(r) => {
-                            trace!("Successfuly cached file '{}'", &f);
-                            sc.lock().unwrap().send(Some(r)).unwrap();
+                        thread_pool.submit_work(move || {
+                            match util::map_and_lock_file(&f) {
+                                Err(s) => {
+                                    error!("Could not cache file '{}': {}", &f, &s);
+                                    sc.lock().unwrap().send(None).unwrap();
+                                },
+                                Ok(r) => {
+                                    trace!("Successfuly cached file '{}'", &f);
+                                    sc.lock().unwrap().send(Some(r)).unwrap();
+                                }
+                            }
+                        });
+
+                        // blocking call; wait for event loop thread
+                        if let Some(mapping) = receiver.recv().unwrap() {
+                            self.mapped_files.insert(f2, mapping);
                         }
                     }
-                });
-
-                // blocking call; wait for event loop thread
-                if let Some(mapping) = receiver.recv().unwrap() {
-                    self.mapped_files.insert(f2, mapping);
                 }
+
+                info!("Finished caching of whitelisted files");
+            },
+            None => {
+                warn!("Configuration temporarily unavailable, skipping task!");
             }
         }
-
-        info!("Finished caching of whitelisted files");
     }
 }
 
@@ -102,10 +110,14 @@ impl Plugin for Whitelist {
     }
 
     fn get_name(&self) -> &'static str {
-        "whitelist"
+        NAME
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals) {
+    fn main_loop_hook(&mut self, globals: &mut Globals) {
+        // do nothing
+    }
+
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &Globals) {
         match event.event_type {
             events::EventType::Ping => {
                 self.cache_whitelisted_files(globals);

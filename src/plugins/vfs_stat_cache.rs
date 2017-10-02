@@ -18,22 +18,24 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use globals;
+use globals::*;
+use manager::*;
+
 use events;
+use storage;
 use util;
 
-use hooks::process_tracker::ProcessTracker;
+// use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 
+static NAME: &str = "vfs_stat_cache";
+
 /// Register this plugin implementation with the system
-pub fn register_plugin() {
-    match globals::GLOBALS.try_lock() {
-        Err(_)    => { error!("Could not lock a shared data structure!"); },
-        Ok(mut g) => {
-            let plugin = Box::new(VFSStatCache::new());
-            g.get_plugin_manager_mut().register_plugin(plugin);
-        }
-    };
+pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
+    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+        let plugin = Box::new(VFSStatCache::new());
+        manager.get_plugin_manager_mut().register_plugin(plugin);
+    }
 }
 
 #[derive(Debug)]
@@ -48,7 +50,7 @@ impl VFSStatCache {
         }
     }
 
-    fn get_globaly_tracked_files(&self, globals: &mut globals::Globals) -> Vec<String> {
+    fn get_globaly_tracked_files(&self, globals: &Globals) -> Vec<String> {
         let mut result = Vec::new();
 
         // if let Some(hook) = &globals.get_hook_manager()
@@ -61,37 +63,42 @@ impl VFSStatCache {
         result
     }
 
-    pub fn prime_statx_cache(&mut self, globals: &mut globals::Globals) {
+    pub fn prime_statx_cache(&mut self, globals: &Globals) {
         trace!("Started reading of statx() metadata...");
 
-        let config_file = globals.config.config_file.clone().unwrap();
+        match globals.config.config_file.clone() {
+            Some(config_file) => {
+                let mut tracked_files = Vec::<String>::new();
+                tracked_files.append(&mut config_file.whitelist.unwrap());
+                tracked_files.append(&mut self.get_globaly_tracked_files(globals));
 
-        let mut tracked_files = Vec::<String>::new();
-        tracked_files.append(&mut config_file.whitelist.unwrap());
-        tracked_files.append(&mut self.get_globaly_tracked_files(globals));
+                for filename in tracked_files {
+                    let f = filename.clone();
 
-        for filename in tracked_files {
-            let f = filename.clone();
+                    let thread_pool = util::POOL.try_lock().unwrap();
+                    // let (sender, receiver): (_, _) = channel();
+                    // let sc = Mutex::new(sender.clone());
 
-            let thread_pool = util::POOL.try_lock().unwrap();
-            // let (sender, receiver): (_, _) = channel();
-            // let sc = Mutex::new(sender.clone());
+                    thread_pool.submit_work(move || {
+                        match util::prime_metadata_cache(&f) {
+                            Err(s) => { error!("Could not read metadata for '{}': {}", &f, &s); },
+                            Ok(_) => {
+                                trace!("Successfuly read metadata for '{}'", &f);
+                                // sc.lock().unwrap().send(r).unwrap();
+                            }
+                        }
+                    });
 
-            thread_pool.submit_work(move || {
-                match util::prime_metadata_cache(&f) {
-                    Err(s) => { error!("Could not read metadata for '{}': {}", &f, &s); },
-                    Ok(_) => {
-                        trace!("Successfuly read metadata for '{}'", &f);
-                        // sc.lock().unwrap().send(r).unwrap();
-                    }
+                    // blocking call; wait for event loop thread
+                    // let result = receiver.recv().unwrap();
                 }
-            });
 
-            // blocking call; wait for event loop thread
-            // let result = receiver.recv().unwrap();
+                info!("Finished reading of statx() metadata");
+            },
+            None => {
+                warn!("Configuration temporarily unavailable, skipping task!");
+            }
         }
-
-        info!("Finished reading of statx() metadata");
     }
 }
 
@@ -105,10 +112,14 @@ impl Plugin for VFSStatCache {
     }
 
     fn get_name(&self) -> &'static str {
-        "vfs_stat_cache"
+        NAME
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals) {
+    fn main_loop_hook(&mut self, globals: &mut Globals) {
+        // do nothing
+    }
+
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &Globals) {
         match event.event_type {
             events::EventType::Ping => {
                 self.prime_statx_cache(globals);

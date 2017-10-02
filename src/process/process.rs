@@ -27,8 +27,7 @@ use util;
 use self::regex::*;
 use super::prefault;
 
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Process {
     pub pid: libc::pid_t
 }
@@ -83,18 +82,35 @@ impl Process {
         }).collect();
 
         Ok(result)
-    }
+    }*/
 
     pub fn get_comm(&self) -> io::Result<String> {
         let filename = format!("/proc/{}/comm", self.pid);
         let ref result = try!(util::get_lines_from_file(&filename))[0];
 
-        Ok(result.clone())
-    }*/
+        Ok(result.to_string())
+    }
 }
 
 impl prefault::Prefault for Process {
     fn prefault(&self) {
 
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate libc;
+    use process::*;
+
+    #[test]
+    fn test_get_process_comm() {
+        let pid = unsafe { libc::getpid() };
+        let process = Process::new(pid);
+
+        let comm = process.get_comm().unwrap();
+        info!("Comm: {}", &comm);
+
+        assert!(comm.len() > 0);
     }
 }

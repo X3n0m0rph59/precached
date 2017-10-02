@@ -18,16 +18,35 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use globals::*;
+use plugins::PluginManager;
+use hooks::HookManager;
 
-pub trait Plugin {
-    fn register(&mut self);
-    fn unregister(&mut self);
+pub struct Manager {
+    plugin_manager: PluginManager,
+    hook_manager: HookManager,
+}
 
-    fn get_name(&self) -> &'static str;
+impl Manager {
+    pub fn new() -> Manager {
+        Manager {
+            plugin_manager: PluginManager::new(),
+            hook_manager: HookManager::new(),
+        }
+    }
 
-    fn main_loop_hook(&mut self, globals: &mut Globals);
+    pub fn get_plugin_manager(&self) -> &PluginManager {
+        &self.plugin_manager
+    }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &Globals);
+    pub fn get_plugin_manager_mut(&mut self) -> &mut PluginManager {
+        &mut self.plugin_manager
+    }
+
+    pub fn get_hook_manager(&self) -> &HookManager {
+        &self.hook_manager
+    }
+
+    pub fn get_hook_manager_mut(&mut self) -> &mut HookManager {
+        &mut self.hook_manager
+    }
 }

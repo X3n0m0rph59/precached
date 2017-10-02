@@ -20,7 +20,7 @@
 
 use std::io;
 
-use globals;
+use globals::*;
 use toml;
 use util;
 
@@ -32,6 +32,7 @@ pub struct ConfigFile {
     pub state_cache: Option<String>,
     pub whitelist: Option<Vec<String>>,
     pub blacklist: Option<Vec<String>>,
+    pub disabled_plugins: Option<Vec<String>>,
 }
 
 impl Default for ConfigFile {
@@ -43,36 +44,31 @@ impl Default for ConfigFile {
             state_cache: Some(String::from("/var/cache/precached.state")),
             whitelist: Some(vec![String::from("")]),
             blacklist: Some(vec![String::from("")]),
+            disabled_plugins: Some(vec![String::from("")]),
         }
     }
 }
 
-pub fn parse_config_file() -> io::Result<()> {
-    match globals::GLOBALS.try_lock() {
-        Err(_) => {
-            Err(io::Error::new(io::ErrorKind::Other, "Could not lock a shared data structure!"))
-        },
-        Ok(mut g) => {
-            let input = util::get_lines_from_file(&g.config.config_filename)?;
+pub fn parse_config_file(globals: &mut Globals) -> io::Result<()> {
+    let input = util::get_lines_from_file(&globals.config.config_filename)?;
 
-            let mut s = String::new();
-            for l in input {
-                s += &l; s += &"\n";
-            }
-
-            // TODO: Implement field validation
-            let config_file: ConfigFile = match toml::from_str(&s) {
-                Err(_)  => { ConfigFile::default() },
-                Ok(res) => { res }
-            };
-
-            g.config.config_file = Some(config_file);
-            trace!("============================================================================");
-            trace!("Configuration dump:");
-            trace!("{:#?}", g.config.config_file);
-            trace!("============================================================================");
-
-            Ok(())
-        }
+    let mut s = String::new();
+    for l in input {
+        s += &l; s += &"\n";
     }
+
+    // TODO: Implement field validation
+    let config_file: ConfigFile = match toml::from_str(&s) {
+        Err(_)  => { ConfigFile::default() },
+        Ok(res) => { res }
+    };
+
+    globals.config.config_file = Some(config_file);
+
+    Ok(())
 }
+
+pub fn get_disabled_plugins(globals: &mut Globals) -> Vec<String> {
+    globals.config.config_file.clone().unwrap_or_default()
+        .disabled_plugins.unwrap_or_default()
+    }

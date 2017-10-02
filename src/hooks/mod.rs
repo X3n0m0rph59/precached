@@ -21,10 +21,17 @@
 mod hook_manager;
 mod hook;
 
+use globals::*;
+use manager::*;
+
 pub use self::hook_manager::*;
 
 pub mod process_tracker;
 
-pub fn register_default_hooks() {
-    process_tracker::register_hook();
+pub fn register_default_hooks(globals: &mut Globals, manager: &mut Manager) {
+    process_tracker::register_hook(globals, manager);
+}
+
+pub fn unregister_hooks(_globals: &mut Globals, manager: &mut Manager) {
+    manager.get_hook_manager_mut().unregister_all_hooks();
 }

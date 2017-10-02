@@ -18,57 +18,69 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::sync::Arc;
-use std::sync::Mutex;
-
 use std::collections::HashMap;
+use std::collections::hash_map::Entry::{Occupied, Vacant};
 
 use events;
-use globals;
+use globals::*;
+use manager::*;
 
 use super::plugin::Plugin;
 
-#[derive(Clone)]
 pub struct PluginManager {
-    plugins: Arc<Mutex<HashMap<String, Box<Plugin + Sync + Send>>>>,
+    plugins: HashMap<String, Box<Plugin>>,
 }
 
 impl PluginManager {
     pub fn new() -> PluginManager {
-        PluginManager { plugins: Arc::new(Mutex::new(HashMap::new())), }
+        PluginManager { plugins: HashMap::new(), }
     }
 
-    pub fn register_plugin(&mut self, mut plugin: Box<Plugin + Sync + Send>) {
-        match self.plugins.try_lock() {
-            Err(_) => { error!("Could not lock a shared data structure!"); },
-            Ok(mut plugins) => {
-                plugin.register();
-                plugins.insert(String::from(plugin.get_name()), plugin);
-            }
+    pub fn register_plugin(&mut self, mut plugin: Box<Plugin>) {
+        plugin.register();
+        self.plugins.insert(String::from(plugin.get_name()), plugin);
+    }
+
+    pub fn unregister_plugin(&mut self, name: &String) {
+        match self.get_plugin_by_name_mut(name) {
+            Some(p) => { p.unregister(); },
+            None    => { error!("No plugin with name '{}' found!", name); }
         };
     }
 
-    // pub fn unregister_plugin(&mut self) {
-    //     // plugin.unregister();
-    // }
-
-    // pub fn get_plugin_by_name(&self, name: &String) -> &Option<&Box<Plugin + Sync + Send>> {
-    //     match self.plugins.try_lock() {
-    //         Err(_) => { error!("Could not lock a shared data structure!"); &None },
-    //         Ok(plugins) => {
-    //             &plugins.get(name)
-    //         }
-    //     }
-    // }
-
-    pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut globals::Globals) {
-        match self.plugins.try_lock() {
-            Err(_) => { error!("Could not lock a shared data structure!"); },
-            Ok(mut plugins) => {
-                for (_, p) in plugins.iter_mut() {
-                    p.internal_event(event, globals);
-                }
-            }
-        };
+    pub fn unregister_all_plugins(&mut self) {
+        for (_, p) in self.plugins.iter_mut() {
+            p.unregister();
+        }
     }
+
+    pub fn get_plugin_by_name(&mut self, name: &String) -> Option<&Box<Plugin>> {
+        match self.plugins.entry(name.clone()) {
+            Vacant(_)       => { None },
+            Occupied(entry) => { Some(entry.into_mut()) }
+        }
+    }
+
+    pub fn get_plugin_by_name_mut(&mut self, name: &String) -> Option<&mut Box<Plugin>> {
+        match self.plugins.entry(name.clone()) {
+            Vacant(_)       => { None },
+            Occupied(entry) => { Some(entry.into_mut()) }
+        }
+    }
+
+    pub fn dispatch_internal_event(&mut self, event: &events::InternalEvent, globals: &Globals) {
+        for (_, p) in self.plugins.iter_mut() {
+            p.internal_event(event, globals);
+        }
+    }
+
+    pub fn call_main_loop_hooks(&mut self, globals: &mut Globals) {
+        for (_, p) in self.plugins.iter_mut() {
+            p.main_loop_hook(globals);
+        }
+    }
+}
+
+pub fn call_main_loop_hook(globals: &mut Globals, manager: &mut Manager) {
+    manager.get_plugin_manager_mut().call_main_loop_hooks(globals);
 }

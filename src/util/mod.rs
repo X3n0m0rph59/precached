@@ -18,11 +18,13 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+mod vec;
 mod files;
 mod system;
 mod thread_pool;
 mod task_scheduler;
 
+pub use self::vec::*;
 pub use self::files::*;
 pub use self::system::*;
 pub use self::thread_pool::*;

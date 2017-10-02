@@ -24,7 +24,7 @@ use self::clap::{Arg, App};
 
 use storage;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Config {
     pub verbosity: u8,
     pub daemonize: bool,
@@ -35,18 +35,18 @@ pub struct Config {
 impl Config {
     pub fn new() -> Config {
         let matches = App::new("precached")
-                          .version("1.0")
+                          .version("0.1.0")
                           .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
                           .about("A Linux process monitor and pre-caching daemon")
                           .arg(Arg::with_name("v")
                                 .short("v")
                                 .multiple(true)
-                                .help("Sets the level of verbosity"))
+                                .help("Sets the level of log verbosity"))
                           .arg(Arg::with_name("config")
                                 .short("c")
                                 .long("config")
                                 .value_name("file")
-                                .help("Sets a custom config file")
+                                .help("Sets the config file")
                                 .takes_value(true))
                           .arg(Arg::with_name("foreground")
                                 .short("f")

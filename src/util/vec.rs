@@ -18,16 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use globals::*;
+use std::cmp::PartialEq;
 
-pub trait Plugin {
-    fn register(&mut self);
-    fn unregister(&mut self);
+trait Contains<T> {
+    fn contains(&self, p: &T) -> bool;
+}
 
-    fn get_name(&self) -> &'static str;
-
-    fn main_loop_hook(&mut self, globals: &mut Globals);
-
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &Globals);
+impl<T: PartialEq> Contains<T> for Vec<T> {
+    fn contains(&self, p: &T) -> bool {
+        self.iter().any(|e| e == p)
+    }
 }

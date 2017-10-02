@@ -25,7 +25,7 @@ use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 
 use events;
-use globals;
+use globals::*;
 use procmon;
 
 use super::hook::Hook;
@@ -50,15 +50,41 @@ impl HookManager {
         };
     }
 
-    // pub fn unregister_hook(&mut self) {
-    //     // hook.unregister();
+    // pub fn unregister_hook(&mut self, name: &String) {
+    //     match self.get_hook_by_name_mut(name) {
+    //         Some(h) => { &mut h.unregister(); },
+    //         None    => { error!("No hook with name '{}' found!", name); }
+    //     };
     // }
 
-    // pub fn get_hook_by_name(&mut self, name: String) -> Option<&Box<Hook + Sync + Send>> {
+    pub fn unregister_all_hooks(&mut self) {
+        match self.hooks.try_lock() {
+            Err(_) => { error!("Could not lock a shared data structure!"); },
+            Ok(mut hooks) => {
+                for (_, h) in hooks.iter_mut() {
+                    h.unregister();
+                }
+            }
+        };
+    }
+
+    // pub fn get_hook_by_name(&mut self, name: &String) -> Option<&Box<Hook + Sync + Send>> {
     //     match self.hooks.try_lock() {
     //         Err(_) => { error!("Could not lock a shared data structure!"); None },
     //         Ok(hooks) => {
-    //             match hooks.entry(name) {
+    //             match hooks.entry(name.clone()) {
+    //                 Vacant(_)       => { None },
+    //                 Occupied(entry) => { Some(entry.into_mut()) }
+    //             }
+    //         }
+    //     }
+    // }
+    //
+    // pub fn get_hook_by_name_mut(&mut self, name: &String) -> Option<&mut Box<Hook + Sync + Send>> {
+    //     match self.hooks.try_lock() {
+    //         Err(_) => { error!("Could not lock a shared data structure!"); None },
+    //         Ok(hooks) => {
+    //             match hooks.entry(name.clone()) {
     //                 Vacant(_)       => { None },
     //                 Occupied(entry) => { Some(entry.into_mut()) }
     //             }
@@ -66,7 +92,7 @@ impl HookManager {
     //     }
     // }
 
-    pub fn dispatch_event(&self, event: &procmon::Event, globals: &mut globals::Globals) {
+    pub fn dispatch_event(&self, event: &procmon::Event, globals: &Globals) {
         match self.hooks.try_lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(ref mut hooks) => {
@@ -77,7 +103,7 @@ impl HookManager {
         };
     }
 
-    pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut globals::Globals) {
+    pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &Globals) {
         match self.hooks.try_lock() {
             Err(_) => { error!("Could not lock a shared data structure!"); },
             Ok(ref mut hooks) => {

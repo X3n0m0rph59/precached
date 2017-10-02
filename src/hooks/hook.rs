@@ -19,7 +19,7 @@
 */
 
 use events;
-use globals;
+use globals::*;
 use procmon;
 
 pub trait Hook {
@@ -28,6 +28,6 @@ pub trait Hook {
 
     fn get_name(&self) -> &'static str;
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut globals::Globals);
-    fn process_event(&mut self, event: &procmon::Event, globals: &mut globals::Globals);
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &Globals);
+    fn process_event(&mut self, event: &procmon::Event, globals: &Globals);
 }

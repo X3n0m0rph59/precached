@@ -18,21 +18,16 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::sync::Arc;
-use std::sync::Mutex;
-
 use std::collections::LinkedList;
 
 use events;
 use config::Config;
-use plugins::PluginManager;
-use hooks::HookManager;
 
-#[derive(Clone)]
+/// Global system state
 pub struct Globals {
+    /// Global configuration
     pub config: Config,
-    plugin_manager: PluginManager,
-    hook_manager: HookManager,
+    /// Holds pending events, used by the internal eventing mechanism
     event_queue: LinkedList<events::InternalEvent>,
 }
 
@@ -40,26 +35,8 @@ impl Globals {
     pub fn new() -> Globals {
         Globals {
             config: Config::new(),
-            plugin_manager: PluginManager::new(),
-            hook_manager: HookManager::new(),
             event_queue: LinkedList::new(),
         }
-    }
-
-    pub fn get_plugin_manager(&self) -> &PluginManager {
-        &self.plugin_manager
-    }
-
-    pub fn get_plugin_manager_mut(&mut self) -> &mut PluginManager {
-        &mut self.plugin_manager
-    }
-
-    pub fn get_hook_manager(&self) -> &HookManager {
-        &self.hook_manager
-    }
-
-    pub fn get_hook_manager_mut(&mut self) -> &mut HookManager {
-        &mut self.hook_manager
     }
 
     pub fn get_event_queue(&self) -> &LinkedList<events::InternalEvent> {
@@ -69,8 +46,4 @@ impl Globals {
     pub fn get_event_queue_mut(&mut self) -> &mut LinkedList<events::InternalEvent> {
         &mut self.event_queue
     }
-}
-
-lazy_static! {
-    pub static ref GLOBALS: Arc<Mutex<Globals>> = { Arc::new(Mutex::new(Globals::new())) };
 }

@@ -21,14 +21,25 @@
 mod plugin_manager;
 mod plugin;
 
+use globals::*;
+use manager::*;
+
 pub use self::plugin_manager::*;
 
-pub mod dbus_interface;
 pub mod vfs_stat_cache;
 pub mod whitelist;
+pub mod statistics;
+pub mod notifications;
+pub mod dbus_interface;
 
-pub fn register_default_plugins() {
-    dbus_interface::register_plugin();
-    vfs_stat_cache::register_plugin();
-    whitelist::register_plugin();
+pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
+    vfs_stat_cache::register_plugin(globals, manager);
+    whitelist::register_plugin(globals, manager);
+    statistics::register_plugin(globals, manager);
+    notifications::register_plugin(globals, manager);
+    dbus_interface::register_plugin(globals, manager);
+}
+
+pub fn unregister_plugins(_globals: &mut Globals, manager: &mut Manager) {
+    manager.get_plugin_manager_mut().unregister_all_plugins();
 }
