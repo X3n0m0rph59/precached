@@ -10,6 +10,7 @@ Source0: https://github.com/X3n0m0rph59/%{name}/archive/master.tar.gz
 
 BuildRequires: systemd
 BuildRequires: dbus-devel
+BuildRequires: cargo
 
 %global gittag master
 %global debug_package %{nil}
