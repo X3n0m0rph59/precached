@@ -8,9 +8,21 @@ memory to speed up loading of programs and increase the perceived overall
 'snappiness' of the system.
 
 ### Quick Install Guide
+
+#### Install on Fedora
+
+```
+    $ dnf copr enable x3n0m0rph59/precached
+    $ dnf install precached
+```
+
+#### Install From Source
+
+```
     $ git clone https://github.com/X3n0m0rph59/precached.git  
     $ cd precached/
     $ cargo build
+```
 
 ### Notes
 
