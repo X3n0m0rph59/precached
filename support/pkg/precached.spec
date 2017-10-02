@@ -35,6 +35,7 @@ cargo build --release --verbose
 %{__mkdir_p} %{buildroot}%{_mandir}/man8
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
+%{__mkdir_p} %{_sysconfdir}/dbus-1/
 %{__mkdir_p} %{buildroot}%{_datadir}/{name}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
