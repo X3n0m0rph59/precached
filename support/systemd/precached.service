@@ -1,5 +1,6 @@
 [Unit]
 Description=Process monitor and pre-caching daemon
+Documentation=man:precached.service(8) man:precached.conf(5)
 
 [Service]
 ExecStart=/usr/sbin/precached -f -c /etc/precached/precached.conf
