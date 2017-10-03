@@ -60,13 +60,14 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{bu
 %license LICENSE
 %doc %{_mandir}/man5/%{name}.conf.5.gz
 %doc %{_mandir}/man8/%{name}.8.gz
-%docdir %{_docdir}/%{name}/examples/
+%dir %{_docdir}/%{name}/examples/
+# %docdir %{_docdir}/%{name}/examples/
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sbindir}/%{name}
 %{_unitdir}/%{name}.service
 %config(noreplace) %{_sysconfdir}/dbus-1/org.precached.precached1.conf
 %{_sharedstatedir}/%{name}/
-%dir %{_docdir}/%{name}/examples/
+%{_docdir}/%{name}/examples/
 #%{_datadir}/%{name}/
 
 %changelog
