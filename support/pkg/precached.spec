@@ -1,6 +1,6 @@
 Name:    precached
 Version: 0.1.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -37,12 +37,14 @@ cargo build --release --verbose
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/
+%{__mkdir_p} %{buildroot}%{_docdir}/%{name}/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{name}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{gittag}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/
+cp -ra %{_builddir}/%{name}-%{gittag}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
 install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{buildroot}%{_sbindir}/%{name}
 
 %post
@@ -58,6 +60,7 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{bu
 %license LICENSE
 %doc %{_mandir}/man5/%{name}.conf.5.gz
 %doc %{_mandir}/man8/%{name}.8.gz
+%docdir %{_docdir}/%{name}/examples/
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sbindir}/%{name}
 %{_unitdir}/%{name}.service

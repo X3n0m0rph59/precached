@@ -42,7 +42,7 @@ pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
         match l {
             Ok(s) => Some(s),
             Err(_) => {
-                error!("Error while reading file!");
+                // error!("Error while reading file!");
                 return None
             }
         }
