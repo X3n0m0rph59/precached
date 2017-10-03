@@ -66,6 +66,7 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{bu
 %{_unitdir}/%{name}.service
 %config(noreplace) %{_sysconfdir}/dbus-1/org.precached.precached1.conf
 %{_sharedstatedir}/%{name}/
+%dir %{_docdir}/%{name}/examples/
 #%{_datadir}/%{name}/
 
 %changelog
