@@ -27,14 +27,46 @@ memory to speed up loading of programs and increase the perceived overall
 
 ### Notes
 
-This project is in a very early stage of development and you may
-possibly encounter serious bugs.
+This project is still in a very early stage of development and you may
+possibly encounter some serious bugs.
+
+### Why You may want to use precached
+
+Precached tries to tackle some of the long standing performance issues
+of the Linux desktop on computers with slow harddisks:
+
+* The system has unused (free) memory directly after bootup
+  -> Programs take a longer time to start, cache cold is way slower than cache hot
+* A Cron-Job run evicts important pages from the page cache
+  -> The system feels sluggish afterwards
+* The system has unused (free) memory after a "memory hog" process quit
+  -> Need to prime the caches again for a fast responding system
+
+>***Unused memory is wasted memory!***
+
+TL;DR: If you have a reasonably fast CPU and a slow disk drive (and an ample
+amount of RAM) installed in your system, then you may see a performance
+improvement by using precached. The larger the speed difference between the
+CPU and the IO subsystem, the more you gain by running precached.
+
+### Don't use precached if
+
+* You have a fast NVME SSD drive
+* You have less than ~2GBs of RAM installed (and want to use a modern Linux desktop)
+
+If the above is true for your system, then you aren't likely to get a noticeable
+improvement out of using precached.
+
+### Benchmarks
+
+* Still need to be done
 
 ### Current State
 
 #### What is working right now
 
 * mlock() of mapped files
+* Static Whitelisting
 * VFS statx() caching (pre-read file metadata)
 
 #### What remains to be done
@@ -44,9 +76,11 @@ possibly encounter serious bugs.
 * Implement a persistence layer
 * Daemonization support
 * Prime caches on daemon startup
+* Markov-chain based prefetching
 * Implement a DBUS interface
 * Write a nice CLI tool to control the daemon
 * And write a precached GUI in GTK+
+* Create and publish benchmarks
 * ...
 
 ### Getting Involved

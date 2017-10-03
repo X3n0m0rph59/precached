@@ -20,7 +20,7 @@
 
 use std::cmp::PartialEq;
 
-trait Contains<T> {
+pub trait Contains<T> {
     fn contains(&self, p: &T) -> bool;
 }
 

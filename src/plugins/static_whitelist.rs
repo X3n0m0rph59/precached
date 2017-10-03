@@ -32,13 +32,14 @@ use storage;
 use util;
 
 // use hooks::process_tracker::ProcessTracker;
+use plugins::static_blacklist::StaticBlacklist;
 use plugins::dynamic_whitelist::DynamicWhitelist;
 
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
 static NAME:        &str = "static_whitelist";
-static DESCRIPTION: &str = "Whitelist files that shall be kept locked in memory all the time";
+static DESCRIPTION: &str = "Whitelist files that shall be kept mlock()ed in memory all the time";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
@@ -53,30 +54,13 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug)]
 pub struct StaticWhitelist {
     mapped_files: HashMap<String, util::MemoryMapping>,
-    blacklist: Box<Vec<String>>,
 }
 
 impl StaticWhitelist {
     pub fn new(globals: &Globals) -> StaticWhitelist {
         StaticWhitelist {
             mapped_files: HashMap::new(),
-            blacklist: Box::new(StaticWhitelist::get_file_blacklist(globals)),
         }
-    }
-
-    fn get_file_blacklist(globals: &Globals) -> Vec<String> {
-        let mut result = Vec::new();
-
-        // blacklist linux special mappings
-        result.push(String::from("[mpx]"));
-        result.push(String::from("[vvar]"));
-        result.push(String::from("[vdso]"));
-        result.push(String::from("[vsyscall]"));
-
-        let mut blacklist = util::expand_path_list(&globals.config.config_file.clone().unwrap().blacklist.unwrap());
-        result.append(&mut blacklist);
-
-        result
     }
 
     pub fn cache_whitelisted_files(&mut self, globals: &Globals, manager: &Manager) {
@@ -86,6 +70,11 @@ impl StaticWhitelist {
         let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
         let plugin_b = plugin.borrow();
         let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
+
+        let pm = manager.plugin_manager.borrow();
+        let plugin = pm.get_plugin_by_name(&String::from("static_blacklist")).unwrap();
+        let plugin_b = plugin.borrow();
+        let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
         match globals.config.config_file.clone() {
             Some(config_file) => {
@@ -97,7 +86,7 @@ impl StaticWhitelist {
                     let f  = filename.clone();
                     let f2 = f.clone();
                     if !self.mapped_files.contains_key(&f) &&
-                       !self.blacklist.contains(&f) &&
+                       !static_blacklist.get_blacklist().contains(&f) &&
                        !dynamic_whitelist.get_mapped_files().contains_key(filename) {
                         let thread_pool = util::POOL.try_lock().unwrap();
                         let (sender, receiver): (Sender<Option<util::MemoryMapping>>, _) = channel();

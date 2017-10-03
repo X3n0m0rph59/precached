@@ -1,31 +1,44 @@
 # Precached - A Linux process monitor and pre-caching daemon
 
-### Project Overview
+## Project Overview
 
 * What problem does it try to solve
 
+### Basic Memory Management Concepts
+
+* Virtual Memory
+* Address Space
+* Memory mappings
+* Kernel Page Cache
+
 ### Current State
+
+* Precached is still in an early stage of development
 
 #### What is working right now
 
 * mlock()
+* Static Whitelisting
+* VFS statx() caching (pre-read file metadata)
 
 #### What remains to be done
 
 * Implement ceiling on mlocked() memory
-* Implement VFS statx() caching (pre-read file metadata)
 * Possibly implement fork-bomb mitigation
 * Implement a persistence layer
-* Prime caches on daemon startup
 * Daemonization support
+* Prime caches on daemon startup
+* Markov-chain based prefetching
 * Implement a DBUS interface
 * Write a nice CLI tool to control the daemon
 * And write a precached GUI in GTK+
+* Create and publish benchmarks
 * ...
 
 ### Software Architecture
 
 * Describe how it is implemented
+* Plugin based architecture
 * Hooks vs. Plugins
 
 ### Design Considerations

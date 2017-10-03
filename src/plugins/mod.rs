@@ -27,8 +27,10 @@ use manager::*;
 pub use self::plugin_manager::*;
 
 pub mod vfs_stat_cache;
+pub mod static_blacklist;
 pub mod static_whitelist;
 pub mod dynamic_whitelist;
+pub mod markov_prefetcher;
 pub mod statistics;
 pub mod notifications;
 pub mod dbus_interface;
@@ -36,8 +38,10 @@ pub mod forkbomb_mitigation;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     vfs_stat_cache::register_plugin(globals, manager);
+    static_blacklist::register_plugin(globals, manager);
     static_whitelist::register_plugin(globals, manager);
     dynamic_whitelist::register_plugin(globals, manager);
+    markov_prefetcher::register_plugin(globals, manager);
     statistics::register_plugin(globals, manager);
     notifications::register_plugin(globals, manager);
     dbus_interface::register_plugin(globals, manager);

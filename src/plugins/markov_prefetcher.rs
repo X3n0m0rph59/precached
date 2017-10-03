@@ -19,6 +19,10 @@
 */
 
 use std::any::Any;
+use std::collections::HashMap;
+
+use std::sync::Mutex;
+use std::sync::mpsc::{Sender, channel};
 
 use globals::*;
 use manager::*;
@@ -26,22 +30,21 @@ use manager::*;
 use events;
 use storage;
 use util;
-use util::Contains;
 
+// use hooks::process_tracker::ProcessTracker;
 use plugins::static_blacklist::StaticBlacklist;
-use plugins::static_whitelist::StaticWhitelist;
 use plugins::dynamic_whitelist::DynamicWhitelist;
 
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "vfs_stat_cache";
-static DESCRIPTION: &str = "Try to keep file metadata in the kernel caches";
+static NAME:        &str = "markov_prefetcher";
+static DESCRIPTION: &str = "Prefetches files based on a dynamically built Markov-chain model";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(VFSStatCache::new());
+        let plugin = Box::new(MarkovPrefetcher::new(globals));
 
         let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
@@ -49,81 +52,35 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct VFSStatCache {
+pub struct MarkovPrefetcher {
 
 }
 
-impl VFSStatCache {
-    pub fn new() -> VFSStatCache {
-        VFSStatCache {
-
+impl MarkovPrefetcher {
+    pub fn new(globals: &Globals) -> MarkovPrefetcher {
+        MarkovPrefetcher {
         }
     }
 
-    fn get_globaly_tracked_files(&self, _globals: &Globals, manager: &Manager) -> Vec<String> {
-        let mut result = Vec::<String>::new();
-
-        let pm = manager.plugin_manager.borrow();
-        let plugin = pm.get_plugin_by_name(&String::from("static_whitelist")).unwrap();
-        let plugin_b = plugin.borrow();
-        let static_whitelist = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
+    pub fn cache_files(&mut self, globals: &Globals, manager: &Manager) {
+        trace!("Started caching of files based on dynamic Markov-chain model...");
 
         let pm = manager.plugin_manager.borrow();
         let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
         let plugin_b = plugin.borrow();
         let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
 
-        for (k,_v) in static_whitelist.get_mapped_files().iter() {
-            result.push(k.clone());
-        }
-
-        for (k,_v) in dynamic_whitelist.get_mapped_files().iter() {
-            result.push(k.clone());
-        }
-
-        result
-    }
-
-    pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
-        trace!("Started reading of statx() metadata...");
-
         let pm = manager.plugin_manager.borrow();
         let plugin = pm.get_plugin_by_name(&String::from("static_blacklist")).unwrap();
         let plugin_b = plugin.borrow();
         let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
+
         match globals.config.config_file.clone() {
             Some(config_file) => {
-                let mut tracked_files = Vec::<String>::new();
-                tracked_files.append(&mut config_file.whitelist.unwrap());
-                tracked_files.append(&mut self.get_globaly_tracked_files(globals, manager));
+                // TODO: Implement this
 
-                for filename in tracked_files.iter() {
-                    if static_blacklist.get_blacklist().contains(filename) {
-                        continue;
-                    }
-
-                    let f = filename.clone();
-
-                    let thread_pool = util::POOL.try_lock().unwrap();
-                    // let (sender, receiver): (_, _) = channel();
-                    // let sc = Mutex::new(sender.clone());
-
-                    thread_pool.submit_work(move || {
-                        match util::prime_metadata_cache(&f) {
-                            Err(s) => { error!("Could not read metadata for '{}': {}", &f, &s); },
-                            Ok(_) => {
-                                trace!("Successfuly read metadata for '{}'", &f);
-                                // sc.lock().unwrap().send(r).unwrap();
-                            }
-                        }
-                    });
-
-                    // blocking call; wait for event loop thread
-                    // let result = receiver.recv().unwrap();
-                }
-
-                info!("Finished reading of statx() metadata");
+                info!("Finished caching of files based on dynamic Markov-chain model");
             },
             None => {
                 warn!("Configuration temporarily unavailable, skipping task!");
@@ -132,13 +89,13 @@ impl VFSStatCache {
     }
 }
 
-impl Plugin for VFSStatCache {
+impl Plugin for MarkovPrefetcher {
     fn register(&mut self) {
-        info!("Registered Plugin: 'VFS statx() Cache'");
+        info!("Registered Plugin: 'Markov-Chain based Prefetcher'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'VFS statx() Cache'");
+        info!("Unregistered Plugin: 'Markov-Chain based Prefetcher'");
     }
 
     fn get_name(&self) -> &'static str {
@@ -155,10 +112,18 @@ impl Plugin for VFSStatCache {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::PrimeCaches => {
-                self.prime_statx_cache(globals, manager);
+            events::EventType::Startup => {
+                //
             },
-
+            events::EventType::Shutdown => {
+                //
+            },
+            events::EventType::ConfigurationReloaded => {
+                //
+            },
+            events::EventType::PrimeCaches => {
+                self.cache_files(globals, manager);
+            },
             _ => {
                 // Ignore all other events
             }
