@@ -27,9 +27,10 @@ pub enum EventType {
     Ping,                   // occurs every n seconds
     Startup,                // sent on daemon startup (after initialization)
     Shutdown,               // sent on daemon shutdown (before finalization)
+    PrimeCaches,            // advice to plugins, to prime their caches now
     ConfigurationReloaded,  // occurs after the daemon has successfuly reloaded its configuration
     TrackedProcessChanged(procmon::Event),  // occurs when the state of a tracked process changed
-    PrimeCaches,             // advice to plugins, to prime their caches now
+    ForkBombDetected,       // sent by the fork bomb detector hook, when a fork() storm occurs
 }
 
 #[derive(Debug, Clone)]

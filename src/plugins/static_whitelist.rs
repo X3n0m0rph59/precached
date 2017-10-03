@@ -31,6 +31,9 @@ use events;
 use storage;
 use util;
 
+// use hooks::process_tracker::ProcessTracker;
+use plugins::dynamic_whitelist::DynamicWhitelist;
+
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
@@ -40,7 +43,7 @@ static DESCRIPTION: &str = "Whitelist files that shall be kept locked in memory 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(StaticWhitelist::new());
+        let plugin = Box::new(StaticWhitelist::new(globals));
 
         let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
@@ -50,28 +53,52 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug)]
 pub struct StaticWhitelist {
     mapped_files: HashMap<String, util::MemoryMapping>,
+    blacklist: Box<Vec<String>>,
 }
 
 impl StaticWhitelist {
-    pub fn new() -> StaticWhitelist {
+    pub fn new(globals: &Globals) -> StaticWhitelist {
         StaticWhitelist {
             mapped_files: HashMap::new(),
+            blacklist: Box::new(StaticWhitelist::get_file_blacklist(globals)),
         }
     }
 
-    pub fn cache_whitelisted_files(&mut self, globals: &Globals) {
+    fn get_file_blacklist(globals: &Globals) -> Vec<String> {
+        let mut result = Vec::new();
+
+        // blacklist linux special mappings
+        result.push(String::from("[mpx]"));
+        result.push(String::from("[vvar]"));
+        result.push(String::from("[vdso]"));
+        result.push(String::from("[vsyscall]"));
+
+        let mut blacklist = util::expand_path_list(&globals.config.config_file.clone().unwrap().blacklist.unwrap());
+        result.append(&mut blacklist);
+
+        result
+    }
+
+    pub fn cache_whitelisted_files(&mut self, globals: &Globals, manager: &Manager) {
         trace!("Started caching of statically whitelisted files...");
+
+        let pm = manager.plugin_manager.borrow();
+        let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
+        let plugin_b = plugin.borrow();
+        let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
 
         match globals.config.config_file.clone() {
             Some(config_file) => {
                 let tracked_files = util::expand_path_list(&mut config_file.whitelist.unwrap());
 
-                for filename in tracked_files {
-                    // mmap and mlock file if it is not contained in the blacklist
+                for filename in tracked_files.iter() {
+                    // mmap and mlock file, if it is not contained in the blacklist
                     // and if it is not already mapped
-                    let f  = filename;
+                    let f  = filename.clone();
                     let f2 = f.clone();
-                    if !self.mapped_files.contains_key(&f) {
+                    if !self.mapped_files.contains_key(&f) &&
+                       !self.blacklist.contains(&f) &&
+                       !dynamic_whitelist.get_mapped_files().contains_key(filename) {
                         let thread_pool = util::POOL.try_lock().unwrap();
                         let (sender, receiver): (Sender<Option<util::MemoryMapping>>, _) = channel();
                         let sc = Mutex::new(sender.clone());
@@ -137,16 +164,16 @@ impl Plugin for StaticWhitelist {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::Startup => {
-                self.cache_whitelisted_files(globals);
+                self.cache_whitelisted_files(globals, manager);
             },
             events::EventType::ConfigurationReloaded => {
-                self.cache_whitelisted_files(globals);
+                self.cache_whitelisted_files(globals, manager);
             },
             events::EventType::PrimeCaches => {
                 // Ignore PrimeCaches event here since we don't manage a dynamic cache
                 // Only re-prime the cache when the static whitelist has been modified
 
-                // self.cache_whitelisted_files(globals);
+                // self.cache_whitelisted_files(globals, manager);
             },
             _ => {
                 // Ignore all other events

@@ -38,7 +38,7 @@ use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
 static NAME:        &str = "dynamic_whitelist";
-static DESCRIPTION: &str = "Dynamically whitelist most often mapped files";
+static DESCRIPTION: &str = "Dynamically whitelist the most often mapped files";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
@@ -101,7 +101,7 @@ impl DynamicWhitelist {
 
             if !self.mapped_files.contains_key(&f) &&
                !self.blacklist.contains(&f) &&
-               static_whitelist.get_mapped_files().contains_key(filename) {
+               !static_whitelist.get_mapped_files().contains_key(filename) {
 
                 let thread_pool = util::POOL.try_lock().unwrap();
                 let (sender, receiver): (Sender<Option<util::MemoryMapping>>, _) = channel();

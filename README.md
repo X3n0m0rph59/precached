@@ -12,8 +12,9 @@ memory to speed up loading of programs and increase the perceived overall
 #### Install on Fedora
 
 ```
-    $ dnf copr enable x3n0m0rph59/precached
-    $ dnf install precached
+    $ sudo dnf copr enable x3n0m0rph59/precached
+    $ sudo dnf install precached
+    $ sudo systemctl enable --now precached
 ```
 
 #### Install From Source
@@ -21,7 +22,7 @@ memory to speed up loading of programs and increase the perceived overall
 ```
     $ git clone https://github.com/X3n0m0rph59/precached.git  
     $ cd precached/
-    $ cargo build
+    $ cargo build --release
 ```
 
 ### Notes
@@ -34,15 +35,15 @@ possibly encounter serious bugs.
 #### What is working right now
 
 * mlock() of mapped files
+* VFS statx() caching (pre-read file metadata)
 
 #### What remains to be done
 
 * Implement ceiling on mlocked() memory
-* Implement VFS statx() caching (pre-read file metadata)
 * Possibly implement fork-bomb mitigation
 * Implement a persistence layer
-* Prime caches on daemon startup
 * Daemonization support
+* Prime caches on daemon startup
 * Implement a DBUS interface
 * Write a nice CLI tool to control the daemon
 * And write a precached GUI in GTK+

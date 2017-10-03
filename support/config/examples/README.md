@@ -7,9 +7,9 @@ You can use this as a starting point for your own customization efforts.
 
 ### precached-aggressive.conf
 
-Choose this configuration when you have huge amounts of RAM installed.
-It does aggressive caching and forces nearly all of your system files
-to stay resident in RAM.
+Choose this configuration when you have *huge amounts* of RAM installed.
+With this configuration, precached does aggressive caching and forces nearly
+all of your system files to stay resident in RAM.
 
 ### precached-lowmem-dynonly.conf
 
