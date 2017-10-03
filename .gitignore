@@ -1,4 +1,5 @@
 debug.log
+precached.state
 /target/
 **/target/
 **/*.rs.bk

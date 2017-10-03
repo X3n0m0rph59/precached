@@ -18,6 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::any::Any;
 use std::collections::HashMap;
 
 use std::sync::Mutex;
@@ -33,33 +34,33 @@ use util;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "whitelist";
+static NAME:        &str = "static_whitelist";
 static DESCRIPTION: &str = "Whitelist files that shall be kept locked in memory all the time";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(Whitelist::new());
+        let plugin = Box::new(StaticWhitelist::new());
 
-        let mut m = manager.plugin_manager.borrow_mut();
+        let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
     }
 }
 
 #[derive(Debug)]
-pub struct Whitelist {
+pub struct StaticWhitelist {
     mapped_files: HashMap<String, util::MemoryMapping>,
 }
 
-impl Whitelist {
-    pub fn new() -> Whitelist {
-        Whitelist {
+impl StaticWhitelist {
+    pub fn new() -> StaticWhitelist {
+        StaticWhitelist {
             mapped_files: HashMap::new(),
         }
     }
 
     pub fn cache_whitelisted_files(&mut self, globals: &Globals) {
-        trace!("Started caching of whitelisted files...");
+        trace!("Started caching of statically whitelisted files...");
 
         match globals.config.config_file.clone() {
             Some(config_file) => {
@@ -95,22 +96,30 @@ impl Whitelist {
                     }
                 }
 
-                info!("Finished caching of whitelisted files");
+                info!("Finished caching of statically whitelisted files");
             },
             None => {
                 warn!("Configuration temporarily unavailable, skipping task!");
             }
         }
     }
+
+    pub fn get_mapped_files(&self) -> &HashMap<String, util::MemoryMapping> {
+        &self.mapped_files
+    }
+
+    pub fn get_mapped_files_mut(&mut self) -> &mut HashMap<String, util::MemoryMapping> {
+        &mut self.mapped_files
+    }
 }
 
-impl Plugin for Whitelist {
+impl Plugin for StaticWhitelist {
     fn register(&mut self) {
-        info!("Registered Plugin: 'Cache Whitelist'");
+        info!("Registered Plugin: 'Static Whitelist'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'Cache Whitelist'");
+        info!("Unregistered Plugin: 'Static Whitelist'");
     }
 
     fn get_name(&self) -> &'static str {
@@ -127,12 +136,25 @@ impl Plugin for Whitelist {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::Ping => {
+            events::EventType::Startup => {
                 self.cache_whitelisted_files(globals);
+            },
+            events::EventType::ConfigurationReloaded => {
+                self.cache_whitelisted_files(globals);
+            },
+            events::EventType::PrimeCaches => {
+                // Ignore PrimeCaches event here since we don't manage a dynamic cache
+                // Only re-prime the cache when the static whitelist has been modified
+
+                // self.cache_whitelisted_files(globals);
             },
             _ => {
                 // Ignore all other events
             }
         }
+    }
+
+    fn as_any(&self) -> &Any {
+        self
     }
 }

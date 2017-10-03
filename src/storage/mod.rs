@@ -19,7 +19,7 @@
 */
 
 mod config_file;
-mod internal_state;
+mod state_file;
 
 pub use self::config_file::*;
-pub use self::internal_state::*;
+pub use self::state_file::*;

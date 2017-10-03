@@ -23,6 +23,7 @@ extern crate notify_rust;
 use self::notify_rust::Notification;
 use self::notify_rust::NotificationHint as Hint;
 
+use std::any::Any;
 use globals::*;
 use manager::*;
 
@@ -42,7 +43,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Notifications::new());
 
-        let mut m = manager.plugin_manager.borrow_mut();
+        let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
     }
 }
@@ -108,5 +109,9 @@ impl Plugin for Notifications {
                 // Ignore all other events
             }
         }
+    }
+
+    fn as_any(&self) -> &Any {
+        self
     }
 }

@@ -21,6 +21,7 @@
 extern crate libc;
 extern crate dbus;
 
+use std::any::Any;
 use std::sync::Arc;
 use std::sync::mpsc;
 use std::result::Result;
@@ -49,7 +50,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(DBUSInterface::new());
 
-        let mut m = manager.plugin_manager.borrow_mut();
+        let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
     }
 }
@@ -214,9 +215,10 @@ impl DBUSInterface {
     }
 
     pub fn populate_process_statistics(&mut self, e: &procmon::Event, _globals: &Globals, manager: &Manager) {
-        let mut m = manager.hook_manager.borrow_mut();
+        let m = manager.hook_manager.borrow();
         let hook = m.get_hook_by_name(&String::from("process_tracker")).unwrap();
-        let process_tracker = hook.as_any().downcast_ref::<ProcessTracker>().unwrap();
+        let hook_b = hook.borrow();
+        let process_tracker = hook_b.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
         // populate data
         let mut process_stats: Vec<Arc<ProcessStats>> = vec!();
@@ -224,7 +226,8 @@ impl DBUSInterface {
             process_stats.push(Arc::new(ProcessStats::new(*k, *v)));
         }
 
-        self.process_stats = process_stats;
+        self.process_stats.clear();
+        self.process_stats.append(&mut process_stats);
     }
 }
 
@@ -269,5 +272,9 @@ impl Plugin for DBUSInterface {
                 // Ignore all other events
             }
         }
+    }
+
+    fn as_any(&self) -> &Any {
+        self
     }
 }

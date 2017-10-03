@@ -18,6 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::any::Any;
+
 use events;
 use globals::*;
 use manager::*;
@@ -37,4 +39,6 @@ pub trait Plugin {
     fn main_loop_hook(&mut self, globals: &mut Globals);
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager);
+
+    fn as_any(&self) -> &Any;
 }

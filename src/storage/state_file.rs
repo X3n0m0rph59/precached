@@ -18,4 +18,29 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// TODO: Implement this!
+extern crate serde;
+extern crate serde_json;
+
+use std::io::Result;
+
+use self::serde::Serialize;
+
+use globals::Globals;
+use util::write_text_file;
+
+pub fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>
+    where T: Serialize {
+    let serialized = serde_json::to_string(&t).unwrap();
+
+    let config = globals.config.config_file.clone().unwrap();
+    let filename = config.state_file.unwrap();
+
+    write_text_file(&filename, serialized)?;
+
+    Ok(())
+}
+
+// pub fn deserialize<T>(t: &T, globals: &mut Globals) where T: Serialize {
+//     let serialized = serde_json::to_string(&t).unwrap();
+//     write_text_file(&globals.config.config_filename, serialized);
+// }

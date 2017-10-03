@@ -18,6 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::any::Any;
+
 use globals::*;
 use manager::*;
 
@@ -37,7 +39,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Statistics::new());
 
-        let mut m = manager.plugin_manager.borrow_mut();
+        let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
     }
 }
@@ -82,5 +84,9 @@ impl Plugin for Statistics {
                 // Ignore all other events
             }
         }
+    }
+
+    fn as_any(&self) -> &Any {
+        self
     }
 }

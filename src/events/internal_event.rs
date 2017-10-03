@@ -24,11 +24,12 @@ use procmon;
 
 #[derive(Debug, Clone)]
 pub enum EventType {
-    Ping,                   // occurs every n second
+    Ping,                   // occurs every n seconds
     Startup,                // sent on daemon startup (after initialization)
     Shutdown,               // sent on daemon shutdown (before finalization)
     ConfigurationReloaded,  // occurs after the daemon has successfuly reloaded its configuration
     TrackedProcessChanged(procmon::Event),  // occurs when the state of a tracked process changed
+    PrimeCaches,             // advice to plugins, to prime their caches now
 }
 
 #[derive(Debug, Clone)]

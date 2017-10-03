@@ -27,20 +27,22 @@ use manager::*;
 pub use self::plugin_manager::*;
 
 pub mod vfs_stat_cache;
-pub mod whitelist;
+pub mod static_whitelist;
+pub mod dynamic_whitelist;
 pub mod statistics;
 pub mod notifications;
 pub mod dbus_interface;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     vfs_stat_cache::register_plugin(globals, manager);
-    whitelist::register_plugin(globals, manager);
+    static_whitelist::register_plugin(globals, manager);
+    dynamic_whitelist::register_plugin(globals, manager);
     statistics::register_plugin(globals, manager);
     notifications::register_plugin(globals, manager);
     dbus_interface::register_plugin(globals, manager);
 }
 
 pub fn unregister_plugins(_globals: &mut Globals, manager: &mut Manager) {
-    let mut m = manager.plugin_manager.borrow_mut();
+    let m = manager.plugin_manager.borrow();
     m.unregister_all_plugins();
 }

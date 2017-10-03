@@ -121,13 +121,13 @@ fn process_internal_events(globals: &mut Globals, manager: &Manager) {
     while let Some(internal_event) = globals.get_event_queue_mut().pop_front() {
         {
             // dispatch daemon internal events to plugins
-            let mut plugin_manager = manager.plugin_manager.borrow_mut();
+            let plugin_manager = manager.plugin_manager.borrow();
             plugin_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
 
         {
             // dispatch daemon internal events to hooks
-            let mut hook_manager = manager.hook_manager.borrow_mut();
+            let hook_manager = manager.hook_manager.borrow();
             hook_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
     }
@@ -138,7 +138,7 @@ fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager:
     trace!("Processing procmon event...");
 
     // dispatch the procmon event to all registered hooks
-    let mut m = manager.hook_manager.borrow_mut();
+    let m = manager.hook_manager.borrow();
     m.dispatch_event(&event, globals, manager);
 }
 
@@ -237,7 +237,7 @@ fn main() {
         // Blocking call
         // wait for the event loop thread to submit an event
         // or up to n msecs until a timeout occurs
-        let event = match receiver.recv_timeout(Duration::from_millis(2000)) {
+        let event = match receiver.recv_timeout(Duration::from_millis(1000)) {
             Ok(result) => {
                 trace!("Main thread woken up to process a message...");
                 Some(result)
@@ -266,10 +266,16 @@ fn main() {
         plugins::call_main_loop_hook(&mut globals, &mut manager);
 
         // Queue a "Ping"-event every n seconds
-        if last.elapsed() > Duration::from_millis(5000){
+        if last.elapsed() > Duration::from_millis(2500){
             last = Instant::now();
+
             events::queue_internal_event(EventType::Ping, &mut globals);
-        }
+
+            // TODO: Implement memory management heuristics instead
+            //       of just firing every n seconds
+            // Queue a "PrimeCaches"-event every n seconds
+            events::queue_internal_event(EventType::PrimeCaches, &mut globals);
+        }        
 
         // Dispatch events
         match event {

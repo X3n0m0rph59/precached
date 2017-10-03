@@ -21,9 +21,11 @@
 extern crate libc;
 
 use std;
+use std::result;
 use std::io;
 use std::io::prelude::*;
 use std::io::Result;
+use std::io::Error;
 use std::io::BufReader;
 use std::fs;
 use std::fs::{File, DirEntry, OpenOptions};
@@ -47,17 +49,41 @@ pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     }).collect())
 }
 
-#[derive(Debug, Clone)]
+pub fn read_text_file(filename: &str) -> io::Result<String> {
+    let path = Path::new(filename);
+    let mut file = try!(OpenOptions::new().read(true).open(&path));
+
+    let mut s = String::new();
+    file.read_to_string(&mut s);
+
+    Ok(s)
+}
+
+pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
+    let path = Path::new(filename);
+    let mut file = try!(OpenOptions::new()
+                            .write(true)
+                            .truncate(true)
+                            .create(true)
+                            .open(&path));
+
+    file.write_all(text.into_bytes().as_slice())?;
+    file.sync_data()?;
+
+    Ok(())
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryMapping {
-    pub fd: i32,
+    pub filename: String,
     pub addr: usize,
     pub len: usize,
 }
 
 impl MemoryMapping {
-    pub fn new(fd: i32, addr: usize, len: usize) -> MemoryMapping {
+    pub fn new(filename: String, addr: usize, len: usize) -> MemoryMapping {
         MemoryMapping {
-            fd: fd,
+            filename: filename,
             addr: addr,
             len: len,
         }
@@ -119,7 +145,7 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
                 } else {
                     trace!("Successfuly called close() for: '{}'", filename);
 
-                    let mapping = MemoryMapping::new(fd, addr as usize, stat.st_size as usize);
+                    let mapping = MemoryMapping::new(String::from(filename), addr as usize, stat.st_size as usize);
                     Ok(mapping)
                 }
             }

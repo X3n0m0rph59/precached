@@ -8,6 +8,11 @@ ExecReload=/bin/kill -HUP $MAINPID
 Type=simple
 StandardOutput=syslog
 Restart=always
+LimitAS=infinity
+LimitRSS=infinity
+LimitCORE=infinity
+LimitMEMLOCK=infinity
+# LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target

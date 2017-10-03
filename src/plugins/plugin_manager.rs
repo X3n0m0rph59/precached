@@ -18,6 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 
@@ -28,60 +31,50 @@ use manager::*;
 use super::plugin::Plugin;
 
 pub struct PluginManager {
-    plugins: HashMap<String, Box<Plugin>>,
+    pub plugins: RefCell<HashMap<String, Rc<RefCell<Box<Plugin>>>>>,
 }
 
 impl PluginManager {
     pub fn new() -> PluginManager {
-        PluginManager { plugins: HashMap::new(), }
+        PluginManager { plugins: RefCell::new(HashMap::new()), }
     }
 
-    pub fn register_plugin(&mut self, mut plugin: Box<Plugin>) {
+    pub fn register_plugin(&self, mut plugin: Box<Plugin>) {
         plugin.register();
-        self.plugins.insert(String::from(plugin.get_name()), plugin);
+        self.plugins.borrow_mut().insert(String::from(plugin.get_name()), Rc::new(RefCell::new(plugin)));
     }
 
-    pub fn unregister_plugin(&mut self, name: &String) {
-        match self.get_plugin_by_name_mut(name) {
-            Some(p) => { p.unregister(); },
+    pub fn unregister_plugin(&self, name: &String) {
+        match self.get_plugin_by_name(name) {
+            Some(p) => { p.borrow_mut().unregister(); },
             None    => { error!("No plugin with name '{}' found!", name); }
         };
     }
 
-    pub fn unregister_all_plugins(&mut self) {
-        for (_, p) in self.plugins.iter_mut() {
-            p.unregister();
+    pub fn unregister_all_plugins(&self) {
+        for (_, p) in self.plugins.borrow().iter() {
+            p.borrow_mut().unregister();
         }
     }
 
-    pub fn get_plugin_by_name(&mut self, name: &String) -> Option<&Box<Plugin>> {
-        match self.plugins.entry(name.clone()) {
-            Vacant(_)       => { None },
-            Occupied(entry) => { Some(entry.into_mut()) }
+    pub fn get_plugin_by_name(&self, name: &String) -> Option<Rc<RefCell<Box<Plugin>>>> {
+        self.plugins.borrow().get(name).map(|x| x.clone())
+    }
+
+    pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
+        for (_, p) in self.plugins.borrow().iter() {
+            p.borrow_mut().internal_event(event, globals, manager);
         }
     }
 
-    pub fn get_plugin_by_name_mut(&mut self, name: &String) -> Option<&mut Box<Plugin>> {
-        match self.plugins.entry(name.clone()) {
-            Vacant(_)       => { None },
-            Occupied(entry) => { Some(entry.into_mut()) }
-        }
-    }
-
-    pub fn dispatch_internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
-        for (_, p) in self.plugins.iter_mut() {
-            p.internal_event(event, globals, manager);
-        }
-    }
-
-    pub fn call_main_loop_hooks(&mut self, globals: &mut Globals) {
-        for (_, p) in self.plugins.iter_mut() {
-            p.main_loop_hook(globals);
+    pub fn call_main_loop_hooks(&self, globals: &mut Globals) {
+        for (_, p) in self.plugins.borrow().iter() {
+            p.borrow_mut().main_loop_hook(globals);
         }
     }
 }
 
 pub fn call_main_loop_hook(globals: &mut Globals, manager: &mut Manager) {
-    let mut m = manager.plugin_manager.borrow_mut();
+    let m = manager.plugin_manager.borrow();
     m.call_main_loop_hooks(globals);
 }

@@ -18,6 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::any::Any;
+
 use globals::*;
 use manager::*;
 
@@ -25,7 +27,9 @@ use events;
 use storage;
 use util;
 
-// use hooks::process_tracker::ProcessTracker;
+use plugins::static_whitelist::StaticWhitelist;
+use plugins::dynamic_whitelist::DynamicWhitelist;
+
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
@@ -37,7 +41,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(VFSStatCache::new());
 
-        let mut m = manager.plugin_manager.borrow_mut();
+        let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
     }
 }
@@ -54,27 +58,38 @@ impl VFSStatCache {
         }
     }
 
-    fn get_globaly_tracked_files(&self, globals: &Globals) -> Vec<String> {
-        let mut result = Vec::new();
+    fn get_globaly_tracked_files(&self, _globals: &Globals, manager: &Manager) -> Vec<String> {
+        let mut result = Vec::<String>::new();
 
-        // if let Some(hook) = &globals.get_hook_manager()
-        //                             .get_hook_by_name(&String::from("process_tracker")) {
-        //
-        //     // hook.get_mapped_files_histogram();
-        //     // result.append();
-        // }
+        let pm = manager.plugin_manager.borrow();
+        let plugin = pm.get_plugin_by_name(&String::from("static_whitelist")).unwrap();
+        let plugin_b = plugin.borrow();
+        let static_whitelist = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
+
+        let pm = manager.plugin_manager.borrow();
+        let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
+        let plugin_b = plugin.borrow();
+        let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
+
+        for (k,_v) in static_whitelist.get_mapped_files().iter() {
+            result.push(k.clone());
+        }
+
+        for (k,_v) in dynamic_whitelist.get_mapped_files().iter() {
+            result.push(k.clone());
+        }
 
         result
     }
 
-    pub fn prime_statx_cache(&mut self, globals: &Globals) {
+    pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
         trace!("Started reading of statx() metadata...");
 
         match globals.config.config_file.clone() {
             Some(config_file) => {
                 let mut tracked_files = Vec::<String>::new();
                 tracked_files.append(&mut config_file.whitelist.unwrap());
-                tracked_files.append(&mut self.get_globaly_tracked_files(globals));
+                tracked_files.append(&mut self.get_globaly_tracked_files(globals, manager));
 
                 for filename in tracked_files {
                     let f = filename.clone();
@@ -123,19 +138,23 @@ impl Plugin for VFSStatCache {
         PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
     }
 
-    fn main_loop_hook(&mut self, globals: &mut Globals) {
+    fn main_loop_hook(&mut self, _globals: &mut Globals) {
         // do nothing
     }
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::Ping => {
-                self.prime_statx_cache(globals);
+            events::EventType::PrimeCaches => {
+                self.prime_statx_cache(globals, manager);
             },
 
             _ => {
                 // Ignore all other events
             }
         }
+    }
+
+    fn as_any(&self) -> &Any {
+        self
     }
 }

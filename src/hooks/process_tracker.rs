@@ -21,8 +21,7 @@
 extern crate libc;
 
 use std::any::Any;
-use std::sync::Mutex;
-use std::sync::mpsc::{Sender, channel};
+use std::sync::mpsc::channel;
 use std::collections::HashMap;
 
 use process::Process;
@@ -33,18 +32,17 @@ use manager::*;
 
 use events;
 use events::EventType;
-use util;
 
 use hooks::hook;
-use hooks::hook::Hook;
 
-static NAME: &str = "process_tracker";
+static NAME:        &str = "process_tracker";
+static DESCRIPTION: &str = "Tracks system-wide process events like fork()/exec() and triggers internal events on them";
 
 /// Register this hook implementation with the system
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
     let hook = Box::new(ProcessTracker::new());
 
-    let mut m = manager.hook_manager.borrow_mut();
+    let m = manager.hook_manager.borrow();
     m.register_hook(hook);
 }
 
@@ -52,44 +50,25 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 pub struct ProcessTracker {
     pub tracked_processes: HashMap<libc::pid_t, Process>,
     pub mapped_files_histogram: HashMap<String, usize>,
-    pub mapped_files: HashMap<String, util::MemoryMapping>,
-    pub blacklist: Box<Vec<String>>,
 }
 
 impl ProcessTracker {
     pub fn new() -> ProcessTracker {
-        // let result = unsafe { libc::mlockall(libc::MCL_CURRENT | libc::MCL_FUTURE) };
-        // if result < 0 as libc::c_int {
-        //     error!("mlockall() failed!");
-        // } else {
-        //     info!("mlockall() succeeded");
-        // }
-
         ProcessTracker {
             tracked_processes: HashMap::new(),
             mapped_files_histogram: HashMap::new(),
-            mapped_files: HashMap::new(),
-            blacklist: Box::new(ProcessTracker::get_file_blacklist()),
         }
-    }
-
-    fn get_file_blacklist() -> Vec<String> {
-        let mut result = Vec::new();
-
-        // blacklist linux special mappings
-        result.push(String::from("[mpx]"));
-        result.push(String::from("[vvar]"));
-        result.push(String::from("[vdso]"));
-        result.push(String::from("[vsyscall]"));
-
-        result
     }
 
     pub fn get_tracked_processes(&mut self) -> &mut HashMap<libc::pid_t, Process> {
         &mut self.tracked_processes
     }
 
-    pub fn get_mapped_files_histogram(&mut self) -> &mut HashMap<String, usize> {
+    pub fn get_mapped_files_histogram(&self) -> &HashMap<String, usize> {
+        &self.mapped_files_histogram
+    }
+
+    pub fn get_mapped_files_histogram_mut(&mut self) -> &mut HashMap<String, usize> {
         &mut self.mapped_files_histogram
     }
 
@@ -99,43 +78,6 @@ impl ProcessTracker {
             *counter += 1;
         }
     }
-
-    pub fn update_maps_and_lock(&mut self, _globals: &Globals) {
-        trace!("Updating mappings and locks...");
-
-        for (k, _v) in self.mapped_files_histogram.iter() {
-            let filename = k.clone();
-            let k_clone  = k.clone();
-
-            // mmap and mlock file if it is not contained in the blacklist
-            // and if it is not already mapped
-            if !self.blacklist.contains(&filename) &&
-               !self.mapped_files.contains_key(&filename) {
-                    let thread_pool = util::POOL.try_lock().unwrap();
-                    let (sender, receiver): (Sender<Option<util::MemoryMapping>>, _) = channel();
-                    let sc = Mutex::new(sender.clone());
-
-                    thread_pool.submit_work(move || {
-                        match util::map_and_lock_file(&filename) {
-                            Err(s) => {
-                                error!("Could not cache file '{}': {}", &filename, &s);
-                                sc.lock().unwrap().send(None).unwrap();
-                            },
-                            Ok(r)  => {
-                                trace!("Successfuly cached file '{}'", &filename);
-                                sc.lock().unwrap().send(Some(r)).unwrap();
-                            }
-                        }
-                    });
-
-                // blocking call; wait for event loop thread
-                if let Some(mapping) = receiver.recv().unwrap() {
-                    self.mapped_files.insert(k_clone, mapping);
-                }
-            }
-        }
-    }
-
 }
 
 impl hook::Hook for ProcessTracker {
@@ -167,8 +109,8 @@ impl hook::Hook for ProcessTracker {
                  match process.get_mapped_files() {
                      Ok(v)  => { self.update_mapped_files_histogram(&v); }
                      Err(_) => {
-                         error!("Error while reading mapped files of process '{}' with PID: {}",
-                                 process.get_comm().unwrap_or(String::from("<unknown>")), process.pid); }
+                         warn!("Error while reading mapped files of process '{}' with PID: {}! Process disappeared prematurely",
+                               process.get_comm().unwrap_or(String::from("<unknown>")), process.pid); }
                      }
 
                  // add process to tracking map
@@ -177,8 +119,6 @@ impl hook::Hook for ProcessTracker {
                  for (k,v) in self.get_mapped_files_histogram() {
                      trace!("File '{}' mapped: {}", k, v);
                  }
-
-                 self.update_maps_and_lock(globals);
             },
 
             procmon::EventType::Exit => {
