@@ -28,9 +28,15 @@ pub enum EventType {
     Startup,                // sent on daemon startup (after initialization)
     Shutdown,               // sent on daemon shutdown (before finalization)
     PrimeCaches,            // advice to plugins, to prime their caches now
+    GatherStatsAndMetrics,  // advice to plugins to gather statistics and performance metrics
     ConfigurationReloaded,  // occurs after the daemon has successfuly reloaded its configuration
     TrackedProcessChanged(procmon::Event),  // occurs when the state of a tracked process changed
     ForkBombDetected,       // sent by the fork bomb detector hook, when a fork() storm occurs
+    FreeMemoryLowWatermark, // sent when we reach the low threshold of *free* memory watermark
+    FreeMemoryHighWatermark,// sent when we reach the high threshold of *free* memory watermark
+    AvailableMemoryLowWatermark, // sent when we reach the low threshold of *available* memory watermark
+    AvailableMemoryHighWatermark,// sent when we reach the high threshold of *available* memory watermark
+    SystemIsSwapping,       // sent when the system is swapping out data
 }
 
 #[derive(Debug, Clone)]

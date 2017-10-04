@@ -109,7 +109,7 @@ impl hook::Hook for ProcessTracker {
                  match process.get_mapped_files() {
                      Ok(v)  => { self.update_mapped_files_histogram(&v); }
                      Err(_) => {
-                         warn!("Error while reading mapped files of process '{}' with PID: {}! Process disappeared prematurely",
+                         warn!("Error while reading mapped files of process '{}' with PID: {}. Process disappeared early",
                                process.get_comm().unwrap_or(String::from("<unknown>")), process.pid); }
                      }
 

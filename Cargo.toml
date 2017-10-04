@@ -5,6 +5,7 @@ authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
 
 [dependencies]
 procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }
+sys-info = { git = "https://github.com/X3n0m0rph59/sys-info-rs" }
 libc = "0.2.31"
 nix = "0.9"
 log = "0.3"
@@ -14,10 +15,10 @@ chrono = "0.4.0"
 lazy_static = "0.2.8"
 netlink-rs = "0.0.3"
 regex = "0.2"
+globset = "0.2"
 byteorder = "1.1.0"
 bytevec = "0.2.0"
 threadpool = "1.0"
-num_cpus = "1.7.0"
 toml = "0.4"
 clap = "2.26.2"
 serde = "1.0.15"

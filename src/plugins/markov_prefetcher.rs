@@ -75,7 +75,6 @@ impl MarkovPrefetcher {
         let plugin_b = plugin.borrow();
         let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-
         match globals.config.config_file.clone() {
             Some(config_file) => {
                 // TODO: Implement this
@@ -122,7 +121,7 @@ impl Plugin for MarkovPrefetcher {
                 //
             },
             events::EventType::PrimeCaches => {
-                self.cache_files(globals, manager);
+                // self.cache_files(globals, manager);
             },
             _ => {
                 // Ignore all other events

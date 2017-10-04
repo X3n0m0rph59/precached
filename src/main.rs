@@ -270,12 +270,13 @@ fn main() {
             last = Instant::now();
 
             events::queue_internal_event(EventType::Ping, &mut globals);
+            events::queue_internal_event(EventType::GatherStatsAndMetrics, &mut globals);
 
             // TODO: Implement memory management heuristics instead
             //       of just firing every n seconds
             // Queue a "PrimeCaches"-event every n seconds
             events::queue_internal_event(EventType::PrimeCaches, &mut globals);
-        }        
+        }
 
         // Dispatch events
         match event {

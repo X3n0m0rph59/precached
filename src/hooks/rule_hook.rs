@@ -18,4 +18,80 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// TODO: Implement this!
+extern crate libc;
+
+use std::any::Any;
+use std::sync::mpsc::channel;
+use std::collections::HashMap;
+
+use process::Process;
+use procmon;
+
+use globals::*;
+use manager::*;
+
+use events;
+use events::EventType;
+
+use hooks::hook;
+
+static NAME:        &str = "rule_hook";
+static DESCRIPTION: &str = "Custom rules actions for precached";
+
+/// Register this hook implementation with the system
+pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
+    let hook = Box::new(RuleHook::new());
+
+    let m = manager.hook_manager.borrow();
+    m.register_hook(hook);
+}
+
+#[derive(Debug, Clone)]
+pub struct RuleHook {
+}
+
+impl RuleHook {
+    pub fn new() -> RuleHook {
+        RuleHook {
+        }
+    }
+}
+
+impl hook::Hook for RuleHook {
+    fn register(&mut self) {
+        info!("Registered Hook: 'Custom Rules Hook'");
+    }
+
+    fn unregister(&mut self) {
+        info!("Unregistered Hook: 'Custom Rules Hook'");
+    }
+
+    fn get_name(&self) -> &'static str {
+        NAME
+    }
+
+    fn internal_event(&mut self, _event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
+        // trace!("Skipped internal event (not handled)");
+    }
+
+    fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, _manager: &Manager) {
+        match event.event_type {
+            procmon::EventType::Fork => {
+                // TODO: Implement this
+                //
+                // if (fork_bomb_detected) {
+                //     events::queue_internal_event(EventType::ForkBombDetected(*event), globals);
+                // }
+            },
+
+            _ => {
+                // trace!("Ignored process event");
+            }
+        }
+
+    }
+
+    fn as_any(&self) -> &Any {
+        self
+    }
+}

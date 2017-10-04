@@ -33,29 +33,31 @@ possibly encounter some serious bugs.
 ### Why You may want to use precached
 
 Precached tries to tackle some of the long standing performance issues
-of the Linux desktop on computers with slow harddisks:
+of the Linux desktop:
 
-* The system has unused (free) memory directly after bootup
-  -> Programs take a longer time to start, cache cold is way slower than cache hot
-* A Cron-Job run evicts important pages from the page cache
-  -> The system feels sluggish afterwards
-* The system has unused (free) memory after a "memory hog" process quit
-  -> Need to prime the caches again for a fast responding system
+* The system has unused (free) memory directly after bootup. Therefor programs
+  take a longer time to start up, cache cold start is way slower than cache hot
+  start
+* A Cron-Job evicts many important pages from the page cache. The system feels
+  sluggish afterwards and won't recover for a long time
+* The system has unused (free) memory after a "memory hog" process quit.
+  The system reacts sluggish until the caches are primed again
 
->***Unused memory is wasted memory!***
+### Use precached if
 
-TL;DR: If you have a reasonably fast CPU and a slow disk drive (and an ample
+You have a reasonably fast CPU and a slow disk drive (and an ample
 amount of RAM) installed in your system, then you may see a performance
 improvement by using precached. The larger the speed difference between the
-CPU and the IO subsystem, the more you gain by running precached.
+CPU (fast) and the I/O subsystem (slow), the more you gain by running precached.
 
 ### Don't use precached if
 
 * You have a fast NVME SSD drive
-* You have less than ~2GBs of RAM installed (and want to use a modern Linux desktop)
+* You have less than ~2GBs of RAM installed
+  (and want to use a modern Linux desktop)
 
-If the above is true for your system, then you aren't likely to get a noticeable
-improvement out of using precached.
+If any of the above is true for your system, then you aren't likely to get a
+noticeable improvement out of using precached.
 
 ### Benchmarks
 
@@ -92,7 +94,7 @@ we could especially well use:
 * Documentation authors
 * Issue triaging
 
->***So please feel free to participate!***
+***So please feel free to participate!***
 
 If you are new to Open Source software, you may want to read
 [How to Contribute](https://opensource.guide/how-to-contribute/)

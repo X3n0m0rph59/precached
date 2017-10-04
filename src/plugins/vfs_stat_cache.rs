@@ -60,75 +60,64 @@ impl VFSStatCache {
         }
     }
 
-    fn get_globaly_tracked_files(&self, _globals: &Globals, manager: &Manager) -> Vec<String> {
-        let mut result = Vec::<String>::new();
+    pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
+        trace!("Started reading of statx() metadata...");
+
+        let tracked_entries = self.get_globally_tracked_entries(globals, manager);
+
+        let thread_pool = util::POOL.try_lock().unwrap();
+        thread_pool.submit_work(move || {
+            util::walk_directories(&tracked_entries, &mut |ref path| {
+                // Walking the directory primes the kernel dentry caches
+                // so we should not need to do anything special here
+            });
+        });
+
+        info!("Finished reading of statx() metadata");
+    }
+
+    fn shall_we_cache_file(&self, filename: &String, _globals: &Globals, manager: &Manager) -> bool {
+        let pm = manager.plugin_manager.borrow();
+        let plugin = pm.get_plugin_by_name(&String::from("static_blacklist")).unwrap();
+        let plugin_b = plugin.borrow();
+        let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+
+        // Check if filename is valid
+        if !util::is_filename_valid(&filename) {
+            return false;
+        }
+
+        // Check if filename matches a blacklist rule
+        if util::is_file_blacklisted(&filename, &static_blacklist.get_blacklist()) {
+            return false;
+        }
+
+        // If we got here, everything seems to be allright
+        true
+    }
+
+    fn get_globally_tracked_entries(&self, _globals: &Globals, manager: &Manager) -> Vec<String> {
+        // let mut result = Vec::<String>::new();
 
         let pm = manager.plugin_manager.borrow();
         let plugin = pm.get_plugin_by_name(&String::from("static_whitelist")).unwrap();
         let plugin_b = plugin.borrow();
         let static_whitelist = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
-        let pm = manager.plugin_manager.borrow();
-        let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
-        let plugin_b = plugin.borrow();
-        let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
+        // let pm = manager.plugin_manager.borrow();
+        // let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
+        // let plugin_b = plugin.borrow();
+        // let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
 
-        for (k,_v) in static_whitelist.get_mapped_files().iter() {
-            result.push(k.clone());
-        }
+        // for f in static_whitelist.get_tracked_files().iter() {
+        //     result.push(f);
+        // }
 
-        for (k,_v) in dynamic_whitelist.get_mapped_files().iter() {
-            result.push(k.clone());
-        }
+        // for (k,_v) in dynamic_whitelist.get_mapped_files().iter() {
+        //     result.push(k.clone());
+        // }
 
-        result
-    }
-
-    pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
-        trace!("Started reading of statx() metadata...");
-
-        let pm = manager.plugin_manager.borrow();
-        let plugin = pm.get_plugin_by_name(&String::from("static_blacklist")).unwrap();
-        let plugin_b = plugin.borrow();
-        let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
-
-        match globals.config.config_file.clone() {
-            Some(config_file) => {
-                let mut tracked_files = Vec::<String>::new();
-                tracked_files.append(&mut config_file.whitelist.unwrap());
-                tracked_files.append(&mut self.get_globaly_tracked_files(globals, manager));
-
-                for filename in tracked_files.iter() {
-                    if static_blacklist.get_blacklist().contains(filename) {
-                        continue;
-                    }
-
-                    let f = filename.clone();
-
-                    let thread_pool = util::POOL.try_lock().unwrap();
-                    // let (sender, receiver): (_, _) = channel();
-                    // let sc = Mutex::new(sender.clone());
-
-                    thread_pool.submit_work(move || {
-                        match util::prime_metadata_cache(&f) {
-                            Err(s) => { error!("Could not read metadata for '{}': {}", &f, &s); },
-                            Ok(_) => {
-                                trace!("Successfuly read metadata for '{}'", &f);
-                                // sc.lock().unwrap().send(r).unwrap();
-                            }
-                        }
-                    });
-
-                    // blocking call; wait for event loop thread
-                    // let result = receiver.recv().unwrap();
-                }
-
-                info!("Finished reading of statx() metadata");
-            },
-            None => {
-                warn!("Configuration temporarily unavailable, skipping task!");
-            }
-        }
+        static_whitelist.get_whitelist().clone()
     }
 }
 
@@ -158,7 +147,6 @@ impl Plugin for VFSStatCache {
             events::EventType::PrimeCaches => {
                 self.prime_statx_cache(globals, manager);
             },
-
             _ => {
                 // Ignore all other events
             }

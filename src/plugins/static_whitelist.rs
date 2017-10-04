@@ -21,6 +21,7 @@
 use std::any::Any;
 use std::collections::HashMap;
 
+use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::mpsc::{Sender, channel};
 
@@ -54,70 +55,107 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug)]
 pub struct StaticWhitelist {
     mapped_files: HashMap<String, util::MemoryMapping>,
+    whitelist: Box<Vec<String>>,
 }
 
 impl StaticWhitelist {
     pub fn new(globals: &Globals) -> StaticWhitelist {
         StaticWhitelist {
             mapped_files: HashMap::new(),
+            whitelist: Box::new(StaticWhitelist::get_file_whitelist(globals)),
         }
     }
 
-    pub fn cache_whitelisted_files(&mut self, globals: &Globals, manager: &Manager) {
-        trace!("Started caching of statically whitelisted files...");
+    fn get_file_whitelist(globals: &Globals) -> Vec<String> {
+        let mut result = Vec::new();
+
+        let mut whitelist = globals.config.config_file.clone().unwrap().whitelist.unwrap();
+        result.append(&mut whitelist);
+
+        result
+    }
+
+    pub fn cache_whitelisted_files(&mut self, _globals: &Globals, manager: &Manager) {
+        info!("Started caching of statically whitelisted files...");
 
         let pm = manager.plugin_manager.borrow();
         let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
         let plugin_b = plugin.borrow();
-        let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
+        let dynamic_whitelist_plugin = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
 
         let pm = manager.plugin_manager.borrow();
         let plugin = pm.get_plugin_by_name(&String::from("static_blacklist")).unwrap();
         let plugin_b = plugin.borrow();
-        let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+        let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-        match globals.config.config_file.clone() {
-            Some(config_file) => {
-                let tracked_files = util::expand_path_list(&mut config_file.whitelist.unwrap());
+        let whitelist = self.whitelist.clone();
+        let static_blacklist = static_blacklist_plugin.get_blacklist().clone();
+        let our_mapped_files = self.mapped_files.clone();
+        let dynamic_whitelist = dynamic_whitelist_plugin.get_mapped_files().clone();
 
-                for filename in tracked_files.iter() {
-                    // mmap and mlock file, if it is not contained in the blacklist
-                    // and if it is not already mapped
-                    let f  = filename.clone();
-                    let f2 = f.clone();
-                    if !self.mapped_files.contains_key(&f) &&
-                       !static_blacklist.get_blacklist().contains(&f) &&
-                       !dynamic_whitelist.get_mapped_files().contains_key(filename) {
-                        let thread_pool = util::POOL.try_lock().unwrap();
-                        let (sender, receiver): (Sender<Option<util::MemoryMapping>>, _) = channel();
-                        let sc = Mutex::new(sender.clone());
+        let thread_pool = util::POOL.try_lock().unwrap();
+        let (sender, receiver): (Sender<HashMap<String, util::MemoryMapping>>, _) = channel();
+        let sc = Mutex::new(sender.clone());
 
-                        thread_pool.submit_work(move || {
-                            match util::map_and_lock_file(&f) {
-                                Err(s) => {
-                                    error!("Could not cache file '{}': {}", &f, &s);
-                                    sc.lock().unwrap().send(None).unwrap();
-                                },
-                                Ok(r) => {
-                                    debug!("Successfuly cached file '{}'", &f);
-                                    sc.lock().unwrap().send(Some(r)).unwrap();
-                                }
-                            }
-                        });
+        thread_pool.submit_work(move || {
+            let mut mapped_files = HashMap::new();
 
-                        // blocking call; wait for event loop thread
-                        if let Some(mapping) = receiver.recv().unwrap() {
-                            self.mapped_files.insert(f2, mapping);
+            util::walk_directories(&whitelist, &mut |ref path| {
+                // mmap and mlock file, if it is not contained in the blacklist
+                // and if it was not already mapped by some of the plugins
+                let filename = String::from(path.to_string_lossy());
+                let f  = filename.clone();
+                let f2 = f.clone();
+
+                if Self::shall_we_map_file(&filename, &static_blacklist, &our_mapped_files,
+                                           &dynamic_whitelist) {
+                    match util::map_and_lock_file(&f) {
+                        Err(s) => {
+                            error!("Could not cache file '{}': {}", &f, &s);
+                        },
+                        Ok(r) => {
+                            debug!("Successfuly cached file '{}'", &f);
+                            mapped_files.insert(f2, r);
                         }
                     }
                 }
+            });
 
-                info!("Finished caching of statically whitelisted files");
-            },
-            None => {
-                warn!("Configuration temporarily unavailable, skipping task!");
-            }
+            sc.lock().unwrap().send(mapped_files).unwrap();
+        });
+
+        // blocking call; wait for worker thread
+        self.mapped_files = receiver.recv().unwrap();
+
+        info!("Finished caching of statically whitelisted files");
+    }
+
+    fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>,
+                         our_mapped_files:  &HashMap<String, util::MemoryMapping>,
+                         dynamic_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
+
+        // Check if filename is valid
+        if !util::is_filename_valid(&filename) {
+            return false;
         }
+
+        // Check if filename matches a blacklist rule
+        if util::is_file_blacklisted(&filename, &static_blacklist) {
+            return false;
+        }
+
+        // Have we already mapped this file?
+        if our_mapped_files.contains_key(filename) {
+            return false;
+        }
+
+        // Have others already mapped this file?
+        if dynamic_whitelist.contains_key(filename) {
+            return false;
+        }
+
+        // If we got here, everything seems to be allright
+        true
     }
 
     pub fn get_mapped_files(&self) -> &HashMap<String, util::MemoryMapping> {
@@ -126,6 +164,14 @@ impl StaticWhitelist {
 
     pub fn get_mapped_files_mut(&mut self) -> &mut HashMap<String, util::MemoryMapping> {
         &mut self.mapped_files
+    }
+
+    pub fn get_whitelist(&self) -> &Vec<String> {
+        &self.whitelist
+    }
+
+    pub fn get_whitelist_mut(&mut self) -> &mut Vec<String> {
+        &mut self.whitelist
     }
 }
 
@@ -156,6 +202,12 @@ impl Plugin for StaticWhitelist {
                 self.cache_whitelisted_files(globals, manager);
             },
             events::EventType::ConfigurationReloaded => {
+                let whitelist = match globals.config.config_file.clone() {
+                    Some(config_file) => { config_file.whitelist.unwrap() },
+                    None              => { vec!() }
+                };
+
+                self.whitelist = Box::new(whitelist);
                 self.cache_whitelisted_files(globals, manager);
             },
             events::EventType::PrimeCaches => {

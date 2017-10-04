@@ -28,10 +28,12 @@ pub use self::hook_manager::*;
 
 pub mod process_tracker;
 pub mod forkbomb_detector;
+pub mod rule_hook;
 
 pub fn register_default_hooks(globals: &mut Globals, manager: &mut Manager) {
     process_tracker::register_hook(globals, manager);
     forkbomb_detector::register_hook(globals, manager);
+    rule_hook::register_hook(globals, manager);
 }
 
 pub fn unregister_hooks(_globals: &mut Globals, manager: &mut Manager) {

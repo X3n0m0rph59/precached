@@ -19,7 +19,6 @@
 */
 
 extern crate threadpool;
-extern crate num_cpus;
 
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -31,10 +30,9 @@ pub struct ThreadPool {
 
 impl ThreadPool {
     pub fn new() -> ThreadPool {
-        let num_cpus = num_cpus::get();
         ThreadPool {
             pool: threadpool::Builder::new()
-                                .num_threads(num_cpus*2)
+                                .num_threads(3)
                                 .thread_name(String::from("worker thread"))
                                 .build()
         }

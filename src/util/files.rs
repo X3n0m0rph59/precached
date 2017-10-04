@@ -19,19 +19,44 @@
 */
 
 extern crate libc;
+extern crate globset;
 
 use std;
-use std::result;
 use std::io;
 use std::io::prelude::*;
 use std::io::Result;
-use std::io::Error;
 use std::io::BufReader;
 use std::fs;
-use std::fs::{File, DirEntry, OpenOptions};
+use std::fs::{File, OpenOptions};
 use std::os::unix::io::IntoRawFd;
 use std::path::Path;
 use std::ffi::CString;
+use self::globset::{Glob, GlobSetBuilder};
+
+pub fn is_filename_valid(filename: &String) -> bool {
+    let f = filename.trim();
+
+    if f.len() == 0 {
+        return false;
+    }
+
+    if f.contains(r"\(deleted\)") {
+        return false;
+    }
+
+    return true;
+}
+
+pub fn is_file_blacklisted(filename: &String, pattern: &Vec<String>) -> bool {
+    let mut builder = GlobSetBuilder::new();
+
+    for p in pattern.iter() {
+        builder.add(Glob::new(p).unwrap());
+    }
+
+    let set = builder.build().unwrap();
+    set.matches(&filename).len() > 0
+}
 
 pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     let path = Path::new(filename);
@@ -175,7 +200,11 @@ pub fn is_path_a_directory(path: &String) -> bool {
     }
 }
 
-pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&DirEntry)) -> io::Result<()> {
+pub fn is_file_accessible(filename: &String) -> bool {
+    fs::metadata(Path::new(&filename)).is_ok()
+}
+
+pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&Path)) -> io::Result<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
@@ -185,7 +214,7 @@ pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&DirEntry)) -> io::Result<()> {
                 visit_dirs(&path, cb)?;
             } else {
                 // trace!("{:#?}", &entry);
-                cb(&entry);
+                cb(&entry.path());
             }
         }
     }
@@ -193,41 +222,27 @@ pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&DirEntry)) -> io::Result<()> {
     Ok(())
 }
 
-pub fn get_files_recursive(path: &String) -> Vec<String> {
-    let mut result = Vec::new();
+pub fn walk_directories<F>(entries: &Vec<String>, cb: &mut F) -> io::Result<()>
+    where F: FnMut(&Path) {
 
-    let ret = visit_dirs(Path::new(path), &mut |entry| {
-        let name = entry.path().into_os_string().into_string().unwrap();
-        result.push(name);
-    });
-
-    match ret {
-        Err(e)  => { error!("Error while enumerating files in directory: {}", e); Vec::new() },
-        Ok(_)   => { result }
-    }
-}
-
-pub fn is_file_accessible(filename: &String) -> bool {
-    fs::metadata(Path::new(&filename)).is_ok()
-}
-
-/// Walk the filesystem and build a list of all files
-/// that reside in the directories listed in 'paths'
-pub fn expand_path_list(paths: &Vec<String>) -> Vec<String> {
-    trace!("Expanding paths from: {:?}", paths);
-
-    let mut result = Vec::new();
-
-    for entry in paths.iter() {
-        if is_path_a_directory(&entry) {
-            let mut files_in_dir = get_files_recursive(&entry);
-            result.append(&mut files_in_dir);
-        } else if is_file_accessible(&entry) {
-            result.push(entry.clone());
+    for e in entries.iter() {
+        let path = Path::new(e);
+        if path.is_file() {
+            cb(path);
         } else {
-            error!("Error expanding path for: '{}'", &entry);
+            for entry in fs::read_dir(path)? {
+                let entry = entry?;
+                let path = entry.path();
+
+                if path.is_dir() {
+                    visit_dirs(&path, cb)?;
+                } else {
+                    // trace!("{:#?}", &entry);
+                    cb(&entry.path());
+                }
+            }
         }
     }
 
-    result
+    Ok(())
 }

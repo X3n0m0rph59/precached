@@ -31,13 +31,13 @@ use util;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "statistics";
-static DESCRIPTION: &str = "Gather global system statistics and make them available to other plugins";
+static NAME:        &str = "rule_plugin";
+static DESCRIPTION: &str = "Custom rules plugin for precached";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(Statistics::new());
+        let plugin = Box::new(RulePlugin::new());
 
         let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
@@ -45,31 +45,25 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct Statistics {
+pub struct RulePlugin {
 
 }
 
-impl Statistics {
-    pub fn new() -> Statistics {
-        Statistics {
+impl RulePlugin {
+    pub fn new() -> RulePlugin {
+        RulePlugin {
 
         }
     }
-
-    pub fn produce_report(&mut self, globals: &mut Globals, _manager: &Manager) {
-        trace!("Updating global statistics...");
-
-        // TODO: Implement this!
-    }
 }
 
-impl Plugin for Statistics {
+impl Plugin for RulePlugin {
     fn register(&mut self) {
-        info!("Registered Plugin: 'Global System Statistics'");
+        info!("Registered Plugin: 'Custom Rules Plugin'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'Global System Statistics'");
+        info!("Unregistered Plugin: 'Custom Rules Plugin'");
     }
 
     fn get_name(&self) -> &'static str {
@@ -84,26 +78,8 @@ impl Plugin for Statistics {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::Ping => {
-                self.produce_report(globals, manager);
-            },
-            events::EventType::FreeMemoryLowWatermark => {
-                info!("Statistics: Free Memory Low Watermark reached!");
-            },
-            events::EventType::FreeMemoryHighWatermark => {
-                warn!("Statistics: Free Memory High Watermark reached!");
-            },
-            events::EventType::AvailableMemoryLowWatermark => {
-                info!("Statistics: Available Memory Low Watermark reached!");
-            },
-            events::EventType::AvailableMemoryHighWatermark => {
-                warn!("Statistics: Available Memory High Watermark reached!");
-            },
-            events::EventType::SystemIsSwapping => {
-                warn!("Statistics: System is swapping!");
-            },
             _ => {
                 // Ignore all other events
             }

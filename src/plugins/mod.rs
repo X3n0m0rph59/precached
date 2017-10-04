@@ -32,9 +32,11 @@ pub mod static_whitelist;
 pub mod dynamic_whitelist;
 pub mod markov_prefetcher;
 pub mod statistics;
+pub mod metrics;
 pub mod notifications;
 pub mod dbus_interface;
 pub mod forkbomb_mitigation;
+pub mod rule_plugin;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     vfs_stat_cache::register_plugin(globals, manager);
@@ -43,9 +45,11 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     dynamic_whitelist::register_plugin(globals, manager);
     markov_prefetcher::register_plugin(globals, manager);
     statistics::register_plugin(globals, manager);
+    metrics::register_plugin(globals, manager);
     notifications::register_plugin(globals, manager);
     dbus_interface::register_plugin(globals, manager);
     forkbomb_mitigation::register_plugin(globals, manager);
+    rule_plugin::register_plugin(globals, manager);
 }
 
 pub fn unregister_plugins(_globals: &mut Globals, manager: &mut Manager) {

@@ -80,12 +80,11 @@ impl hook::Hook for ForkBombDetector {
         match event.event_type {
             procmon::EventType::Fork => {
                 // TODO: Implement this
-                // 
+                //
                 // if (fork_bomb_detected) {
                 //     events::queue_internal_event(EventType::ForkBombDetected(*event), globals);
                 // }
             },
-
             _ => {
                 // trace!("Ignored process event");
             }
