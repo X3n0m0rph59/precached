@@ -33,14 +33,13 @@ pub fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>
     let serialized = serde_json::to_string(&t).unwrap();
 
     let config = globals.config.config_file.clone().unwrap();
-    let filename = config.state_file.unwrap();
+    let filename = config.state_dir.unwrap() + "/precached.state";
 
     write_text_file(&filename, serialized)?;
 
     Ok(())
 }
 
-// pub fn deserialize<T>(t: &T, globals: &mut Globals) where T: Serialize {
-//     let serialized = serde_json::to_string(&t).unwrap();
-//     write_text_file(&globals.config.config_filename, serialized);
-// }
+pub fn deserialize<T>(t: &T, globals: &mut Globals) where T: Serialize {
+
+}

@@ -56,17 +56,9 @@ impl StaticBlacklist {
     }
 
     fn get_file_blacklist(globals: &Globals) -> Vec<String> {
-        let mut result = Vec::new();
+        let mut result = Vec::new();        
 
-        // blacklist linux special mappings
-        result.push(String::from(r"\[mpx\]"));
-        result.push(String::from(r"\[vvar\]"));
-        result.push(String::from(r"\[vdso\]"));
-        result.push(String::from(r"\[heap\]"));
-        result.push(String::from(r"\[stack\]"));
-        result.push(String::from(r"\[vsyscall\]"));
-
-        let mut blacklist = globals.config.config_file.clone().unwrap().blacklist.unwrap();
+        let mut blacklist = globals.config.config_file.clone().unwrap().blacklist.unwrap_or(vec!());
         result.append(&mut blacklist);
 
         result

@@ -29,7 +29,7 @@ pub struct ConfigFile {
     pub user: Option<String>,
     pub group: Option<String>,
     pub worker_threads: Option<String>,
-    pub state_file: Option<String>,
+    pub state_dir: Option<String>,
     pub whitelist: Option<Vec<String>>,
     pub blacklist: Option<Vec<String>>,
     pub disabled_plugins: Option<Vec<String>>,
@@ -41,7 +41,7 @@ impl Default for ConfigFile {
             user: Some(String::from("root")),
             group: Some(String::from("root")),
             worker_threads: Some(String::from("auto")),
-            state_file: Some(String::from("/var/lib/precached/precached.state")),
+            state_dir: Some(String::from("/var/lib/precached/")),
             whitelist: Some(vec![String::from("")]),
             blacklist: Some(vec![String::from("")]),
             disabled_plugins: Some(vec![String::from("")]),
@@ -71,4 +71,4 @@ pub fn parse_config_file(globals: &mut Globals) -> io::Result<()> {
 pub fn get_disabled_plugins(globals: &mut Globals) -> Vec<String> {
     globals.config.config_file.clone().unwrap_or_default()
         .disabled_plugins.unwrap_or_default()
-    }
+}

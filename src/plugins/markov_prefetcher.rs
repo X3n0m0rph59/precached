@@ -65,26 +65,9 @@ impl MarkovPrefetcher {
     pub fn cache_files(&mut self, globals: &Globals, manager: &Manager) {
         trace!("Started caching of files based on dynamic Markov-chain model...");
 
-        let pm = manager.plugin_manager.borrow();
-        let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
-        let plugin_b = plugin.borrow();
-        let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
+        // TODO: Implement this!
 
-        let pm = manager.plugin_manager.borrow();
-        let plugin = pm.get_plugin_by_name(&String::from("static_blacklist")).unwrap();
-        let plugin_b = plugin.borrow();
-        let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
-
-        match globals.config.config_file.clone() {
-            Some(config_file) => {
-                // TODO: Implement this
-
-                info!("Finished caching of files based on dynamic Markov-chain model");
-            },
-            None => {
-                warn!("Configuration temporarily unavailable, skipping task!");
-            }
-        }
+        trace!("Finished caching of files based on dynamic Markov-chain model!");
     }
 }
 

@@ -68,8 +68,7 @@ impl VFSStatCache {
         let thread_pool = util::POOL.try_lock().unwrap();
         thread_pool.submit_work(move || {
             util::walk_directories(&tracked_entries, &mut |ref path| {
-                // Walking the directory primes the kernel dentry caches
-                // so we should not need to do anything special here
+                let metadata = path.metadata();
             });
         });
 
@@ -77,19 +76,23 @@ impl VFSStatCache {
     }
 
     fn shall_we_cache_file(&self, filename: &String, _globals: &Globals, manager: &Manager) -> bool {
-        let pm = manager.plugin_manager.borrow();
-        let plugin = pm.get_plugin_by_name(&String::from("static_blacklist")).unwrap();
-        let plugin_b = plugin.borrow();
-        let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
-
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
             return false;
         }
 
         // Check if filename matches a blacklist rule
-        if util::is_file_blacklisted(&filename, &static_blacklist.get_blacklist()) {
-            return false;
+        let pm = manager.plugin_manager.borrow();
+        match pm.get_plugin_by_name(&String::from("static_blacklist")) {
+            None    => { warn!("Plugin not loaded: 'static_blacklist', skipped"); }
+            Some(p) => {
+                let plugin_b = p.borrow();
+                let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+
+                if util::is_file_blacklisted(&filename, &static_blacklist.get_blacklist()) {
+                    return false;
+                }
+            }
         }
 
         // If we got here, everything seems to be allright
@@ -97,27 +100,32 @@ impl VFSStatCache {
     }
 
     fn get_globally_tracked_entries(&self, _globals: &Globals, manager: &Manager) -> Vec<String> {
-        // let mut result = Vec::<String>::new();
+        let mut result = Vec::<String>::new();
 
         let pm = manager.plugin_manager.borrow();
-        let plugin = pm.get_plugin_by_name(&String::from("static_whitelist")).unwrap();
-        let plugin_b = plugin.borrow();
-        let static_whitelist = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
+        match pm.get_plugin_by_name(&String::from("static_whitelist")) {
+            None    => { trace!("Plugin not loaded: 'static_whitelist', skipped"); }
+            Some(p) => {
+                let plugin_b = p.borrow();
+                let static_whitelist = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
-        // let pm = manager.plugin_manager.borrow();
-        // let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
-        // let plugin_b = plugin.borrow();
-        // let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
+                result.append(&mut static_whitelist.get_whitelist().clone());
+            }
+        };
 
-        // for f in static_whitelist.get_tracked_files().iter() {
-        //     result.push(f);
-        // }
+        match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
+            None    => { trace!("Plugin not loaded: 'dynamic_whitelist', skipped"); }
+            Some(p) => {
+                let plugin_b = p.borrow();
+                let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
 
-        // for (k,_v) in dynamic_whitelist.get_mapped_files().iter() {
-        //     result.push(k.clone());
-        // }
+                let mut mapped_files = dynamic_whitelist.get_mapped_files()
+                                                        .keys().map(|k| { k.clone() }).collect();
+                result.append(&mut mapped_files);
+            }
+        };
 
-        static_whitelist.get_whitelist().clone()
+        result
     }
 }
 

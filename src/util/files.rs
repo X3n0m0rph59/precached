@@ -40,7 +40,14 @@ pub fn is_filename_valid(filename: &String) -> bool {
         return false;
     }
 
-    if f.contains(r"\(deleted\)") {
+    // blacklist linux special mappings
+    let blacklist = vec!(
+        String::from("[mpx]"),   String::from("[vvar]"),
+        String::from("[vdso]"),  String::from("[heap]"),
+        String::from("[stack]"), String::from("[vsyscall]"),
+        String::from("/memfd:"), String::from("(deleted)"));
+
+    if blacklist.iter().any(|bi| { f.contains(bi) }) {
         return false;
     }
 
@@ -245,4 +252,34 @@ pub fn walk_directories<F>(entries: &Vec<String>, cb: &mut F) -> io::Result<()>
     }
 
     Ok(())
+}
+
+
+#[cfg(test)]
+mod tests {
+    use util::files::*;
+
+    #[test]
+    fn test_validity_of_filenames() {
+        assert_eq!(is_filename_valid(&String::from("filename")), true);
+
+        assert_eq!(is_filename_valid(&String::from("")), false);
+        assert_eq!(is_filename_valid(&String::from(" ")), false);
+        assert_eq!(is_filename_valid(&String::from("  ")), false);
+
+        assert_eq!(is_filename_valid(&String::from("(deleted)")), false);
+
+        assert_eq!(is_filename_valid(&String::from("[stack]")), false);
+        assert_eq!(is_filename_valid(&String::from("[heap]")), false);
+    }
+
+    #[test]
+    fn test_blacklist() {
+        let mut blacklist = Vec::new();
+
+        blacklist.push(String::from("123.txt"));
+
+        assert_eq!(is_file_blacklisted(&String::from("123.txt"), &blacklist), true);
+        assert_eq!(is_file_blacklisted(&String::from("456.txt"), &blacklist), false);
+    }
 }

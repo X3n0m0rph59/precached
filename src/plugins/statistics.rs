@@ -90,16 +90,16 @@ impl Plugin for Statistics {
                 self.produce_report(globals, manager);
             },
             events::EventType::FreeMemoryLowWatermark => {
-                info!("Statistics: Free Memory Low Watermark reached!");
+                info!("Statistics: Free memory *Low* Watermark reached!");
             },
             events::EventType::FreeMemoryHighWatermark => {
-                warn!("Statistics: Free Memory High Watermark reached!");
+                warn!("Statistics: Free memory *High* Watermark reached!");
             },
             events::EventType::AvailableMemoryLowWatermark => {
-                info!("Statistics: Available Memory Low Watermark reached!");
+                info!("Statistics: Available memory *Low* Watermark reached!");
             },
             events::EventType::AvailableMemoryHighWatermark => {
-                warn!("Statistics: Available Memory High Watermark reached!");
+                warn!("Statistics: Available memory *High* Watermark reached!");
             },
             events::EventType::SystemIsSwapping => {
                 warn!("Statistics: System is swapping!");

@@ -102,7 +102,7 @@ impl hook::Hook for ProcessTracker {
             procmon::EventType::Exec => {
                  let process = Process::new(event.pid);
                  info!("Now tracking process '{}' PID: {}",
-                       process.get_comm().unwrap_or(String::from("<unknown>")), process.pid);
+                       process.get_comm().unwrap_or(String::from("<invalid>")), process.pid);
                  trace!("{:?}", process.get_mapped_files());
 
                  // update our histogram of mapped files
@@ -110,7 +110,7 @@ impl hook::Hook for ProcessTracker {
                      Ok(v)  => { self.update_mapped_files_histogram(&v); }
                      Err(_) => {
                          warn!("Error while reading mapped files of process '{}' with PID: {}. Process disappeared early",
-                               process.get_comm().unwrap_or(String::from("<unknown>")), process.pid); }
+                               process.get_comm().unwrap_or(String::from("<invalid>")), process.pid); }
                      }
 
                  // add process to tracking map

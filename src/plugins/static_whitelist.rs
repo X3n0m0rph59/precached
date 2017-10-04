@@ -79,19 +79,31 @@ impl StaticWhitelist {
         info!("Started caching of statically whitelisted files...");
 
         let pm = manager.plugin_manager.borrow();
-        let plugin = pm.get_plugin_by_name(&String::from("dynamic_whitelist")).unwrap();
-        let plugin_b = plugin.borrow();
-        let dynamic_whitelist_plugin = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
 
-        let pm = manager.plugin_manager.borrow();
-        let plugin = pm.get_plugin_by_name(&String::from("static_blacklist")).unwrap();
-        let plugin_b = plugin.borrow();
-        let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+        let mut dynamic_whitelist = HashMap::new();
+        match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
+            None    => { trace!("Plugin not loaded: 'dynamic_whitelist', skipped"); }
+            Some(p) => {
+                let plugin_b = p.borrow();
+                let dynamic_whitelist_plugin = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
+
+                dynamic_whitelist = dynamic_whitelist_plugin.get_mapped_files().clone();
+            }
+        };
+
+        let mut static_blacklist = Vec::<String>::new();
+        match pm.get_plugin_by_name(&String::from("static_blacklist")) {
+            None    => { trace!("Plugin not loaded: 'static_blacklist', skipped"); }
+            Some(p) => {
+                let plugin_b = p.borrow();
+                let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+
+                static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
+            }
+        };
 
         let whitelist = self.whitelist.clone();
-        let static_blacklist = static_blacklist_plugin.get_blacklist().clone();
         let our_mapped_files = self.mapped_files.clone();
-        let dynamic_whitelist = dynamic_whitelist_plugin.get_mapped_files().clone();
 
         let thread_pool = util::POOL.try_lock().unwrap();
         let (sender, receiver): (Sender<HashMap<String, util::MemoryMapping>>, _) = channel();
@@ -203,7 +215,7 @@ impl Plugin for StaticWhitelist {
             },
             events::EventType::ConfigurationReloaded => {
                 let whitelist = match globals.config.config_file.clone() {
-                    Some(config_file) => { config_file.whitelist.unwrap() },
+                    Some(config_file) => { config_file.whitelist.unwrap_or(vec!()) },
                     None              => { vec!() }
                 };
 

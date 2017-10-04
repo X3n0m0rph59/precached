@@ -69,7 +69,7 @@ impl ProcessStats {
         ProcessStats {
             path: format!("/Process/{}", pid).into(),
             process: process,
-            comm: process.get_comm().unwrap_or(String::from("<unknown>")),
+            comm: process.get_comm().unwrap_or(String::from("<invalid>")),
             pid: pid,
         }
     }
@@ -215,16 +215,21 @@ impl DBUSInterface {
     }
 
     pub fn populate_process_statistics(&mut self, e: &procmon::Event, _globals: &Globals, manager: &Manager) {
-        let m = manager.hook_manager.borrow();
-        let hook = m.get_hook_by_name(&String::from("process_tracker")).unwrap();
-        let hook_b = hook.borrow();
-        let process_tracker = hook_b.as_any().downcast_ref::<ProcessTracker>().unwrap();
+        let hm = manager.hook_manager.borrow();
 
-        // populate data
         let mut process_stats: Vec<Arc<ProcessStats>> = vec!();
-        for (k, v) in process_tracker.tracked_processes.iter() {
-            process_stats.push(Arc::new(ProcessStats::new(*k, *v)));
-        }
+        match hm.get_hook_by_name(&String::from("process_tracker")) {
+            None    => { trace!("Hook not loaded: 'process_tracker', skipped"); }
+            Some(h) => {
+                let hook_b = h.borrow();
+                let process_tracker_hook = hook_b.as_any().downcast_ref::<ProcessTracker>().unwrap();
+
+                // populate data
+                for (k, v) in process_tracker_hook.tracked_processes.iter() {
+                    process_stats.push(Arc::new(ProcessStats::new(*k, *v)));
+                }
+            }
+        };
 
         self.process_stats.clear();
         self.process_stats.append(&mut process_stats);
