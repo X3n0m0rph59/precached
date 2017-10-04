@@ -1,6 +1,6 @@
 Name:    precached
 Version: 0.1.0
-Release: 6%{?dist}
+Release: 7%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+

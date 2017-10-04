@@ -32,7 +32,7 @@ impl ThreadPool {
     pub fn new() -> ThreadPool {
         ThreadPool {
             pool: threadpool::Builder::new()
-                                .num_threads(3)
+                                .num_threads(4)
                                 .thread_name(String::from("worker thread"))
                                 .build()
         }

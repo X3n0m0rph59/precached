@@ -19,32 +19,24 @@
 */
 
 use std::any::Any;
-use std::collections::HashMap;
-
-use std::sync::Mutex;
-use std::sync::mpsc::{Sender, channel};
-
 use globals::*;
 use manager::*;
 
 use events;
+use events::EventType;
 use storage;
-use util;
 
 // use hooks::process_tracker::ProcessTracker;
-use plugins::static_blacklist::StaticBlacklist;
-use plugins::dynamic_whitelist::DynamicWhitelist;
-
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "markov_prefetcher";
-static DESCRIPTION: &str = "Prefetches files based on a dynamically built Markov-chain model";
+static NAME:        &str = "ptrace_log_manager";
+static DESCRIPTION: &str = "Manage 'I/O activity log files' created by the ptrace() Log hook";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(MarkovPrefetcher::new(globals));
+        let plugin = Box::new(PtraceLogManager::new());
 
         let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
@@ -52,32 +44,25 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct MarkovPrefetcher {
+pub struct PtraceLogManager {
 
 }
 
-impl MarkovPrefetcher {
-    pub fn new(globals: &Globals) -> MarkovPrefetcher {
-        MarkovPrefetcher {
+impl PtraceLogManager {
+    pub fn new() -> PtraceLogManager {
+        PtraceLogManager {
+
         }
     }
-
-    pub fn cache_files(&mut self, globals: &Globals, manager: &Manager) {
-        trace!("Started caching of files based on dynamic Markov-chain model...");
-
-        // TODO: Implement this!
-
-        trace!("Finished caching of files based on dynamic Markov-chain model!");
-    }
 }
 
-impl Plugin for MarkovPrefetcher {
+impl Plugin for PtraceLogManager {
     fn register(&mut self) {
-        info!("Registered Plugin: 'Markov-Chain based Prefetcher'");
+        info!("Registered Plugin: 'ptrace() Log Manager'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'Markov-Chain based Prefetcher'");
+        info!("Unregistered Plugin: 'ptrace() Log Manager'");
     }
 
     fn get_name(&self) -> &'static str {
@@ -92,20 +77,8 @@ impl Plugin for MarkovPrefetcher {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
-            events::EventType::Startup => {
-                //
-            },
-            events::EventType::Shutdown => {
-                //
-            },
-            events::EventType::ConfigurationReloaded => {
-                //
-            },
-            events::EventType::PrimeCaches => {
-                // self.cache_files(globals, manager);
-            },
             _ => {
                 // Ignore all other events
             }

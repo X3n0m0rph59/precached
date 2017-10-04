@@ -21,11 +21,13 @@
 mod vec;
 mod files;
 mod system;
+mod ptrace;
 mod thread_pool;
 mod task_scheduler;
 
 pub use self::vec::*;
 pub use self::files::*;
 pub use self::system::*;
+pub use self::ptrace::*;
 pub use self::thread_pool::*;
 pub use self::task_scheduler::*;

@@ -49,7 +49,7 @@ use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
 static NAME:        &str = "dynamic_whitelist";
-static DESCRIPTION: &str = "Dynamically whitelist the most often mapped files";
+static DESCRIPTION: &str = "Dynamically whitelist the most often mmapped() files";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {

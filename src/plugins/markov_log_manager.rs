@@ -19,6 +19,10 @@
 */
 
 use std::any::Any;
+use std::collections::HashMap;
+
+use std::sync::Mutex;
+use std::sync::mpsc::{Sender, channel};
 
 use globals::*;
 use manager::*;
@@ -27,17 +31,22 @@ use events;
 use storage;
 use util;
 
+use procmon;
+
 // use hooks::process_tracker::ProcessTracker;
+use plugins::static_blacklist::StaticBlacklist;
+use plugins::dynamic_whitelist::DynamicWhitelist;
+
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "statistics";
-static DESCRIPTION: &str = "Gather global system statistics and make them available to other plugins";
+static NAME:        &str = "markov_log_manager";
+static DESCRIPTION: &str = "Manages state-files used by the 'Markov-chain Prefetcher' hook";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(Statistics::new());
+        let plugin = Box::new(MarkovLogManager::new(globals));
 
         let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
@@ -45,31 +54,33 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct Statistics {
+pub struct MarkovLogManager {
 
 }
 
-impl Statistics {
-    pub fn new() -> Statistics {
-        Statistics {
+impl MarkovLogManager {
+    pub fn new(globals: &Globals) -> MarkovLogManager {
+        MarkovLogManager {
 
         }
     }
 
-    pub fn produce_report(&mut self, globals: &mut Globals, _manager: &Manager) {
-        trace!("Updating global statistics...");
+    pub fn cache_files(&mut self, event: &procmon::Event, globals: &Globals, manager: &Manager) {
+        trace!("Started caching of files based on dynamic Markov-chain model...");
 
         // TODO: Implement this!
+
+        trace!("Finished caching of files based on dynamic Markov-chain model!");
     }
 }
 
-impl Plugin for Statistics {
+impl Plugin for MarkovLogManager {
     fn register(&mut self) {
-        info!("Registered Plugin: 'Global System Statistics'");
+        info!("Registered Plugin: 'Manager for Markov-Chain Prefetcher State'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'Global System Statistics'");
+        info!("Unregistered Plugin: 'Manager for Markov-Chain Prefetcher State'");
     }
 
     fn get_name(&self) -> &'static str {
@@ -86,23 +97,17 @@ impl Plugin for Statistics {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::Ping => {
-                self.produce_report(globals, manager);
+            events::EventType::Startup => {
+                //
             },
-            events::EventType::FreeMemoryLowWatermark => {
-                info!("Statistics: Free memory: *Low*-Watermark reached!");
+            events::EventType::Shutdown => {
+                //
             },
-            events::EventType::FreeMemoryHighWatermark => {
-                warn!("Statistics: Free memory: *High*-Watermark reached!");
+            events::EventType::ConfigurationReloaded => {
+                //
             },
-            events::EventType::AvailableMemoryLowWatermark => {
-                info!("Statistics: Available memory: *Low*-Watermark reached!");
-            },
-            events::EventType::AvailableMemoryHighWatermark => {
-                warn!("Statistics: Available memory: *High*-Watermark reached!");
-            },
-            events::EventType::SystemIsSwapping => {
-                warn!("Statistics: System is swapping!");
+            events::EventType::PrimeCaches => {
+                // self.cache_files(globals, manager);
             },
             _ => {
                 // Ignore all other events

@@ -17,32 +17,3 @@
     You should have received a copy of the GNU General Public License
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-mod hook_manager;
-mod hook;
-
-use globals::*;
-use manager::*;
-
-pub use self::hook_manager::*;
-
-pub mod process_tracker;
-pub mod ptrace_logger;
-pub mod ptrace_prefetcher;
-pub mod markov_prefetcher;
-pub mod forkbomb_detector;
-pub mod rule_hook;
-
-pub fn register_default_hooks(globals: &mut Globals, manager: &mut Manager) {
-    process_tracker::register_hook(globals, manager);
-    ptrace_logger::register_hook(globals, manager);
-    ptrace_prefetcher::register_hook(globals, manager);
-    markov_prefetcher::register_hook(globals, manager);
-    forkbomb_detector::register_hook(globals, manager);
-    rule_hook::register_hook(globals, manager);
-}
-
-pub fn unregister_hooks(_globals: &mut Globals, manager: &mut Manager) {
-    let m = manager.hook_manager.borrow();
-    m.unregister_all_hooks();
-}
