@@ -34,6 +34,8 @@ use manager::*;
 use events;
 use events::EventType;
 
+use util;
+
 use hooks::hook;
 
 static NAME:        &str = "ptrace_logger";
@@ -58,53 +60,30 @@ impl PtraceLogger {
         }
     }
 
-    pub fn wait_for_syscall(pid: libc::pid_t) -> libc::int32_t {
-        let mut status: libc::int32_t = 0;
-
-        loop {
-            unsafe { libc::ptrace(libc::PTRACE_SYSCALL, pid, 0, 0) };
-            unsafe { libc::waitpid(pid, &mut status, 0) };
-
-            if unsafe { libc::WIFSTOPPED(status) } &&
-               unsafe { libc::WSTOPSIG(status) } != 0 /*& 0x80 != 0*/ {
-                return 0;
-            }
-            if unsafe { libc::WIFEXITED(status) } {
-                return 1;
-            }
-        }
-    }
-
-    pub fn trace_process_syscalls(&self, event: &procmon::Event, globals: &mut Globals,
-                                  manager: &Manager) {
+    pub fn trace_process_io(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
         let pid = event.pid;
 
-        // spawn a new tracer thread for each tracee that we watch
+        // spawn a new tracer thread for each tracee that we want to watch
         let tracer_thread = thread::Builder::new().name(format!("ptrace/pid:{}", pid)).spawn(move || {
-            trace!("ptrace: attaching to pid: {}", pid);
-            let result = unsafe { libc::ptrace(libc::PTRACE_ATTACH, pid,
-                                               0                           as *mut libc::c_void,
-                                               libc::PTRACE_O_TRACESYSGOOD as *mut libc::c_void) };
-
             loop {
-                trace!("ptrace: waiting for syscalls (step 1)");
-                if Self::wait_for_syscall(pid) != 0 {
-                    break;
+                let result = util::trace_process_io(pid);
+
+                match result {
+                    Err(e)       => { error!("Could not ptrace() process with pid: {}", pid) },
+                    Ok(io_event) => {
+                        match io_event.syscall {
+                            util::SysCall::SysOpen(filename) => {
+                                debug!("Process: {} opened file: {}", pid, filename);
+                            },
+
+                            util::SysCall::SysRead(fd, len) => {
+                                debug!("Process: {} read from file: {}, len: {}", pid, fd, len);
+                            },
+                            
+                            _ => { /* Ignore other SysCalls */ }
+                        }
+                    }
                 }
-
-                // obtain syscall nr
-                let syscall = unsafe { libc::ptrace(libc::PTRACE_PEEKUSER, pid,
-                                                    8 * 11 /*sizeof(long) * ORIG_EAX*/) };
-
-                trace!("ptrace: waiting for syscalls (step 2)");
-                if Self::wait_for_syscall(pid) != 0 {
-                    break;
-                }
-
-                let retval = unsafe { libc::ptrace(libc::PTRACE_PEEKUSER, pid,
-                                                   8 * 6 /*sizeof(long) * EAX*/) };
-
-                debug!("ptrace: pid: {} performed syscall: {}, with retval: {}", pid, syscall, retval);
             }
         }).unwrap();
     }
@@ -130,7 +109,7 @@ impl hook::Hook for PtraceLogger {
     fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             procmon::EventType::Exec => {
-                self.trace_process_syscalls(event, globals, manager);
+                self.trace_process_io(event, globals, manager);
             },
             _ => {
                 // trace!("Ignored process event");

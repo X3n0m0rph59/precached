@@ -126,7 +126,7 @@ impl StaticWhitelist {
                             error!("Could not cache file '{}': {}", &f, &s);
                         },
                         Ok(r) => {
-                            debug!("Successfuly cached file '{}'", &f);
+                            trace!("Successfuly cached file '{}'", &f);
                             mapped_files.insert(f2, r);
                         }
                     }
