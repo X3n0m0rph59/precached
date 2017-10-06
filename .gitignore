@@ -1,3 +1,4 @@
+.state/
 /target/
 **/target/
 **/*.rs.bk
