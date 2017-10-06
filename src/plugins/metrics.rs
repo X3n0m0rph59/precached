@@ -25,6 +25,8 @@ use std::any::Any;
 use globals::*;
 use manager::*;
 
+use std::time::{Instant, Duration};
+
 use events;
 use events::EventType;
 use storage;
@@ -53,6 +55,15 @@ pub struct Metrics {
     mem_info_last: Option<MemInfo>,
     mem_info_5: Option<MemInfo>,
     mem_info_15: Option<MemInfo>,
+
+    // event flags
+    free_mem_low_watermark_event_sent: bool,
+    available_mem_low_watermark_event_sent: bool,
+    free_mem_high_watermark_event_sent: bool,
+    available_mem_high_watermark_event_sent: bool,
+    recovered_from_swap_event_sent: bool,
+
+    last_swapped_time: Instant,
 }
 
 impl Metrics {
@@ -61,6 +72,15 @@ impl Metrics {
             mem_info_last: None,
             mem_info_5: None,
             mem_info_15: None,
+
+            // event flags
+            free_mem_low_watermark_event_sent: true,
+            available_mem_low_watermark_event_sent: true,
+            free_mem_high_watermark_event_sent: true,
+            available_mem_high_watermark_event_sent: true,
+            recovered_from_swap_event_sent: true,
+
+            last_swapped_time: Instant::now(),
         }
     }
 
@@ -70,28 +90,64 @@ impl Metrics {
         let mem_info = sys_info::mem_info().unwrap();
         debug!("{:?}", mem_info);
 
+        // *free* memory events
         let free_percentage = mem_info.free * 100 / mem_info.total;
         if free_percentage < 20 {
-            events::queue_internal_event(EventType::FreeMemoryHighWatermark, globals)
+            if self.free_mem_high_watermark_event_sent == false {
+                events::queue_internal_event(EventType::FreeMemoryHighWatermark, globals);
+                self.free_mem_high_watermark_event_sent = true;
+            }
         } else if free_percentage > 80 {
-            events::queue_internal_event(EventType::FreeMemoryLowWatermark, globals)
+            if self.free_mem_low_watermark_event_sent == false {
+                events::queue_internal_event(EventType::FreeMemoryLowWatermark, globals);
+                self.free_mem_low_watermark_event_sent = true;
+            }
+        } else {
+            // rearm events
+            self.free_mem_low_watermark_event_sent = false;
+            self.free_mem_high_watermark_event_sent = false;
         }
 
+        // *available* memory events
         let avail_percentage = mem_info.avail * 100 / mem_info.total;
         if avail_percentage < 20 {
-            events::queue_internal_event(EventType::AvailableMemoryHighWatermark, globals)
+            if self.available_mem_high_watermark_event_sent == false {
+                events::queue_internal_event(EventType::AvailableMemoryHighWatermark, globals);
+                self.available_mem_high_watermark_event_sent = true;
+            }
         } else if avail_percentage > 80 {
-            events::queue_internal_event(EventType::AvailableMemoryLowWatermark, globals)
+            if self.available_mem_low_watermark_event_sent == false {
+                events::queue_internal_event(EventType::AvailableMemoryLowWatermark, globals);
+                self.available_mem_low_watermark_event_sent = true;
+            }
+        } else {
+            // rearm events
+            self.available_mem_low_watermark_event_sent = false;
+            self.available_mem_high_watermark_event_sent = false;
         }
 
+        // *swap* events
         // assure that we always have a valid last mem_info
         if self.mem_info_last.is_none() {
             self.mem_info_last = Some(mem_info);
         }
 
         let mem_info_last = self.mem_info_last.unwrap();
+
         if mem_info_last.swap_free - mem_info.swap_free > 0 {
+            self.recovered_from_swap_event_sent = false;
+
+            self.last_swapped_time = Instant::now();
             events::queue_internal_event(EventType::SystemIsSwapping, globals);
+        } else {
+            let duration_without_swapping = Instant::now() - self.last_swapped_time;
+
+            if duration_without_swapping > Duration::from_secs(5) {
+                if self.recovered_from_swap_event_sent == false {
+                    events::queue_internal_event(EventType::SystemRecoveredFromSwap, globals);
+                    self.recovered_from_swap_event_sent = true;
+                }
+            }
         }
 
         self.mem_info_last = Some(mem_info);

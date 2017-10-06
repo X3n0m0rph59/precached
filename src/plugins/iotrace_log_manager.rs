@@ -30,13 +30,13 @@ use storage;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "ptrace_log_manager";
-static DESCRIPTION: &str = "Manage 'I/O activity log files' created by the ptrace() Log hook";
+static NAME:        &str = "iotrace_log_manager";
+static DESCRIPTION: &str = "Manage I/O activity trace log files";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(PtraceLogManager::new());
+        let plugin = Box::new(IOtraceLogManager::new());
 
         let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
@@ -44,25 +44,25 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct PtraceLogManager {
+pub struct IOtraceLogManager {
 
 }
 
-impl PtraceLogManager {
-    pub fn new() -> PtraceLogManager {
-        PtraceLogManager {
+impl IOtraceLogManager {
+    pub fn new() -> IOtraceLogManager {
+        IOtraceLogManager {
 
         }
     }
 }
 
-impl Plugin for PtraceLogManager {
+impl Plugin for IOtraceLogManager {
     fn register(&mut self) {
-        info!("Registered Plugin: 'ptrace() Log Manager'");
+        info!("Registered Plugin: 'I/O Trace Log Manager'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'ptrace() Log Manager'");
+        info!("Unregistered Plugin: 'I/O Trace Log Manager'");
     }
 
     fn get_name(&self) -> &'static str {
@@ -79,6 +79,9 @@ impl Plugin for PtraceLogManager {
 
     fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
+            EventType::DoHousekeeping => {
+                // TODO: Implement this
+            },
             _ => {
                 // Ignore all other events
             }

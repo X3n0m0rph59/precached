@@ -18,20 +18,69 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
 extern crate globset;
 
-use std;
 use std::io;
 use std::io::prelude::*;
-use std::io::Result;
 use std::io::BufReader;
 use std::fs;
-use std::fs::{File, OpenOptions};
-use std::os::unix::io::IntoRawFd;
+use std::fs::OpenOptions;
 use std::path::Path;
-use std::ffi::CString;
+
 use self::globset::{Glob, GlobSetBuilder};
+
+pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
+    let path = Path::new(filename);
+    let file = try!(OpenOptions::new().read(true).open(&path));
+
+    let reader = BufReader::new(file);
+    Ok(reader.lines().filter_map(|l| {
+        match l {
+            Ok(s) => Some(s),
+            Err(_) => {
+                // error!("Error while reading file!");
+                return None
+            }
+        }
+    }).collect())
+}
+
+pub fn read_text_file(filename: &str) -> io::Result<String> {
+    let path = Path::new(filename);
+    let mut file = try!(OpenOptions::new().read(true).open(&path));
+
+    let mut s = String::new();
+    file.read_to_string(&mut s)?;
+
+    Ok(s)
+}
+
+pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
+    let path = Path::new(filename);
+    let mut file = try!(OpenOptions::new()
+                            .write(true)
+                            .truncate(true)
+                            .create(true)
+                            .open(&path));
+
+    file.write_all(text.into_bytes().as_slice())?;
+    file.sync_data()?;
+
+    Ok(())
+}
+
+pub fn echo(filename: &str, mut text: String) -> io::Result<()> {
+    let path = Path::new(filename);
+    let mut file = try!(OpenOptions::new()
+                            .write(true)
+                            .append(false)
+                            .open(&path));
+
+    text.push_str("\n");
+    file.write_all(text.into_bytes().as_slice())?;
+
+    Ok(())
+}
 
 pub fn is_filename_valid(filename: &String) -> bool {
     let f = filename.trim();
@@ -63,141 +112,6 @@ pub fn is_file_blacklisted(filename: &String, pattern: &Vec<String>) -> bool {
 
     let set = builder.build().unwrap();
     set.matches(&filename).len() > 0
-}
-
-pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
-    let path = Path::new(filename);
-    let file = try!(OpenOptions::new().read(true).open(&path));
-
-    let reader = BufReader::new(file);
-    Ok(reader.lines().filter_map(|l| {
-        match l {
-            Ok(s) => Some(s),
-            Err(_) => {
-                // error!("Error while reading file!");
-                return None
-            }
-        }
-    }).collect())
-}
-
-pub fn read_text_file(filename: &str) -> io::Result<String> {
-    let path = Path::new(filename);
-    let mut file = try!(OpenOptions::new().read(true).open(&path));
-
-    let mut s = String::new();
-    file.read_to_string(&mut s);
-
-    Ok(s)
-}
-
-pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
-    let path = Path::new(filename);
-    let mut file = try!(OpenOptions::new()
-                            .write(true)
-                            .truncate(true)
-                            .create(true)
-                            .open(&path));
-
-    file.write_all(text.into_bytes().as_slice())?;
-    file.sync_data()?;
-
-    Ok(())
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemoryMapping {
-    pub filename: String,
-    pub addr: usize,
-    pub len: usize,
-}
-
-impl MemoryMapping {
-    pub fn new(filename: String, addr: usize, len: usize) -> MemoryMapping {
-        MemoryMapping {
-            filename: filename,
-            addr: addr,
-            len: len,
-        }
-    }
-}
-
-pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
-    trace!("Caching file: '{}'", filename);
-
-    let file = File::open(filename)?;
-    let fd = file.into_raw_fd();
-
-    let mut stat: libc::stat = unsafe { std::mem::zeroed() };
-    unsafe { libc::fstat(fd, &mut stat); };
-    let addr = unsafe { libc::mmap(0 as *mut libc::c_void, stat.st_size as usize,
-                                   libc::PROT_READ,
-                                   libc::MAP_SHARED, fd, 0) };
-
-    if addr < 0 as *mut libc::c_void {
-        // Try to close the file descriptor
-        unsafe { libc::close(fd) };
-
-        Err(std::io::Error::last_os_error())
-    } else {
-        trace!("Successfuly called mmap() for: '{}'", filename);
-
-        let result = unsafe { libc::madvise(addr as *mut libc::c_void, stat.st_size as usize,
-                                            libc::MADV_WILLNEED
-                                        /*| libc::MADV_SEQUENTIAL*/
-                                        /*| libc::MADV_MERGEABLE*/) };
-
-        if result < 0 as libc::c_int {
-            // Try to close the file descriptor
-            unsafe { libc::close(fd) };
-
-            Err(std::io::Error::last_os_error())
-        } else {
-            trace!("Successfuly called madvise() for: '{}'", filename);
-
-            let result = unsafe { libc::mlock(addr as *mut libc::c_void, stat.st_size as usize) };
-
-            if result < 0 as libc::c_int {
-                // Try to close the file descriptor
-                unsafe { libc::close(fd) };
-
-                Err(std::io::Error::last_os_error())
-            } else {
-                trace!("Successfuly called mlock() for: '{}'", filename);
-
-                // Manually fault in all pages
-                // let mem = unsafe { std::slice::from_raw_parts(addr as *const i32, stat.st_size as usize) };
-                // for v in mem {
-                //     let _tmp = v;
-                // }
-
-                let result = unsafe { libc::close(fd) };
-                if result < 0 as libc::c_int {
-                    Err(std::io::Error::last_os_error())
-                } else {
-                    trace!("Successfuly called close() for: '{}'", filename);
-
-                    let mapping = MemoryMapping::new(String::from(filename), addr as usize, stat.st_size as usize);
-                    Ok(mapping)
-                }
-            }
-        }
-    }
-}
-
-pub fn prime_metadata_cache(filename: &str) -> Result<()> {
-    trace!("Caching metadata of file : '{}'", filename);
-
-    let mut stat: libc::stat = unsafe { std::mem::zeroed() };
-    let f = CString::new(filename).unwrap();
-    let result = unsafe { libc::stat(f.as_ptr(), &mut stat) };
-
-    if result < 0 as libc::c_int {
-        Err(std::io::Error::last_os_error())
-    } else {
-        trace!("Successfuly called stat() for: '{}'", filename);
-        Ok(())
-    }
 }
 
 pub fn is_path_a_directory(path: &String) -> bool {

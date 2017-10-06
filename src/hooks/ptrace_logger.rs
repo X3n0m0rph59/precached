@@ -18,15 +18,23 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//
+// NOTE:
+// The ptrace() based I/O trace logger shall only be considered a `proof-of-concept`
+// implementation, since it incurs a very high performance penalty that won't get fixed.
+// You may want to use the ftrace based I/O trace logger instead.
+
 extern crate libc;
 
 use std::any::Any;
 use std::thread;
-use std::sync::mpsc::channel;
-use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::{Instant, Duration};
 
 use process::Process;
 use procmon;
+
+use iotrace::*;
 
 use globals::*;
 use manager::*;
@@ -39,7 +47,7 @@ use util;
 use hooks::hook;
 
 static NAME:        &str = "ptrace_logger";
-static DESCRIPTION: &str = "ptrace() new processes and log their filesystem activity";
+static DESCRIPTION: &str = "ptrace() processes and log their filesystem activity";
 
 /// Register this hook implementation with the system
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
@@ -51,39 +59,74 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct PtraceLogger {
+    active_tracers: Arc<Mutex<Vec<libc::pid_t>>>,
 }
 
 impl PtraceLogger {
     pub fn new() -> PtraceLogger {
         PtraceLogger {
-
+            active_tracers: Arc::new(Mutex::new(vec!())),
         }
     }
 
-    pub fn trace_process_io(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
+    pub fn trace_process_io_activity(&self, event: &procmon::Event, globals: &mut Globals, _manager: &Manager) {
         let pid = event.pid;
 
+        let active_tracers = self.active_tracers.clone();
+
+        {
+            let active_tracers = active_tracers.lock().unwrap();
+            if active_tracers.contains(&pid) {
+                warn!("Spurious request received, to trace process with pid: {} that is already being traced!", pid);
+                return;
+            }
+        }
+
+        let config = globals.config.config_file.clone().unwrap();
+        let iotrace_dir = config.state_dir.unwrap_or(String::from("."));
+
         // spawn a new tracer thread for each tracee that we want to watch
-        let tracer_thread = thread::Builder::new().name(format!("ptrace/pid:{}", pid)).spawn(move || {
+        thread::Builder::new().name(format!("ptrace/pid:{}", pid)).spawn(move || {
+            active_tracers.lock().unwrap().push(pid);
+
+            let process = Process::new(pid);
+            let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
+
+            let mut trace_log = IOTraceLog::new(pid);
+            let start_time = Instant::now();
+
             loop {
-                let result = util::trace_process_io(pid);
+                let result = util::trace_process_io_ptrace(pid);
 
                 match result {
-                    Err(e)       => { error!("Could not ptrace() process with pid: {}", pid) },
+                    Err(e)       => { error!("Could not trace process with pid: {}: {}", pid, e) },
                     Ok(io_event) => {
                         match io_event.syscall {
-                            util::SysCall::SysOpen(filename) => {
-                                debug!("Process: {} opened file: {}", pid, filename);
+                            util::SysCall::Open(filename, fd) => {
+                                debug!("Process: '{}' with pid: {} opened file: {} fd: {}", comm, pid, filename, fd);
+                                trace_log.add_event(IOOperation::Open(filename, fd));
                             },
 
-                            util::SysCall::SysRead(fd, len) => {
-                                debug!("Process: {} read from file: {}, len: {}", pid, fd, len);
+                            util::SysCall::Read(fd, pos, len) => {
+                                debug!("Process: '{}' with pid: {} read from fd: {}, pos: {}, len: {}", comm, pid, fd, pos, len);
+                                trace_log.add_event(IOOperation::Read(fd, pos, len));
                             },
-                            
-                            _ => { /* Ignore other SysCalls */ }
+
+                            _ => { /* Ignore other syscalls */ }
                         }
                     }
                 }
+
+                // only trace max. n seconds into process lifetime
+                if Instant::now() - start_time > Duration::from_secs(5) {
+                    util::detach_tracer(pid);
+                    break;
+                }
+            }
+
+            match trace_log.save(&iotrace_dir) {
+                Err(e) => { error!("Error while saving the I/O trace log for process '{}' with pid: {}. {}", comm, pid, e) },
+                Ok(()) => { info!("Sucessfuly saved I/O trace log for process '{}' with pid: {}", comm, pid) }
             }
         }).unwrap();
     }
@@ -91,11 +134,11 @@ impl PtraceLogger {
 
 impl hook::Hook for PtraceLogger {
     fn register(&mut self) {
-        info!("Registered Hook: 'ptrace() Logger'");
+        info!("Registered Hook: 'ptrace() I/O Trace Logger (deprecated)'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Hook: 'ptrace() Logger'");
+        info!("Unregistered Hook: 'ptrace() I/O Trace Logger (deprecated)'");
     }
 
     fn get_name(&self) -> &'static str {
@@ -109,7 +152,7 @@ impl hook::Hook for PtraceLogger {
     fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             procmon::EventType::Exec => {
-                self.trace_process_io(event, globals, manager);
+                self.trace_process_io_activity(event, globals, manager);
             },
             _ => {
                 // trace!("Ignored process event");

@@ -25,6 +25,8 @@
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system
 
+#![allow(dead_code)]
+
 // extern crate fern;
 // extern crate chrono;
 extern crate pretty_env_logger;
@@ -62,6 +64,7 @@ use events::*;
 mod config;
 mod plugins;
 mod hooks;
+mod iotrace;
 mod storage;
 mod util;
 
@@ -211,6 +214,7 @@ fn main() {
 
     let mut last = Instant::now();
     events::queue_internal_event(EventType::Startup, &mut globals);
+    events::queue_internal_event(EventType::PrimeCaches, &mut globals);
 
     // spawn the event loop thread
     let handle = thread::Builder::new()
@@ -234,10 +238,10 @@ fn main() {
     'main_loop: loop {
         trace!("Main thread going to sleep...");
 
-        // Blocking call
+        // NOTE: Blocking call
         // wait for the event loop thread to submit an event
         // or up to n msecs until a timeout occurs
-        let event = match receiver.recv_timeout(Duration::from_millis(1000)) {
+        let event = match receiver.recv_timeout(Duration::from_millis(1)) {
             Ok(result) => {
                 trace!("Main thread woken up to process a message...");
                 Some(result)
@@ -255,27 +259,29 @@ fn main() {
 
             // Parse external configuration file
             match storage::parse_config_file(&mut globals) {
-                Ok(_)  => { info!("Successfuly parsed configuration!") },
-                Err(s) => { error!("Error in configuration file: {}", s); return }
-            }
+                Ok(_)  => {
+                    info!("Successfuly parsed configuration!");
+                    events::queue_internal_event(EventType::ConfigurationReloaded, &mut globals);
+                },
+                Err(s) => {
+                    error!("Error in configuration file: {}", s);
 
-            events::queue_internal_event(EventType::ConfigurationReloaded, &mut globals);
+                    // TODO: Don't crash here, handle gracefully
+                    return
+                }
+            }
         }
 
+        // NOTE: This is currently unused
         // Allow plugins to integrate into the main loop
-        plugins::call_main_loop_hook(&mut globals, &mut manager);
+        // plugins::call_main_loop_hook(&mut globals, &mut manager);
 
         // Queue a "Ping"-event every n seconds
-        if last.elapsed() > Duration::from_millis(2500){
+        if last.elapsed() > Duration::from_millis(1000){
             last = Instant::now();
 
             events::queue_internal_event(EventType::Ping, &mut globals);
             events::queue_internal_event(EventType::GatherStatsAndMetrics, &mut globals);
-
-            // TODO: Implement memory management heuristics instead
-            //       of just firing every n seconds
-            // Queue a "PrimeCaches"-event every n seconds
-            events::queue_internal_event(EventType::PrimeCaches, &mut globals);
         }
 
         // Dispatch events

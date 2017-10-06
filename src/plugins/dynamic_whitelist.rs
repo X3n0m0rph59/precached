@@ -205,9 +205,9 @@ impl DynamicWhitelist {
         };
     }
 
-    pub fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>
+    fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>
         where T: Serialize {
-        let serialized = serde_json::to_string(&t).unwrap();
+        let serialized = serde_json::to_string_pretty(&t).unwrap();
 
         let config = globals.config.config_file.clone().unwrap();
         let path = Path::new(&config.state_dir.unwrap_or(String::from(".")))
@@ -219,7 +219,7 @@ impl DynamicWhitelist {
         Ok(())
     }
 
-    pub fn deserialize<T>(t: &T, globals: &mut Globals) where T: Serialize {
+    fn deserialize<T>(t: &T, globals: &mut Globals) where T: Serialize {
 
     }
 
@@ -264,8 +264,12 @@ impl Plugin for DynamicWhitelist {
             events::EventType::ConfigurationReloaded => {
 
             },
-            events::EventType::PrimeCaches => {
+            events::EventType::PrimeCaches |
+            events::EventType::FreeMemoryLowWatermark  => {
                 self.cache_dynamically_whitelisted_files(globals, manager);
+            },
+            events::EventType::DoHousekeeping => {
+                // TODO: Implement this
             },
             _ => {
                 // Ignore all other events

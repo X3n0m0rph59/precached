@@ -35,36 +35,36 @@ use events::EventType;
 
 use hooks::hook;
 
-static NAME:        &str = "ptrace_prefetcher";
-static DESCRIPTION: &str = "Replay file operations recorded by 'ptrace() Logger' hook";
+static NAME:        &str = "iotrace_prefetcher";
+static DESCRIPTION: &str = "Replay file operations previously recorded by an I/O tracer";
 
 /// Register this hook implementation with the system
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
-    let hook = Box::new(PtracePrefetcher::new());
+    let hook = Box::new(IOtracePrefetcher::new());
 
     let m = manager.hook_manager.borrow();
     m.register_hook(hook);
 }
 
 #[derive(Debug, Clone)]
-pub struct PtracePrefetcher {
+pub struct IOtracePrefetcher {
 }
 
-impl PtracePrefetcher {
-    pub fn new() -> PtracePrefetcher {
-        PtracePrefetcher {
+impl IOtracePrefetcher {
+    pub fn new() -> IOtracePrefetcher {
+        IOtracePrefetcher {
 
         }
     }
 }
 
-impl hook::Hook for PtracePrefetcher {
+impl hook::Hook for IOtracePrefetcher {
     fn register(&mut self) {
-        info!("Registered Hook: 'ptrace() Prefetcher'");
+        info!("Registered Hook: 'I/O Trace Prefetcher'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Hook: 'ptrace() Prefetcher'");
+        info!("Unregistered Hook: 'I/O Trace Prefetcher");
     }
 
     fn get_name(&self) -> &'static str {
@@ -78,7 +78,7 @@ impl hook::Hook for PtracePrefetcher {
     fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             procmon::EventType::Fork => {
-                
+
             },
             _ => {
                 // trace!("Ignored process event");

@@ -1,5 +1,5 @@
 debug.log
-*.state
+.state/
 /target/
 **/target/
 **/*.rs.bk

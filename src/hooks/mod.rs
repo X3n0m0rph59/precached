@@ -27,16 +27,18 @@ use manager::*;
 pub use self::hook_manager::*;
 
 pub mod process_tracker;
-pub mod ptrace_logger;
-pub mod ptrace_prefetcher;
+// pub mod ptrace_logger;
+pub mod ftrace_logger;
+pub mod iotrace_prefetcher;
 pub mod markov_prefetcher;
 pub mod forkbomb_detector;
 pub mod rule_hook;
 
 pub fn register_default_hooks(globals: &mut Globals, manager: &mut Manager) {
     process_tracker::register_hook(globals, manager);
-    ptrace_logger::register_hook(globals, manager);
-    ptrace_prefetcher::register_hook(globals, manager);
+    // ptrace_logger::register_hook(globals, manager);  // deprecated in favour of ftrace
+    ftrace_logger::register_hook(globals, manager);
+    iotrace_prefetcher::register_hook(globals, manager);
     markov_prefetcher::register_hook(globals, manager);
     forkbomb_detector::register_hook(globals, manager);
     rule_hook::register_hook(globals, manager);

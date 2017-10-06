@@ -21,24 +21,11 @@
 extern crate libc;
 
 use std::io::Result;
+use super::trace_event;
 
-#[derive(Debug)]
-pub enum SysCall {
-    Undefined,
-    SysOpen(String),
-    SysClose(libc::int32_t),
-    SysRead(libc::int32_t, usize),
-    SysWrite(libc::int32_t, usize),
-}
-
-#[derive(Debug)]
-pub struct IOEvent {
-    pub syscall: SysCall,
-}
-
-pub fn trace_process_io(pid: libc::pid_t) -> Result<IOEvent> {
+pub fn trace_process_io_ptrace(pid: libc::pid_t) -> Result<trace_event::IOEvent> {
     trace!("ptrace: attaching to pid: {}", pid);
-    let result = unsafe { libc::ptrace(libc::PTRACE_ATTACH, pid,
+    let _result = unsafe { libc::ptrace(libc::PTRACE_ATTACH, pid,
                                        0                           as *mut libc::c_void,
                                        libc::PTRACE_O_TRACESYSGOOD as *mut libc::c_void) };
 
@@ -72,30 +59,41 @@ pub fn trace_process_io(pid: libc::pid_t) -> Result<IOEvent> {
                 trace!("ptrace: pid: {} performed syscall: {}, with retval: {}", pid, "open", retval);
 
                 let filename = String::from("filename");
-                return Ok(IOEvent { syscall: SysCall::SysOpen(filename) });
+                let fd = 123;
+                return Ok(trace_event::IOEvent { syscall: trace_event::SysCall::Open(filename, fd) });
             },
             0x06 /* sys_close */ => {
                 trace!("ptrace: pid: {} performed syscall: {}, with retval: {}", pid, "close", retval);
-                return Ok(IOEvent { syscall: SysCall::SysClose(0) });
+                return Ok(trace_event::IOEvent { syscall: trace_event::SysCall::Close(0) });
             },
 
             0x03 /* sys_read */ => {
                 trace!("ptrace: pid: {} performed syscall: {}, with retval: {}", pid, "read", retval);
-                return Ok(IOEvent { syscall: SysCall::SysRead(0, 0) });
+                return Ok(trace_event::IOEvent { syscall: trace_event::SysCall::Read(0, 0, 0) });
             },
-            0x04 /* sys_write */ => {
-                trace!("ptrace: pid: {} performed syscall: {}, with retval: {}", pid, "write", retval);
-                return Ok(IOEvent { syscall: SysCall::SysWrite(0, 0) });
-            },
+            // 0x04 /* sys_write */ => {
+            //     trace!("ptrace: pid: {} performed syscall: {}, with retval: {}", pid, "write", retval);
+            //     return Ok(trace_event::IOEvent { syscall: SysCall::Write(0, 0, 0) });
+            // },
             _ => {
-                trace!("ptrace: pid: {} performed untracked syscall: {}, with retval: {}", pid, syscall, retval);
-
-                // fall through to end of function
+                // trace!("ptrace: pid: {} performed untracked syscall: {}, with retval: {}", pid, syscall, retval);
+                // fall through to end of the function
             }
         }
     }
 
-    Ok(IOEvent { syscall: SysCall::Undefined })
+    Ok(trace_event::IOEvent { syscall: trace_event::SysCall::Undefined })
+}
+
+pub fn detach_tracer(pid: libc::pid_t) {
+    trace!("ptrace: detaching from process with pid: {}", pid);
+    let _result = unsafe { libc::ptrace(libc::PTRACE_CONT, pid,
+                                       0 as *mut libc::c_void,
+                                       0 as *mut libc::c_void) };
+
+    let _result = unsafe { libc::ptrace(libc::PTRACE_DETACH, pid,
+                                       0 as *mut libc::c_void,
+                                       0 as *mut libc::c_void) };
 }
 
 fn wait_for_syscall(pid: libc::pid_t) -> libc::int32_t {

@@ -26,11 +26,12 @@ use manager::*;
 
 pub use self::plugin_manager::*;
 
+pub mod system_agent;
 pub mod vfs_stat_cache;
 pub mod static_blacklist;
 pub mod static_whitelist;
 pub mod dynamic_whitelist;
-pub mod ptrace_log_manager;
+pub mod iotrace_log_manager;
 pub mod markov_log_manager;
 pub mod statistics;
 pub mod metrics;
@@ -40,10 +41,11 @@ pub mod forkbomb_mitigation;
 pub mod rule_plugin;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
+    system_agent::register_plugin(globals, manager);
     vfs_stat_cache::register_plugin(globals, manager);
     static_blacklist::register_plugin(globals, manager);
     static_whitelist::register_plugin(globals, manager);
-    ptrace_log_manager::register_plugin(globals, manager);
+    iotrace_log_manager::register_plugin(globals, manager);
     dynamic_whitelist::register_plugin(globals, manager);
     markov_log_manager::register_plugin(globals, manager);
     statistics::register_plugin(globals, manager);

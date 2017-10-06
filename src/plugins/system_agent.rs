@@ -24,52 +24,49 @@ use globals::*;
 use manager::*;
 
 use events;
+use events::EventType;
 use storage;
-use util;
 
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "statistics";
-static DESCRIPTION: &str = "Gather global system statistics and make them available to other plugins";
+static NAME:        &str = "system_agent";
+static DESCRIPTION: &str = "Analyzes your system and recommends a configuration that is best suited";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(Statistics::new());
+        let plugin = Box::new(SystemAgent::new());
 
         let m = manager.plugin_manager.borrow();
         m.register_plugin(plugin);
     }
 }
 
-#[derive(Debug)]
-pub struct Statistics {
+pub struct SystemAgent {
 
 }
 
-impl Statistics {
-    pub fn new() -> Statistics {
-        Statistics {
+impl SystemAgent {
+    pub fn new() -> SystemAgent {
+        SystemAgent {
 
         }
     }
 
-    pub fn produce_report(&mut self, globals: &mut Globals, _manager: &Manager) {
-        trace!("Updating global statistics...");
-
-        // TODO: Implement this!
+    pub fn gather_system_properties(&mut self, _globals: &mut Globals, _manager: &Manager) {
+        trace!("Gathering system properties...");
     }
 }
 
-impl Plugin for Statistics {
+impl Plugin for SystemAgent {
     fn register(&mut self) {
-        info!("Registered Plugin: 'Global System Statistics'");
+        info!("Registered Plugin: 'Analyze System Configuration'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'Global System Statistics'");
+        info!("Unregistered Plugin: 'Analyze System Configuration'");
     }
 
     fn get_name(&self) -> &'static str {
@@ -86,26 +83,8 @@ impl Plugin for Statistics {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::Ping => {
-                self.produce_report(globals, manager);
-            },
-            events::EventType::FreeMemoryLowWatermark => {
-                info!("Statistics: Free memory: *Low*-Watermark reached!");
-            },
-            events::EventType::FreeMemoryHighWatermark => {
-                warn!("Statistics: Free memory: *High*-Watermark reached!");
-            },
-            events::EventType::AvailableMemoryLowWatermark => {
-                info!("Statistics: Available memory: *Low*-Watermark reached!");
-            },
-            events::EventType::AvailableMemoryHighWatermark => {
-                warn!("Statistics: Available memory: *High*-Watermark reached!");
-            },
-            events::EventType::SystemIsSwapping => {
-                warn!("Statistics: System is swapping!");
-            },
-            events::EventType::SystemRecoveredFromSwap => {
-                warn!("Statistics: System recovered from swapping!");
+            events::EventType::Startup => {
+                self.gather_system_properties(globals, manager);
             },
             _ => {
                 // Ignore all other events

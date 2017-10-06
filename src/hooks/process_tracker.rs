@@ -101,40 +101,47 @@ impl hook::Hook for ProcessTracker {
         match event.event_type {
             procmon::EventType::Exec => {
                  let process = Process::new(event.pid);
-                 info!("Now tracking process '{}' PID: {}",
-                       process.get_comm().unwrap_or(String::from("<invalid>")), process.pid);
-                 trace!("{:?}", process.get_mapped_files());
 
                  // update our histogram of mapped files
                  match process.get_mapped_files() {
-                     Ok(v)  => { self.update_mapped_files_histogram(&v); }
                      Err(_) => {
                          warn!("Error while reading mapped files of process '{}' with PID: {}. Process disappeared early",
-                               process.get_comm().unwrap_or(String::from("<invalid>")), process.pid); }
+                               process.get_comm().unwrap_or(String::from("<invalid>")), process.pid);
                      }
 
-                 // add process to tracking map
-                 self.get_tracked_processes().insert(event.pid, process);
+                     Ok(v)  => {
+                         self.update_mapped_files_histogram(&v);
 
-                 for (k,v) in self.get_mapped_files_histogram() {
-                     trace!("File '{}' mapped: {}", k, v);
+                         // add process to tracking map
+                         self.get_tracked_processes().insert(event.pid, process);
+                         info!("Now tracking process '{}' PID: {}",
+                               process.get_comm().unwrap_or(String::from("<invalid>")), process.pid);
+                               
+                        //  trace!("{:?}", process.get_mapped_files());
+                         //
+                        //  for (k,v) in self.get_mapped_files_histogram() {
+                        //      trace!("File '{}' mapped: {}", k, v);
+                        //  }
+
+                         events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
+                     }
                  }
             },
 
             procmon::EventType::Exit => {
                 let process = self.get_tracked_processes().remove(&event.pid);
                 match process {
-                    Some(process) => info!("Removed tracked process: {:?}", process),
                     None => {}
+                    Some(process) => {
+                        info!("Removed tracked process: {:?}", process);
+                        events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
+                    }
                 }
-            }
-
+            },
             _ => {
                 // trace!("Ignored process event");
             }
         }
-
-        events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
     }
 
     fn as_any(&self) -> &Any {

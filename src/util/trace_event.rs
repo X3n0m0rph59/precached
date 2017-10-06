@@ -18,22 +18,18 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod vec;
-mod files;
-mod memory;
-mod system;
-mod trace_event;
-mod ptrace;
-mod ftrace;
-mod thread_pool;
-mod task_scheduler;
+extern crate libc;
 
-pub use self::vec::*;
-pub use self::files::*;
-pub use self::memory::*;
-pub use self::system::*;
-pub use self::trace_event::*;
-pub use self::ptrace::*;
-pub use self::ftrace::*;
-pub use self::thread_pool::*;
-pub use self::task_scheduler::*;
+#[derive(Debug)]
+pub enum SysCall {
+    Undefined,
+    Open(String, libc::int32_t),
+    Close(libc::int32_t),
+    Read(libc::int32_t, usize, usize),
+    // Write(libc::int32_t, usize, usize),
+}
+
+#[derive(Debug)]
+pub struct IOEvent {
+    pub syscall: SysCall,
+}

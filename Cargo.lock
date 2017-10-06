@@ -7,6 +7,7 @@ dependencies = [
  "chrono 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.26.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "dbus 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "globset 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.31 (registry+https://github.com/rust-lang/crates.io-index)",

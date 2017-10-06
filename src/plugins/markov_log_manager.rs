@@ -109,6 +109,9 @@ impl Plugin for MarkovLogManager {
             events::EventType::PrimeCaches => {
                 // self.cache_files(globals, manager);
             },
+            events::EventType::DoHousekeeping => {
+                // TODO: Implement this
+            },
             _ => {
                 // Ignore all other events
             }
