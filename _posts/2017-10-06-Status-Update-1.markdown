@@ -13,18 +13,18 @@ We achieved much in this short timespan, but there is still a long way ahead of 
 
 ## What has been achieved
 
-* Prototype implementation of a Linux daemon, written in the Rust language
-* Capable of whitelisting files that it should mmap() and mlock()
+* Prototype implementation of a Linux daemon, written in the Rust programming language
+* Capable of whitelisting files that it should mmap(), and subsequently mlock()
 * Comprised of plugins and hooks layered on top of a small core daemon
 * Many new plugins and hooks that really look promising but are still in their infancy right now
 * A slew of unstable new features
 * Packaging for Fedora Linux using the Copr infrastructure
 
-List of new plugins:
+## List of new and noteworthy plugins:
 
 * Static whitelist: lock files into memory, based on a static list of file names
-* Dynamic whitelisting: Scan /proc/<pid>/maps and add the most often mapped files to a `dynamic whitelist`
-* VFS statx() cache: Prime kernel dentry caches by walking and stat()ing directories and files
+* Dynamic whitelisting: Scan `/proc/$pid/maps` and add the most often mapped files to a `dynamic whitelist`
+* VFS statx() cache: Prime the kernel's dentry caches by walking and stat()ing files and directories
 * System metrics plugin: Signals memory pressure changes and paging status (swapping)
 * Beginnings of a DBUS interface to control the daemon
 
