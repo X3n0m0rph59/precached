@@ -188,6 +188,7 @@ mod tests {
         assert_eq!(is_filename_valid(&String::from("  ")), false);
 
         assert_eq!(is_filename_valid(&String::from("(deleted)")), false);
+        assert_eq!(is_filename_valid(&String::from("123.txt (deleted)")), false);
 
         assert_eq!(is_filename_valid(&String::from("[stack]")), false);
         assert_eq!(is_filename_valid(&String::from("[heap]")), false);
