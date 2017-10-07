@@ -1,6 +1,6 @@
 Name:    precached
 Version: 0.1.0
-Release: 9%{?dist}
+Release: 10%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -37,6 +37,7 @@ cargo build --release --verbose
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/
+%{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{name}/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{name}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
