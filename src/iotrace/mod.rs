@@ -31,6 +31,8 @@ use std::collections::HashMap;
 use process::Process;
 use util;
 
+use constants;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum IOOperation {
     Open(String, libc::int32_t),
@@ -92,13 +94,13 @@ impl IOTraceLog {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
 
             let path = Path::new(iotrace_dir)
-                         .join(Path::new("iotrace"))
+                         .join(Path::new(&constants::IOTRACE_DIR))
                          .join(Path::new(&format!("{}.trace", self.hash)));
 
             let filename = path.to_string_lossy();
             util::write_text_file(&filename, serialized)?;
         } else {
-            info!("The I/O trace log for process '{}' is empty! Nothing has been saved.", self.comm);
+            info!("The I/O trace log for process '{}' is empty! Nothing will be saved.", self.comm);
         }
 
         Ok(())

@@ -25,6 +25,8 @@ use std::thread;
 use std::sync::{Arc, Mutex};
 use std::time::{Instant, Duration};
 
+use std::collections::HashMap;
+
 use process::Process;
 use procmon;
 
@@ -65,18 +67,20 @@ impl FtraceLogger {
         }
     }
 
-    pub fn notify_process_exit(&self, event: &procmon::Event, globals: &mut Globals, _manager: &Manager) {
-        let active_tracers = self.active_tracers.lock().unwrap();
+    pub fn notify_process_exit(&self, event: &procmon::Event, _globals: &mut Globals, _manager: &Manager) {
+        let mut active_tracers = self.active_tracers.lock().unwrap();
         if active_tracers.contains(&event.pid) {
-
+            active_tracers.retain(|&v| v != event.pid);
         }
     }
 
     pub fn trace_process_io_activity(&self, event: &procmon::Event, globals: &mut Globals, _manager: &Manager) {
         let pid = event.pid;
 
-        let active_tracers = self.active_tracers.clone();
+        let config = globals.config.config_file.clone().unwrap();
+        let iotrace_dir = config.state_dir.unwrap_or(String::from(constants::STATE_DIR));
 
+        let active_tracers = self.active_tracers.clone();
         {
             let mut active_tracers = active_tracers.lock().unwrap();
             if active_tracers.contains(&pid) {
@@ -86,9 +90,6 @@ impl FtraceLogger {
                 active_tracers.push(pid);
             }
         }
-
-        let config = globals.config.config_file.clone().unwrap();
-        let iotrace_dir = config.state_dir.unwrap_or(String::from("."));
 
         // spawn a new tracer thread for each tracee that we want to watch
         thread::Builder::new().name(format!("ftrace/pid:{}", pid)).spawn(move || {
@@ -129,7 +130,7 @@ impl FtraceLogger {
 
                         // only trace max. n seconds into process lifetime
                         if Instant::now() - start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
-                            trace!("Tracing time expired for process '{}' with pid: {}", comm, pid);
+                            debug!("Tracing time expired for process '{}' with pid: {}", comm, pid);
                             break 'TRACE_LOOP;
                         }
 
@@ -141,7 +142,7 @@ impl FtraceLogger {
                             let active_tracers = active_tracers.lock().unwrap();
                             if !active_tracers.contains(&pid) {
                                 // our tracee process went away
-                                trace!("Process '{}' with pid: {} exited while being traced!", comm, pid);
+                                debug!("Process '{}' with pid: {} exited while being traced!", comm, pid);
                                 break 'TRACE_LOOP;
                             }
                         }
@@ -161,7 +162,7 @@ impl FtraceLogger {
 
 impl hook::Hook for FtraceLogger {
     fn register(&mut self) {
-        info!("Registered Hook: 'ftrace based I/O Trace Logger'");
+        info!("Registered Hook: 'ftrace based I/O Trace Logger (experimental)'");
 
         match util::enable_ftrace_tracing() {
             Err(e) => { error!("Could not enable the Linux ftrace subsystem! {}", e) },
@@ -175,14 +176,14 @@ impl hook::Hook for FtraceLogger {
             Ok(()) => { trace!("Sucessfuly disabled the Linux ftrace subsystem!") },
         }
 
-        info!("Unregistered Hook: 'ftrace based I/O Trace Logger");
+        info!("Unregistered Hook: 'ftrace based I/O Trace Logger (experimental)");
     }
 
     fn get_name(&self) -> &'static str {
         NAME
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
+    fn internal_event(&mut self, _event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
 
     }
 

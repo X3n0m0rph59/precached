@@ -217,9 +217,9 @@ fn setup_logging() -> Result<(), fern::InitError> {
     //     })
     //     .chain(connection);
 
-    base_config.level(log::LogLevelFilter::Info)
-               .chain(console)
+    base_config.chain(console)
                // .chain(syslog)
+               .level(log::LogLevelFilter::Debug)
                .apply()?;
 
     Ok(())
@@ -305,7 +305,7 @@ fn main() {
         // NOTE: Blocking call
         // wait for the event loop thread to submit an event
         // or up to n msecs until a timeout occurs
-        let event = match receiver.recv_timeout(Duration::from_millis(1)) {
+        let event = match receiver.recv_timeout(Duration::from_millis(constants::EVENT_THREAD_TIMEOUT_MILLIS)) {
             Ok(result) => {
                 trace!("Main thread woken up to process a message...");
                 Some(result)
@@ -340,8 +340,8 @@ fn main() {
         // Allow plugins to integrate into the main loop
         // plugins::call_main_loop_hook(&mut globals, &mut manager);
 
-        // Queue a "Ping"-event every n seconds
-        if last.elapsed() > Duration::from_millis(1000){
+        // Queue a "Ping" event every n seconds
+        if last.elapsed() > Duration::from_millis(constants::PING_INTERVAL_MILLIS) {
             last = Instant::now();
 
             events::queue_internal_event(EventType::Ping, &mut globals);

@@ -25,14 +25,30 @@
     These are default values, maybe they are overridden by external configuration files!
 */
 
+/// Default directory where daemon state shall be saved
+pub const STATE_DIR: &'static str = "/var/lib/precached/";
+
+/// Default directory where I/O traces shall be saved
+pub const IOTRACE_DIR: &'static str = "iotrace/";
+
+
 /// Default compression ratio for Zstd compressor
 pub const ZSTD_COMPRESSION_RATIO: i32 = 0;
 
-/// Thread yield time
+
+/// Thread wait time (main loop)
+pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 250;
+
+/// Thread yield time (io tracer)
 pub const THREAD_YIELD_TIME_MILLIS: u64 = 500;
+
+
+/// `Ping` event timer timeout
+pub const PING_INTERVAL_MILLIS: u64 = 2000;
 
 /// Duration that we trace a process' I/O activity
 pub const IO_TRACE_TIME_SECS: u64 = 5;
+
 
 /// Initial gap width of console log output
 pub const INITIAL_MODULE_WIDTH: usize = 40;
