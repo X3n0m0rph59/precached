@@ -25,7 +25,7 @@
     These are default values, maybe they are overridden by external configuration files!
 */
 
-/// Default directory where daemon state shall be saved
+/// Default directory where the daemon state shall be saved
 pub const STATE_DIR: &'static str = "/var/lib/precached/";
 
 /// Default directory where I/O traces shall be saved
@@ -37,10 +37,7 @@ pub const ZSTD_COMPRESSION_RATIO: i32 = 0;
 
 
 /// Thread wait time (main loop)
-pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 250;
-
-/// Thread yield time (io tracer)
-pub const THREAD_YIELD_TIME_MILLIS: u64 = 500;
+pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 1000;
 
 
 /// `Ping` event timer timeout

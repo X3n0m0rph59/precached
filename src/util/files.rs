@@ -90,6 +90,19 @@ pub fn echo(filename: &str, mut text: String) -> io::Result<()> {
     Ok(())
 }
 
+pub fn append(filename: &str, mut text: String) -> io::Result<()> {
+    let path = Path::new(filename);
+    let mut file = try!(OpenOptions::new()
+                            .write(true)
+                            .append(true)
+                            .open(&path));
+
+    text.push_str("\n");
+    file.write_all(text.into_bytes().as_slice())?;
+
+    Ok(())
+}
+
 pub fn is_filename_valid(filename: &String) -> bool {
     let f = filename.trim();
 
