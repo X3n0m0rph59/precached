@@ -19,6 +19,7 @@
 */
 
 extern crate globset;
+extern crate zstd;
 
 use std::io;
 use std::io::prelude::*;
@@ -52,7 +53,10 @@ pub fn read_text_file(filename: &str) -> io::Result<String> {
     let mut s = String::new();
     file.read_to_string(&mut s)?;
 
-    Ok(s)
+    let decompressed = zstd::decode_all(BufReader::new(s.as_bytes())).unwrap();
+    let result = String::from_utf8(decompressed).unwrap();
+
+    Ok(result)
 }
 
 pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
@@ -63,8 +67,10 @@ pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
                             .create(true)
                             .open(&path));
 
-    file.write_all(text.into_bytes().as_slice())?;
-    file.sync_data()?;
+
+    let compressed = zstd::encode_all(BufReader::new(text.as_bytes()), 0).unwrap();
+    file.write_all(&compressed)?;
+    // file.sync_data()?;
 
     Ok(())
 }
