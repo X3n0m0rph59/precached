@@ -10,12 +10,13 @@ categories: contributions
 
 We are actively looking for contributions! Besides from code contributions,
 we could especially well use:
+
   * Project logo designs
   * Text translations
   * Documentation authors
   * Issue triaging
 
->***So please feel free to participate!***
+***So please feel free to participate!***
 
 If you are new to Open Source software, you may want to read
 [How to Contribute](https://opensource.guide/how-to-contribute/)
