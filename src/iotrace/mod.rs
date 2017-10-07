@@ -74,19 +74,17 @@ impl IOTraceLog {
     pub fn add_event(&mut self, op: IOOperation) {
         let operation = op.clone();
 
+        // do we have to add a file map entry?
         match op {
             IOOperation::Open(filename, fd) => {
                 self.file_map.entry(fd).or_insert(filename);
-
-                let entry = TraceLogEntry::new(operation);
-                self.trace_log.push(entry);
             },
-
-            IOOperation::Read(fd, pos, len) => {
-                let entry = TraceLogEntry::new(operation);
-                self.trace_log.push(entry);
-            },
+            _ => { /* Do nothing */ },
         }
+
+        // append log entry to our log
+        let entry = TraceLogEntry::new(operation);
+        self.trace_log.push(entry);
     }
 
     pub fn save(&self, iotrace_dir: &String) -> Result<()> {
@@ -100,7 +98,7 @@ impl IOTraceLog {
             let filename = path.to_string_lossy();
             util::write_text_file(&filename, serialized)?;
         } else {
-            warn!("The I/O trace log is empty! Nothing has been saved.");
+            info!("The I/O trace log for process '{}' is empty! Nothing has been saved.", self.comm);
         }
 
         Ok(())
