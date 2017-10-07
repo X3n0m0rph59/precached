@@ -18,24 +18,26 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod vec;
-mod files;
-mod memory;
-mod system;
-mod trace_event;
-mod ptrace;
-mod ftrace;
-mod logger;
-mod thread_pool;
-mod task_scheduler;
+use std::fmt;
+use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
 
-pub use self::vec::*;
-pub use self::files::*;
-pub use self::memory::*;
-pub use self::system::*;
-pub use self::trace_event::*;
-pub use self::ptrace::*;
-pub use self::ftrace::*;
-pub use self::logger::*;
-pub use self::thread_pool::*;
-pub use self::task_scheduler::*;
+use ansi_term::Color;
+use log::LogLevel;
+
+pub struct Level{
+    pub level: LogLevel,
+}
+
+impl fmt::Display for Level {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.level {
+            LogLevel::Trace => Color::Purple.paint("TRACE"),
+            LogLevel::Debug => Color::Blue.paint("DEBUG"),
+            LogLevel::Info => Color::Green.paint("INFO "),
+            LogLevel::Warn => Color::Yellow.paint("WARN "),
+            LogLevel::Error => Color::Red.paint("ERROR")
+        }.fmt(f)
+    }
+}
+
+pub static MAX_MODULE_WIDTH: AtomicUsize = ATOMIC_USIZE_INIT;

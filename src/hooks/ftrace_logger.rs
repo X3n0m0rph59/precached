@@ -33,6 +33,8 @@ use iotrace::*;
 use globals::*;
 use manager::*;
 
+use constants;
+
 use events;
 use events::EventType;
 
@@ -96,65 +98,62 @@ impl FtraceLogger {
             let mut trace_log = IOTraceLog::new(pid);
             let start_time = Instant::now();
 
-            'TRACE_LOOP: loop {
-                let result = util::trace_process_io_ftrace(pid);
-                match result {
-                    Err(e) => {
-                        error!("Could not enable ftrace for process with pid: {}: {}", pid, e);
-                        break 'TRACE_LOOP;
-                    },
-                    Ok(()) => {
-                        'EVENT_LOOP: loop {
-                            let events = util::get_ftrace_events_from_pipe();
-                            match events {
-                                Err(e) => { error!("Could not get ftrace events for process with pid: {}: {}", pid, e) },
-                                Ok(ev) => {
-                                    for io_event in ev.iter() {
-                                        match io_event.syscall {
-                                            util::SysCall::Open(ref filename, fd) => {
-                                                debug!("Process: '{}' with pid: {} opened file: {} fd: {}", comm, pid, filename, fd);
-                                                trace_log.add_event(IOOperation::Open(filename.clone(), fd));
-                                            },
+            let result = util::trace_process_io_ftrace(pid);
+            match result {
+                Err(e) => {
+                    error!("Could not enable ftrace for process with pid: {}: {}", pid, e);
+                },
+                Ok(()) => {
+                    'TRACE_LOOP: loop {
+                        let events = util::get_ftrace_events_from_pipe();
+                        match events {
+                            Err(e) => { error!("Could not get ftrace events for process with pid: {}: {}", pid, e) },
+                            Ok(ev) => {
+                                for io_event in ev.iter() {
+                                    match io_event.syscall {
+                                        util::SysCall::Open(ref filename, fd) => {
+                                            debug!("Process: '{}' with pid: {} opened file: {} fd: {}", comm, pid, filename, fd);
+                                            trace_log.add_event(IOOperation::Open(filename.clone(), fd));
+                                        },
 
-                                            // util::SysCall::Read(fd, pos, len) => {
-                                            //     debug!("Process: '{}' with pid: {} read from fd: {}, pos: {}, len: {}", comm, pid, fd, pos, len);
-                                            //     trace_log.add_event(IOOperation::Read(fd, pos, len));
-                                            // },
+                                        // util::SysCall::Read(fd, pos, len) => {
+                                        //     debug!("Process: '{}' with pid: {} read from fd: {}, pos: {}, len: {}", comm, pid, fd, pos, len);
+                                        //     trace_log.add_event(IOOperation::Read(fd, pos, len));
+                                        // },
 
-                                            _ => { /* Ignore other syscalls */ }
-                                        }
+                                        _ => { /* Ignore other syscalls */ }
                                     }
                                 }
                             }
+                        }
 
-                            // only trace max. n seconds into process lifetime
-                            if Instant::now() - start_time > Duration::from_secs(5) {
-                                trace!("Tracing time expired for process '{}' with pid: {}", comm, pid);
+                        // only trace max. n seconds into process lifetime
+                        if Instant::now() - start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
+                            trace!("Tracing time expired for process '{}' with pid: {}", comm, pid);
+                            break 'TRACE_LOOP;
+                        }
+
+                        // yield execution time slice
+                        thread::sleep(Duration::from_millis(constants::THREAD_YIELD_TIME_MILLIS));
+
+                        // check if our tracee process is still alive
+                        {
+                            let active_tracers = active_tracers.lock().unwrap();
+                            if !active_tracers.contains(&pid) {
+                                // our tracee process went away
+                                trace!("Process '{}' with pid: {} exited while being traced!", comm, pid);
                                 break 'TRACE_LOOP;
-                            }
-
-                            // yield execution time slice
-                            thread::sleep(Duration::from_millis(250));
-
-                            // check if our tracee process is still alive
-                            {
-                                let active_tracers = active_tracers.lock().unwrap();
-                                if !active_tracers.contains(&pid) {
-                                    // our tracee process went away
-                                    trace!("Process '{}' with pid: {} exited while being traced!", comm, pid);
-                                    break 'TRACE_LOOP;
-                                }
                             }
                         }
                     }
+
+                    util::stop_tracing_process_ftrace().unwrap();
+
+                    match trace_log.save(&iotrace_dir) {
+                        Err(e) => { error!("Error while saving the I/O trace log for process '{}' with pid: {}. {}", comm, pid, e) },
+                        Ok(()) => { info!("Sucessfuly saved I/O trace log for process '{}' with pid: {}", comm, pid) }
+                    }
                 }
-            }
-
-            util::stop_tracing_process_ftrace().unwrap();
-
-            match trace_log.save(&iotrace_dir) {
-                Err(e) => { error!("Error while saving the I/O trace log for process '{}' with pid: {}. {}", comm, pid, e) },
-                Ok(()) => { info!("Sucessfuly saved I/O trace log for process '{}' with pid: {}", comm, pid) }
             }
         }).unwrap();
     }

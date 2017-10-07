@@ -18,24 +18,21 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod vec;
-mod files;
-mod memory;
-mod system;
-mod trace_event;
-mod ptrace;
-mod ftrace;
-mod logger;
-mod thread_pool;
-mod task_scheduler;
+/*!
+    # Global Constants
 
-pub use self::vec::*;
-pub use self::files::*;
-pub use self::memory::*;
-pub use self::system::*;
-pub use self::trace_event::*;
-pub use self::ptrace::*;
-pub use self::ftrace::*;
-pub use self::logger::*;
-pub use self::thread_pool::*;
-pub use self::task_scheduler::*;
+    This module holds global constants for precached.
+    These are default values, maybe they are overridden by external configuration files!
+*/
+
+/// Default compression ratio for Zstd compressor
+pub const ZSTD_COMPRESSION_RATIO: i32 = 0;
+
+/// Thread yield time
+pub const THREAD_YIELD_TIME_MILLIS: u64 = 500;
+
+/// Duration that we trace a process' I/O activity
+pub const IO_TRACE_TIME_SECS: u64 = 5;
+
+/// Initial gap width of console log output
+pub const INITIAL_MODULE_WIDTH: usize = 40;

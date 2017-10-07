@@ -27,12 +27,14 @@
 
 #![allow(dead_code)]
 
-// extern crate fern;
-// extern crate chrono;
-extern crate pretty_env_logger;
+extern crate ansi_term;
+extern crate fern;
+extern crate chrono;
 
 #[macro_use]
 extern crate log;
+extern crate syslog;
+extern crate env_logger;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -41,11 +43,16 @@ extern crate lazy_static;
 extern crate nix;
 extern crate toml;
 
+use std::io;
 use std::thread;
-use nix::sys::signal;
 use std::time::{Instant, Duration};
-use std::sync::mpsc::channel;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
+use std::sync::mpsc::channel;
+use nix::sys::signal;
+use ansi_term::Style;
+use syslog::Facility;
+
+mod constants;
 
 mod globals;
 use globals::*;
@@ -56,11 +63,10 @@ use manager::*;
 mod procmon;
 use procmon::ProcMon;
 
-mod process;
-
 mod events;
-use events::*;
+use events::EventType;
 
+mod process;
 mod config;
 mod plugins;
 mod hooks;
@@ -145,26 +151,84 @@ fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager:
     m.dispatch_event(&event, globals, manager);
 }
 
+fn setup_logging() -> Result<(), fern::InitError> {
+    let base_config = fern::Dispatch::new();
+    // base_config.level(log::LogLevelFilter::Info);
+               //.level_for("", log::LogLevelFilter::Info)
+
+    // let file_config = fern::Dispatch::new()
+    //     .format(|out, message, record| {
+    //         out.finish(format_args!(
+    //             "{}[{}][{}] {}",
+    //             chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+    //             record.target(),
+    //             record.level(),
+    //             message
+    //         ))
+    //     })
+    //     .chain(fern::log_file("precached.log")?);
+
+    // let stdout_config = fern::Dispatch::new()
+    //     .format(|out, message, record| {
+    //         out.finish(format_args!("[{}][{}][{}] {}",
+    //                                 chrono::Local::now().format("%H:%M"),
+    //                                 record.target(),
+    //                                 record.level(),
+    //                                 message))
+    //     })
+    //     .chain(io::stdout());
+
+    util::MAX_MODULE_WIDTH.store(constants::INITIAL_MODULE_WIDTH, Ordering::Relaxed);
+
+    let console = fern::Dispatch::new()
+        .format(|out, _message, record| {
+            let mut module_path = record.location().module_path().to_string();
+
+            let max_width = util::MAX_MODULE_WIDTH.load(Ordering::Relaxed);
+            if max_width > module_path.len() {
+                let diff = max_width - module_path.len();
+                module_path.extend(std::iter::repeat(' ').take(diff));
+            } else {
+                util::MAX_MODULE_WIDTH.store(module_path.len(), Ordering::Relaxed);
+            }
+
+            out.finish(format_args!("{}:{}: {}",
+                    util::Level { level: record.level() },
+                    Style::new().bold().paint(module_path),
+                    record.args()));
+        })
+        .chain(io::stdout());
+
+
+    // TODO: Implement syslog backend
+    // syslog::init(Facility::LOG_DAEMON, LogLevelFilter::Debug, Some("precached")).unwrap();
+
+    // let connection = syslog::unix(Facility::LOG_DAEMON).unwrap();
+    //
+    // let syslog = fern::Dispatch::new()
+    //     .format(|out, message, record| {
+    //         out.finish(format_args!(
+    //             "{}[{}][{}] {}",
+    //             chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+    //             record.target(),
+    //             record.level(),
+    //             message
+    //         ))
+    //     })
+    //     .chain(connection);
+
+    base_config.level(log::LogLevelFilter::Info)
+               .chain(console)
+               // .chain(syslog)
+               .apply()?;
+
+    Ok(())
+}
+
 /// Program entrypoint
 fn main() {
     // Initialize logging subsystem
-    // fern::Dispatch::new()
-    //         .format(|out, message, record| {
-    //             out.finish(format_args!(
-    //                 "{}[{}][{}] {}",
-    //                 chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
-    //                 record.level(),
-    //                 record.target(),
-    //                 message
-    //             ))
-    //          })
-    //         .level(log::LogLevelFilter::Trace)
-    //         .chain(std::io::stdout())
-    //         //.chain(fern::log_file("debug.log").unwrap())
-    //         .apply().expect("Could not initialize the logging subsystem!");
-
-    pretty_env_logger::init().expect("Could not initialize the logging subsystem!");
-
+    setup_logging().expect("Could not initialize the logging subsystem!");
 
     if unsafe { nix::libc::isatty(0) } == 1 {
         print_license_header();
@@ -221,10 +285,10 @@ fn main() {
                     .name("event loop".to_string())
                     .spawn(move || {
 
-        'event_loop: loop {
+        'EVENT_LOOP: loop {
             if EXIT_NOW.load(Ordering::Relaxed) {
                 trace!("Leaving the event loop...");
-                break 'event_loop;
+                break 'EVENT_LOOP;
             }
 
             // blocking call into procmon_sys
@@ -235,7 +299,7 @@ fn main() {
     }).unwrap();
 
     // ... on the main thread again
-    'main_loop: loop {
+    'MAIN_LOOP: loop {
         trace!("Main thread going to sleep...");
 
         // NOTE: Blocking call
@@ -301,7 +365,7 @@ fn main() {
             events::queue_internal_event(EventType::Shutdown, &mut globals);
             process_internal_events(&mut globals, &mut manager);
 
-            break 'main_loop;
+            break 'MAIN_LOOP;
         }
     }
 

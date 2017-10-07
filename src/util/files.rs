@@ -28,6 +28,7 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::path::Path;
 
+use constants;
 use self::globset::{Glob, GlobSetBuilder};
 
 pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
@@ -68,7 +69,8 @@ pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
                             .open(&path));
 
 
-    let compressed = zstd::encode_all(BufReader::new(text.as_bytes()), 0).unwrap();
+    let compressed = zstd::encode_all(BufReader::new(text.as_bytes()),
+                                        constants::ZSTD_COMPRESSION_RATIO).unwrap();
     file.write_all(&compressed)?;
     // file.sync_data()?;
 
