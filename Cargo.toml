@@ -6,7 +6,7 @@ authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
 [dependencies]
 procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }
 sys-info = { git = "https://github.com/X3n0m0rph59/sys-info-rs" }
-libc = "0.2.31"
+libc = "0.2.32"
 nix = "0.9"
 log = "0.3"
 env_logger = "0.4.3"
