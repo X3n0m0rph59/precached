@@ -56,6 +56,8 @@ impl VFSStatCache {
         VFSStatCache {}
     }
 
+    /// Walk all files and directories from all whitelists, static and dynamic ones
+    /// and call stat() on them, to prime the kernel's dentry caches
     pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
         trace!("Started reading of statx() metadata...");
 
@@ -76,6 +78,9 @@ impl VFSStatCache {
         info!("Finished reading of statx() metadata");
     }
 
+    /// Helper function, that decides if we should subsequently stat() the
+    /// file `filename`. Verifies the validity of `filename`, and check if `filename`
+    /// is not blacklisted.
     fn shall_we_cache_file(&self, filename: &String, _globals: &Globals, manager: &Manager) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
@@ -102,6 +107,9 @@ impl VFSStatCache {
         true
     }
 
+    /// Get all files and directories that are currently contained in a whitelist,
+    /// either a statc whitelist or a dynamic whitelist. Returns a `Vec<String>`
+    /// filled with the globally whitelisted files
     fn get_globally_tracked_entries(&self, _globals: &Globals, manager: &Manager) -> Vec<String> {
         let mut result = Vec::<String>::new();
 
