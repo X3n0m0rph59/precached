@@ -73,12 +73,22 @@ impl Notifications {
                 unsafe { libc::perror(CString::new("libc::setresuid() failed!").unwrap().as_ptr()) };
             }
 
-            let result = unsafe { libc::execve(CString::new("/usr/bin/notify-send").unwrap().as_ptr(),
-                                  vec!(CString::new("precached notification").unwrap().as_ptr(),
-                                       CString::new(message.as_str()).unwrap().as_ptr(),
-                                       0 as *mut libc::c_char).as_ptr(),
-                                  vec!(CString::new("DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus").unwrap().as_ptr(),
-                                       0 as *mut libc::c_char).as_ptr()) };
+            let result = unsafe {
+                libc::execve(
+                    CString::new("/usr/bin/notify-send").unwrap().as_ptr(),
+                    vec![
+                        CString::new("precached notification").unwrap().as_ptr(),
+                        CString::new(message.as_str()).unwrap().as_ptr(),
+                        0 as *mut libc::c_char,
+                    ].as_ptr(),
+                    vec![
+                        CString::new("DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus")
+                            .unwrap()
+                            .as_ptr(),
+                        0 as *mut libc::c_char,
+                    ].as_ptr(),
+                )
+            };
             if result < 0 {
                 unsafe { libc::perror(CString::new("libc::execve() failed!").unwrap().as_ptr()) };
             }
@@ -86,7 +96,7 @@ impl Notifications {
             // just in case...
             unsafe { libc::exit(1) };
 
-            /*match Notification::new()
+        /*match Notification::new()
                 .summary("Category:system")
                 .body(message)
                 //.icon("precached")
@@ -103,12 +113,12 @@ impl Notifications {
             }*/
 
 
-            // Command::new("/usr/bin/notify-send")
-            //             .env("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus")
-            //             .env("DISPLAY", ":0")
-            //             .args(&[&message])
-            //             .spawn()
-            //             .unwrap();
+        // Command::new("/usr/bin/notify-send")
+        //             .env("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus")
+        //             .env("DISPLAY", ":0")
+        //             .args(&[&message])
+        //             .spawn()
+        //             .unwrap();
         } else {
             // let result = unsafe { libc::waitpid(pid, 0 as *mut libc::int32_t, 0) };
             let _result = unsafe { libc::wait(0 as *mut libc::int32_t) };

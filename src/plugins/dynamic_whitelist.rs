@@ -322,8 +322,7 @@ impl DynamicWhitelist {
     /// Serialization helper function
     /// Serialize `t` to JSON, compress it with the "Zstd" compressor, and write it to the
     /// file `dynamic_whitelist.state`.
-    fn serialize(t: &HashMap<String, usize>, globals: &mut Globals) -> Result<()>
-    {
+    fn serialize(t: &HashMap<String, usize>, globals: &mut Globals) -> Result<()> {
         let serialized = serde_json::to_string_pretty(&t).unwrap();
 
         let config = globals.config.config_file.clone().unwrap();
