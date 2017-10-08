@@ -23,6 +23,7 @@ extern crate serde_json;
 
 use std::collections::HashMap;
 
+use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
 use std::any::Any;
@@ -35,7 +36,7 @@ use manager::*;
 use events;
 use storage;
 use util;
-use util::{Contains, write_text_file};
+use util::Contains;
 
 use self::serde::Serialize;
 
@@ -179,8 +180,87 @@ impl DynamicWhitelist {
         true
     }
 
-    pub fn load_dynamic_whitelist_state(&mut self, _globals: &mut Globals, _manager: &Manager) {
-        trace!("Loading dynamic whitelist...");
+    pub fn load_dynamic_whitelist_state(&mut self, globals: &mut Globals, manager: &Manager) {
+        info!("Loading dynamic whitelist...");
+
+        let hm = manager.hook_manager.borrow();
+
+        let mut system_mapped_files_histogram = match Self::deserialize(globals) {
+            Ok(result) => result,
+            Err(e) => {
+                warn!("Dynamic whitelist could not be loaded! {}", e);
+                return;
+            }
+        };
+
+        match hm.get_hook_by_name(&String::from("process_tracker")) {
+            None    => { trace!("Hook not loaded: 'process_tracker', skipped"); }
+            Some(h) => {
+                let hook_b = h.borrow();
+                let process_tracker_hook = hook_b.as_any().downcast_ref::<ProcessTracker>().unwrap();
+
+                system_mapped_files_histogram = process_tracker_hook.get_mapped_files_histogram().clone();
+            }
+        };
+
+        let pm = manager.plugin_manager.borrow();
+
+        let mut static_whitelist = HashMap::new();
+        match pm.get_plugin_by_name(&String::from("static_whitelist")) {
+            None    => { trace!("Plugin not loaded: 'static_whitelist', skipped"); }
+            Some(p) => {
+                let plugin_b = p.borrow();
+                let static_whitelist_plugin = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
+
+                static_whitelist = static_whitelist_plugin.get_mapped_files().clone();
+            }
+        };
+
+        let mut static_blacklist = Vec::<String>::new();
+        match pm.get_plugin_by_name(&String::from("static_blacklist")) {
+            None    => { trace!("Plugin not loaded: 'static_blacklist', skipped"); }
+            Some(p) => {
+                let plugin_b = p.borrow();
+                let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+
+                static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
+            }
+        };
+
+        let our_mapped_files = self.mapped_files.clone();
+
+        let thread_pool = util::POOL.try_lock().unwrap();
+        let (sender, receiver): (Sender<HashMap<String, util::MemoryMapping>>, _) = channel();
+        let sc = Mutex::new(sender.clone());
+
+        thread_pool.submit_work(move || {
+            let mut mapped_files = HashMap::new();
+
+            for (filename, _map_count) in system_mapped_files_histogram.iter() {
+                // mmap and mlock file, if it is not contained in the blacklist
+                // and if it was not already mapped by some of the plugins
+                let f  = filename.clone();
+                let f2 = f.clone();
+
+                if Self::shall_we_map_file(&filename, &static_blacklist, &our_mapped_files,
+                                           &static_whitelist) {
+                    match util::map_and_lock_file(&f) {
+                        Err(s) => {
+                            error!("Could not cache file '{}': {}", &f, &s);
+                        },
+                        Ok(r) => {
+                            trace!("Successfuly cached file '{}'", &f);
+                            mapped_files.insert(f2, r);
+                        }
+                    }
+                }
+            }
+
+            sc.lock().unwrap().send(mapped_files).unwrap();
+        });
+
+        // blocking call; wait for worker thread
+        self.mapped_files = receiver.recv().unwrap();
 
         info!("Dynamic whitelist loaded successfuly!");
     }
@@ -214,13 +294,23 @@ impl DynamicWhitelist {
                              .join(Path::new("dynamic_whitelist.state"));
 
         let filename = path.to_string_lossy();
-        write_text_file(&filename, serialized)?;
+        util::write_text_file(&filename, serialized)?;
 
         Ok(())
     }
 
-    fn deserialize<T>(t: &T, globals: &mut Globals) where T: Serialize {
+    fn deserialize(globals: &mut Globals) -> Result<HashMap<String, usize>> {
+        let config = globals.config.config_file.clone().unwrap();
+        let path = Path::new(&config.state_dir.unwrap_or(String::from(".")))
+                             .join(Path::new("dynamic_whitelist.state"));
 
+        let filename = path.to_string_lossy();
+        let text = util::read_text_file(&filename)?;
+
+        let reader = BufReader::new(text.as_bytes());
+        let deserialized = serde_json::from_reader::<_, HashMap<String, usize>>(reader)?;
+
+        Ok(deserialized)
     }
 
     pub fn get_mapped_files(&self) -> &HashMap<String, util::MemoryMapping> {

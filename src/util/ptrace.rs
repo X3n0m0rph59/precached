@@ -69,7 +69,7 @@ pub fn trace_process_io_ptrace(pid: libc::pid_t) -> Result<trace_event::IOEvent>
 
             0x03 /* sys_read */ => {
                 trace!("ptrace: pid: {} performed syscall: {}, with retval: {}", pid, "read", retval);
-                return Ok(trace_event::IOEvent { syscall: trace_event::SysCall::Read(0, 0, 0) });
+                return Ok(trace_event::IOEvent { syscall: trace_event::SysCall::Read(0) });
             },
             // 0x04 /* sys_write */ => {
             //     trace!("ptrace: pid: {} performed syscall: {}, with retval: {}", pid, "write", retval);

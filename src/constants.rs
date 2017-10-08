@@ -39,6 +39,9 @@ pub const ZSTD_COMPRESSION_RATIO: i32 = 0;
 /// Thread wait time (main loop)
 pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 1000;
 
+/// Thread wait time (ftrace parser loop)
+pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 100;
+
 
 /// `Ping` event timer timeout
 pub const PING_INTERVAL_MILLIS: u64 = 2000;

@@ -36,7 +36,7 @@ use constants;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum IOOperation {
     Open(String, libc::int32_t),
-    Read(libc::int32_t, usize, usize),
+    Read(libc::int32_t),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -47,8 +47,10 @@ pub struct TraceLogEntry {
 
 impl TraceLogEntry {
     pub fn new(operation: IOOperation) -> TraceLogEntry {
-        TraceLogEntry { timestamp: unsafe { libc::time(0 as *mut libc::int64_t) },
-                        operation: operation }
+        TraceLogEntry {
+            timestamp: unsafe { libc::time(0 as *mut libc::int64_t) },
+            operation: operation
+        }
     }
 }
 

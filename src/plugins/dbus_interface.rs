@@ -199,7 +199,7 @@ impl DBUSInterface {
         self.process_stats = process_stats;
 
         // Create tree
-        let (process_event_s, process_event_r) = mpsc::channel::<i32>();
+        let (process_event_s, _process_event_r) = mpsc::channel::<i32>();
         let (iface, sig) = create_iface(process_event_s);
         let tree = create_tree(&self.process_stats, &Arc::new(iface));
 
@@ -214,7 +214,7 @@ impl DBUSInterface {
         Ok(())
     }
 
-    pub fn populate_process_statistics(&mut self, e: &procmon::Event, _globals: &Globals, manager: &Manager) {
+    pub fn populate_process_statistics(&mut self, _e: &procmon::Event, _globals: &Globals, manager: &Manager) {
         let hm = manager.hook_manager.borrow();
 
         let mut process_stats: Vec<Arc<ProcessStats>> = vec!();

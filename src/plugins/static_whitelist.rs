@@ -131,7 +131,7 @@ impl StaticWhitelist {
                         }
                     }
                 }
-            });
+            }).unwrap_or_else(|e| error!("Unhandled error occured during processing of files and directories! {}", e));
 
             sc.lock().unwrap().send(mapped_files).unwrap();
         });

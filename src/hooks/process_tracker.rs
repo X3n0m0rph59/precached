@@ -21,7 +21,6 @@
 extern crate libc;
 
 use std::any::Any;
-use std::sync::mpsc::channel;
 use std::collections::HashMap;
 
 use process::Process;
@@ -105,7 +104,7 @@ impl hook::Hook for ProcessTracker {
                  // update our histogram of mapped files
                  match process.get_mapped_files() {
                      Err(_) => {
-                         warn!("Error while reading mapped files of process '{}' with PID: {}. Process disappeared early",
+                         warn!("Error while reading mapped files of process '{}' with pid: {}. Process disappeared early",
                                process.get_comm().unwrap_or(String::from("<invalid>")), process.pid);
                      }
 
@@ -114,9 +113,9 @@ impl hook::Hook for ProcessTracker {
 
                          // add process to tracking map
                          self.get_tracked_processes().insert(event.pid, process);
-                         info!("Now tracking process '{}' PID: {}",
+                         info!("Now tracking process '{}' pid: {}",
                                process.get_comm().unwrap_or(String::from("<invalid>")), process.pid);
-                               
+
                         //  trace!("{:?}", process.get_mapped_files());
                          //
                         //  for (k,v) in self.get_mapped_files_histogram() {
@@ -133,7 +132,8 @@ impl hook::Hook for ProcessTracker {
                 match process {
                     None => {}
                     Some(process) => {
-                        info!("Removed tracked process: {:?}", process);
+                        info!("Removed tracked process '{}' with pid: {}",
+                              process.get_comm().unwrap_or(String::from("<invalid>")), process.pid);
                         events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
                     }
                 }

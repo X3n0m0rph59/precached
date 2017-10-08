@@ -51,10 +51,7 @@ pub fn read_text_file(filename: &str) -> io::Result<String> {
     let path = Path::new(filename);
     let mut file = try!(OpenOptions::new().read(true).open(&path));
 
-    let mut s = String::new();
-    file.read_to_string(&mut s)?;
-
-    let decompressed = zstd::decode_all(BufReader::new(s.as_bytes())).unwrap();
+    let decompressed = zstd::decode_all(BufReader::new(file)).unwrap();
     let result = String::from_utf8(decompressed).unwrap();
 
     Ok(result)
@@ -70,7 +67,7 @@ pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
 
 
     let compressed = zstd::encode_all(BufReader::new(text.as_bytes()),
-                                        constants::ZSTD_COMPRESSION_RATIO).unwrap();
+                                      constants::ZSTD_COMPRESSION_RATIO).unwrap();
     file.write_all(&compressed)?;
     // file.sync_data()?;
 
@@ -85,6 +82,8 @@ pub fn echo(filename: &str, mut text: String) -> io::Result<()> {
                             .open(&path));
 
     text.push_str("\n");
+
+    trace!("echo: write: '{}' -> {}", &text, &filename);
     file.write_all(text.into_bytes().as_slice())?;
 
     Ok(())
@@ -98,6 +97,8 @@ pub fn append(filename: &str, mut text: String) -> io::Result<()> {
                             .open(&path));
 
     text.push_str("\n");
+
+    trace!("append: write: '{}' -> {}", &text, &filename);
     file.write_all(text.into_bytes().as_slice())?;
 
     Ok(())

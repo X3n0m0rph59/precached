@@ -88,7 +88,7 @@ impl Metrics {
         trace!("Gathering global performance metrics...");
 
         let mem_info = sys_info::mem_info().unwrap();
-        debug!("{:?}", mem_info);
+        trace!("{:?}", mem_info);
 
         // *free* memory events
         let free_percentage = mem_info.free * 100 / mem_info.total;

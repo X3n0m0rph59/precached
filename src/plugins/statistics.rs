@@ -56,7 +56,7 @@ impl Statistics {
         }
     }
 
-    pub fn produce_report(&mut self, globals: &mut Globals, _manager: &Manager) {
+    pub fn produce_report(&mut self, _globals: &mut Globals, _manager: &Manager) {
         trace!("Updating global statistics...");
 
         // TODO: Implement this!

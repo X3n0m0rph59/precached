@@ -68,8 +68,8 @@ impl VFSStatCache {
         let thread_pool = util::POOL.try_lock().unwrap();
         thread_pool.submit_work(move || {
             util::walk_directories(&tracked_entries, &mut |ref path| {
-                let metadata = path.metadata();
-            });
+                let _metadata = path.metadata();
+            }).unwrap_or_else(|e| error!("Unhandled error occured during processing of files and directories! {}", e));
         });
 
         info!("Finished reading of statx() metadata");

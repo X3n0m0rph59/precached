@@ -25,8 +25,7 @@ pub enum SysCall {
     Undefined,
     Open(String, libc::int32_t),
     Close(libc::int32_t),
-    Read(libc::int32_t, usize, usize),
-    // Write(libc::int32_t, usize, usize),
+    Read(libc::int32_t),
 }
 
 #[derive(Debug)]

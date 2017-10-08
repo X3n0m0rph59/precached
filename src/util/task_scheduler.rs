@@ -42,7 +42,7 @@ impl TaskScheduler {
     pub fn run_jobs(&'static self) {
         let thread_pool = util::POOL.try_lock().unwrap();
         thread_pool.submit_work(move || {
-            for j in self.backlog.iter() {
+            for _j in self.backlog.iter() {
                 // j();
             }
         });

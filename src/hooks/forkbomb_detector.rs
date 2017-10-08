@@ -76,7 +76,7 @@ impl hook::Hook for ForkBombDetector {
         // trace!("Skipped internal event (not handled)");
     }
 
-    fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, _manager: &Manager) {
+    fn process_event(&mut self, event: &procmon::Event, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             procmon::EventType::Fork => {
                 // TODO: Implement this
