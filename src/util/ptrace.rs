@@ -23,6 +23,9 @@ extern crate libc;
 use std::io::Result;
 use super::trace_event;
 
+/// Trace process `pid` with ptrace()
+/// NOTE: This is currently only supported on 64bit architectures
+#[cfg(target_pointer_width = "64")]
 pub fn trace_process_io_ptrace(pid: libc::pid_t) -> Result<trace_event::IOEvent> {
     trace!("ptrace: attaching to pid: {}", pid);
     let _result = unsafe { libc::ptrace(libc::PTRACE_ATTACH, pid,
@@ -85,6 +88,7 @@ pub fn trace_process_io_ptrace(pid: libc::pid_t) -> Result<trace_event::IOEvent>
     Ok(trace_event::IOEvent { syscall: trace_event::SysCall::Undefined })
 }
 
+/// Detach from process
 pub fn detach_tracer(pid: libc::pid_t) {
     trace!("ptrace: detaching from process with pid: {}", pid);
     let _result = unsafe { libc::ptrace(libc::PTRACE_CONT, pid,
@@ -96,6 +100,7 @@ pub fn detach_tracer(pid: libc::pid_t) {
                                        0 as *mut libc::c_void) };
 }
 
+/// Wait until the process `pid` called a syscall
 fn wait_for_syscall(pid: libc::pid_t) -> libc::int32_t {
     let mut status: libc::int32_t = 0;
 

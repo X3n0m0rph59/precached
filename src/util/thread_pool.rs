@@ -33,7 +33,7 @@ impl ThreadPool {
         ThreadPool {
             pool: threadpool::Builder::new()
                                 .num_threads(4)
-                                .thread_name(String::from("worker thread"))
+                                .thread_name(String::from("worker"))
                                 .build()
         }
     }

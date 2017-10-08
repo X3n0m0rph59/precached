@@ -117,12 +117,12 @@ impl hook::Hook for ProcessTracker {
                                process.get_comm().unwrap_or(String::from("<invalid>")), process.pid);
 
                         //  trace!("{:?}", process.get_mapped_files());
-                         //
+                        //
                         //  for (k,v) in self.get_mapped_files_histogram() {
                         //      trace!("File '{}' mapped: {}", k, v);
                         //  }
 
-                         events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
+                        events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
                      }
                  }
             },

@@ -18,42 +18,69 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::time::Instant;
+
 use globals::*;
 
 use procmon;
 
+/// Daemon internal events
 #[derive(Debug, Clone)]
 pub enum EventType {
-    Ping,                   // occurs every n seconds
-    Startup,                // sent on daemon startup (after initialization)
-    Shutdown,               // sent on daemon shutdown (before finalization)
-    PrimeCaches,            // advice to plugins, to prime their caches now
-    DoHousekeeping,         // advice to plugins to do janitorial tasks now
-    GatherStatsAndMetrics,  // advice to plugins to gather statistics and performance metrics
-    ConfigurationReloaded,  // occurs after the daemon has successfuly reloaded its configuration
-    TrackedProcessChanged(procmon::Event),  // occurs when the state of a tracked process changed
-    ForkBombDetected,       // sent by the fork bomb detector hook, when a fork() storm occurs
-    FreeMemoryLowWatermark, // sent when we reach the low threshold of *free* memory watermark
-    FreeMemoryHighWatermark,// sent when we reach the high threshold of *free* memory watermark
-    AvailableMemoryLowWatermark, // sent when we reach the low threshold of *available* memory watermark
-    AvailableMemoryHighWatermark,// sent when we reach the high threshold of *available* memory watermark
-    SystemIsSwapping,       // sent when the system is swapping out data
-    SystemRecoveredFromSwap,// sent when the system is no longer swapping out data
+    // Daemon related
+    /// occurs every n seconds
+    Ping,
+    /// sent on daemon startup (after initialization)
+    Startup,
+    /// sent on daemon shutdown (before finalization)
+    Shutdown,
+    /// advice to plugins, to prime their caches now
+
+    PrimeCaches,
+    /// advice to plugins to do janitorial tasks now
+    DoHousekeeping,
+    /// advice to plugins to gather statistics and performance metrics
+    GatherStatsAndMetrics,
+    /// occurs *after* the daemon has successfuly reloaded its configuration
+    ConfigurationReloaded,
+    /// occurs when the state of a tracked process changed
+    TrackedProcessChanged(procmon::Event),
+    /// sent by the fork bomb detector hook, when a fork() storm occurs
+    ForkBombDetected,
+
+    // Memory related
+    /// sent when we reach the low threshold of *free* memory watermark
+    FreeMemoryLowWatermark,
+    /// sent when we reach the high threshold of *free* memory watermark
+    FreeMemoryHighWatermark,
+    /// sent when we reach the low threshold of *available* memory watermark
+    AvailableMemoryLowWatermark,
+    /// sent when we reach the high threshold of *available* memory watermark
+    AvailableMemoryHighWatermark,
+    /// sent when the system is swapping out data
+    SystemIsSwapping,
+    /// sent when the system is no longer swapping out data
+    SystemRecoveredFromSwap,
 }
 
+/// Represents an event
 #[derive(Debug, Clone)]
 pub struct InternalEvent {
-    pub event_type: EventType
+    pub timestamp: Instant,
+    pub event_type: EventType,
 }
 
 impl InternalEvent {
+    /// Creates a new `InternalEvent`
     pub fn new(event_type: EventType) -> InternalEvent {
         InternalEvent {
+            timestamp: Instant::now(),
             event_type: event_type,
         }
     }
 }
 
+/// Asynchronously queue an event for later execution by plugins and/or hooks
 pub fn queue_internal_event(event_type: EventType, globals: &mut Globals) {
     let event = InternalEvent::new(event_type);
     globals.get_event_queue_mut().push_back(event);
