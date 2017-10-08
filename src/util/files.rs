@@ -36,15 +36,20 @@ pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     let file = try!(OpenOptions::new().read(true).open(&path));
 
     let reader = BufReader::new(file);
-    Ok(reader.lines().filter_map(|l| {
-        match l {
-            Ok(s) => Some(s),
-            Err(_) => {
-                // error!("Error while reading file!");
-                return None
-            }
-        }
-    }).collect())
+    Ok(
+        reader
+            .lines()
+            .filter_map(|l| {
+                match l {
+                    Ok(s) => Some(s),
+                    Err(_) => {
+                        // error!("Error while reading file!");
+                        return None;
+                    }
+                }
+            })
+            .collect(),
+    )
 }
 
 pub fn read_text_file(filename: &str) -> io::Result<String> {
@@ -59,15 +64,19 @@ pub fn read_text_file(filename: &str) -> io::Result<String> {
 
 pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
     let path = Path::new(filename);
-    let mut file = try!(OpenOptions::new()
-                            .write(true)
-                            .truncate(true)
-                            .create(true)
-                            .open(&path));
+    let mut file = try!(
+        OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(&path)
+    );
 
 
-    let compressed = zstd::encode_all(BufReader::new(text.as_bytes()),
-                                      constants::ZSTD_COMPRESSION_RATIO).unwrap();
+    let compressed = zstd::encode_all(
+        BufReader::new(text.as_bytes()),
+        constants::ZSTD_COMPRESSION_RATIO,
+    ).unwrap();
     file.write_all(&compressed)?;
     // file.sync_data()?;
 
@@ -76,10 +85,7 @@ pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
 
 pub fn echo(filename: &str, mut text: String) -> io::Result<()> {
     let path = Path::new(filename);
-    let mut file = try!(OpenOptions::new()
-                            .write(true)
-                            .append(false)
-                            .open(&path));
+    let mut file = try!(OpenOptions::new().write(true).append(false).open(&path));
 
     text.push_str("\n");
 
@@ -91,10 +97,7 @@ pub fn echo(filename: &str, mut text: String) -> io::Result<()> {
 
 pub fn append(filename: &str, mut text: String) -> io::Result<()> {
     let path = Path::new(filename);
-    let mut file = try!(OpenOptions::new()
-                            .write(true)
-                            .append(true)
-                            .open(&path));
+    let mut file = try!(OpenOptions::new().write(true).append(true).open(&path));
 
     text.push_str("\n");
 
@@ -112,13 +115,18 @@ pub fn is_filename_valid(filename: &String) -> bool {
     }
 
     // blacklist linux special mappings
-    let blacklist = vec!(
-        String::from("[mpx]"),   String::from("[vvar]"),
-        String::from("[vdso]"),  String::from("[heap]"),
-        String::from("[stack]"), String::from("[vsyscall]"),
-        String::from("/memfd:"), String::from("(deleted)"));
+    let blacklist = vec![
+        String::from("[mpx]"),
+        String::from("[vvar]"),
+        String::from("[vdso]"),
+        String::from("[heap]"),
+        String::from("[stack]"),
+        String::from("[vsyscall]"),
+        String::from("/memfd:"),
+        String::from("(deleted)"),
+    ];
 
-    if blacklist.iter().any(|bi| { f.contains(bi) }) {
+    if blacklist.iter().any(|bi| f.contains(bi)) {
         return false;
     }
 
@@ -138,8 +146,8 @@ pub fn is_file_blacklisted(filename: &String, pattern: &Vec<String>) -> bool {
 
 pub fn is_path_a_directory(path: &String) -> bool {
     match fs::metadata(Path::new(&path)) {
-        Err(_)       => { false }
-        Ok(metadata) => { metadata.is_dir() }
+        Err(_) => false,
+        Ok(metadata) => metadata.is_dir(),
     }
 }
 
@@ -166,8 +174,9 @@ pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&Path)) -> io::Result<()> {
 }
 
 pub fn walk_directories<F>(entries: &Vec<String>, cb: &mut F) -> io::Result<()>
-    where F: FnMut(&Path) {
-
+where
+    F: FnMut(&Path),
+{
     for e in entries.iter() {
         let path = Path::new(e);
         if path.is_file() {
@@ -216,7 +225,13 @@ mod tests {
 
         blacklist.push(String::from("123.txt"));
 
-        assert_eq!(is_file_blacklisted(&String::from("123.txt"), &blacklist), true);
-        assert_eq!(is_file_blacklisted(&String::from("456.txt"), &blacklist), false);
+        assert_eq!(
+            is_file_blacklisted(&String::from("123.txt"), &blacklist),
+            true
+        );
+        assert_eq!(
+            is_file_blacklisted(&String::from("456.txt"), &blacklist),
+            false
+        );
     }
 }

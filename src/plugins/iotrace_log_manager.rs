@@ -30,7 +30,7 @@ use storage;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "iotrace_log_manager";
+static NAME: &str = "iotrace_log_manager";
 static DESCRIPTION: &str = "Manage I/O activity trace log files";
 
 /// Register this plugin implementation with the system
@@ -44,15 +44,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct IOtraceLogManager {
-
-}
+pub struct IOtraceLogManager {}
 
 impl IOtraceLogManager {
     pub fn new() -> IOtraceLogManager {
-        IOtraceLogManager {
-
-        }
+        IOtraceLogManager {}
     }
 }
 
@@ -70,7 +66,10 @@ impl Plugin for IOtraceLogManager {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -81,7 +80,7 @@ impl Plugin for IOtraceLogManager {
         match event.event_type {
             EventType::DoHousekeeping => {
                 // TODO: Implement this
-            },
+            }
             _ => {
                 // Ignore all other events
             }

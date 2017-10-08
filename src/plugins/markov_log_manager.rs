@@ -22,7 +22,7 @@ use std::any::Any;
 use std::collections::HashMap;
 
 use std::sync::Mutex;
-use std::sync::mpsc::{Sender, channel};
+use std::sync::mpsc::{channel, Sender};
 
 use globals::*;
 use manager::*;
@@ -40,7 +40,7 @@ use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "markov_log_manager";
+static NAME: &str = "markov_log_manager";
 static DESCRIPTION: &str = "Manages state-files used by the 'Markov-chain Prefetcher' hook";
 
 /// Register this plugin implementation with the system
@@ -54,15 +54,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct MarkovLogManager {
-
-}
+pub struct MarkovLogManager {}
 
 impl MarkovLogManager {
     pub fn new(globals: &Globals) -> MarkovLogManager {
-        MarkovLogManager {
-
-        }
+        MarkovLogManager {}
     }
 
     pub fn cache_files(&mut self, event: &procmon::Event, globals: &Globals, manager: &Manager) {
@@ -88,7 +84,10 @@ impl Plugin for MarkovLogManager {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -99,19 +98,19 @@ impl Plugin for MarkovLogManager {
         match event.event_type {
             events::EventType::Startup => {
                 //
-            },
+            }
             events::EventType::Shutdown => {
                 //
-            },
+            }
             events::EventType::ConfigurationReloaded => {
                 //
-            },
+            }
             events::EventType::PrimeCaches => {
                 // self.cache_files(globals, manager);
-            },
+            }
             events::EventType::DoHousekeeping => {
                 // TODO: Implement this
-            },
+            }
             _ => {
                 // Ignore all other events
             }

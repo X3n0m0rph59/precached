@@ -23,7 +23,7 @@ use std::collections::HashMap;
 
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::sync::mpsc::{Sender, channel};
+use std::sync::mpsc::{channel, Sender};
 
 use globals::*;
 use manager::*;
@@ -39,7 +39,7 @@ use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "static_whitelist";
+static NAME: &str = "static_whitelist";
 static DESCRIPTION: &str = "Whitelist files that shall be kept mlock()ed in memory all the time";
 
 /// Register this plugin implementation with the system
@@ -69,7 +69,13 @@ impl StaticWhitelist {
     fn get_file_whitelist(globals: &Globals) -> Vec<String> {
         let mut result = Vec::new();
 
-        let mut whitelist = globals.config.config_file.clone().unwrap().whitelist.unwrap();
+        let mut whitelist = globals
+            .config
+            .config_file
+            .clone()
+            .unwrap()
+            .whitelist
+            .unwrap();
         result.append(&mut whitelist);
 
         result
@@ -82,10 +88,15 @@ impl StaticWhitelist {
 
         let mut dynamic_whitelist = HashMap::new();
         match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
-            None    => { trace!("Plugin not loaded: 'dynamic_whitelist', skipped"); }
+            None => {
+                trace!("Plugin not loaded: 'dynamic_whitelist', skipped");
+            }
             Some(p) => {
                 let plugin_b = p.borrow();
-                let dynamic_whitelist_plugin = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
+                let dynamic_whitelist_plugin = plugin_b
+                    .as_any()
+                    .downcast_ref::<DynamicWhitelist>()
+                    .unwrap();
 
                 dynamic_whitelist = dynamic_whitelist_plugin.get_mapped_files().clone();
             }
@@ -93,7 +104,9 @@ impl StaticWhitelist {
 
         let mut static_blacklist = Vec::<String>::new();
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
-            None    => { trace!("Plugin not loaded: 'static_blacklist', skipped"); }
+            None => {
+                trace!("Plugin not loaded: 'static_blacklist', skipped");
+            }
             Some(p) => {
                 let plugin_b = p.borrow();
                 let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
@@ -116,22 +129,31 @@ impl StaticWhitelist {
                 // mmap and mlock file, if it is not contained in the blacklist
                 // and if it was not already mapped by some of the plugins
                 let filename = String::from(path.to_string_lossy());
-                let f  = filename.clone();
+                let f = filename.clone();
                 let f2 = f.clone();
 
-                if Self::shall_we_map_file(&filename, &static_blacklist, &our_mapped_files,
-                                           &dynamic_whitelist) {
+                if Self::shall_we_map_file(
+                    &filename,
+                    &static_blacklist,
+                    &our_mapped_files,
+                    &dynamic_whitelist,
+                ) {
                     match util::map_and_lock_file(&f) {
                         Err(s) => {
                             error!("Could not cache file '{}': {}", &f, &s);
-                        },
+                        }
                         Ok(r) => {
                             trace!("Successfuly cached file '{}'", &f);
                             mapped_files.insert(f2, r);
                         }
                     }
                 }
-            }).unwrap_or_else(|e| error!("Unhandled error occured during processing of files and directories! {}", e));
+            }).unwrap_or_else(|e| {
+                error!(
+                    "Unhandled error occured during processing of files and directories! {}",
+                    e
+                )
+            });
 
             sc.lock().unwrap().send(mapped_files).unwrap();
         });
@@ -142,10 +164,7 @@ impl StaticWhitelist {
         info!("Finished caching of statically whitelisted files");
     }
 
-    fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>,
-                         our_mapped_files:  &HashMap<String, util::MemoryMapping>,
-                         dynamic_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
-
+    fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>, our_mapped_files: &HashMap<String, util::MemoryMapping>, dynamic_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
             return false;
@@ -201,7 +220,10 @@ impl Plugin for StaticWhitelist {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -212,22 +234,22 @@ impl Plugin for StaticWhitelist {
         match event.event_type {
             events::EventType::Startup => {
                 self.cache_whitelisted_files(globals, manager);
-            },
+            }
             events::EventType::ConfigurationReloaded => {
                 let whitelist = match globals.config.config_file.clone() {
-                    Some(config_file) => { config_file.whitelist.unwrap_or(vec!()) },
-                    None              => { vec!() }
+                    Some(config_file) => config_file.whitelist.unwrap_or(vec![]),
+                    None => vec![],
                 };
 
                 self.whitelist = Box::new(whitelist);
                 self.cache_whitelisted_files(globals, manager);
-            },
+            }
             events::EventType::PrimeCaches => {
                 // Ignore PrimeCaches event here since we don't manage a dynamic cache
                 // Only re-prime the cache when the static whitelist has been modified
 
                 // self.cache_whitelisted_files(globals, manager);
-            },
+            }
             _ => {
                 // Ignore all other events
             }

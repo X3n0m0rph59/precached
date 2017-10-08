@@ -35,7 +35,6 @@ pub enum EventType {
     /// sent on daemon shutdown (before finalization)
     Shutdown,
     /// advice to plugins, to prime their caches now
-
     PrimeCaches,
     /// advice to plugins to do janitorial tasks now
     DoHousekeeping,

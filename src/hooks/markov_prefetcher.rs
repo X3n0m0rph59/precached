@@ -35,7 +35,7 @@ use events::EventType;
 
 use hooks::hook;
 
-static NAME:        &str = "markov_prefetcher";
+static NAME: &str = "markov_prefetcher";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built Markov-chain model";
 
 /// Register this hook implementation with the system
@@ -47,14 +47,11 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug, Clone)]
-pub struct MarkovPrefetcher {
-}
+pub struct MarkovPrefetcher {}
 
 impl MarkovPrefetcher {
     pub fn new() -> MarkovPrefetcher {
-        MarkovPrefetcher {
-
-        }
+        MarkovPrefetcher {}
     }
 }
 
@@ -77,14 +74,11 @@ impl hook::Hook for MarkovPrefetcher {
 
     fn process_event(&mut self, event: &procmon::Event, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
-            procmon::EventType::Fork => {
-
-            },
+            procmon::EventType::Fork => {}
             _ => {
                 // trace!("Ignored process event");
             }
         }
-
     }
 
     fn as_any(&self) -> &Any {

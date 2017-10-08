@@ -25,7 +25,7 @@ use std::any::Any;
 use globals::*;
 use manager::*;
 
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 
 use events;
 use events::EventType;
@@ -37,7 +37,7 @@ use plugins::plugin::PluginDescription;
 
 use self::sys_info::MemInfo;
 
-static NAME:        &str = "metrics";
+static NAME: &str = "metrics";
 static DESCRIPTION: &str = "Gather global performance metrics and make them available to other plugins";
 
 /// Register this plugin implementation with the system
@@ -168,7 +168,10 @@ impl Plugin for Metrics {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -179,7 +182,7 @@ impl Plugin for Metrics {
         match event.event_type {
             events::EventType::GatherStatsAndMetrics => {
                 self.gather_metrics(globals, manager);
-            },
+            }
             _ => {
                 // Ignore all other events
             }

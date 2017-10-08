@@ -29,7 +29,7 @@ use super::prefault;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Process {
-    pub pid: libc::pid_t
+    pub pid: libc::pid_t,
 }
 
 /*#[derive(Debug)]
@@ -53,13 +53,15 @@ impl Process {
         let filename = format!("/proc/{}/maps", self.pid);
         let maps = try!(util::get_lines_from_file(&filename));
 
-        let result = maps.into_iter().filter_map(|l| {
-            let caps = RE_PROC_MAPS.captures(&l);
-            match caps {
-                Some(c) => Some(String::from(&c["filename"])),
-                None    => None
-            }
-        }).collect();
+        let result = maps.into_iter()
+            .filter_map(|l| {
+                let caps = RE_PROC_MAPS.captures(&l);
+                match caps {
+                    Some(c) => Some(String::from(&c["filename"])),
+                    None => None,
+                }
+            })
+            .collect();
 
         Ok(result)
     }
@@ -93,9 +95,7 @@ impl Process {
 }
 
 impl prefault::Prefault for Process {
-    fn prefault(&self) {
-
-    }
+    fn prefault(&self) {}
 }
 
 #[cfg(test)]

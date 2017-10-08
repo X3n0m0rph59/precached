@@ -29,7 +29,9 @@ use globals::Globals;
 use util::write_text_file;
 
 pub fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>
-    where T: Serialize {
+where
+    T: Serialize,
+{
     let serialized = serde_json::to_string_pretty(&t).unwrap();
 
     let config = globals.config.config_file.clone().unwrap();
@@ -40,6 +42,9 @@ pub fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>
     Ok(())
 }
 
-pub fn deserialize<T>(t: &T, globals: &mut Globals) where T: Serialize {
+pub fn deserialize<T>(t: &T, globals: &mut Globals)
+where
+    T: Serialize,
+{
 
 }

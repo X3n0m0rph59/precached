@@ -54,13 +54,14 @@ pub fn parse_config_file(globals: &mut Globals) -> io::Result<()> {
 
     let mut s = String::new();
     for l in input {
-        s += &l; s += &"\n";
+        s += &l;
+        s += &"\n";
     }
 
     // TODO: Implement field validation
     let config_file: ConfigFile = match toml::from_str(&s) {
-        Err(_)  => { ConfigFile::default() },
-        Ok(res) => { res }
+        Err(_) => ConfigFile::default(),
+        Ok(res) => res,
     };
 
     globals.config.config_file = Some(config_file);
@@ -69,6 +70,11 @@ pub fn parse_config_file(globals: &mut Globals) -> io::Result<()> {
 }
 
 pub fn get_disabled_plugins(globals: &mut Globals) -> Vec<String> {
-    globals.config.config_file.clone().unwrap_or_default()
-        .disabled_plugins.unwrap_or_default()
+    globals
+        .config
+        .config_file
+        .clone()
+        .unwrap_or_default()
+        .disabled_plugins
+        .unwrap_or_default()
 }

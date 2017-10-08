@@ -24,7 +24,7 @@ extern crate procmon_sys;
 use std::io::Result;
 
 pub struct ProcMon {
-    nls: libc::int32_t
+    nls: libc::int32_t,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -33,7 +33,7 @@ pub enum EventType {
     Fork,
     Exec,
     Exit,
-    Invalid
+    Invalid,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -51,22 +51,35 @@ fn map_int_to_event_type(i: u32) -> EventType {
         0x00000002 => EventType::Exec,
         0x80000000 => EventType::Exit,
         _ => EventType::Invalid,
-    }
+    };
 }
 
 impl ProcMon {
     pub fn new() -> Result<ProcMon> {
         let nls: libc::int32_t = unsafe { procmon_sys::nl_connect() };
-        unsafe { procmon_sys::set_proc_ev_listen(nls, true); }
+        unsafe {
+            procmon_sys::set_proc_ev_listen(nls, true);
+        }
 
         Ok(ProcMon { nls: nls })
     }
 
     pub fn wait_for_event(&self) -> Event {
-        let mut event = procmon_sys::Event { event_type: 0, pid: 0, ppid: 0, tgid: 0 };
-        unsafe { procmon_sys::handle_proc_ev(self.nls, &mut event); };
+        let mut event = procmon_sys::Event {
+            event_type: 0,
+            pid: 0,
+            ppid: 0,
+            tgid: 0,
+        };
+        unsafe {
+            procmon_sys::handle_proc_ev(self.nls, &mut event);
+        };
 
-        Event { event_type: map_int_to_event_type(event.event_type),
-                pid: event.pid, ppid: event.ppid, tgid: event.tgid }
+        Event {
+            event_type: map_int_to_event_type(event.event_type),
+            pid: event.pid,
+            ppid: event.ppid,
+            tgid: event.tgid,
+        }
     }
 }

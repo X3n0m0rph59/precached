@@ -36,18 +36,27 @@ pub struct PluginManager {
 
 impl PluginManager {
     pub fn new() -> PluginManager {
-        PluginManager { plugins: RefCell::new(HashMap::new()), }
+        PluginManager {
+            plugins: RefCell::new(HashMap::new()),
+        }
     }
 
     pub fn register_plugin(&self, mut plugin: Box<Plugin>) {
         plugin.register();
-        self.plugins.borrow_mut().insert(String::from(plugin.get_name()), Rc::new(RefCell::new(plugin)));
+        self.plugins.borrow_mut().insert(
+            String::from(plugin.get_name()),
+            Rc::new(RefCell::new(plugin)),
+        );
     }
 
     pub fn unregister_plugin(&self, name: &String) {
         match self.get_plugin_by_name(name) {
-            Some(p) => { p.borrow_mut().unregister(); },
-            None    => { error!("No plugin with name '{}' found!", name); }
+            Some(p) => {
+                p.borrow_mut().unregister();
+            }
+            None => {
+                error!("No plugin with name '{}' found!", name);
+            }
         };
     }
 

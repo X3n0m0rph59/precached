@@ -31,7 +31,7 @@ use storage;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "system_agent";
+static NAME: &str = "system_agent";
 static DESCRIPTION: &str = "Analyzes your system and recommends a configuration that is best suited";
 
 /// Register this plugin implementation with the system
@@ -44,15 +44,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     }
 }
 
-pub struct SystemAgent {
-
-}
+pub struct SystemAgent {}
 
 impl SystemAgent {
     pub fn new() -> SystemAgent {
-        SystemAgent {
-
-        }
+        SystemAgent {}
     }
 
     pub fn gather_system_properties(&mut self, _globals: &mut Globals, _manager: &Manager) {
@@ -74,7 +70,10 @@ impl Plugin for SystemAgent {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -85,7 +84,7 @@ impl Plugin for SystemAgent {
         match event.event_type {
             events::EventType::Startup => {
                 self.gather_system_properties(globals, manager);
-            },
+            }
             _ => {
                 // Ignore all other events
             }

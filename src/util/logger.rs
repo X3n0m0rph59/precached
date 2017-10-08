@@ -24,7 +24,7 @@ use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
 use ansi_term::Color;
 use log::LogLevel;
 
-pub struct Level{
+pub struct Level {
     pub level: LogLevel,
 }
 
@@ -35,7 +35,7 @@ impl fmt::Display for Level {
             LogLevel::Debug => Color::Blue.paint("DEBUG"),
             LogLevel::Info => Color::Green.paint("INFO "),
             LogLevel::Warn => Color::Yellow.paint("WARN "),
-            LogLevel::Error => Color::Red.paint("ERROR")
+            LogLevel::Error => Color::Red.paint("ERROR"),
         }.fmt(f)
     }
 }

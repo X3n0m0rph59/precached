@@ -28,9 +28,14 @@ use super::trace_event;
 #[cfg(target_pointer_width = "64")]
 pub fn trace_process_io_ptrace(pid: libc::pid_t) -> Result<trace_event::IOEvent> {
     trace!("ptrace: attaching to pid: {}", pid);
-    let _result = unsafe { libc::ptrace(libc::PTRACE_ATTACH, pid,
-                                       0                           as *mut libc::c_void,
-                                       libc::PTRACE_O_TRACESYSGOOD as *mut libc::c_void) };
+    let _result = unsafe {
+        libc::ptrace(
+            libc::PTRACE_ATTACH,
+            pid,
+            0 as *mut libc::c_void,
+            libc::PTRACE_O_TRACESYSGOOD as *mut libc::c_void,
+        )
+    };
 
     loop {
         // NOTE: The following code is currently only valid for
@@ -44,8 +49,7 @@ pub fn trace_process_io_ptrace(pid: libc::pid_t) -> Result<trace_event::IOEvent>
 
         // obtain syscall nr
         let idx = 8 * 15; /* sizeof(long) * ORIG_RAX */
-        let syscall: libc::c_long = unsafe { libc::ptrace(libc::PTRACE_PEEKUSER, pid,
-                                             idx as *mut libc::c_void) };
+        let syscall: libc::c_long = unsafe { libc::ptrace(libc::PTRACE_PEEKUSER, pid, idx as *mut libc::c_void) };
 
         trace!("ptrace: waiting for syscalls (step 2)");
 
@@ -54,8 +58,7 @@ pub fn trace_process_io_ptrace(pid: libc::pid_t) -> Result<trace_event::IOEvent>
         }
 
         let idx2 = 8 * 10; /* sizeof(long) * RAX */
-        let retval: libc::c_long = unsafe { libc::ptrace(libc::PTRACE_PEEKUSER, pid,
-                                            idx2 as *mut libc::c_void) };
+        let retval: libc::c_long = unsafe { libc::ptrace(libc::PTRACE_PEEKUSER, pid, idx2 as *mut libc::c_void) };
 
         match syscall {
             0x05 /* sys_open */ => {
@@ -85,19 +88,31 @@ pub fn trace_process_io_ptrace(pid: libc::pid_t) -> Result<trace_event::IOEvent>
         }
     }
 
-    Ok(trace_event::IOEvent { syscall: trace_event::SysCall::Undefined })
+    Ok(trace_event::IOEvent {
+        syscall: trace_event::SysCall::Undefined,
+    })
 }
 
 /// Detach from process
 pub fn detach_tracer(pid: libc::pid_t) {
     trace!("ptrace: detaching from process with pid: {}", pid);
-    let _result = unsafe { libc::ptrace(libc::PTRACE_CONT, pid,
-                                       0 as *mut libc::c_void,
-                                       0 as *mut libc::c_void) };
+    let _result = unsafe {
+        libc::ptrace(
+            libc::PTRACE_CONT,
+            pid,
+            0 as *mut libc::c_void,
+            0 as *mut libc::c_void,
+        )
+    };
 
-    let _result = unsafe { libc::ptrace(libc::PTRACE_DETACH, pid,
-                                       0 as *mut libc::c_void,
-                                       0 as *mut libc::c_void) };
+    let _result = unsafe {
+        libc::ptrace(
+            libc::PTRACE_DETACH,
+            pid,
+            0 as *mut libc::c_void,
+            0 as *mut libc::c_void,
+        )
+    };
 }
 
 /// Wait until the process `pid` called a syscall
@@ -108,8 +123,7 @@ fn wait_for_syscall(pid: libc::pid_t) -> libc::int32_t {
         unsafe { libc::ptrace(libc::PTRACE_SYSCALL, pid, 0, 0) };
         unsafe { libc::waitpid(pid, &mut status, 0) };
 
-        if unsafe { libc::WIFSTOPPED(status) } &&
-           unsafe { libc::WSTOPSIG(status)   } == libc::SIGTRAP {
+        if unsafe { libc::WIFSTOPPED(status) } && unsafe { libc::WSTOPSIG(status) } == libc::SIGTRAP {
             return 0;
         }
         if unsafe { libc::WIFEXITED(status) } {

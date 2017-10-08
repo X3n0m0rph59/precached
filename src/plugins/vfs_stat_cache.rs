@@ -35,7 +35,7 @@ use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "vfs_stat_cache";
+static NAME: &str = "vfs_stat_cache";
 static DESCRIPTION: &str = "Try to keep file metadata in the kernel caches";
 
 /// Register this plugin implementation with the system
@@ -49,15 +49,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct VFSStatCache {
-
-}
+pub struct VFSStatCache {}
 
 impl VFSStatCache {
     pub fn new() -> VFSStatCache {
-        VFSStatCache {
-
-        }
+        VFSStatCache {}
     }
 
     pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
@@ -69,7 +65,12 @@ impl VFSStatCache {
         thread_pool.submit_work(move || {
             util::walk_directories(&tracked_entries, &mut |ref path| {
                 let _metadata = path.metadata();
-            }).unwrap_or_else(|e| error!("Unhandled error occured during processing of files and directories! {}", e));
+            }).unwrap_or_else(|e| {
+                error!(
+                    "Unhandled error occured during processing of files and directories! {}",
+                    e
+                )
+            });
         });
 
         info!("Finished reading of statx() metadata");
@@ -84,7 +85,9 @@ impl VFSStatCache {
         // Check if filename matches a blacklist rule
         let pm = manager.plugin_manager.borrow();
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
-            None    => { warn!("Plugin not loaded: 'static_blacklist', skipped"); }
+            None => {
+                warn!("Plugin not loaded: 'static_blacklist', skipped");
+            }
             Some(p) => {
                 let plugin_b = p.borrow();
                 let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
@@ -104,7 +107,9 @@ impl VFSStatCache {
 
         let pm = manager.plugin_manager.borrow();
         match pm.get_plugin_by_name(&String::from("static_whitelist")) {
-            None    => { trace!("Plugin not loaded: 'static_whitelist', skipped"); }
+            None => {
+                trace!("Plugin not loaded: 'static_whitelist', skipped");
+            }
             Some(p) => {
                 let plugin_b = p.borrow();
                 let static_whitelist = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
@@ -114,13 +119,21 @@ impl VFSStatCache {
         };
 
         match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
-            None    => { trace!("Plugin not loaded: 'dynamic_whitelist', skipped"); }
+            None => {
+                trace!("Plugin not loaded: 'dynamic_whitelist', skipped");
+            }
             Some(p) => {
                 let plugin_b = p.borrow();
-                let dynamic_whitelist = plugin_b.as_any().downcast_ref::<DynamicWhitelist>().unwrap();
+                let dynamic_whitelist = plugin_b
+                    .as_any()
+                    .downcast_ref::<DynamicWhitelist>()
+                    .unwrap();
 
-                let mut mapped_files = dynamic_whitelist.get_mapped_files()
-                                                        .keys().map(|k| { k.clone() }).collect();
+                let mut mapped_files = dynamic_whitelist
+                    .get_mapped_files()
+                    .keys()
+                    .map(|k| k.clone())
+                    .collect();
                 result.append(&mut mapped_files);
             }
         };
@@ -143,7 +156,10 @@ impl Plugin for VFSStatCache {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -154,7 +170,7 @@ impl Plugin for VFSStatCache {
         match event.event_type {
             events::EventType::PrimeCaches => {
                 self.prime_statx_cache(globals, manager);
-            },
+            }
             _ => {
                 // Ignore all other events
             }

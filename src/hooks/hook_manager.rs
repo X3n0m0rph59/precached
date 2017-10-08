@@ -33,23 +33,31 @@ use procmon;
 use super::hook::Hook;
 
 pub struct HookManager {
-    hooks:  RefCell<HashMap<String, Rc<RefCell<Box<Hook + Sync + Send>>>>>,
+    hooks: RefCell<HashMap<String, Rc<RefCell<Box<Hook + Sync + Send>>>>>,
 }
 
 impl HookManager {
     pub fn new() -> HookManager {
-        HookManager { hooks: RefCell::new(HashMap::new()), }
+        HookManager {
+            hooks: RefCell::new(HashMap::new()),
+        }
     }
 
     pub fn register_hook(&self, mut hook: Box<Hook + Sync + Send>) {
         hook.register();
-        self.hooks.borrow_mut().insert(String::from(hook.get_name()), Rc::new(RefCell::new(hook)));
+        self.hooks
+            .borrow_mut()
+            .insert(String::from(hook.get_name()), Rc::new(RefCell::new(hook)));
     }
 
     pub fn unregister_hook(&self, name: &String) {
         match self.get_hook_by_name(name) {
-            Some(h) => { h.borrow_mut().unregister(); },
-            None    => { error!("No hook with name '{}' found!", name); }
+            Some(h) => {
+                h.borrow_mut().unregister();
+            }
+            None => {
+                error!("No hook with name '{}' found!", name);
+            }
         };
     }
 

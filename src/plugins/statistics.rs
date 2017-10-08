@@ -31,7 +31,7 @@ use util;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "statistics";
+static NAME: &str = "statistics";
 static DESCRIPTION: &str = "Gather global system statistics and make them available to other plugins";
 
 /// Register this plugin implementation with the system
@@ -45,15 +45,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct Statistics {
-
-}
+pub struct Statistics {}
 
 impl Statistics {
     pub fn new() -> Statistics {
-        Statistics {
-
-        }
+        Statistics {}
     }
 
     pub fn produce_report(&mut self, _globals: &mut Globals, _manager: &Manager) {
@@ -77,7 +73,10 @@ impl Plugin for Statistics {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -88,25 +87,25 @@ impl Plugin for Statistics {
         match event.event_type {
             events::EventType::Ping => {
                 self.produce_report(globals, manager);
-            },
+            }
             events::EventType::FreeMemoryLowWatermark => {
                 info!("Statistics: Free memory: *Low*-Watermark reached!");
-            },
+            }
             events::EventType::FreeMemoryHighWatermark => {
                 warn!("Statistics: Free memory: *High*-Watermark reached!");
-            },
+            }
             events::EventType::AvailableMemoryLowWatermark => {
                 info!("Statistics: Available memory: *Low*-Watermark reached!");
-            },
+            }
             events::EventType::AvailableMemoryHighWatermark => {
                 warn!("Statistics: Available memory: *High*-Watermark reached!");
-            },
+            }
             events::EventType::SystemIsSwapping => {
                 warn!("Statistics: System is swapping!");
-            },
+            }
             events::EventType::SystemRecoveredFromSwap => {
                 warn!("Statistics: System recovered from swapping!");
-            },
+            }
             _ => {
                 // Ignore all other events
             }

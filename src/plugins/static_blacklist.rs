@@ -30,7 +30,7 @@ use util;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "static_blacklist";
+static NAME: &str = "static_blacklist";
 static DESCRIPTION: &str = "Statically blacklist files that shall not be cached";
 
 /// Register this plugin implementation with the system
@@ -56,9 +56,15 @@ impl StaticBlacklist {
     }
 
     fn get_file_blacklist(globals: &Globals) -> Vec<String> {
-        let mut result = Vec::new();        
+        let mut result = Vec::new();
 
-        let mut blacklist = globals.config.config_file.clone().unwrap().blacklist.unwrap_or(vec!());
+        let mut blacklist = globals
+            .config
+            .config_file
+            .clone()
+            .unwrap()
+            .blacklist
+            .unwrap_or(vec![]);
         result.append(&mut blacklist);
 
         result
@@ -83,7 +89,10 @@ impl Plugin for StaticBlacklist {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -92,12 +101,10 @@ impl Plugin for StaticBlacklist {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::Startup => {
-
-            },
+            events::EventType::Startup => {}
             events::EventType::ConfigurationReloaded => {
                 self.blacklist = Box::new(StaticBlacklist::get_file_blacklist(globals));
-            },
+            }
             _ => {
                 // Ignore all other events
             }

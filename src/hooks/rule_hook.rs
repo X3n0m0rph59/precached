@@ -35,7 +35,7 @@ use events::EventType;
 
 use hooks::hook;
 
-static NAME:        &str = "rule_hook";
+static NAME: &str = "rule_hook";
 static DESCRIPTION: &str = "Custom rules actions for precached";
 
 /// Register this hook implementation with the system
@@ -47,13 +47,11 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug, Clone)]
-pub struct RuleHook {
-}
+pub struct RuleHook {}
 
 impl RuleHook {
     pub fn new() -> RuleHook {
-        RuleHook {
-        }
+        RuleHook {}
     }
 }
 
@@ -82,13 +80,12 @@ impl hook::Hook for RuleHook {
                 // if (fork_bomb_detected) {
                 //     events::queue_internal_event(EventType::ForkBombDetected(*event), globals);
                 // }
-            },
+            }
 
             _ => {
                 // trace!("Ignored process event");
             }
         }
-
     }
 
     fn as_any(&self) -> &Any {

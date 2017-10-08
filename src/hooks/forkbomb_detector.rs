@@ -35,7 +35,7 @@ use events::EventType;
 
 use hooks::hook;
 
-static NAME:        &str = "forkbomb_detector";
+static NAME: &str = "forkbomb_detector";
 static DESCRIPTION: &str = "Tracks system fork() rate and notifies when it detects an offending process";
 
 /// Register this hook implementation with the system
@@ -53,9 +53,7 @@ pub struct ForkBombDetector {
 
 impl ForkBombDetector {
     pub fn new() -> ForkBombDetector {
-        ForkBombDetector {
-            forks_per_sec: 0,
-        }
+        ForkBombDetector { forks_per_sec: 0 }
     }
 }
 
@@ -84,12 +82,11 @@ impl hook::Hook for ForkBombDetector {
                 // if (fork_bomb_detected) {
                 //     events::queue_internal_event(EventType::ForkBombDetected(*event), globals);
                 // }
-            },
+            }
             _ => {
                 // trace!("Ignored process event");
             }
         }
-
     }
 
     fn as_any(&self) -> &Any {

@@ -30,7 +30,7 @@ use storage;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "forkbomb_mitigation";
+static NAME: &str = "forkbomb_mitigation";
 static DESCRIPTION: &str = "Detect and mitigate fork() bombs";
 
 /// Register this plugin implementation with the system
@@ -44,15 +44,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct ForkBombMitigation {
-
-}
+pub struct ForkBombMitigation {}
 
 impl ForkBombMitigation {
     pub fn new() -> ForkBombMitigation {
-        ForkBombMitigation {
-
-        }
+        ForkBombMitigation {}
     }
 }
 
@@ -70,7 +66,10 @@ impl Plugin for ForkBombMitigation {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -81,7 +80,7 @@ impl Plugin for ForkBombMitigation {
         match event.event_type {
             events::EventType::ForkBombDetected => {
                 // TODO: Implement this!
-            },
+            }
             _ => {
                 // Ignore all other events
             }

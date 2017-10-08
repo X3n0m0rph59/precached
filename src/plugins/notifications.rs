@@ -35,7 +35,7 @@ use storage;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "notifications";
+static NAME: &str = "notifications";
 static DESCRIPTION: &str = "Send notifications to logged in users via DBUS";
 
 /// Register this plugin implementation with the system
@@ -49,15 +49,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct Notifications {
-
-}
+pub struct Notifications {}
 
 impl Notifications {
     pub fn new() -> Notifications {
-        Notifications {
-
-        }
+        Notifications {}
     }
 
     pub fn notify(&self, message: &String) {
@@ -92,7 +88,10 @@ impl Plugin for Notifications {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -101,9 +100,7 @@ impl Plugin for Notifications {
 
     fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
-            EventType::Ping => {
-                self.notify(&String::from("Ping!"))
-            },
+            EventType::Ping => self.notify(&String::from("Ping!")),
 
             _ => {
                 // Ignore all other events

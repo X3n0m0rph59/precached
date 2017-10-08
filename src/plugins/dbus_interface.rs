@@ -18,15 +18,15 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
 extern crate dbus;
+extern crate libc;
 
 use std::any::Any;
 use std::sync::Arc;
 use std::sync::mpsc;
 use std::result::Result;
-use self::dbus::{Connection, BusType, tree, Path};
-use self::dbus::tree::{Interface, Signal, MTFn, Access, MethodErr, EmitsChangedSignal};
+use self::dbus::{tree, BusType, Connection, Path};
+use self::dbus::tree::{Access, EmitsChangedSignal, Interface, MTFn, MethodErr, Signal};
 
 use process::*;
 use globals::*;
@@ -42,7 +42,7 @@ use hooks::process_tracker::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "dbus_interface";
+static NAME: &str = "dbus_interface";
 static DESCRIPTION: &str = "Provide a DBUS interface to control precached from other programs";
 
 /// Register this plugin implementation with the system
@@ -91,7 +91,8 @@ fn create_iface(process_event_s: mpsc::Sender<i32>) -> (Interface<MTFn<TData>, T
 
     let process_event = Arc::new(f.signal("ProcessEvent", ()));
 
-    (f.interface("org.precached.precached1.statistics", ())
+    (
+        f.interface("org.precached.precached1.statistics", ())
         // The online property can be both set and get
         // .add_p(f.property::<bool,_>("online", ())
         //     .access(Access::ReadWrite)
@@ -127,8 +128,7 @@ fn create_iface(process_event_s: mpsc::Sender<i32>) -> (Interface<MTFn<TData>, T
                 i.append(&process.comm);
                 Ok(())
             })
-        )
-        // ...add a method for starting a device check...
+        ), // ...add a method for starting a device check...
         // .add_m(f.method("check", (), move |m| {
         //     let dev: &Arc<ProcessStats> = m.path.get_data();
         //     if dev.checking.get() {
@@ -155,18 +155,18 @@ fn create_iface(process_event_s: mpsc::Sender<i32>) -> (Interface<MTFn<TData>, T
         // }))
         // Indicate that we send a special signal once checking has completed.
         // .add_s(process_event.clone())
-    , process_event)
+        process_event,
+    )
 }
 
-fn create_tree(processes: &[Arc<ProcessStats>], iface: &Arc<Interface<MTFn<TData>, TData>>)
-    -> tree::Tree<MTFn<TData>, TData> {
-
+fn create_tree(processes: &[Arc<ProcessStats>], iface: &Arc<Interface<MTFn<TData>, TData>>) -> tree::Tree<MTFn<TData>, TData> {
     let f = tree::Factory::new_fn();
     let mut tree = f.tree(());
     for p in processes {
-        tree = tree.add(f.object_path(p.path.clone(), p.clone())
-            .introspectable()
-            .add(iface.clone())
+        tree = tree.add(
+            f.object_path(p.path.clone(), p.clone())
+                .introspectable()
+                .add(iface.clone()),
         );
     }
     tree
@@ -184,16 +184,16 @@ impl DBUSInterface {
         DBUSInterface {
             connection: None,
             tree: None,
-            process_stats: vec!(),
+            process_stats: vec![],
         }
     }
 
-    pub fn register_connection(&mut self) -> Result<(), &'static str >{
+    pub fn register_connection(&mut self) -> Result<(), &'static str> {
         trace!("Registering DBUS connection");
 
         // TODO: fix this!
         // populate initial dummy data
-        let mut process_stats: Vec<Arc<ProcessStats>> = vec!();
+        let mut process_stats: Vec<Arc<ProcessStats>> = vec![];
         process_stats.push(Arc::new(ProcessStats::new(1, Process::new(1))));
 
         self.process_stats = process_stats;
@@ -217,9 +217,11 @@ impl DBUSInterface {
     pub fn populate_process_statistics(&mut self, _e: &procmon::Event, _globals: &Globals, manager: &Manager) {
         let hm = manager.hook_manager.borrow();
 
-        let mut process_stats: Vec<Arc<ProcessStats>> = vec!();
+        let mut process_stats: Vec<Arc<ProcessStats>> = vec![];
         match hm.get_hook_by_name(&String::from("process_tracker")) {
-            None    => { trace!("Hook not loaded: 'process_tracker', skipped"); }
+            None => {
+                trace!("Hook not loaded: 'process_tracker', skipped");
+            }
             Some(h) => {
                 let hook_b = h.borrow();
                 let process_tracker_hook = hook_b.as_any().downcast_ref::<ProcessTracker>().unwrap();
@@ -241,8 +243,12 @@ impl Plugin for DBUSInterface {
         info!("Registered Plugin: 'DBUS Interface'");
 
         match self.register_connection() {
-            Err(e) => { error!("DBUS connection not initialized: {}", e); },
-            Ok(_)  => { trace!("Listening for incoming DBUS connections..."); }
+            Err(e) => {
+                error!("DBUS connection not initialized: {}", e);
+            }
+            Ok(_) => {
+                trace!("Listening for incoming DBUS connections...");
+            }
         };
     }
 
@@ -255,7 +261,10 @@ impl Plugin for DBUSInterface {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -272,7 +281,7 @@ impl Plugin for DBUSInterface {
         match event.event_type {
             EventType::TrackedProcessChanged(e) => {
                 self.populate_process_statistics(&e, globals, manager);
-            },
+            }
             _ => {
                 // Ignore all other events
             }

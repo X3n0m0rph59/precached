@@ -35,7 +35,9 @@ impl TaskScheduler {
     }
 
     pub fn schedule_job<F>(&mut self, job: F)
-        where F: FnOnce() + Sync + Send + 'static {
+    where
+        F: FnOnce() + Sync + Send + 'static,
+    {
         self.backlog.push(Box::new(job));
     }
 

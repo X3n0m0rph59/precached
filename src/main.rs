@@ -28,24 +28,24 @@
 #![allow(dead_code)]
 
 extern crate ansi_term;
-extern crate fern;
 extern crate chrono;
+extern crate fern;
 
-#[macro_use]
-extern crate log;
-extern crate syslog;
 extern crate env_logger;
 #[macro_use]
-extern crate serde_derive;
-#[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate serde_derive;
+extern crate syslog;
 
 extern crate nix;
 extern crate toml;
 
 use std::io;
 use std::thread;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::channel;
 use nix::sys::signal;
@@ -82,42 +82,60 @@ static RELOAD_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 
 
 /// Signal handler for SIGINT and SIGTERM
-extern fn exit_signal(_: i32) {
+extern "C" fn exit_signal(_: i32) {
     EXIT_NOW.store(true, Ordering::Relaxed);
 }
 
 /// Signal handler for SIGHUP
-extern fn reload_signal(_: i32) {
+extern "C" fn reload_signal(_: i32) {
     RELOAD_NOW.store(true, Ordering::Relaxed);
 }
 
 /// Set up signal handlers
 fn setup_signal_handlers() {
-    let sig_action = signal::SigAction::new(signal::SigHandler::Handler(exit_signal),
-                                            signal::SaFlags::empty(),
-                                            signal::SigSet::empty());
+    let sig_action = signal::SigAction::new(
+        signal::SigHandler::Handler(exit_signal),
+        signal::SaFlags::empty(),
+        signal::SigSet::empty(),
+    );
 
-    #[allow(unused_must_use)] unsafe { signal::sigaction(signal::SIGINT, &sig_action); }
-    #[allow(unused_must_use)] unsafe { signal::sigaction(signal::SIGTERM, &sig_action); }
+    #[allow(unused_must_use)]
+    unsafe {
+        signal::sigaction(signal::SIGINT, &sig_action);
+    }
+    #[allow(unused_must_use)]
+    unsafe {
+        signal::sigaction(signal::SIGTERM, &sig_action);
+    }
 
-    let sig_action = signal::SigAction::new(signal::SigHandler::Handler(reload_signal),
-                                            signal::SaFlags::empty(),
-                                            signal::SigSet::empty());
+    let sig_action = signal::SigAction::new(
+        signal::SigHandler::Handler(reload_signal),
+        signal::SaFlags::empty(),
+        signal::SigSet::empty(),
+    );
 
-    #[allow(unused_must_use)] unsafe { signal::sigaction(signal::SIGHUP, &sig_action); }
+    #[allow(unused_must_use)]
+    unsafe {
+        signal::sigaction(signal::SIGHUP, &sig_action);
+    }
 }
 
 /// Print a license header to the console
 fn print_license_header() {
-    println!("precached Copyright (C) 2017 the precached team
+    println!(
+        "precached Copyright (C) 2017 the precached team
 This program comes with ABSOLUTELY NO WARRANTY;
 This is free software, and you are welcome to redistribute it
 under certain conditions.
-");
+"
+    );
 }
 
 fn print_disabled_plugins_notice(globals: &mut Globals) {
-    info!("Disabled Plugins: {:?}", storage::get_disabled_plugins(globals));
+    info!(
+        "Disabled Plugins: {:?}",
+        storage::get_disabled_plugins(globals)
+    );
 }
 
 // Disabling of hooks is currently not supported
@@ -154,7 +172,7 @@ fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager:
 fn setup_logging() -> Result<(), fern::InitError> {
     let base_config = fern::Dispatch::new();
     // base_config.level(log::LogLevelFilter::Info);
-               //.level_for("", log::LogLevelFilter::Info)
+    //.level_for("", log::LogLevelFilter::Info)
 
     // let file_config = fern::Dispatch::new()
     //     .format(|out, message, record| {
@@ -192,10 +210,14 @@ fn setup_logging() -> Result<(), fern::InitError> {
                 util::MAX_MODULE_WIDTH.store(module_path.len(), Ordering::Relaxed);
             }
 
-            out.finish(format_args!("{}:{}: {}",
-                    util::Level { level: record.level() },
-                    Style::new().bold().paint(module_path),
-                    record.args()));
+            out.finish(format_args!(
+                "{}:{}: {}",
+                util::Level {
+                    level: record.level(),
+                },
+                Style::new().bold().paint(module_path),
+                record.args()
+            ));
         })
         .chain(io::stdout());
 
@@ -240,22 +262,31 @@ fn main() {
 
     // Parse external configuration file
     match storage::parse_config_file(&mut globals) {
-        Ok(_)  => { info!("Successfuly parsed configuration file!") },
-        Err(s) => { error!("Error in configuration file: {}", s); return }
+        Ok(_) => info!("Successfuly parsed configuration file!"),
+        Err(s) => {
+            error!("Error in configuration file: {}", s);
+            return;
+        }
     }
 
     // Check if we are able to run precache
     // (verify system for conformance)
     match util::check_system() {
-        Ok(_)  => { info!("System check passed!") },
-        Err(s) => { error!("System check FAILED: {}", s); return }
+        Ok(_) => info!("System check passed!"),
+        Err(s) => {
+            error!("System check FAILED: {}", s);
+            return;
+        }
     }
 
     // If we get here, the check if we are able to run precache succeeded
     // Now reconfigure the system (e.g. tune sysctl parameterss)
     match util::prepare_system_config() {
-        Ok(_)  => { info!("System configuration applied successfuly!") },
-        Err(s) => { error!("System configuration FAILED: {}", s); return }
+        Ok(_) => info!("System configuration applied successfuly!"),
+        Err(s) => {
+            error!("System configuration FAILED: {}", s);
+            return;
+        }
     }
 
     // Register signal handlers
@@ -263,7 +294,10 @@ fn main() {
 
     let procmon = match ProcMon::new() {
         Ok(inst) => inst,
-        Err(s)   => { error!("Could not create process events monitor: {}", s); return }
+        Err(s) => {
+            error!("Could not create process events monitor: {}", s);
+            return;
+        }
     };
 
     // Register hooks and plugins
@@ -282,21 +316,20 @@ fn main() {
 
     // spawn the event loop thread
     let handle = thread::Builder::new()
-                    .name("event loop".to_string())
-                    .spawn(move || {
+        .name("event loop".to_string())
+        .spawn(move || {
+            'EVENT_LOOP: loop {
+                if EXIT_NOW.load(Ordering::Relaxed) {
+                    trace!("Leaving the event loop...");
+                    break 'EVENT_LOOP;
+                }
 
-        'EVENT_LOOP: loop {
-            if EXIT_NOW.load(Ordering::Relaxed) {
-                trace!("Leaving the event loop...");
-                break 'EVENT_LOOP;
+                // blocking call into procmon_sys
+                let event = procmon.wait_for_event();
+                sender.send(event).unwrap();
             }
-
-            // blocking call into procmon_sys
-            let event = procmon.wait_for_event();
-            sender.send(event).unwrap();
-        }
-
-    }).unwrap();
+        })
+        .unwrap();
 
     // ... on the main thread again
     'MAIN_LOOP: loop {
@@ -305,11 +338,13 @@ fn main() {
         // NOTE: Blocking call
         // wait for the event loop thread to submit an event
         // or up to n msecs until a timeout occurs
-        let event = match receiver.recv_timeout(Duration::from_millis(constants::EVENT_THREAD_TIMEOUT_MILLIS)) {
+        let event = match receiver.recv_timeout(Duration::from_millis(
+            constants::EVENT_THREAD_TIMEOUT_MILLIS,
+        )) {
             Ok(result) => {
                 trace!("Main thread woken up to process a message...");
                 Some(result)
-            },
+            }
             Err(_) => {
                 trace!("Main thread woken up (timeout)...");
                 None
@@ -323,15 +358,15 @@ fn main() {
 
             // Parse external configuration file
             match storage::parse_config_file(&mut globals) {
-                Ok(_)  => {
+                Ok(_) => {
                     info!("Successfuly parsed configuration!");
                     events::queue_internal_event(EventType::ConfigurationReloaded, &mut globals);
-                },
+                }
                 Err(s) => {
                     error!("Error in configuration file: {}", s);
 
                     // TODO: Don't crash here, handle gracefully
-                    return
+                    return;
                 }
             }
         }
@@ -350,8 +385,8 @@ fn main() {
 
         // Dispatch events
         match event {
-            Some(e) => { process_procmon_event(&e, &mut globals, &mut manager) },
-            None    => { /* We woke up because of a timeout, just do nothing */ }
+            Some(e) => process_procmon_event(&e, &mut globals, &mut manager),
+            None => { /* We woke up because of a timeout, just do nothing */ }
         };
 
         process_internal_events(&mut globals, &mut manager);
@@ -371,8 +406,12 @@ fn main() {
 
     // main thread blocks here
     match handle.join() {
-        Ok(_)  => { trace!("Successfuly joined the event loop thread!"); },
-        Err(_) => { error!("Could not join the event loop thread!"); }
+        Ok(_) => {
+            trace!("Successfuly joined the event loop thread!");
+        }
+        Err(_) => {
+            error!("Could not join the event loop thread!");
+        }
     };
 
     // Clean up now

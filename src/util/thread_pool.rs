@@ -25,21 +25,23 @@ use std::sync::Mutex;
 
 #[derive(Debug)]
 pub struct ThreadPool {
-    pool: threadpool::ThreadPool
+    pool: threadpool::ThreadPool,
 }
 
 impl ThreadPool {
     pub fn new() -> ThreadPool {
         ThreadPool {
             pool: threadpool::Builder::new()
-                                .num_threads(4)
-                                .thread_name(String::from("worker"))
-                                .build()
+                .num_threads(4)
+                .thread_name(String::from("worker"))
+                .build(),
         }
     }
 
     pub fn submit_work<F>(&self, job: F)
-        where F: FnOnce() + Send + 'static {
+    where
+        F: FnOnce() + Send + 'static,
+    {
         self.pool.execute(job);
     }
 }

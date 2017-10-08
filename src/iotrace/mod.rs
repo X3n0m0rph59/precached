@@ -20,8 +20,8 @@
 
 extern crate libc;
 
-extern crate serde_json;
 extern crate fnv;
+extern crate serde_json;
 
 use std::hash::Hasher;
 use std::io::Result;
@@ -49,7 +49,7 @@ impl TraceLogEntry {
     pub fn new(operation: IOOperation) -> TraceLogEntry {
         TraceLogEntry {
             timestamp: unsafe { libc::time(0 as *mut libc::int64_t) },
-            operation: operation
+            operation: operation,
         }
     }
 }
@@ -71,8 +71,12 @@ impl IOTraceLog {
         hasher.write(&comm.clone().into_bytes());
         let hashval = hasher.finish();
 
-        IOTraceLog { hash: String::from(format!("{}", hashval)), comm: comm,
-                     file_map: HashMap::new(), trace_log: vec!() }
+        IOTraceLog {
+            hash: String::from(format!("{}", hashval)),
+            comm: comm,
+            file_map: HashMap::new(),
+            trace_log: vec![],
+        }
     }
 
     pub fn add_event(&mut self, op: IOOperation) {
@@ -82,8 +86,8 @@ impl IOTraceLog {
         match op {
             IOOperation::Open(filename, fd) => {
                 self.file_map.entry(fd).or_insert(filename);
-            },
-            _ => { /* Do nothing */ },
+            }
+            _ => { /* Do nothing */ }
         }
 
         // append log entry to our log
@@ -96,13 +100,16 @@ impl IOTraceLog {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
 
             let path = Path::new(iotrace_dir)
-                         .join(Path::new(&constants::IOTRACE_DIR))
-                         .join(Path::new(&format!("{}.trace", self.hash)));
+                .join(Path::new(&constants::IOTRACE_DIR))
+                .join(Path::new(&format!("{}.trace", self.hash)));
 
             let filename = path.to_string_lossy();
             util::write_text_file(&filename, serialized)?;
         } else {
-            info!("The I/O trace log for process '{}' is empty! Nothing will be saved.", self.comm);
+            info!(
+                "The I/O trace log for process '{}' is empty! Nothing will be saved.",
+                self.comm
+            );
         }
 
         Ok(())

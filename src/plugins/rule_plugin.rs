@@ -31,7 +31,7 @@ use util;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "rule_plugin";
+static NAME: &str = "rule_plugin";
 static DESCRIPTION: &str = "Custom rules plugin for precached";
 
 /// Register this plugin implementation with the system
@@ -45,15 +45,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug)]
-pub struct RulePlugin {
-
-}
+pub struct RulePlugin {}
 
 impl RulePlugin {
     pub fn new() -> RulePlugin {
-        RulePlugin {
-
-        }
+        RulePlugin {}
     }
 }
 
@@ -71,7 +67,10 @@ impl Plugin for RulePlugin {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {

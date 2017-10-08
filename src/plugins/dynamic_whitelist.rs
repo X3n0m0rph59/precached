@@ -28,7 +28,7 @@ use std::io::Result;
 use std::path::Path;
 use std::any::Any;
 use std::sync::Mutex;
-use std::sync::mpsc::{Sender, channel};
+use std::sync::mpsc::{channel, Sender};
 
 use globals::*;
 use manager::*;
@@ -49,7 +49,7 @@ use plugins::static_whitelist::StaticWhitelist;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 
-static NAME:        &str = "dynamic_whitelist";
+static NAME: &str = "dynamic_whitelist";
 static DESCRIPTION: &str = "Dynamically whitelist the most often mapped files";
 
 /// Register this plugin implementation with the system
@@ -81,7 +81,9 @@ impl DynamicWhitelist {
 
         let mut system_mapped_files_histogram = HashMap::new();
         match hm.get_hook_by_name(&String::from("process_tracker")) {
-            None    => { trace!("Hook not loaded: 'process_tracker', skipped"); }
+            None => {
+                trace!("Hook not loaded: 'process_tracker', skipped");
+            }
             Some(h) => {
                 let hook_b = h.borrow();
                 let process_tracker_hook = hook_b.as_any().downcast_ref::<ProcessTracker>().unwrap();
@@ -94,7 +96,9 @@ impl DynamicWhitelist {
 
         let mut static_whitelist = HashMap::new();
         match pm.get_plugin_by_name(&String::from("static_whitelist")) {
-            None    => { trace!("Plugin not loaded: 'static_whitelist', skipped"); }
+            None => {
+                trace!("Plugin not loaded: 'static_whitelist', skipped");
+            }
             Some(p) => {
                 let plugin_b = p.borrow();
                 let static_whitelist_plugin = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
@@ -105,7 +109,9 @@ impl DynamicWhitelist {
 
         let mut static_blacklist = Vec::<String>::new();
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
-            None    => { trace!("Plugin not loaded: 'static_blacklist', skipped"); }
+            None => {
+                trace!("Plugin not loaded: 'static_blacklist', skipped");
+            }
             Some(p) => {
                 let plugin_b = p.borrow();
                 let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
@@ -126,15 +132,19 @@ impl DynamicWhitelist {
             for (filename, _map_count) in system_mapped_files_histogram.iter() {
                 // mmap and mlock file, if it is not contained in the blacklist
                 // and if it was not already mapped by some of the plugins
-                let f  = filename.clone();
+                let f = filename.clone();
                 let f2 = f.clone();
 
-                if Self::shall_we_map_file(&filename, &static_blacklist, &our_mapped_files,
-                                           &static_whitelist) {
+                if Self::shall_we_map_file(
+                    &filename,
+                    &static_blacklist,
+                    &our_mapped_files,
+                    &static_whitelist,
+                ) {
                     match util::map_and_lock_file(&f) {
                         Err(s) => {
                             error!("Could not cache file '{}': {}", &f, &s);
-                        },
+                        }
                         Ok(r) => {
                             trace!("Successfuly cached file '{}'", &f);
                             mapped_files.insert(f2, r);
@@ -152,10 +162,7 @@ impl DynamicWhitelist {
         info!("Finished caching of dynamically whitelisted files");
     }
 
-    fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>,
-                         our_mapped_files:  &HashMap<String, util::MemoryMapping>,
-                         static_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
-
+    fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>, our_mapped_files: &HashMap<String, util::MemoryMapping>, static_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
             return false;
@@ -194,7 +201,9 @@ impl DynamicWhitelist {
         };
 
         match hm.get_hook_by_name(&String::from("process_tracker")) {
-            None    => { trace!("Hook not loaded: 'process_tracker', skipped"); }
+            None => {
+                trace!("Hook not loaded: 'process_tracker', skipped");
+            }
             Some(h) => {
                 let hook_b = h.borrow();
                 let process_tracker_hook = hook_b.as_any().downcast_ref::<ProcessTracker>().unwrap();
@@ -207,7 +216,9 @@ impl DynamicWhitelist {
 
         let mut static_whitelist = HashMap::new();
         match pm.get_plugin_by_name(&String::from("static_whitelist")) {
-            None    => { trace!("Plugin not loaded: 'static_whitelist', skipped"); }
+            None => {
+                trace!("Plugin not loaded: 'static_whitelist', skipped");
+            }
             Some(p) => {
                 let plugin_b = p.borrow();
                 let static_whitelist_plugin = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
@@ -218,7 +229,9 @@ impl DynamicWhitelist {
 
         let mut static_blacklist = Vec::<String>::new();
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
-            None    => { trace!("Plugin not loaded: 'static_blacklist', skipped"); }
+            None => {
+                trace!("Plugin not loaded: 'static_blacklist', skipped");
+            }
             Some(p) => {
                 let plugin_b = p.borrow();
                 let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
@@ -239,15 +252,19 @@ impl DynamicWhitelist {
             for (filename, _map_count) in system_mapped_files_histogram.iter() {
                 // mmap and mlock file, if it is not contained in the blacklist
                 // and if it was not already mapped by some of the plugins
-                let f  = filename.clone();
+                let f = filename.clone();
                 let f2 = f.clone();
 
-                if Self::shall_we_map_file(&filename, &static_blacklist, &our_mapped_files,
-                                           &static_whitelist) {
+                if Self::shall_we_map_file(
+                    &filename,
+                    &static_blacklist,
+                    &our_mapped_files,
+                    &static_whitelist,
+                ) {
                     match util::map_and_lock_file(&f) {
                         Err(s) => {
                             error!("Could not cache file '{}': {}", &f, &s);
-                        },
+                        }
                         Ok(r) => {
                             trace!("Successfuly cached file '{}'", &f);
                             mapped_files.insert(f2, r);
@@ -270,7 +287,9 @@ impl DynamicWhitelist {
 
         let hm = manager.hook_manager.borrow();
         match hm.get_hook_by_name(&String::from("process_tracker")) {
-            None    => { trace!("Hook not loaded: 'process_tracker', skipped"); }
+            None => {
+                trace!("Hook not loaded: 'process_tracker', skipped");
+            }
             Some(h) => {
                 let hook_b = h.borrow();
                 let process_tracker_hook = hook_b.as_any().downcast_ref::<ProcessTracker>().unwrap();
@@ -278,20 +297,25 @@ impl DynamicWhitelist {
                 let system_mapped_files_histogram = process_tracker_hook.get_mapped_files_histogram().clone();
 
                 match Self::serialize(&system_mapped_files_histogram, globals) {
-                    Err(e) => { error!("Could not save dynamic whitelist: {}", e); },
-                    Ok(()) => { info!("Dynamic whitelist saved successfuly!"); }
+                    Err(e) => {
+                        error!("Could not save dynamic whitelist: {}", e);
+                    }
+                    Ok(()) => {
+                        info!("Dynamic whitelist saved successfuly!");
+                    }
                 }
             }
         };
     }
 
     fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>
-        where T: Serialize {
+    where
+        T: Serialize,
+    {
         let serialized = serde_json::to_string_pretty(&t).unwrap();
 
         let config = globals.config.config_file.clone().unwrap();
-        let path = Path::new(&config.state_dir.unwrap_or(String::from(".")))
-                             .join(Path::new("dynamic_whitelist.state"));
+        let path = Path::new(&config.state_dir.unwrap_or(String::from("."))).join(Path::new("dynamic_whitelist.state"));
 
         let filename = path.to_string_lossy();
         util::write_text_file(&filename, serialized)?;
@@ -301,8 +325,7 @@ impl DynamicWhitelist {
 
     fn deserialize(globals: &mut Globals) -> Result<HashMap<String, usize>> {
         let config = globals.config.config_file.clone().unwrap();
-        let path = Path::new(&config.state_dir.unwrap_or(String::from(".")))
-                             .join(Path::new("dynamic_whitelist.state"));
+        let path = Path::new(&config.state_dir.unwrap_or(String::from("."))).join(Path::new("dynamic_whitelist.state"));
 
         let filename = path.to_string_lossy();
         let text = util::read_text_file(&filename)?;
@@ -336,7 +359,10 @@ impl Plugin for DynamicWhitelist {
     }
 
     fn get_description(&self) -> PluginDescription {
-        PluginDescription { name: String::from(NAME), description: String::from(DESCRIPTION) }
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
     }
 
     fn main_loop_hook(&mut self, _globals: &mut Globals) {
@@ -347,20 +373,17 @@ impl Plugin for DynamicWhitelist {
         match event.event_type {
             events::EventType::Startup => {
                 self.load_dynamic_whitelist_state(globals, manager);
-            },
+            }
             events::EventType::Shutdown => {
                 self.save_dynamic_whitelist_state(globals, manager);
-            },
-            events::EventType::ConfigurationReloaded => {
-
-            },
-            events::EventType::PrimeCaches |
-            events::EventType::FreeMemoryLowWatermark  => {
+            }
+            events::EventType::ConfigurationReloaded => {}
+            events::EventType::PrimeCaches | events::EventType::FreeMemoryLowWatermark => {
                 self.cache_dynamically_whitelisted_files(globals, manager);
-            },
+            }
             events::EventType::DoHousekeeping => {
                 // TODO: Implement this
-            },
+            }
             _ => {
                 // Ignore all other events
             }
