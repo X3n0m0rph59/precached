@@ -280,7 +280,7 @@ fn main() {
     }
 
     // If we get here, the check if we are able to run precache succeeded
-    // Now reconfigure the system (e.g. tune sysctl parameterss)
+    // Now reconfigure the system (e.g. tune sysctl parameters)
     match util::prepare_system_config() {
         Ok(_) => info!("System configuration applied successfuly!"),
         Err(s) => {
