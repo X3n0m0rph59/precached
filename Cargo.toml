@@ -2,7 +2,6 @@
 name = "precached"
 version = "0.1.0"
 authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
-doc-private = true
 
 [dependencies]
 procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }

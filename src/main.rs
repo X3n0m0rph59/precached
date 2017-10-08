@@ -331,6 +331,9 @@ fn main() {
         })
         .unwrap();
 
+
+    util::notify(&String::from("precached started!"), &manager);
+
     // ... on the main thread again
     'MAIN_LOOP: loop {
         trace!("Main thread going to sleep...");
@@ -416,6 +419,8 @@ fn main() {
 
     // Clean up now
     trace!("Cleaning up...");
+
+    util::notify(&String::from("precached terminating!"), &manager);
 
     // Unregister plugins and hooks
     plugins::unregister_plugins(&mut globals, &mut manager);

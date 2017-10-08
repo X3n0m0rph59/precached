@@ -18,8 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod config_file;
-mod state_file;
+pub mod config_file;
+pub mod state_file;
 
 pub use self::config_file::*;
 pub use self::state_file::*;

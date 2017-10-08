@@ -18,10 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate notify_rust;
+extern crate libc;
+// extern crate notify_rust;
+//
+// use self::notify_rust::Notification;
+// use self::notify_rust::NotificationHint as Hint;
 
-use self::notify_rust::Notification;
-use self::notify_rust::NotificationHint as Hint;
+use std::ffi::CString;
+// use std::process::Command;
 
 use std::any::Any;
 use globals::*;
@@ -62,15 +66,53 @@ impl Notifications {
     }
 
     fn do_notify(&self, message: &String) {
-        Notification::new()
-            .summary("Category:system")
-            .body(message)
-            //.icon("precached")
-            .appname("precached")
-            .hint(Hint::Category("system".to_owned()))
-            // .hint(Hint::Resident(true)) // this is not supported by all implementations
-            // .timeout(0) // this however is
-            .show().unwrap();
+        let pid = unsafe { libc::fork() };
+        if pid == 0 {
+            let result = unsafe { libc::setresuid(1000, 1000, 1000) };
+            if result < 0 {
+                unsafe { libc::perror(CString::new("libc::setresuid() failed!").unwrap().as_ptr()) };
+            }
+
+            let result = unsafe { libc::execve(CString::new("/usr/bin/notify-send").unwrap().as_ptr(),
+                                  vec!(CString::new("precached notification").unwrap().as_ptr(),
+                                       CString::new(message.as_str()).unwrap().as_ptr(),
+                                       0 as *mut libc::c_char).as_ptr(),
+                                  vec!(CString::new("DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus").unwrap().as_ptr(),
+                                       0 as *mut libc::c_char).as_ptr()) };
+            if result < 0 {
+                unsafe { libc::perror(CString::new("libc::execve() failed!").unwrap().as_ptr()) };
+            }
+
+            // just in case...
+            unsafe { libc::exit(1) };
+
+            /*match Notification::new()
+                .summary("Category:system")
+                .body(message)
+                //.icon("precached")
+                .appname("precached")
+                .hint(Hint::Category("system".to_owned()))
+                // .hint(Hint::Resident(true)) // this is not supported by all implementations
+                // .timeout(0) // this however is
+                .show() {
+
+                Err(e) => {
+                    warn!("Could not send a notification to the primary user's desktop! {}", e);
+                },
+                _ => { /* Successfuly displayed the notification, just do nothing */ }
+            }*/
+
+
+            // Command::new("/usr/bin/notify-send")
+            //             .env("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus")
+            //             .env("DISPLAY", ":0")
+            //             .args(&[&message])
+            //             .spawn()
+            //             .unwrap();
+        } else {
+            // let result = unsafe { libc::waitpid(pid, 0 as *mut libc::int32_t, 0) };
+            let _result = unsafe { libc::wait(0 as *mut libc::int32_t) };
+        }
     }
 }
 
@@ -98,10 +140,8 @@ impl Plugin for Notifications {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            EventType::Ping => self.notify(&String::from("Ping!")),
-
             _ => {
                 // Ignore all other events
             }

@@ -18,8 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod process;
-mod prefault;
+pub mod process;
+pub mod prefault;
 
 pub use self::process::*;
 pub use self::prefault::*;

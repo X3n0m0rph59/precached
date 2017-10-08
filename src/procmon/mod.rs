@@ -18,6 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod procmon;
+pub mod procmon;
 
 pub use self::procmon::*;

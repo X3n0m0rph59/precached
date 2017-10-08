@@ -18,22 +18,24 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod vec;
-mod files;
-mod memory;
-mod system;
-mod trace_event;
-mod ptrace;
-mod ftrace;
-mod logger;
-mod thread_pool;
-mod task_scheduler;
+pub mod vec;
+pub mod files;
+pub mod memory;
+pub mod system;
+pub mod trace_event;
+pub mod notify;
+pub mod ptrace;
+pub mod ftrace;
+pub mod logger;
+pub mod thread_pool;
+pub mod task_scheduler;
 
 pub use self::vec::*;
 pub use self::files::*;
 pub use self::memory::*;
 pub use self::system::*;
 pub use self::trace_event::*;
+pub use self::notify::*;
 pub use self::ptrace::*;
 pub use self::ftrace::*;
 pub use self::logger::*;

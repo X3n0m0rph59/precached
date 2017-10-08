@@ -74,6 +74,8 @@ impl DynamicWhitelist {
         }
     }
 
+    /// Cache files from the dynamic whitelist, if they are not already cached in memory
+    /// and if they are not contained on the static blacklist
     pub fn cache_dynamically_whitelisted_files(&mut self, _globals: &Globals, manager: &Manager) {
         trace!("Started caching of dynamically whitelisted files...");
 
@@ -130,11 +132,11 @@ impl DynamicWhitelist {
             let mut mapped_files = HashMap::new();
 
             for (filename, _map_count) in system_mapped_files_histogram.iter() {
-                // mmap and mlock file, if it is not contained in the blacklist
-                // and if it was not already mapped by some of the plugins
                 let f = filename.clone();
                 let f2 = f.clone();
 
+                // mmap and mlock file, if it is not contained in the blacklist
+                // and if it was not already mapped by some of the plugins
                 if Self::shall_we_map_file(
                     &filename,
                     &static_blacklist,
@@ -162,6 +164,10 @@ impl DynamicWhitelist {
         info!("Finished caching of dynamically whitelisted files");
     }
 
+    /// Helper function, that decides if we should subsequently mmap() and mlock() the
+    /// file `filename`. Verifies the validity of `filename`, and check if `filename`
+    /// is not blacklisted. Finally checks if `filename` is mapped already by us or
+    /// another plugin
     fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>, our_mapped_files: &HashMap<String, util::MemoryMapping>, static_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
@@ -187,11 +193,15 @@ impl DynamicWhitelist {
         true
     }
 
+    /// Load the dynamic whitelist from the file `dynamic_whitelist.state`.
+    /// Cache files from that whitelist, if they are not already cached in memory
+    /// and if they are not contained on the static blacklist
     pub fn load_dynamic_whitelist_state(&mut self, globals: &mut Globals, manager: &Manager) {
         info!("Loading dynamic whitelist...");
 
         let hm = manager.hook_manager.borrow();
 
+        // deserialize the previously stored whitelist from a compressed JSON text file
         let mut system_mapped_files_histogram = match Self::deserialize(globals) {
             Ok(result) => result,
             Err(e) => {
@@ -250,11 +260,11 @@ impl DynamicWhitelist {
             let mut mapped_files = HashMap::new();
 
             for (filename, _map_count) in system_mapped_files_histogram.iter() {
-                // mmap and mlock file, if it is not contained in the blacklist
-                // and if it was not already mapped by some of the plugins
                 let f = filename.clone();
                 let f2 = f.clone();
 
+                // mmap and mlock file, if it is not contained in the blacklist
+                // and if it was not already mapped by some of the plugins
                 if Self::shall_we_map_file(
                     &filename,
                     &static_blacklist,
@@ -282,6 +292,7 @@ impl DynamicWhitelist {
         info!("Dynamic whitelist loaded successfuly!");
     }
 
+    /// Save the dynamic whitelist to the file `dynamic_whitelist.state`.
     pub fn save_dynamic_whitelist_state(&self, globals: &mut Globals, manager: &Manager) {
         trace!("Saving dynamic whitelist...");
 
@@ -308,9 +319,10 @@ impl DynamicWhitelist {
         };
     }
 
-    fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>
-    where
-        T: Serialize,
+    /// Serialization helper function
+    /// Serialize `t` to JSON, compress it with the "Zstd" compressor, and write it to the
+    /// file `dynamic_whitelist.state`.
+    fn serialize(t: &HashMap<String, usize>, globals: &mut Globals) -> Result<()>
     {
         let serialized = serde_json::to_string_pretty(&t).unwrap();
 
@@ -323,6 +335,11 @@ impl DynamicWhitelist {
         Ok(())
     }
 
+    /// De-serialization helper function
+    /// Inflate the file `dynamic_whitelist.state` (that was previously compressed
+    /// with the "Zstd" compressor), convert it into an Unicode UTF-8
+    /// JSON representation, and de-serialize a `HashMap<String, usize>` from
+    /// that JSON representation.
     fn deserialize(globals: &mut Globals) -> Result<HashMap<String, usize>> {
         let config = globals.config.config_file.clone().unwrap();
         let path = Path::new(&config.state_dir.unwrap_or(String::from("."))).join(Path::new("dynamic_whitelist.state"));
@@ -372,13 +389,18 @@ impl Plugin for DynamicWhitelist {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::Startup => {
+                // Load the dynamic whitelist after the daemon has started up
                 self.load_dynamic_whitelist_state(globals, manager);
             }
             events::EventType::Shutdown => {
+                // Save the dynamic whitelist before the daemon will shut down
                 self.save_dynamic_whitelist_state(globals, manager);
             }
             events::EventType::ConfigurationReloaded => {}
             events::EventType::PrimeCaches | events::EventType::FreeMemoryLowWatermark => {
+                // Re-load the dynamic whitelist either if the external text configuration
+                // has been changed, or if we have enough free memory again that we should
+                // fill it up with cached data
                 self.cache_dynamically_whitelisted_files(globals, manager);
             }
             events::EventType::DoHousekeeping => {

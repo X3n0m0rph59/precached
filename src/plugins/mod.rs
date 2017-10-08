@@ -18,8 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod plugin_manager;
-mod plugin;
+pub mod plugin_manager;
+pub mod plugin;
 
 use globals::*;
 use manager::*;
