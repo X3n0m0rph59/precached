@@ -52,8 +52,7 @@ impl IOtraceLogManager {
         IOtraceLogManager {}
     }
 
-    /// Prunes I/O trace logs that have expired because
-    /// * they are too old
+    /// Prunes I/O trace logs that have expired because they are too old
     pub fn prune_expired_trace_logs(&self) {
         debug!("Pruning stale I/O trace logs...")
     }
@@ -91,7 +90,7 @@ impl Plugin for IOtraceLogManager {
     fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             EventType::DoHousekeeping => {
-                // TODO: Implement this
+                self.prune_expired_trace_logs();
             }
             _ => {
                 // Ignore all other events

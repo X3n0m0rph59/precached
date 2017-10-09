@@ -1,0 +1,6 @@
+[package]
+name = "precachedctl"
+version = "0.1.0"
+authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
+
+[dependencies]

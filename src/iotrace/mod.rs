@@ -17,7 +17,6 @@
     You should have received a copy of the GNU General Public License
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 extern crate libc;
 
 extern crate fnv;
@@ -27,38 +26,51 @@ use std::hash::Hasher;
 use std::io::Result;
 use std::path::Path;
 use std::collections::HashMap;
+use chrono::{DateTime, Utc};
 
 use process::Process;
 use util;
 
 use constants;
 
+/// Represents an I/O operation in an I/O trace log entry
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum IOOperation {
     Open(String, libc::int32_t),
     Read(libc::int32_t),
 }
 
+/// An entry in an I/O trace log
+/// Holds the specific I/O operation with associated parameters,
+/// and a timestamp of when the operation occured
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TraceLogEntry {
-    timestamp: libc::time_t,
+    timestamp: DateTime<Utc>,
     operation: IOOperation,
 }
 
 impl TraceLogEntry {
     pub fn new(operation: IOOperation) -> TraceLogEntry {
         TraceLogEntry {
-            timestamp: unsafe { libc::time(0 as *mut libc::int64_t) },
+            timestamp: Utc::now(),
             operation: operation,
         }
     }
 }
 
+/// Represents an I/O trace log `.trace` file
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IOTraceLog {
+    /// Hash of the `comm` of the process being traced
     hash: String,
+    /// Command name of the process being traced
     comm: String,
+    /// Date and Time (in UTC) this trace log was created at
+    created_at: DateTime<Utc>,
+    /// Map file names to file descriptors used in trace log
     file_map: HashMap<libc::int32_t, String>,
+    /// The I/O trace log, contains all relervant I/O operations
+    /// performed by the process being traced
     trace_log: Vec<TraceLogEntry>,
 }
 
@@ -74,11 +86,14 @@ impl IOTraceLog {
         IOTraceLog {
             hash: String::from(format!("{}", hashval)),
             comm: comm,
+            created_at: Utc::now(),
             file_map: HashMap::new(),
             trace_log: vec![],
         }
     }
 
+    /// Add an I/O operation to the trace log
+    /// Perform neccessary mapping of file descriptors to file name
     pub fn add_event(&mut self, op: IOOperation) {
         let operation = op.clone();
 
@@ -95,6 +110,7 @@ impl IOTraceLog {
         self.trace_log.push(entry);
     }
 
+    /// Write the I/O trace log to disk
     pub fn save(&self, iotrace_dir: &String) -> Result<()> {
         if self.trace_log.len() > 0 {
             let serialized = serde_json::to_string_pretty(&self).unwrap();

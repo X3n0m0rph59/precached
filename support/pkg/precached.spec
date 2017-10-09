@@ -1,6 +1,6 @@
 Name:    precached
 Version: 0.1.0
-Release: 19%{?dist}
+Release: 20%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -31,6 +31,7 @@ memory to speed up loading of programs and increase the perceived overall
 cargo build --release --verbose
 
 %install
+%{__mkdir_p} %{buildroot}%{_mandir}/man1
 %{__mkdir_p} %{buildroot}%{_mandir}/man5
 %{__mkdir_p} %{buildroot}%{_mandir}/man8
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/
@@ -40,13 +41,17 @@ cargo build --release --verbose
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{name}/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{name}/
+cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached-iotrace.1 %{buildroot}/%{_mandir}/man1/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
+cp -a %{_builddir}/%{name}-%{gittag}/support/man/precachedctl.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{gittag}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/
 cp -ra %{_builddir}/%{name}-%{gittag}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
-install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{buildroot}%{_sbindir}/%{name}
+install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{buildroot}%{_sbindir}/precached
+install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/src/bin/precachedctl/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
+install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/src/bin/iotrace/target/release/precached-iotrace %{buildroot}%{_bindir}/precached-iotrace
 
 %post
 %systemd_post %{name}.service
@@ -59,13 +64,17 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{bu
 
 %files
 %license LICENSE
-%doc %{_mandir}/man5/%{name}.conf.5.gz
-%doc %{_mandir}/man8/%{name}.8.gz
+%doc %{_mandir}/man8/precached-iotrace.1.gz
+%doc %{_mandir}/man5/precached.conf.5.gz
+%doc %{_mandir}/man8/precachedctl.8.gz
+%doc %{_mandir}/man8/precached.8.gz
 %dir %{_docdir}/%{name}/examples/
 # %docdir %{_docdir}/%{name}/examples/
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
-%{_sbindir}/%{name}
-%{_unitdir}/%{name}.service
+%{_sbindir}/precached
+%{_sbindir}/precachedctl
+%{_bindir}/precached-iotrace
+%{_unitdir}/precached.service
 %config(noreplace) %{_sysconfdir}/dbus-1/org.precached.precached1.conf
 %{_sharedstatedir}/%{name}/
 %{_sharedstatedir}/%{name}/iotrace/
