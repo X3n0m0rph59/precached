@@ -32,8 +32,9 @@ zstd = "0.4.14"
 dbus = "0.5.4"
 notify-rust = "3"
 
-# [workspace]
-# members = ["src/bin/precachedctl", "src/bin/iotrace"]
+[[bin]]
+name = "precached"
+path = "src/main.rs"
 
 [[bin]]
 name = "precachedctl"
