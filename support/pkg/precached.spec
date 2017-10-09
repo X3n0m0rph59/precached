@@ -64,7 +64,7 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached-iotr
 
 %files
 %license LICENSE
-%doc %{_mandir}/man8/precached-iotrace.1.gz
+%doc %{_mandir}/man1/precached-iotrace.1.gz
 %doc %{_mandir}/man5/precached.conf.5.gz
 %doc %{_mandir}/man8/precachedctl.8.gz
 %doc %{_mandir}/man8/precached.8.gz
