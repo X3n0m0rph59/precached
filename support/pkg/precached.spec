@@ -28,7 +28,7 @@ memory to speed up loading of programs and increase the perceived overall
 %autosetup -n %{name}-%{gittag}
 
 %build
-cargo build --release --verbose
+cargo build --all --release --verbose
 
 %install
 %{__mkdir_p} %{buildroot}%{_mandir}/man1
@@ -50,8 +50,8 @@ cp -a %{_builddir}/%{name}-%{gittag}/support/systemd/precached.service %{buildro
 cp -a %{_builddir}/%{name}-%{gittag}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/
 cp -ra %{_builddir}/%{name}-%{gittag}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
 install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{buildroot}%{_sbindir}/precached
-install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/src/bin/precachedctl/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
-install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/src/bin/iotrace/target/release/precached-iotrace %{buildroot}%{_bindir}/precached-iotrace
+install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
+install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached-iotrace %{buildroot}%{_bindir}/precached-iotrace
 
 %post
 %systemd_post %{name}.service
