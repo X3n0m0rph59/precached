@@ -25,6 +25,7 @@ use manager::*;
 use events;
 use events::EventType;
 use storage;
+use iotrace;
 
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
@@ -49,6 +50,17 @@ pub struct IOtraceLogManager {}
 impl IOtraceLogManager {
     pub fn new() -> IOtraceLogManager {
         IOtraceLogManager {}
+    }
+
+    /// Prunes I/O trace logs that have expired because
+    /// * they are too old
+    pub fn prune_expired_trace_logs(&self) {
+        debug!("Pruning stale I/O trace logs...")
+    }
+
+    // Returns the most recent I/O trace log for `comm`.
+    pub fn get_trace_log_for(&self, comm: &String) -> Result<iotrace::IOTraceLog, &'static str> {
+        Err("Not implemented!")
     }
 }
 

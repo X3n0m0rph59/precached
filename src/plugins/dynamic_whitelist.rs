@@ -124,44 +124,51 @@ impl DynamicWhitelist {
 
         let our_mapped_files = self.mapped_files.clone();
 
-        let thread_pool = util::POOL.try_lock().unwrap();
         let (sender, receiver): (Sender<HashMap<String, util::MemoryMapping>>, _) = channel();
         let sc = Mutex::new(sender.clone());
 
-        thread_pool.submit_work(move || {
-            let mut mapped_files = HashMap::new();
+        match util::POOL.try_lock() {
+            Err(e) => warn!(
+                "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                e
+            ),
+            Ok(thread_pool) => {
+                thread_pool.submit_work(move || {
+                    let mut mapped_files = HashMap::new();
 
-            for (filename, _map_count) in system_mapped_files_histogram.iter() {
-                let f = filename.clone();
-                let f2 = f.clone();
+                    for (filename, _map_count) in system_mapped_files_histogram.iter() {
+                        let f = filename.clone();
+                        let f2 = f.clone();
 
-                // mmap and mlock file, if it is not contained in the blacklist
-                // and if it was not already mapped by some of the plugins
-                if Self::shall_we_map_file(
-                    &filename,
-                    &static_blacklist,
-                    &our_mapped_files,
-                    &static_whitelist,
-                ) {
-                    match util::map_and_lock_file(&f) {
-                        Err(s) => {
-                            error!("Could not cache file '{}': {}", &f, &s);
-                        }
-                        Ok(r) => {
-                            trace!("Successfuly cached file '{}'", &f);
-                            mapped_files.insert(f2, r);
+                        // mmap and mlock file, if it is not contained in the blacklist
+                        // and if it was not already mapped by some of the plugins
+                        if Self::shall_we_map_file(
+                            &filename,
+                            &static_blacklist,
+                            &our_mapped_files,
+                            &static_whitelist,
+                        ) {
+                            match util::map_and_lock_file(&f) {
+                                Err(s) => {
+                                    error!("Could not cache file '{}': {}", &f, &s);
+                                }
+                                Ok(r) => {
+                                    trace!("Successfuly cached file '{}'", &f);
+                                    mapped_files.insert(f2, r);
+                                }
+                            }
                         }
                     }
-                }
+
+                    sc.lock().unwrap().send(mapped_files).unwrap();
+                });
+
+                // blocking call; wait for worker thread
+                self.mapped_files = receiver.recv().unwrap();
+
+                info!("Finished caching of dynamically whitelisted files");
             }
-
-            sc.lock().unwrap().send(mapped_files).unwrap();
-        });
-
-        // blocking call; wait for worker thread
-        self.mapped_files = receiver.recv().unwrap();
-
-        info!("Finished caching of dynamically whitelisted files");
+        }
     }
 
     /// Helper function, that decides if we should subsequently mmap() and mlock() the
@@ -252,44 +259,52 @@ impl DynamicWhitelist {
 
         let our_mapped_files = self.mapped_files.clone();
 
-        let thread_pool = util::POOL.try_lock().unwrap();
         let (sender, receiver): (Sender<HashMap<String, util::MemoryMapping>>, _) = channel();
         let sc = Mutex::new(sender.clone());
 
-        thread_pool.submit_work(move || {
-            let mut mapped_files = HashMap::new();
+        // NOTE: Block here until we have got the lock
+        match util::POOL.lock() {
+            Err(e) => warn!(
+                "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                e
+            ),
+            Ok(thread_pool) => {
+                thread_pool.submit_work(move || {
+                    let mut mapped_files = HashMap::new();
 
-            for (filename, _map_count) in system_mapped_files_histogram.iter() {
-                let f = filename.clone();
-                let f2 = f.clone();
+                    for (filename, _map_count) in system_mapped_files_histogram.iter() {
+                        let f = filename.clone();
+                        let f2 = f.clone();
 
-                // mmap and mlock file, if it is not contained in the blacklist
-                // and if it was not already mapped by some of the plugins
-                if Self::shall_we_map_file(
-                    &filename,
-                    &static_blacklist,
-                    &our_mapped_files,
-                    &static_whitelist,
-                ) {
-                    match util::map_and_lock_file(&f) {
-                        Err(s) => {
-                            error!("Could not cache file '{}': {}", &f, &s);
-                        }
-                        Ok(r) => {
-                            trace!("Successfuly cached file '{}'", &f);
-                            mapped_files.insert(f2, r);
+                        // mmap and mlock file, if it is not contained in the blacklist
+                        // and if it was not already mapped by some of the plugins
+                        if Self::shall_we_map_file(
+                            &filename,
+                            &static_blacklist,
+                            &our_mapped_files,
+                            &static_whitelist,
+                        ) {
+                            match util::map_and_lock_file(&f) {
+                                Err(s) => {
+                                    error!("Could not cache file '{}': {}", &f, &s);
+                                }
+                                Ok(r) => {
+                                    trace!("Successfuly cached file '{}'", &f);
+                                    mapped_files.insert(f2, r);
+                                }
+                            }
                         }
                     }
-                }
+
+                    sc.lock().unwrap().send(mapped_files).unwrap();
+                });
+
+                // blocking call; wait for worker thread
+                self.mapped_files = receiver.recv().unwrap();
+
+                info!("Dynamic whitelist loaded successfuly!");
             }
-
-            sc.lock().unwrap().send(mapped_files).unwrap();
-        });
-
-        // blocking call; wait for worker thread
-        self.mapped_files = receiver.recv().unwrap();
-
-        info!("Dynamic whitelist loaded successfuly!");
+        }
     }
 
     /// Save the dynamic whitelist to the file `dynamic_whitelist.state`.

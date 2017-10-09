@@ -27,9 +27,17 @@ use util;
 use self::regex::*;
 use super::prefault;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Process {
+    /// Holds the `pid` of the process
     pub pid: libc::pid_t,
+
+    /// Holds the `comm` (command name) of the process
+    ///
+    /// NOTE: This is not dynamically fetched, it contains the comm
+    ///       as it had been, when the process was created. If you want the comm as of now,
+    ///       use `Process::get_comm()`.
+    pub comm: String,
 }
 
 /*#[derive(Debug)]
@@ -46,7 +54,10 @@ lazy_static! {
 
 impl Process {
     pub fn new(pid: libc::pid_t) -> Process {
-        Process { pid: pid }
+        let filename = format!("/proc/{}/comm", pid);
+        let comm = &util::get_lines_from_file(&filename).unwrap_or(vec!(String::from("<unknown>")))[0];
+
+        Process { pid: pid, comm: comm.clone() }
     }
 
     pub fn get_mapped_files(&self) -> io::Result<Vec<String>> {

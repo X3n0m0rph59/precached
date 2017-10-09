@@ -109,7 +109,7 @@ impl FtraceLogger {
                                 let mut iotrace_log = &mut tracer_data.get_mut().trace_log;
                                 match event.syscall {
                                     util::SysCall::Open(ref filename, fd) => {
-                                        debug!(
+                                        trace!(
                                             "Process: '{}' with pid {} opened file: {} fd: {}",
                                             comm,
                                             pid,
@@ -120,7 +120,7 @@ impl FtraceLogger {
                                     }
 
                                     util::SysCall::Read(fd) => {
-                                        debug!("Process: '{}' with pid {} read from fd: {}", comm, pid, fd);
+                                        trace!("Process: '{}' with pid {} read from fd: {}", comm, pid, fd);
                                         iotrace_log.add_event(IOOperation::Read(fd));
                                     }
 
@@ -217,7 +217,7 @@ impl FtraceLogger {
                     // We received an "exit" event for a process that we didn't track (or don't track anymore)
                     // This may happen if we noticed the demise of a process that was started before our daemon,
                     // and because of that was not tracked by us
-                    warn!(
+                    trace!(
                         "Spurious exit request received! Process '{}' with pid: {} is not, or no longer being tracked by us",
                         comm,
                         event.pid

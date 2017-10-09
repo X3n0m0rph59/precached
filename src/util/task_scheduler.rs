@@ -24,30 +24,73 @@ use std::sync::Mutex;
 use util;
 
 pub struct TaskScheduler {
-    backlog: Vec<Box<FnOnce() + Sync + Send + 'static>>,
+    /// Jobs that ought to be run in the context of one of the worker threads
+    backlog: Vec<Arc<Box<Fn() + Sync + Send + 'static>>>,
+
+    /// Jobs that ought to be run in the context of the process' main thread
+    main_backlog: Vec<Box<Fn() + Sync + Send + 'static>>,
 }
 
 impl TaskScheduler {
     pub fn new() -> TaskScheduler {
         TaskScheduler {
-            backlog: Vec::<Box<FnOnce() + Sync + Send + 'static>>::new(),
+            main_backlog: Vec::<Box<Fn() + Sync + Send + 'static>>::new(),
+            backlog: Vec::<Arc<Box<Fn() + Sync + Send + 'static>>>::new(),
         }
     }
 
+    /// Schedules a new job, to be run in the context of one of the worker threads
+    /// after the next iteration of the main loop in `main.rs`.
     pub fn schedule_job<F>(&mut self, job: F)
     where
-        F: FnOnce() + Sync + Send + 'static,
+        F: Fn() + Sync + Send + 'static,
     {
-        self.backlog.push(Box::new(job));
+        self.backlog.push(Arc::new(Box::new(job)));
     }
 
-    pub fn run_jobs(&'static self) {
-        let thread_pool = util::POOL.try_lock().unwrap();
-        thread_pool.submit_work(move || {
-            for _j in self.backlog.iter() {
-                // j();
+    /// Schedules a new job, to be run in the context of the process' main thread
+    /// after the next iteration of the main loop in `main.rs`.
+    pub fn run_on_main_thread<F>(&mut self, job: F)
+    where
+        F: Fn() + Sync + Send + 'static,
+    {
+        self.main_backlog.push(Box::new(job));
+    }
+
+    /// Execute the queued jobs in parallel in the context of one of the worker threads,
+    /// and after that run the "special" jobs that have to be executed in the context of
+    /// the process' main thread.
+    ///
+    /// NOTE: This function must not be called from other threads than the process' main thread,
+    ///       otherwise we can't uphold the guarantees made earlier
+    pub fn run_jobs(&mut self) {
+        trace!("Scheduler running queued jobs now...");
+
+        // NOTE: Block here until we have got the lock
+        match util::POOL.lock() {
+            Err(e) => warn!(
+                "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                e
+            ),
+            Ok(thread_pool) => {
+                for j in self.backlog.clone() {
+                    thread_pool.submit_work(move || {
+                        j();
+                    });
+                }
+
+                self.backlog.clear();
             }
-        });
+        }
+
+        // run local backlog on main thread
+        for j in self.main_backlog.iter() {
+            j();
+        }
+
+        self.main_backlog.clear();
+
+        trace!("Scheduler finished running jobs");
     }
 }
 

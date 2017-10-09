@@ -117,7 +117,7 @@ impl hook::Hook for ProcessTracker {
                         self.update_mapped_files_histogram(&v);
 
                         // add process to tracking map
-                        self.get_tracked_processes().insert(event.pid, process);
+                        self.get_tracked_processes().insert(event.pid, process.clone());
                         info!(
                             "Now tracking process '{}' pid: {}",
                             process.get_comm().unwrap_or(String::from("<invalid>")),

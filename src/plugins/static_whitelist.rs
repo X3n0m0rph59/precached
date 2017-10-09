@@ -118,50 +118,57 @@ impl StaticWhitelist {
         let whitelist = self.whitelist.clone();
         let our_mapped_files = self.mapped_files.clone();
 
-        let thread_pool = util::POOL.try_lock().unwrap();
         let (sender, receiver): (Sender<HashMap<String, util::MemoryMapping>>, _) = channel();
         let sc = Mutex::new(sender.clone());
 
-        thread_pool.submit_work(move || {
-            let mut mapped_files = HashMap::new();
+        match util::POOL.try_lock() {
+            Err(e) => warn!(
+                "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                e
+            ),
+            Ok(thread_pool) => {
+                thread_pool.submit_work(move || {
+                    let mut mapped_files = HashMap::new();
 
-            util::walk_directories(&whitelist, &mut |ref path| {
-                // mmap and mlock file, if it is not contained in the blacklist
-                // and if it was not already mapped by some of the plugins
-                let filename = String::from(path.to_string_lossy());
-                let f = filename.clone();
-                let f2 = f.clone();
+                    util::walk_directories(&whitelist, &mut |ref path| {
+                        // mmap and mlock file, if it is not contained in the blacklist
+                        // and if it was not already mapped by some of the plugins
+                        let filename = String::from(path.to_string_lossy());
+                        let f = filename.clone();
+                        let f2 = f.clone();
 
-                if Self::shall_we_map_file(
-                    &filename,
-                    &static_blacklist,
-                    &our_mapped_files,
-                    &dynamic_whitelist,
-                ) {
-                    match util::map_and_lock_file(&f) {
-                        Err(s) => {
-                            error!("Could not cache file '{}': {}", &f, &s);
+                        if Self::shall_we_map_file(
+                            &filename,
+                            &static_blacklist,
+                            &our_mapped_files,
+                            &dynamic_whitelist,
+                        ) {
+                            match util::map_and_lock_file(&f) {
+                                Err(s) => {
+                                    error!("Could not cache file '{}': {}", &f, &s);
+                                }
+                                Ok(r) => {
+                                    trace!("Successfuly cached file '{}'", &f);
+                                    mapped_files.insert(f2, r);
+                                }
+                            }
                         }
-                        Ok(r) => {
-                            trace!("Successfuly cached file '{}'", &f);
-                            mapped_files.insert(f2, r);
-                        }
-                    }
-                }
-            }).unwrap_or_else(|e| {
-                error!(
-                    "Unhandled error occured during processing of files and directories! {}",
-                    e
-                )
-            });
+                    }).unwrap_or_else(|e| {
+                        error!(
+                            "Unhandled error occured during processing of files and directories! {}",
+                            e
+                        )
+                    });
 
-            sc.lock().unwrap().send(mapped_files).unwrap();
-        });
+                    sc.lock().unwrap().send(mapped_files).unwrap();
+                });
 
-        // blocking call; wait for worker thread
-        self.mapped_files = receiver.recv().unwrap();
+                // blocking call; wait for worker thread
+                self.mapped_files = receiver.recv().unwrap();
 
-        info!("Finished caching of statically whitelisted files");
+                info!("Finished caching of statically whitelisted files");
+            }
+        }
     }
 
     fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>, our_mapped_files: &HashMap<String, util::MemoryMapping>, dynamic_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {

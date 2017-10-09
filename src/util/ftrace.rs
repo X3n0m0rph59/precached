@@ -47,7 +47,11 @@ use super::trace_event::*;
 pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 
 lazy_static! {
+    /// Regex used to extract a filename from an ftrace event
     pub static ref REGEX_FILENAME: Regex = Regex::new("getnameprobe(.*?)*?arg1=\"(?P<filename>.*)\"").unwrap();
+
+    /// Regex used to filter out unwanted lines in the ftrace ringbuffer
+    pub static ref REGEX_FILTER: Regex = Regex::new(r"CPU:[[:digit:]]+ \[LOST [[:digit:]]+ EVENTS\]").unwrap();
 }
 
 // static TRACING_DIR:     &'static str = "/sys/kernel/tracing";
@@ -245,7 +249,10 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
         // prune expired tracers
         match hooks::ftrace_logger::ACTIVE_TRACERS.try_lock() {
-            Err(e) => warn!("Could not take a lock on a shared data structure! {}", e),
+            Err(e) => trace!(
+                "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                e
+            ),
             Ok(mut active_tracers) => {
                 check_expired_tracers(&mut active_tracers, &iotrace_dir);
             }
@@ -272,6 +279,11 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             continue;
         }
 
+        // ignore "lost events" events
+        if REGEX_FILTER.is_match(&l) {
+            continue;
+        }
+
         // check validity of parsed data
         let fields: Vec<&str> = l.split_whitespace().collect();
 
@@ -290,8 +302,9 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             match pid_s.parse() {
                 Err(e) => {
                     error!(
-                        "Could not extract the process id from current trace data entry: {}",
-                        e
+                        "Could not extract the process id from current trace data entry: {} Payload: '{}'",
+                        e,
+                        l
                     );
                     continue;
                 }

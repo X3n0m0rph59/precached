@@ -395,7 +395,15 @@ fn main() {
         process_internal_events(&mut globals, &mut manager);
 
         // Let the task scheduler run it's queued jobs
-        // util::SCHEDULER.try_lock().unwrap().run_jobs();
+        match util::SCHEDULER.try_lock() {
+            Err(e) => warn!(
+                "Could not take a lock on the global task scheduler! Postponing work until later. {}",
+                e
+            ),
+            Ok(ref mut scheduler) => {
+                scheduler.run_jobs();
+            }
+        }
 
         if EXIT_NOW.load(Ordering::Relaxed) {
             trace!("Leaving the main loop...");

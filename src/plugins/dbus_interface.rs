@@ -68,7 +68,7 @@ impl ProcessStats {
     fn new(pid: libc::pid_t, process: Process) -> ProcessStats {
         ProcessStats {
             path: format!("/Process/{}", pid).into(),
-            process: process,
+            process: process.clone(),
             comm: process.get_comm().unwrap_or(String::from("<invalid>")),
             pid: pid,
         }
@@ -228,7 +228,7 @@ impl DBUSInterface {
 
                 // populate data
                 for (k, v) in process_tracker_hook.tracked_processes.iter() {
-                    process_stats.push(Arc::new(ProcessStats::new(*k, *v)));
+                    process_stats.push(Arc::new(ProcessStats::new(*k, v.clone())));
                 }
             }
         };

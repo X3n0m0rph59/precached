@@ -56,26 +56,33 @@ impl VFSStatCache {
         VFSStatCache {}
     }
 
-    /// Walk all files and directories from all whitelists, static and dynamic ones
+    /// Walk all files and directories from all whitelists, the static and dynamic ones
     /// and call stat() on them, to prime the kernel's dentry caches
     pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
         trace!("Started reading of statx() metadata...");
 
         let tracked_entries = self.get_globally_tracked_entries(globals, manager);
 
-        let thread_pool = util::POOL.try_lock().unwrap();
-        thread_pool.submit_work(move || {
-            util::walk_directories(&tracked_entries, &mut |ref path| {
-                let _metadata = path.metadata();
-            }).unwrap_or_else(|e| {
-                error!(
-                    "Unhandled error occured during processing of files and directories! {}",
-                    e
-                )
-            });
-        });
+        match util::POOL.try_lock() {
+            Err(e) => warn!(
+                "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                e
+            ),
+            Ok(thread_pool) => {
+                thread_pool.submit_work(move || {
+                    util::walk_directories(&tracked_entries, &mut |ref path| {
+                        let _metadata = path.metadata();
+                    }).unwrap_or_else(|e| {
+                        error!(
+                            "Unhandled error occured during processing of files and directories! {}",
+                            e
+                        )
+                    });
+                });
 
-        info!("Finished reading of statx() metadata");
+                info!("Finished reading of statx() metadata");
+            }
+        }
     }
 
     /// Helper function, that decides if we should subsequently stat() the
