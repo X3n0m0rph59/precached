@@ -28,6 +28,7 @@ use std::fs::OpenOptions;
 use std::io;
 use std::io::BufReader;
 use std::io::prelude::*;
+use std::path;
 use std::path::Path;
 
 pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
@@ -104,6 +105,22 @@ pub fn append(filename: &str, mut text: String) -> io::Result<()> {
     file.write_all(text.into_bytes().as_slice())?;
 
     Ok(())
+}
+
+pub fn remove_file(filename: &str, dry_run: bool) -> io::Result<()> {
+    let path = Path::new(filename);
+
+    trace!("deleting file: '{}'", &filename);
+
+    if !dry_run {
+        fs::remove_file(filename)
+    } else {
+        if let Err(result) = fs::metadata(Path::new(&filename)) {
+            Err(result)
+        } else {
+            Ok(())
+        }
+    }
 }
 
 pub fn is_filename_valid(filename: &String) -> bool {
