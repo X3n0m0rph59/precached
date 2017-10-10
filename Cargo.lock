@@ -7,7 +7,7 @@ dependencies = [
  "bytevec 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.26.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.164 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy 0.0.165 (registry+https://github.com/rust-lang/crates.io-index)",
  "dbus 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "fern 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -31,7 +31,7 @@ dependencies = [
  "term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "threadpool 1.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "zstd 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zstd 0.4.16+zstd.1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -158,16 +158,16 @@ dependencies = [
 
 [[package]]
 name = "clippy"
-version = "0.0.164"
+version = "0.0.165"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cargo_metadata 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy_lints 0.0.164 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy_lints 0.0.165 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "clippy_lints"
-version = "0.0.164"
+version = "0.0.165"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "itertools 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -799,25 +799,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "zstd"
-version = "0.4.14"
+version = "0.4.16+zstd.1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)",
- "zstd-safe 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zstd-safe 1.4.1+zstd.1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "zstd-safe"
-version = "1.3.2"
+version = "1.4.1+zstd.1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)",
- "zstd-sys 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zstd-sys 1.4.1+zstd.1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "zstd-sys"
-version = "1.3.2"
+version = "1.4.1+zstd.1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.54 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -842,8 +842,8 @@ dependencies = [
 "checksum cfg-if 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d4c819a1287eb618df47cc647173c5c4c66ba19d888a6e50d605672aed3140de"
 "checksum chrono 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7c20ebe0b2b08b0aeddba49c609fe7957ba2e33449882cb186a180bc60682fa9"
 "checksum clap 2.26.2 (registry+https://github.com/rust-lang/crates.io-index)" = "3451e409013178663435d6f15fdb212f14ee4424a3d74f979d081d0a66b6f1f2"
-"checksum clippy 0.0.164 (registry+https://github.com/rust-lang/crates.io-index)" = "e0e65e4e7970d79aaa7c729e2e5b0a98d570cb6de0cad02573bfc055231201f5"
-"checksum clippy_lints 0.0.164 (registry+https://github.com/rust-lang/crates.io-index)" = "10dd44eb151418e02e548b9401a11976c0fd68dd17644b4a58a3ab5a96c9ac0f"
+"checksum clippy 0.0.165 (registry+https://github.com/rust-lang/crates.io-index)" = "88f67cdb6697a5d357f8f70cffdf65f4dcb6ec8bb5069f2bc347589b3869cbe8"
+"checksum clippy_lints 0.0.165 (registry+https://github.com/rust-lang/crates.io-index)" = "c8f37194e4a7cb36daeeb5727eac96e32c82965e4ae8b119817885377ddb6715"
 "checksum csv 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7ef22b37c7a51c564a365892c012dc0271221fdcc64c69b19ba4d6fa8bd96d9c"
 "checksum dbghelp-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "97590ba53bcb8ac28279161ca943a924d1fd4a8fb3fa63302591647c4fc5b850"
 "checksum dbus 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "58ec7b4cac6f79f36af1cd9cfdb9b935fc5a4e899f494ee03a3a6165f7d10b4b"
@@ -924,6 +924,6 @@ dependencies = [
 "checksum void 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
 "checksum winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
 "checksum winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
-"checksum zstd 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)" = "ef86037ea3f8b3ae39abafec85081e682cfeac85d2e1f5b8fad7da3774478ab2"
-"checksum zstd-safe 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "9b426dee502356e8f6f37763e01f240c6e91ab8ab7a2f8afbc292d83be8d3d96"
-"checksum zstd-sys 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "3e881d220853f1b29bd60844c9920fdab646c9ae8c865f3cf3741d2923012730"
+"checksum zstd 0.4.16+zstd.1.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "ddc66376e491afad2d2e53ef6bdb8b1db519ca0549bed13fc18f94f998c9999b"
+"checksum zstd-safe 1.4.1+zstd.1.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f9b660a680ef3cb9fbbe6c53fa3220e62d1f870f686174fb08414a33744653f5"
+"checksum zstd-sys 1.4.1+zstd.1.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7f7c5c11a0f81078ad6e5cea2e5a194fb70445adbaa5cf6aa5b702b4639d44de"
