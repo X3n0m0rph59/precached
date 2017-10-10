@@ -5,7 +5,7 @@ authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
 description = "A Linux process monitor and pre-caching daemon"
 repository = "https://github.com/X3n0m0rph59/precached"
 homepage = "https://x3n0m0rph59.github.io/precached/"
-license = "GPL3"
+license = "GPLv3+"
 readme = "README.md"
 
 [dependencies]
@@ -36,6 +36,8 @@ serde_derive = "1.0.15"
 zstd = "0.4.14"
 dbus = "0.5.4"
 notify-rust = "3"
+term = "0.4.6"
+prettytable-rs = "^0.6"
 clippy = { version = "*", optional = true }
 
 [features]

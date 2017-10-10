@@ -27,19 +27,27 @@ extern crate log;
 extern crate nix;
 extern crate pretty_env_logger;
 #[macro_use]
+extern crate prettytable;
+#[macro_use]
 extern crate serde_derive;
+extern crate term;
 extern crate toml;
 extern crate zstd;
 
 use chrono::{DateTime, Utc};
 use clap::{App, AppSettings, Arg, SubCommand};
+use prettytable::Table;
+use prettytable::cell::Cell;
+use prettytable::format;
+use prettytable::row::Row;
 use std::path::Path;
+use term::Attr;
+use term::color::*;
 
 mod util;
 mod process;
 mod iotrace;
 mod constants;
-
 
 /// Runtime configuration for iotracectl
 #[derive(Debug, Clone)]
@@ -60,10 +68,10 @@ impl<'a> Config<'a> {
             .setting(AppSettings::GlobalVersion)
             .setting(AppSettings::DeriveDisplayOrder)
             .arg(
-                Arg::with_name("v")
-                    .short("v")
-                    .multiple(true)
-                    .help("Sets the level of output verbosity"),
+                Arg::with_name("ascii")
+                    .short("a")
+                    .long("ascii")
+                    .help("Produce ASCII output instead of using Unicode"),
             )
             .arg(
                 Arg::with_name("config")
@@ -73,6 +81,12 @@ impl<'a> Config<'a> {
                     .help("The precached config file to use")
                     .default_value(constants::CONFIG_FILE)
                     .takes_value(true),
+            )
+            .arg(
+                Arg::with_name("v")
+                    .short("v")
+                    .multiple(true)
+                    .help("Sets the level of output verbosity"),
             )
             .subcommand(
                 SubCommand::with_name("status")
@@ -94,9 +108,18 @@ impl<'a> Config<'a> {
                     .setting(AppSettings::DeriveDisplayOrder)
                     .about("List all available I/O traces")
                     .arg(
+                        Arg::with_name("tabular")
+                            .long("tabular")
+                            .short("t")
+                            .conflicts_with("full")
+                            .conflicts_with("short")
+                            .help("Use tabular display format"),
+                    )
+                    .arg(
                         Arg::with_name("full")
                             .long("full")
                             .short("f")
+                            .conflicts_with("tabular")
                             .conflicts_with("short")
                             .help("Use full display format"),
                     )
@@ -104,6 +127,7 @@ impl<'a> Config<'a> {
                         Arg::with_name("short")
                             .long("short")
                             .short("s")
+                            .conflicts_with("tabular")
                             .conflicts_with("full")
                             .help("Use short display format"),
                     ),
@@ -174,12 +198,60 @@ under certain conditions.
     );
 }
 
+/// Define a table format using only Unicode character points as
+/// the default output format
+fn default_table_format(config: &Config) -> format::TableFormat {
+    if config.matches.is_present("ascii") {
+        // Use only ASCII characters
+        format::FormatBuilder::new()
+            .column_separator('|')
+            .borders('|')
+            .separator(
+                format::LinePosition::Intern,
+                format::LineSeparator::new('-', '+', '+', '+'),
+            )
+            .separator(
+                format::LinePosition::Title,
+                format::LineSeparator::new('=', '+', '+', '+'),
+            )
+            .separator(
+                format::LinePosition::Bottom,
+                format::LineSeparator::new('-', '+', '+', '+'),
+            )
+            .separator(
+                format::LinePosition::Top,
+                format::LineSeparator::new('-', '+', '+', '+'),
+            )
+            .padding(1, 1)
+            .build()
+    } else {
+        // Use Unicode code points
+        format::FormatBuilder::new()
+            .column_separator('|')
+            .borders('|')
+            .separators(
+                &[format::LinePosition::Top],
+                format::LineSeparator::new('─', '┬', '┌', '┐'),
+            )
+            .separators(
+                &[format::LinePosition::Intern],
+                format::LineSeparator::new('─', '┼', '├', '┤'),
+            )
+            .separators(
+                &[format::LinePosition::Bottom],
+                format::LineSeparator::new('─', '┴', '└', '┘'),
+            )
+            .padding(1, 1)
+            .build()
+    }
+}
+
 /// Returns true if all of the supplied filters match the I/O trace
-fn filter_matches() -> bool {
+fn filter_matches(io_trace: &iotrace::IOTraceLog) -> bool {
     true
 }
 
-fn print_io_trace(io_trace: &iotrace::IOTraceLog, config: &Config) {
+fn print_io_trace(io_trace: &iotrace::IOTraceLog, index: usize, config: &Config, table: &mut Table) {
     let matches = config.matches.subcommand_matches("list").unwrap();
     let flags = vec!["Valid", "Current"];
 
@@ -203,7 +275,7 @@ fn print_io_trace(io_trace: &iotrace::IOTraceLog, config: &Config) {
             io_trace.trace_log.len(),
             flags
         );
-    } else {
+    } else if matches.is_present("short") {
         // Print in "short" format
         println!(
             "Executable:\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\nNum I/O Ops:\t{}\n\
@@ -220,6 +292,27 @@ fn print_io_trace(io_trace: &iotrace::IOTraceLog, config: &Config) {
             io_trace.trace_log.len(),
             flags
         );
+    } else
+    /*if matches.is_present("tabular")*/
+    {
+        // Print in "tabular" format (the default)
+        table.add_row(Row::new(vec![
+            Cell::new(&format!("{}", index)),
+            Cell::new(&io_trace.exe).with_style(Attr::Bold),
+            Cell::new(&io_trace.hash),
+            Cell::new(&io_trace
+                .created_at
+                .format(constants::DATETIME_FORMAT_DEFAULT)
+                .to_string()),
+            Cell::new(&io_trace
+                .trace_stopped_at
+                .format(constants::DATETIME_FORMAT_DEFAULT)
+                .to_string()),
+            Cell::new(&"Zstd"),
+            Cell::new(&format!("{}", io_trace.file_map.len())),
+            Cell::new(&format!("{}", io_trace.trace_log.len())),
+            Cell::new(&format!("{:?}", flags)).with_style(Attr::Italic(true)),
+        ]));
     }
 }
 
@@ -228,14 +321,84 @@ fn io_trace_top() {
     info!("Not implemented!");
 }
 
+fn map_bool_to_color(b: bool) -> Color {
+    if b {
+        GREEN
+    } else {
+        RED
+    }
+}
+
 /// Print the status of the I/O tracing subsystem
-fn print_io_trace_status() {
-    println!("Status of matching I/O tracing:");
+fn print_io_trace_status(config: &Config, daemon_config: util::ConfigFile) {
+    println!("Status of I/O tracing subsystem:");
+
+    let conf = daemon_config.disabled_plugins.unwrap_or(vec![]);
+
+    let ftrace_logger_enabled = !conf.contains(&String::from("ftrace_logger"));
+    // let ptrace_logger_enabled = !conf.contains(&String::from("ptrace_logger"));
+
+    let iotrace_prefetcher_enabled = !conf.contains(&String::from("iotrace_prefetcher"));
+    let iotrace_log_manager_enabled = !conf.contains(&String::from("iotrace_log_manager"));
+
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
+
+    // Add table row header
+    table.add_row(Row::new(vec![
+        Cell::new("Module"),
+        Cell::new("Description"),
+        Cell::new("Type"),
+        Cell::new("Enabled"),
+    ]));
+
+    // Print in "tabular" format (the default)
+    table.add_row(Row::new(vec![
+        Cell::new(&"ftrace based I/O Trace Logger").with_style(Attr::Bold),
+        Cell::new(&"Trace processes using ftrace and log their filesystem activity").with_style(Attr::Italic(true)),
+        Cell::new(&"Hook"),
+        Cell::new(&format!("{}", ftrace_logger_enabled))
+            .with_style(Attr::Bold)
+            .with_style(Attr::ForegroundColor(
+                map_bool_to_color(ftrace_logger_enabled),
+            )),
+    ]));
+
+    // table.add_row(Row::new(vec![
+    //     Cell::new(&"ptrace() I/O Trace Logger (deprecated)").with_style(Attr::Bold),
+    //     Cell::new(&"ptrace() processes and log their filesystem activity").with_style(Attr::Italic(true)),
+    //     Cell::new(&"Hook"),
+    //     Cell::new(&format!("{}", ptrace_logger_enabled)).with_style(Attr::Bold).with_style(Attr::ForegroundColor(map_color(ptrace_logger_enabled))),
+    // ]));
+
+    table.add_row(Row::new(vec![
+        Cell::new(&"I/O Trace Prefetcher").with_style(Attr::Bold),
+        Cell::new(&"Replay file operations previously recorded by an I/O tracer").with_style(Attr::Italic(true)),
+        Cell::new(&"Hook"),
+        Cell::new(&format!("{}", iotrace_prefetcher_enabled))
+            .with_style(Attr::Bold)
+            .with_style(Attr::ForegroundColor(
+                map_bool_to_color(iotrace_prefetcher_enabled),
+            )),
+    ]));
+
+    table.add_row(Row::new(vec![
+        Cell::new(&"I/O Trace Log Manager").with_style(Attr::Bold),
+        Cell::new(&"Manage I/O activity trace log files").with_style(Attr::Italic(true)),
+        Cell::new(&"Plugin"),
+        Cell::new(&format!("{}", iotrace_log_manager_enabled))
+            .with_style(Attr::Bold)
+            .with_style(Attr::ForegroundColor(
+                map_bool_to_color(iotrace_log_manager_enabled),
+            )),
+    ]));
+
+    table.printstd();
 }
 
 /// Enumerate all I/O traces and display them in the specified format
 fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
-    println!("Listing matching I/O traces:\n");
+    println!("Listing of matching I/O traces:\n");
 
     let state_dir = daemon_config
         .state_dir
@@ -247,7 +410,24 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     );
 
     let mut counter = 0;
+    let mut matching = 0;
     let mut errors = 0;
+
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
+
+    // Add table row header
+    table.add_row(Row::new(vec![
+        Cell::new("#"),
+        Cell::new("Executable"),
+        Cell::new("Hash"),
+        Cell::new("Creation Date"),
+        Cell::new("Trace End Date"),
+        Cell::new("Compression"),
+        Cell::new("# Files"),
+        Cell::new("# I/O Ops"),
+        Cell::new("Flags"),
+    ]));
 
     match util::walk_directories(&vec![traces_path], &mut |path| {
         trace!("{:?}", path);
@@ -261,12 +441,16 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         let filename = String::from(path.to_string_lossy());
         match iotrace::IOTraceLog::from_file(&filename) {
             Err(e) => {
-                error!("Corrupted I/O trace, or file not readable: {}", e);
+                error!(
+                    "Skipped corrupted I/O trace file, or file not readable: {}",
+                    e
+                );
                 errors += 1;
             }
-            Ok(io_trace) => {
-                print_io_trace(&io_trace, config);
-            }
+            Ok(io_trace) => if filter_matches(&io_trace) {
+                print_io_trace(&io_trace, counter + 1, config, &mut table);
+                matching += 1;
+            },
         }
 
         counter += 1;
@@ -278,9 +462,15 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     if counter < 1 {
         println!("There are currently no I/O traces available");
     } else {
+        if table.len() > 1 {
+            // Print the generated table to stdout
+            table.printstd();
+        }
+
         println!(
-            "Summary: {} I/O trace files processed, {} errors occured",
+            "\nSummary: {} I/O trace files processed, {} matching filter, {} errors occured",
             counter,
+            matching,
             errors
         );
     }
@@ -362,7 +552,7 @@ fn main() {
     if let Some(command) = config.matches.subcommand_name() {
         match command {
             "status" => {
-                print_io_trace_status();
+                print_io_trace_status(&config, daemon_config);
             }
             "top" => {
                 io_trace_top();

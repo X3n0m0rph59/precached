@@ -18,10 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod files;
-pub mod vec;
-pub mod config_file;
+use std::cmp::PartialEq;
 
-pub use self::config_file::*;
-pub use self::files::*;
-pub use self::vec::*;
+pub trait Contains<T> {
+    fn contains(&self, p: &T) -> bool;
+}
+
+impl<T: PartialEq> Contains<T> for Vec<T> {
+    fn contains(&self, p: &T) -> bool {
+        self.iter().any(|e| e == p)
+    }
+}

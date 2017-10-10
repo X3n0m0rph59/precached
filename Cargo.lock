@@ -20,6 +20,7 @@ dependencies = [
  "nix 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "notify-rust 3.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "pretty_env_logger 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "prettytable-rs 0.6.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "procmon-sys 0.0.2",
  "regex 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.15 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -27,6 +28,7 @@ dependencies = [
  "serde_json 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "sys-info 0.5.2 (git+https://github.com/X3n0m0rph59/sys-info-rs)",
  "syslog 3.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "threadpool 1.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "zstd 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -182,6 +184,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "csv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "byteorder 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "memchr 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "dbghelp-sys"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -216,6 +228,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "either"
 version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "encode_unicode"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -474,6 +491,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "prettytable-rs"
+version = "0.6.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "atty 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "csv 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encode_unicode 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "unicode-width 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "procmon-sys"
 version = "0.0.2"
 dependencies = [
@@ -533,6 +563,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "rustc-demangle"
 version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "rustc-serialize"
+version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -624,6 +659,15 @@ dependencies = [
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)",
  "unix_socket 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "term"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -800,11 +844,13 @@ dependencies = [
 "checksum clap 2.26.2 (registry+https://github.com/rust-lang/crates.io-index)" = "3451e409013178663435d6f15fdb212f14ee4424a3d74f979d081d0a66b6f1f2"
 "checksum clippy 0.0.164 (registry+https://github.com/rust-lang/crates.io-index)" = "e0e65e4e7970d79aaa7c729e2e5b0a98d570cb6de0cad02573bfc055231201f5"
 "checksum clippy_lints 0.0.164 (registry+https://github.com/rust-lang/crates.io-index)" = "10dd44eb151418e02e548b9401a11976c0fd68dd17644b4a58a3ab5a96c9ac0f"
+"checksum csv 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7ef22b37c7a51c564a365892c012dc0271221fdcc64c69b19ba4d6fa8bd96d9c"
 "checksum dbghelp-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "97590ba53bcb8ac28279161ca943a924d1fd4a8fb3fa63302591647c4fc5b850"
 "checksum dbus 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "58ec7b4cac6f79f36af1cd9cfdb9b935fc5a4e899f494ee03a3a6165f7d10b4b"
 "checksum dbus 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)" = "acd824d45fad5ff0e178fcb3c040f13780e73f63a0a6d5cde59e7894f251ab0e"
 "checksum dtoa 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "09c3753c3db574d215cba4ea76018483895d7bff25a31b49ba45db21c48e50ab"
 "checksum either 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "cbee135e9245416869bf52bd6ccc9b59e2482651510784e089b874272f02a252"
+"checksum encode_unicode 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c088ec0ed2282dcd054f2c124c0327f953563e6c75fdc6ff5141779596289830"
 "checksum env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3ddf21e73e016298f5cb37d6ef8e8da8e39f91f9ec8b0df44b7deb16a9f8cd5b"
 "checksum error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d9435d864e017c3c6afeac1654189b06cdb491cf2ff73dbf0d73b0f292f42ff8"
 "checksum fern 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "1f0297637852905c7ce4cefd8d8a6719f6e3cfb22e2e9f0aa0650f4804a6f360"
@@ -838,6 +884,7 @@ dependencies = [
 "checksum objc_id 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e4730aa1c64d722db45f7ccc4113a3e2c465d018de6db4d3e7dfe031e8c8a297"
 "checksum pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)" = "3a8b4c6b8165cd1a1cd4b9b120978131389f64bdaf456435caa41e630edba903"
 "checksum pretty_env_logger 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8a97d1fde8be5bdb2c315277042a39a89b8ca5640c9d8e1a900cc9d906ee5af2"
+"checksum prettytable-rs 0.6.7 (registry+https://github.com/rust-lang/crates.io-index)" = "34dc1f4f6dddab3bf008ecfd4fd2a631b585fbf0af123f34c1324f51a034ff5f"
 "checksum pulldown-cmark 0.0.15 (registry+https://github.com/rust-lang/crates.io-index)" = "378e941dbd392c101f2cb88097fa4d7167bc421d4b88de3ff7dbee503bc3233b"
 "checksum quine-mc_cluskey 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "07589615d719a60c8dd8a4622e7946465dfef20d1a428f969e3443e7386d5f45"
 "checksum quote 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)" = "7a6e920b65c65f10b2ae65c831a81a073a89edd28c7cce89475bff467ab4167a"
@@ -846,6 +893,7 @@ dependencies = [
 "checksum regex 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "1731164734096285ec2a5ec7fea5248ae2f5485b3feeb0115af4fda2183b2d1b"
 "checksum regex-syntax 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "ad890a5eef7953f55427c50575c680c42841653abd2b028b68cd223d157f62db"
 "checksum rustc-demangle 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "aee45432acc62f7b9a108cc054142dac51f979e69e71ddce7d6fc7adf29e817e"
+"checksum rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)" = "dcf128d1287d2ea9d80910b5f1120d0b8eede3fbf1abe91c40d39ea7d51e6fda"
 "checksum semver 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7a3186ec9e65071a2095434b1f5bb24838d4e8e130f584c790f6033c79943537"
 "checksum semver-parser 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 "checksum serde 1.0.15 (registry+https://github.com/rust-lang/crates.io-index)" = "6a7046c9d4c6c522d10b2d098f9bebe2bef227e0e74044d8c1bfcf6b476af799"
@@ -857,6 +905,7 @@ dependencies = [
 "checksum synom 0.11.3 (registry+https://github.com/rust-lang/crates.io-index)" = "a393066ed9010ebaed60b9eafa373d4b1baac186dd7e008555b0f702b51945b6"
 "checksum sys-info 0.5.2 (git+https://github.com/X3n0m0rph59/sys-info-rs)" = "<none>"
 "checksum syslog 3.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bbc9b0acde4f7c05fdc1cfb05239b8a53a66815dd86c67fee5aa9bfac5b4ed42"
+"checksum term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "fa63644f74ce96fbeb9b794f66aff2a52d601cbd5e80f4b97123e3899f4570f1"
 "checksum term_size 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2b6b55df3198cc93372e85dd2ed817f0e38ce8cc0f22eb32391bfad9c4bf209"
 "checksum termion 1.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "689a3bdfaab439fd92bc87df5c4c78417d3cbe537487274e9b0b2dce76e92096"
 "checksum textwrap 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "df8e08afc40ae3459e4838f303e465aa50d823df8d7f83ca88108f6d3afe7edd"
