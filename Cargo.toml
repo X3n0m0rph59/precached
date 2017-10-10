@@ -2,6 +2,11 @@
 name = "precached"
 version = "0.1.0"
 authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
+description = "A Linux process monitor and pre-caching daemon"
+repository = "https://github.com/X3n0m0rph59/precached"
+homepage = "https://x3n0m0rph59.github.io/precached/"
+license = "GPL3"
+readme = "README.md"
 
 [dependencies]
 procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }
@@ -31,6 +36,11 @@ serde_derive = "1.0.15"
 zstd = "0.4.14"
 dbus = "0.5.4"
 notify-rust = "3"
+clippy = { version = "*", optional = true }
+
+[features]
+default = []
+dev = ["clippy"]
 
 [[bin]]
 name = "precached"
@@ -41,5 +51,5 @@ name = "precachedctl"
 path = "src/bin/precachedctl/src/main.rs"
 
 [[bin]]
-name = "precached-iotrace"
-path = "src/bin/iotrace/src/main.rs"
+name = "iotracectl"
+path = "src/bin/iotracectl/src/main.rs"

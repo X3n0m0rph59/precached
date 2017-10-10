@@ -19,5 +19,7 @@
 */
 
 pub mod files;
+pub mod config_file;
 
+pub use self::config_file::*;
 pub use self::files::*;

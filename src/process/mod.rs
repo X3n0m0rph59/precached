@@ -21,5 +21,5 @@
 pub mod process;
 pub mod prefault;
 
-pub use self::process::*;
 pub use self::prefault::*;
+pub use self::process::*;

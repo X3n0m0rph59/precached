@@ -22,16 +22,15 @@ extern crate fnv;
 extern crate libc;
 extern crate serde_json;
 
+use chrono::{DateTime, Utc};
+use constants;
+use process::Process;
+use std::collections::HashMap;
 use std::hash::Hasher;
+use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
-use std::collections::HashMap;
-use chrono::{DateTime, Utc};
-
-use process::Process;
 use util;
-
-use constants;
 
 /// Represents an I/O operation in an I/O trace log entry
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,21 +61,26 @@ impl TraceLogEntry {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IOTraceLog {
     /// Hash of the `comm` of the process being traced
-    hash: String,
+    pub hash: String,
+    /// Name of executable file of the process being traced
+    pub exe: String,
     /// Command name of the process being traced
-    comm: String,
+    pub comm: String,
     /// Date and Time (in UTC) this trace log was created at
-    created_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    /// Date and Time (in UTC) this trace log was stopped
+    pub trace_stopped_at: DateTime<Utc>,
     /// Map file names to file descriptors used in trace log
-    file_map: HashMap<libc::int32_t, String>,
+    pub file_map: HashMap<libc::int32_t, String>,
     /// The I/O trace log, contains all relervant I/O operations
     /// performed by the process being traced
-    trace_log: Vec<TraceLogEntry>,
+    pub trace_log: Vec<TraceLogEntry>,
 }
 
 impl IOTraceLog {
     pub fn new(pid: libc::pid_t) -> IOTraceLog {
         let process = Process::new(pid);
+        let exe = process.get_exe();
         let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
 
         let mut hasher = fnv::FnvHasher::default();
@@ -85,11 +89,31 @@ impl IOTraceLog {
 
         IOTraceLog {
             hash: String::from(format!("{}", hashval)),
+            exe: exe,
             comm: comm,
             created_at: Utc::now(),
+            trace_stopped_at: Utc::now(),
             file_map: HashMap::new(),
             trace_log: vec![],
         }
+    }
+
+    pub fn from_file(filename: &String) -> Result<IOTraceLog> {
+        Self::deserialize(filename)
+    }
+
+    /// De-serialization helper function
+    /// Inflate the file `filename` (that was previously compressed
+    /// with the "Zstd" compressor), convert it into an Unicode UTF-8
+    /// JSON representation, and de-serialize an `IOTraceLog` from
+    /// that JSON representation.
+    fn deserialize(filename: &String) -> Result<IOTraceLog> {
+        let text = util::read_text_file(&filename)?;
+
+        let reader = BufReader::new(text.as_bytes());
+        let deserialized = serde_json::from_reader::<_, IOTraceLog>(reader)?;
+
+        Ok(deserialized)
     }
 
     /// Add an I/O operation to the trace log

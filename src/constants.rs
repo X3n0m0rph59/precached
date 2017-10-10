@@ -25,6 +25,9 @@
     These are default values, maybe they are overridden by external configuration files!
 */
 
+/// Config file, where the daemon's config is located
+pub const CONFIG_FILE: &'static str = "/etc/precached/precached.conf";
+
 /// Default directory where the daemon state shall be saved
 pub const STATE_DIR: &'static str = "/var/lib/precached/";
 
@@ -52,3 +55,7 @@ pub const IO_TRACE_TIME_SECS: u64 = 5;
 
 /// Initial gap width of console log output
 pub const INITIAL_MODULE_WIDTH: usize = 40;
+
+
+/// Default date and time format
+pub const DATETIME_FORMAT_DEFAULT: &'static str = "%Y-%m-%d %H:%M:%S";

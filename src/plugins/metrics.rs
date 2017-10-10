@@ -20,22 +20,17 @@
 
 extern crate sys_info;
 
-use std::any::Any;
-
-use globals::*;
-use manager::*;
-
-use std::time::{Duration, Instant};
-
+use self::sys_info::MemInfo;
 use events;
 use events::EventType;
-use storage;
-
+use globals::*;
+use manager::*;
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
-
-use self::sys_info::MemInfo;
+use std::any::Any;
+use std::time::{Duration, Instant};
+use storage;
 
 static NAME: &str = "metrics";
 static DESCRIPTION: &str = "Gather global performance metrics and make them available to other plugins";

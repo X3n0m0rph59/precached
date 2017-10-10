@@ -21,9 +21,12 @@
 extern crate clap;
 
 use self::clap::{App, Arg};
-
+use constants;
 use storage;
 
+
+/// Holds the global configuration of the daemon, including parsed command line options
+/// and the parsed external text configuration file `/etc/precached/precached.conf`
 #[derive(Debug, Clone)]
 pub struct Config {
     pub verbosity: u8,
@@ -49,7 +52,7 @@ impl Config {
                     .short("c")
                     .long("config")
                     .value_name("file")
-                    .help("Sets the config file")
+                    .help("Location of the configuration file")
                     .takes_value(true),
             )
             .arg(
@@ -64,11 +67,7 @@ impl Config {
         Config {
             verbosity: matches.occurrences_of("v") as u8,
             daemonize: !matches.is_present("foreground"),
-            config_filename: String::from(
-                matches
-                    .value_of("config")
-                    .unwrap_or("/etc/precached/precached.conf"),
-            ),
+            config_filename: String::from(matches.value_of("config").unwrap_or(constants::CONFIG_FILE)),
             config_file: None,
         }
     }

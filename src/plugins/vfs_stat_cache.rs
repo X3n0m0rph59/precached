@@ -18,22 +18,18 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::any::Any;
-
+use events;
 use globals::*;
 use manager::*;
-
-use events;
+use plugins::dynamic_whitelist::DynamicWhitelist;
+use plugins::plugin::Plugin;
+use plugins::plugin::PluginDescription;
+use plugins::static_blacklist::StaticBlacklist;
+use plugins::static_whitelist::StaticWhitelist;
+use std::any::Any;
 use storage;
 use util;
 use util::Contains;
-
-use plugins::static_blacklist::StaticBlacklist;
-use plugins::static_whitelist::StaticWhitelist;
-use plugins::dynamic_whitelist::DynamicWhitelist;
-
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
 
 static NAME: &str = "vfs_stat_cache";
 static DESCRIPTION: &str = "Try to keep file metadata in the kernel caches";

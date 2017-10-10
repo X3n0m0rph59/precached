@@ -18,18 +18,16 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::any::Any;
-use globals::*;
-use manager::*;
-
 use events;
 use events::EventType;
-use storage;
+use globals::*;
 use iotrace;
-
+use manager::*;
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use std::any::Any;
+use storage;
 
 static NAME: &str = "iotrace_log_manager";
 static DESCRIPTION: &str = "Manage I/O activity trace log files";

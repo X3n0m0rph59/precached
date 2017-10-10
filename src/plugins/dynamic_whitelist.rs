@@ -21,33 +21,26 @@
 extern crate serde;
 extern crate serde_json;
 
+use self::serde::Serialize;
+use events;
+use globals::*;
+use globals::Globals;
+use hooks::process_tracker::ProcessTracker;
+use manager::*;
+use plugins::plugin::Plugin;
+use plugins::plugin::PluginDescription;
+use plugins::static_blacklist::StaticBlacklist;
+use plugins::static_whitelist::StaticWhitelist;
+use std::any::Any;
 use std::collections::HashMap;
-
 use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
-use std::any::Any;
 use std::sync::Mutex;
 use std::sync::mpsc::{channel, Sender};
-
-use globals::*;
-use manager::*;
-
-use events;
 use storage;
 use util;
 use util::Contains;
-
-use self::serde::Serialize;
-
-use globals::Globals;
-
-use hooks::process_tracker::ProcessTracker;
-use plugins::static_blacklist::StaticBlacklist;
-use plugins::static_whitelist::StaticWhitelist;
-
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
 
 static NAME: &str = "dynamic_whitelist";
 static DESCRIPTION: &str = "Dynamically whitelist the most often mapped files";

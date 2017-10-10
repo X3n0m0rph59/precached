@@ -18,17 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::rc::Rc;
-use std::cell::RefCell;
-
-use std::collections::HashMap;
-use std::collections::hash_map::Entry::{Occupied, Vacant};
-
+use super::plugin::Plugin;
 use events;
 use globals::*;
 use manager::*;
-
-use super::plugin::Plugin;
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::collections::hash_map::Entry::{Occupied, Vacant};
+use std::rc::Rc;
 
 pub struct PluginManager {
     pub plugins: RefCell<HashMap<String, Rc<RefCell<Box<Plugin>>>>>,

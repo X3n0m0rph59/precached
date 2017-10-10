@@ -21,10 +21,9 @@
 pub mod plugin_manager;
 pub mod plugin;
 
+pub use self::plugin_manager::*;
 use globals::*;
 use manager::*;
-
-pub use self::plugin_manager::*;
 
 pub mod system_agent;
 pub mod vfs_stat_cache;

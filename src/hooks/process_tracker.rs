@@ -20,19 +20,15 @@
 
 extern crate libc;
 
-use std::any::Any;
-use std::collections::HashMap;
-
-use process::Process;
-use procmon;
-
-use globals::*;
-use manager::*;
-
 use events;
 use events::EventType;
-
+use globals::*;
 use hooks::hook;
+use manager::*;
+use process::Process;
+use procmon;
+use std::any::Any;
+use std::collections::HashMap;
 
 static NAME: &str = "process_tracker";
 static DESCRIPTION: &str = "Tracks system-wide process events like fork()/exec() and triggers internal events on them";
@@ -117,7 +113,8 @@ impl hook::Hook for ProcessTracker {
                         self.update_mapped_files_histogram(&v);
 
                         // add process to tracking map
-                        self.get_tracked_processes().insert(event.pid, process.clone());
+                        self.get_tracked_processes()
+                            .insert(event.pid, process.clone());
                         info!(
                             "Now tracking process '{}' pid: {}",
                             process.get_comm().unwrap_or(String::from("<invalid>")),

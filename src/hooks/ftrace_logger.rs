@@ -20,33 +20,26 @@
 
 extern crate libc;
 
-use std::any::Any;
-use std::thread;
-use std::sync::{Arc, Mutex};
-use std::sync::mpsc::{channel, Receiver, Sender};
-use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
-use std::time::{Duration, Instant};
-use std::collections::HashMap;
-use std::collections::hash_map::Entry::{Occupied, Vacant};
-
-use process::Process;
-use procmon;
-
-use iotrace::*;
-
-use globals::*;
-use manager::*;
-
 use constants;
-
 use events;
 use events::EventType;
-
+use globals::*;
+use hooks::hook;
 use iotrace;
+use iotrace::*;
+use manager::*;
+use process::Process;
+use procmon;
+use std::any::Any;
+use std::collections::HashMap;
+use std::collections::hash_map::Entry::{Occupied, Vacant};
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
+use std::sync::mpsc::{channel, Receiver, Sender};
+use std::thread;
+use std::time::{Duration, Instant};
 use util;
 use util::Contains;
-
-use hooks::hook;
 
 static NAME: &str = "ftrace_logger";
 static DESCRIPTION: &str = "Trace processes using ftrace and log their filesystem activity";

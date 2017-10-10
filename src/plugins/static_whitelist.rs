@@ -18,26 +18,21 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use events;
+use globals::*;
+use manager::*;
+use plugins::dynamic_whitelist::DynamicWhitelist;
+use plugins::plugin::Plugin;
+use plugins::plugin::PluginDescription;
+// use hooks::process_tracker::ProcessTracker;
+use plugins::static_blacklist::StaticBlacklist;
 use std::any::Any;
 use std::collections::HashMap;
-
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::mpsc::{channel, Sender};
-
-use globals::*;
-use manager::*;
-
-use events;
 use storage;
 use util;
-
-// use hooks::process_tracker::ProcessTracker;
-use plugins::static_blacklist::StaticBlacklist;
-use plugins::dynamic_whitelist::DynamicWhitelist;
-
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
 
 static NAME: &str = "static_whitelist";
 static DESCRIPTION: &str = "Whitelist files that shall be kept mlock()ed in memory all the time";

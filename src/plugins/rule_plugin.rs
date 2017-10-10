@@ -18,18 +18,15 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::any::Any;
-
+use events;
 use globals::*;
 use manager::*;
-
-use events;
-use storage;
-use util;
-
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use std::any::Any;
+use storage;
+use util;
 
 static NAME: &str = "rule_plugin";
 static DESCRIPTION: &str = "Custom rules plugin for precached";

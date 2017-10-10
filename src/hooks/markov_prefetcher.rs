@@ -20,20 +20,16 @@
 
 extern crate libc;
 
-use std::any::Any;
-use std::sync::mpsc::channel;
-use std::collections::HashMap;
-
-use process::Process;
-use procmon;
-
-use globals::*;
-use manager::*;
-
 use events;
 use events::EventType;
-
+use globals::*;
 use hooks::hook;
+use manager::*;
+use process::Process;
+use procmon;
+use std::any::Any;
+use std::collections::HashMap;
+use std::sync::mpsc::channel;
 
 static NAME: &str = "markov_prefetcher";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built Markov-chain model";

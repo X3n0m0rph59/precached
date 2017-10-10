@@ -25,7 +25,7 @@ extern crate pretty_env_logger;
 
 use clap::{App, Arg, SubCommand};
 
-/// Runtime configuration for precached-iotrace
+/// Runtime configuration for precachedctl
 #[derive(Debug, Clone)]
 pub struct Config<'a> {
     /// The verbosity of text output

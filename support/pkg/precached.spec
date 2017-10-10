@@ -1,6 +1,6 @@
 Name:    precached
 Version: 0.1.0
-Release: 21%{?dist}
+Release: 22%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -41,7 +41,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{name}/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{name}/
-cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached-iotrace.1 %{buildroot}/%{_mandir}/man1/
+cp -a %{_builddir}/%{name}-%{gittag}/support/man/iotracectl.1 %{buildroot}/%{_mandir}/man1/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precachedctl.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
@@ -51,7 +51,7 @@ cp -a %{_builddir}/%{name}-%{gittag}/support/dbus/org.precached.precached1.conf 
 cp -ra %{_builddir}/%{name}-%{gittag}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
 install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
-install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached-iotrace %{buildroot}%{_bindir}/precached-iotrace
+install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/iotracectl %{buildroot}%{_bindir}/iotracectl
 
 %post
 %systemd_post %{name}.service
@@ -64,7 +64,7 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached-iotr
 
 %files
 %license LICENSE
-%doc %{_mandir}/man1/precached-iotrace.1.gz
+%doc %{_mandir}/man1/iotracectl.1.gz
 %doc %{_mandir}/man5/precached.conf.5.gz
 %doc %{_mandir}/man8/precachedctl.8.gz
 %doc %{_mandir}/man8/precached.8.gz
@@ -73,7 +73,7 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached-iotr
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sbindir}/precached
 %{_sbindir}/precachedctl
-%{_bindir}/precached-iotrace
+%{_bindir}/iotracectl
 %{_unitdir}/precached.service
 %config(noreplace) %{_sysconfdir}/dbus-1/org.precached.precached1.conf
 %{_sharedstatedir}/%{name}/

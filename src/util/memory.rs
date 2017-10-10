@@ -21,10 +21,10 @@
 extern crate libc;
 
 use std;
-use std::io::Result;
-use std::fs::File;
-use std::os::unix::io::IntoRawFd;
 use std::ffi::CString;
+use std::fs::File;
+use std::io::Result;
+use std::os::unix::io::IntoRawFd;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryMapping {

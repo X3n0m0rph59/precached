@@ -24,20 +24,17 @@ extern crate libc;
 // use self::notify_rust::Notification;
 // use self::notify_rust::NotificationHint as Hint;
 
-use std::ffi::CString;
-// use std::process::Command;
-
-use std::any::Any;
-use globals::*;
-use manager::*;
-
 use events;
 use events::EventType;
-use storage;
-
+use globals::*;
+use manager::*;
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+// use std::process::Command;
+use std::any::Any;
+use std::ffi::CString;
+use storage;
 
 static NAME: &str = "notifications";
 static DESCRIPTION: &str = "Send notifications to logged in users via DBUS";

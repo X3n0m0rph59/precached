@@ -21,11 +21,9 @@
 extern crate serde;
 extern crate serde_json;
 
-use std::io::Result;
-
 use self::serde::Serialize;
-
 use globals::Globals;
+use std::io::Result;
 use util::write_text_file;
 
 pub fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>

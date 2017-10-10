@@ -20,8 +20,8 @@
 
 extern crate libc;
 
-use std::io::Result;
 use super::trace_event;
+use std::io::Result;
 
 /// Trace process `pid` with ptrace()
 /// NOTE: This is currently only supported on 64bit architectures

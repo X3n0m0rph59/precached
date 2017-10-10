@@ -21,27 +21,24 @@
 extern crate libc;
 extern crate regex;
 
+use self::regex::Regex;
+use super::{append, echo};
+use super::trace_event::*;
+use chrono::{DateTime, Utc};
+use constants;
+use globals::Globals;
+use hooks;
+use iotrace;
+use process::Process;
+use std::collections::HashMap;
+use std::fs::OpenOptions;
 use std::io;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::thread;
 use std::time::{Duration, Instant};
-use std::fs::OpenOptions;
-use std::path::Path;
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
-
-use process::Process;
-
-use globals::Globals;
-use constants;
-use iotrace;
-use hooks;
-
-use self::regex::Regex;
-
-use super::{append, echo};
-use super::trace_event::*;
 
 /// Global 'shall we exit now' flag
 pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -203,6 +200,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
             );
 
             v.trace_time_expired = true;
+            v.trace_log.trace_stopped_at = Utc::now();
 
             match v.trace_log.save(&iotrace_dir) {
                 Err(e) => error!(

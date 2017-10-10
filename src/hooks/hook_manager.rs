@@ -18,19 +18,15 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::rc::Rc;
-use std::cell::RefCell;
-
-use std::collections::HashMap;
-use std::collections::hash_map::Entry::{Occupied, Vacant};
-
+use super::hook::Hook;
 use events;
 use globals::*;
 use manager::*;
-
 use procmon;
-
-use super::hook::Hook;
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::collections::hash_map::Entry::{Occupied, Vacant};
+use std::rc::Rc;
 
 pub struct HookManager {
     hooks: RefCell<HashMap<String, Rc<RefCell<Box<Hook + Sync + Send>>>>>,

@@ -18,17 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::any::Any;
-
+use events;
 use globals::*;
 use manager::*;
-
-use events;
-use storage;
-
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use std::any::Any;
+use storage;
 
 static NAME: &str = "forkbomb_mitigation";
 static DESCRIPTION: &str = "Detect and mitigate fork() bombs";

@@ -18,17 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::any::Any;
-
+use events;
 use globals::*;
 use manager::*;
-
-use events;
-use storage;
-use util;
-
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use std::any::Any;
+use storage;
+use util;
 
 static NAME: &str = "static_blacklist";
 static DESCRIPTION: &str = "Statically blacklist files that shall not be cached";

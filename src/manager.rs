@@ -18,10 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::cell::RefCell;
-
-use plugins::PluginManager;
 use hooks::HookManager;
+use plugins::PluginManager;
+use std::cell::RefCell;
 
 pub struct Manager {
     pub plugin_manager: RefCell<PluginManager>,

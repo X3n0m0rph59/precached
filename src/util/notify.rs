@@ -18,10 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use plugins::notifications::Notifications;
-
 // use globals::*;
 use manager::*;
+use plugins::notifications::Notifications;
 
 /// Send a notification to the primary user's desktop, and output it's text to the daemon log also.
 /// For the desktop notification to work, we need access to the session's DBUS bus.

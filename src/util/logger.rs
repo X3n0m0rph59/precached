@@ -18,11 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::fmt;
-use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
-
 use ansi_term::Color;
 use log::LogLevel;
+use std::fmt;
+use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
 
 pub struct Level {
     pub level: LogLevel,

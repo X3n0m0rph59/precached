@@ -18,11 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::time::Instant;
-
 use globals::*;
-
 use procmon;
+use std::time::Instant;
 
 /// Daemon internal events
 #[derive(Debug, Clone)]

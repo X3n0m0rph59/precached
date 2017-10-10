@@ -18,27 +18,21 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::any::Any;
-use std::collections::HashMap;
-
-use std::sync::Mutex;
-use std::sync::mpsc::{channel, Sender};
-
+use events;
 use globals::*;
 use manager::*;
-
-use events;
-use storage;
-use util;
-
-use procmon;
-
-// use hooks::process_tracker::ProcessTracker;
-use plugins::static_blacklist::StaticBlacklist;
 use plugins::dynamic_whitelist::DynamicWhitelist;
-
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+// use hooks::process_tracker::ProcessTracker;
+use plugins::static_blacklist::StaticBlacklist;
+use procmon;
+use std::any::Any;
+use std::collections::HashMap;
+use std::sync::Mutex;
+use std::sync::mpsc::{channel, Sender};
+use storage;
+use util;
 
 static NAME: &str = "markov_log_manager";
 static DESCRIPTION: &str = "Manages state-files used by the 'Markov-chain Prefetcher' hook";

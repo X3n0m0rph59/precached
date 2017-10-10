@@ -21,26 +21,22 @@
 extern crate dbus;
 extern crate libc;
 
-use std::any::Any;
-use std::sync::Arc;
-use std::sync::mpsc;
-use std::result::Result;
 use self::dbus::{tree, BusType, Connection, Path};
 use self::dbus::tree::{Access, EmitsChangedSignal, Interface, MTFn, MethodErr, Signal};
-
-use process::*;
-use globals::*;
-use manager::*;
-
 use events;
 use events::EventType;
-use storage;
-
-use procmon;
-
+use globals::*;
 use hooks::process_tracker::*;
+use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use process::*;
+use procmon;
+use std::any::Any;
+use std::result::Result;
+use std::sync::Arc;
+use std::sync::mpsc;
+use storage;
 
 static NAME: &str = "dbus_interface";
 static DESCRIPTION: &str = "Provide a DBUS interface to control precached from other programs";

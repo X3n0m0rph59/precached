@@ -18,9 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use globals::*;
+extern crate toml;
+
 use std::io;
-use toml;
 use util;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -36,6 +36,8 @@ pub struct ConfigFile {
 
 impl Default for ConfigFile {
     fn default() -> Self {
+        warn!("Using built-in default configuration values!");
+
         ConfigFile {
             user: Some(String::from("root")),
             group: Some(String::from("root")),
@@ -48,32 +50,23 @@ impl Default for ConfigFile {
     }
 }
 
-pub fn parse_config_file(globals: &mut Globals) -> io::Result<()> {
-    let input = util::get_lines_from_file(&globals.config.config_filename)?;
+impl ConfigFile {
+    pub fn from_file(filename: &String) -> io::Result<ConfigFile> {
+        let input = util::get_lines_from_file(&filename)?;
 
-    let mut s = String::new();
-    for l in input {
-        s += &l;
-        s += &"\n";
+        let mut s = String::new();
+        for l in input {
+            s += &l;
+            s += &"\n";
+        }
+
+        // TODO: Implement field validation
+        let result: ConfigFile = toml::from_str(&s).unwrap();
+
+        Ok(result)
     }
 
-    // TODO: Implement field validation
-    let config_file: ConfigFile = match toml::from_str(&s) {
-        Err(_) => ConfigFile::default(),
-        Ok(res) => res,
-    };
-
-    globals.config.config_file = Some(config_file);
-
-    Ok(())
-}
-
-pub fn get_disabled_plugins(globals: &mut Globals) -> Vec<String> {
-    globals
-        .config
-        .config_file
-        .clone()
-        .unwrap_or_default()
-        .disabled_plugins
-        .unwrap_or_default()
+    pub fn get_disabled_plugins(&self) -> Vec<String> {
+        self.disabled_plugins.clone().unwrap_or_default()
+    }
 }

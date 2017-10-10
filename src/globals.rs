@@ -18,10 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::collections::LinkedList;
-
-use events;
 use config::Config;
+use events;
+use std::collections::LinkedList;
 
 /// Global system state
 #[derive(Debug, Clone)]

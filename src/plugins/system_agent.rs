@@ -18,18 +18,15 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::any::Any;
-
-use globals::*;
-use manager::*;
-
 use events;
 use events::EventType;
-use storage;
-
+use globals::*;
+use manager::*;
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use std::any::Any;
+use storage;
 
 static NAME: &str = "system_agent";
 static DESCRIPTION: &str = "Analyzes your system and recommends a configuration that is best suited";

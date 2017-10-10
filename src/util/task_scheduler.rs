@@ -20,7 +20,6 @@
 
 use std::sync::Arc;
 use std::sync::Mutex;
-
 use util;
 
 pub struct TaskScheduler {

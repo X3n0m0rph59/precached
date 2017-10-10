@@ -21,10 +21,9 @@
 mod hook_manager;
 mod hook;
 
+pub use self::hook_manager::*;
 use globals::*;
 use manager::*;
-
-pub use self::hook_manager::*;
 
 pub mod process_tracker;
 // pub mod ptrace_logger;

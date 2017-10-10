@@ -25,6 +25,8 @@
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system
 
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 #![allow(dead_code)]
 
 extern crate ansi_term;
@@ -43,13 +45,13 @@ extern crate syslog;
 extern crate nix;
 extern crate toml;
 
+use ansi_term::Style;
+use nix::sys::signal;
 use std::io;
-use std::thread;
-use std::time::{Duration, Instant};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::channel;
-use nix::sys::signal;
-use ansi_term::Style;
+use std::thread;
+use std::time::{Duration, Instant};
 use syslog::Facility;
 
 mod constants;
