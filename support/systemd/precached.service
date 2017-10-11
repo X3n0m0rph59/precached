@@ -6,6 +6,7 @@ Documentation=man:precached(8) man:precached.conf(5)
 Environment=RUST_LOG=debug RUST_BACKTRACE=1
 ExecStart=/usr/sbin/precached -c /etc/precached/precached.conf
 ExecReload=/usr/sbin/precachedctl reload
+PIDFile=/run/precached.pid
 Type=forking
 Restart=always
 LimitAS=infinity
