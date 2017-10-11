@@ -62,9 +62,7 @@ pub struct DynamicWhitelist {
 
 impl DynamicWhitelist {
     pub fn new() -> DynamicWhitelist {
-        DynamicWhitelist {
-            mapped_files: HashMap::new(),
-        }
+        DynamicWhitelist { mapped_files: HashMap::new() }
     }
 
     /// Cache files from the dynamic whitelist, if they are not already cached in memory
@@ -121,10 +119,12 @@ impl DynamicWhitelist {
         let sc = Mutex::new(sender.clone());
 
         match util::POOL.try_lock() {
-            Err(e) => warn!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
+            Err(e) => {
+                warn!(
+                    "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                    e
+                )
+            }
             Ok(thread_pool) => {
                 thread_pool.submit_work(move || {
                     let mut mapped_files = HashMap::new();
@@ -140,7 +140,8 @@ impl DynamicWhitelist {
                             &static_blacklist,
                             &our_mapped_files,
                             &static_whitelist,
-                        ) {
+                        )
+                        {
                             match util::map_and_lock_file(&f) {
                                 Err(s) => {
                                     error!("Could not cache file '{}': {}", &f, &s);
@@ -257,10 +258,12 @@ impl DynamicWhitelist {
 
         // NOTE: Block here until we have got the lock
         match util::POOL.lock() {
-            Err(e) => warn!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
+            Err(e) => {
+                warn!(
+                    "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                    e
+                )
+            }
             Ok(thread_pool) => {
                 thread_pool.submit_work(move || {
                     let mut mapped_files = HashMap::new();
@@ -276,7 +279,8 @@ impl DynamicWhitelist {
                             &static_blacklist,
                             &our_mapped_files,
                             &static_whitelist,
-                        ) {
+                        )
+                        {
                             match util::map_and_lock_file(&f) {
                                 Err(s) => {
                                     error!("Could not cache file '{}': {}", &f, &s);
@@ -404,7 +408,8 @@ impl Plugin for DynamicWhitelist {
                 self.save_dynamic_whitelist_state(globals, manager);
             }
             events::EventType::ConfigurationReloaded => {}
-            events::EventType::PrimeCaches | events::EventType::FreeMemoryLowWatermark => {
+            events::EventType::PrimeCaches |
+            events::EventType::FreeMemoryLowWatermark => {
                 // Re-load the dynamic whitelist either if the external text configuration
                 // has been changed, or if we have enough free memory again that we should
                 // fill it up with cached data

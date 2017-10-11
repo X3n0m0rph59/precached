@@ -67,15 +67,15 @@ impl TaskScheduler {
 
         // NOTE: Block here until we have got the lock
         match util::POOL.lock() {
-            Err(e) => warn!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
+            Err(e) => {
+                warn!(
+                    "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                    e
+                )
+            }
             Ok(thread_pool) => {
                 for j in self.backlog.clone() {
-                    thread_pool.submit_work(move || {
-                        j();
-                    });
+                    thread_pool.submit_work(move || { j(); });
                 }
 
                 self.backlog.clear();

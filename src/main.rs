@@ -214,9 +214,7 @@ fn setup_logging() -> Result<(), fern::InitError> {
 
             out.finish(format_args!(
                 "{}:{}: {}",
-                util::Level {
-                    level: record.level(),
-                },
+                util::Level { level: record.level() },
                 Style::new().bold().paint(module_path),
                 record.args()
             ));
@@ -398,10 +396,12 @@ fn main() {
 
         // Let the task scheduler run it's queued jobs
         match util::SCHEDULER.try_lock() {
-            Err(e) => warn!(
-                "Could not take a lock on the global task scheduler! Postponing work until later. {}",
-                e
-            ),
+            Err(e) => {
+                warn!(
+                    "Could not take a lock on the global task scheduler! Postponing work until later. {}",
+                    e
+                )
+            }
             Ok(ref mut scheduler) => {
                 scheduler.run_jobs();
             }

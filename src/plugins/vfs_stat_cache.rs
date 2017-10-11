@@ -60,10 +60,12 @@ impl VFSStatCache {
         let tracked_entries = self.get_globally_tracked_entries(globals, manager);
 
         match util::POOL.try_lock() {
-            Err(e) => warn!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
+            Err(e) => {
+                warn!(
+                    "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                    e
+                )
+            }
             Ok(thread_pool) => {
                 thread_pool.submit_work(move || {
                     util::walk_directories(&tracked_entries, &mut |ref path| {

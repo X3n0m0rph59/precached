@@ -117,10 +117,12 @@ impl StaticWhitelist {
         let sc = Mutex::new(sender.clone());
 
         match util::POOL.try_lock() {
-            Err(e) => warn!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
+            Err(e) => {
+                warn!(
+                    "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                    e
+                )
+            }
             Ok(thread_pool) => {
                 thread_pool.submit_work(move || {
                     let mut mapped_files = HashMap::new();
@@ -137,7 +139,8 @@ impl StaticWhitelist {
                             &static_blacklist,
                             &our_mapped_files,
                             &dynamic_whitelist,
-                        ) {
+                        )
+                        {
                             match util::map_and_lock_file(&f) {
                                 Err(s) => {
                                     error!("Could not cache file '{}': {}", &f, &s);

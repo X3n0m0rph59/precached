@@ -41,12 +41,9 @@ impl Config {
             .version("0.1.0")
             .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
             .about("A Linux process monitor and pre-caching daemon")
-            .arg(
-                Arg::with_name("v")
-                    .short("v")
-                    .multiple(true)
-                    .help("Sets the level of log verbosity"),
-            )
+            .arg(Arg::with_name("v").short("v").multiple(true).help(
+                "Sets the level of log verbosity",
+            ))
             .arg(
                 Arg::with_name("config")
                     .short("c")

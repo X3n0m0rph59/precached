@@ -47,9 +47,7 @@ pub struct StaticBlacklist {
 
 impl StaticBlacklist {
     pub fn new(globals: &Globals) -> StaticBlacklist {
-        StaticBlacklist {
-            blacklist: Box::new(StaticBlacklist::get_file_blacklist(globals)),
-        }
+        StaticBlacklist { blacklist: Box::new(StaticBlacklist::get_file_blacklist(globals)) }
     }
 
     fn get_file_blacklist(globals: &Globals) -> Vec<String> {

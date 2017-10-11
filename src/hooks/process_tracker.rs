@@ -69,9 +69,9 @@ impl ProcessTracker {
 
     pub fn update_mapped_files_histogram(&mut self, files: &Vec<String>) {
         for f in files {
-            let counter = self.mapped_files_histogram
-                .entry(f.to_string())
-                .or_insert(0);
+            let counter = self.mapped_files_histogram.entry(f.to_string()).or_insert(
+                0,
+            );
             *counter += 1;
         }
     }
@@ -113,8 +113,10 @@ impl hook::Hook for ProcessTracker {
                         self.update_mapped_files_histogram(&v);
 
                         // add process to tracking map
-                        self.get_tracked_processes()
-                            .insert(event.pid, process.clone());
+                        self.get_tracked_processes().insert(
+                            event.pid,
+                            process.clone(),
+                        );
                         info!(
                             "Now tracking process '{}' pid: {}",
                             process.get_comm().unwrap_or(String::from("<invalid>")),

@@ -33,9 +33,7 @@ pub struct PluginManager {
 
 impl PluginManager {
     pub fn new() -> PluginManager {
-        PluginManager {
-            plugins: RefCell::new(HashMap::new()),
-        }
+        PluginManager { plugins: RefCell::new(HashMap::new()) }
     }
 
     pub fn register_plugin(&self, mut plugin: Box<Plugin>) {
