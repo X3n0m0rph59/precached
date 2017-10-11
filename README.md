@@ -17,7 +17,7 @@ memory to speed up loading of programs and increase the perceived overall
     $ sudo systemctl enable --now precached
 ```
 
-#### Install From Source
+#### Install from Source
 
 ```
     $ git clone https://github.com/X3n0m0rph59/precached.git  
