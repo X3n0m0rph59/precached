@@ -1,4 +1,12 @@
 theme: jekyll-theme-architect
 name: precached
 show_downloads: true
+github:
+  private: false
+  license:
+    name: GPLv3+
+  source:
+    branch: "master"
+    path: "/"
+  repository_url: "https://github.com/X3n0m0rph59/precached"
 description: A Linux process monitor and pre-caching daemon
