@@ -180,9 +180,18 @@ impl<'a, 'b> Config<'a, 'b> {
                     .alias("delete")
                     .about("Remove I/O trace")
                     .arg(
-                        Arg::with_name("long")
-                            .short("l")
-                            .help("Use long display format"),
+                        Arg::with_name("hash")
+                            .long("hash")
+                            .short("p")
+                            .takes_value(true)
+                            .required(true)
+                            .help("The hash of the I/O trace to display"),
+                    )
+                    .arg(
+                        Arg::with_name("dryrun")
+                            .long("dry-run")
+                            .short("n")
+                            .help("Do not remove anything, just pretend to"),
                     ),
             )
             .subcommand(
@@ -359,7 +368,7 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
 }
 
 /// Top/Htop like display of the I/O tracing subsystem
-fn io_trace_top() {
+fn io_trace_top(config: &Config, daemon_config: util::ConfigFile) {
     info!("Not implemented!");
 }
 
@@ -591,13 +600,100 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
 }
 
 /// Dump the raw I/O trace data
-fn dump_io_traces() {
+fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     println!("I/O trace dump:");
 }
 
 /// Remove I/O traces
-fn remove_io_traces() {
-    trace!("Remove I/O traces...");
+fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
+    let state_dir = daemon_config
+        .state_dir
+        .unwrap_or(String::from(constants::STATE_DIR));
+    let traces_path = String::from(
+        Path::new(&state_dir)
+            .join(Path::new(&constants::IOTRACE_DIR))
+            .to_string_lossy(),
+    );
+
+    let mut counter = 0;
+    let mut matching = 0;
+    let mut errors = 0;
+
+    let hash = config
+        .matches
+        .subcommand_matches("remove")
+        .unwrap()
+        .value_of("hash")
+        .unwrap();
+
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
+
+    let p = Path::new(&traces_path).join(Path::new(&format!("{}.trace", hash)));
+    let filename = String::from(p.to_string_lossy());
+
+    let mut errors = 0;
+    let mut matching = 0;
+
+    let dry_run = config
+        .matches
+        .subcommand_matches("remove")
+        .unwrap()
+        .is_present("dryrun");
+
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
+
+    // Add table row header
+    table.add_row(Row::new(vec![
+        Cell::new("#"),
+        Cell::new("Trace"),
+        Cell::new("Status"),
+    ]));
+
+
+    match util::remove_file(&filename, dry_run) {
+        Err(_) => {
+            // Print in "tabular" format (the default)
+            table.add_row(Row::new(vec![
+                Cell::new(&format!("{}", counter + 1)),
+                Cell::new(&filename).with_style(Attr::Bold),
+                Cell::new(&"error")
+                    .with_style(Attr::Bold)
+                    .with_style(Attr::ForegroundColor(RED)),
+            ]));
+            errors += 1;
+        }
+        Ok(_) => {
+            // Print in "tabular" format (the default)
+            table.add_row(Row::new(vec![
+                Cell::new(&format!("{}", counter + 1)),
+                Cell::new(&filename).with_style(Attr::Bold),
+                Cell::new(&"removed")
+                    .with_style(Attr::Bold)
+                    .with_style(Attr::ForegroundColor(GREEN)),
+            ]));
+            matching += 1;
+        }
+    }
+
+    table.printstd();
+
+    if dry_run {
+        println!(
+            "\nSummary: {} I/O trace files would have been removed, {} matching filter, {} errors occured",
+            matching,
+            matching,
+            errors
+        );
+    } else {
+        println!(
+            "\nSummary: {} I/O trace files removed, {} matching filter, {} errors occured",
+            matching,
+            matching,
+            errors
+        );
+    }
 }
 
 /// Remove all I/O traces and reset precached I/O tracing to defaults
@@ -698,7 +794,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
 /// Verify that I/O tracing works as expected
 /// Test all parts of the system
-fn perform_tracing_test() {
+fn perform_tracing_test(config: &Config, daemon_config: util::ConfigFile) {
     trace!("Performing I/O tracing test...");
 
     // TODO:
@@ -767,7 +863,7 @@ fn main() {
                 print_io_trace_status(&config, daemon_config);
             }
             "top" => {
-                io_trace_top();
+                io_trace_top(&config, daemon_config.clone());
             }
             "list" => {
                 list_io_traces(&config, daemon_config.clone());
@@ -776,10 +872,10 @@ fn main() {
                 print_info_about_io_traces(&config, daemon_config.clone());
             }
             "dump" => {
-                dump_io_traces();
+                dump_io_traces(&config, daemon_config.clone());
             }
             "remove" | "delete" => {
-                remove_io_traces();
+                remove_io_traces(&config, daemon_config.clone());
             }
             "clear" => {
                 clear_io_traces(&config, daemon_config.clone());
@@ -788,7 +884,7 @@ fn main() {
                 print_help(&mut config_c);
             }
             "test-tracing" => {
-                perform_tracing_test();
+                perform_tracing_test(&config, daemon_config.clone());
             }
             &_ => {
                 print_usage(&mut config_c);
