@@ -63,7 +63,7 @@ impl Config {
 
         Config {
             verbosity: matches.occurrences_of("v") as u8,
-            daemonize: !matches.is_present("foreground"),
+            daemonize: matches.value_of("foreground").unwrap() == "true",
             config_filename: String::from(matches.value_of("config").unwrap_or(constants::CONFIG_FILE)),
             config_file: None,
         }

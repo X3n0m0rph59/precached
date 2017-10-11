@@ -35,6 +35,8 @@ extern crate fern;
 
 extern crate env_logger;
 #[macro_use]
+extern crate daemonize;
+#[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
@@ -82,6 +84,12 @@ static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 /// Global 'reload of daemon config pending' flag
 static RELOAD_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 
+/// Global 'SIG_USR1 received' flag
+static SIG_USR1: AtomicBool = ATOMIC_BOOL_INIT;
+
+/// Global 'SIG_USR2 received' flag
+static SIG_USR2: AtomicBool = ATOMIC_BOOL_INIT;
+
 
 /// Signal handler for SIGINT and SIGTERM
 extern "C" fn exit_signal(_: i32) {
@@ -93,8 +101,19 @@ extern "C" fn reload_signal(_: i32) {
     RELOAD_NOW.store(true, Ordering::Relaxed);
 }
 
+/// Signal handler for SIGUSR1
+extern "C" fn usr1_signal(_: i32) {
+    SIG_USR1.store(true, Ordering::Relaxed);
+}
+
+/// Signal handler for SIGUSR2
+extern "C" fn usr2_signal(_: i32) {
+    SIG_USR2.store(true, Ordering::Relaxed);
+}
+
 /// Set up signal handlers
 fn setup_signal_handlers() {
+    // SIGINT and SIGTERM
     let sig_action = signal::SigAction::new(
         signal::SigHandler::Handler(exit_signal),
         signal::SaFlags::empty(),
@@ -110,6 +129,7 @@ fn setup_signal_handlers() {
         signal::sigaction(signal::SIGTERM, &sig_action);
     }
 
+    // SIGHUP
     let sig_action = signal::SigAction::new(
         signal::SigHandler::Handler(reload_signal),
         signal::SaFlags::empty(),
@@ -119,6 +139,42 @@ fn setup_signal_handlers() {
     #[allow(unused_must_use)]
     unsafe {
         signal::sigaction(signal::SIGHUP, &sig_action);
+    }
+
+    // SIGUSR1
+    let sig_action = signal::SigAction::new(
+        signal::SigHandler::Handler(usr1_signal),
+        signal::SaFlags::empty(),
+        signal::SigSet::empty(),
+    );
+
+    #[allow(unused_must_use)]
+    unsafe {
+        signal::sigaction(signal::SIGUSR1, &sig_action);
+    }
+
+    // SIGUSR2
+    let sig_action = signal::SigAction::new(
+        signal::SigHandler::Handler(usr2_signal),
+        signal::SaFlags::empty(),
+        signal::SigSet::empty(),
+    );
+
+    #[allow(unused_must_use)]
+    unsafe {
+        signal::sigaction(signal::SIGUSR2, &sig_action);
+    }
+
+    // Ignore SIGPIPE
+    let sig_action = signal::SigAction::new(
+        signal::SigHandler::SigIgn,
+        signal::SaFlags::empty(),
+        signal::SigSet::empty(),
+    );
+
+    #[allow(unused_must_use)]
+    unsafe {
+        signal::sigaction(signal::SIGPIPE, &sig_action);
     }
 }
 
@@ -256,7 +312,7 @@ fn main() {
         print_license_header();
     }
 
-    // Construct system global state
+    // Construct system global state (and parse command line)
     let mut globals = Globals::new();
     let mut manager = Manager::new();
 
@@ -286,6 +342,14 @@ fn main() {
         Err(s) => {
             error!("System configuration FAILED: {}", s);
             return;
+        }
+    }
+
+    // Become a daemon now, if not otherwise specified
+    if globals.config.daemonize {
+        match util::daemonize(&globals) {
+            Err(e) => { error!("Could not become a daemon: {}", e) }
+            Ok(()) => { info!("Daemonized successfuly!") }
         }
     }
 
@@ -374,6 +438,24 @@ fn main() {
             }
         }
 
+        // Check if we received a SIGUSR1 signal
+        if SIG_USR1.load(Ordering::Relaxed) {
+            SIG_USR1.store(false, Ordering::Relaxed);
+            warn!("Received SIGUSR1: Triggering housekeeping tasks now...");
+
+            // Queue event
+            events::queue_internal_event(EventType::DoHousekeeping, &mut globals);
+        }
+
+        // Check if we received a SIGUSR2 signal
+        if SIG_USR2.load(Ordering::Relaxed) {
+            SIG_USR2.store(false, Ordering::Relaxed);
+            warn!("Received SIGUSR2: This signal is currently not mapped to a function! Ignoring...");
+
+            // Queue event
+            // events::queue_internal_event(EventType::DoHousekeeping, &mut globals);
+        }
+
         // NOTE: This is currently unused
         // Allow plugins to integrate into the main loop
         // plugins::call_main_loop_hook(&mut globals, &mut manager);
@@ -386,13 +468,15 @@ fn main() {
             events::queue_internal_event(EventType::GatherStatsAndMetrics, &mut globals);
         }
 
-        // Dispatch events
+        // Dispatch procmon events
         match event {
             Some(e) => process_procmon_event(&e, &mut globals, &mut manager),
             None => { /* We woke up because of a timeout, just do nothing */ }
         };
 
+        // Dispatch daemon internal events
         process_internal_events(&mut globals, &mut manager);
+
 
         // Let the task scheduler run it's queued jobs
         match util::SCHEDULER.try_lock() {
@@ -436,5 +520,5 @@ fn main() {
     plugins::unregister_plugins(&mut globals, &mut manager);
     hooks::unregister_hooks(&mut globals, &mut manager);
 
-    info!("Exiting now.");
+    info!("Exiting now");
 }

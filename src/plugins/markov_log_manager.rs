@@ -51,11 +51,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct MarkovLogManager {}
 
 impl MarkovLogManager {
-    pub fn new(globals: &Globals) -> MarkovLogManager {
+    pub fn new(_globals: &Globals) -> MarkovLogManager {
         MarkovLogManager {}
     }
 
-    pub fn cache_files(&mut self, event: &procmon::Event, globals: &Globals, manager: &Manager) {
+    pub fn cache_files(&mut self, _event: &procmon::Event, _globals: &Globals, _manager: &Manager) {
         trace!("Started caching of files based on dynamic Markov-chain model...");
 
         // TODO: Implement this!

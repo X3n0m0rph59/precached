@@ -18,30 +18,19 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod vec;
-pub mod daemon;
-pub mod files;
-pub mod memory;
-pub mod system;
-pub mod trace_event;
-pub mod notify;
-pub mod ptrace;
-pub mod ftrace;
-pub mod iotrace;
-pub mod logger;
-pub mod thread_pool;
-pub mod task_scheduler;
+extern crate daemonize;
 
-pub use self::files::*;
-pub use self::daemon::*;
-pub use self::ftrace::*;
-pub use self::iotrace::*;
-pub use self::logger::*;
-pub use self::memory::*;
-pub use self::notify::*;
-pub use self::ptrace::*;
-pub use self::system::*;
-pub use self::task_scheduler::*;
-pub use self::thread_pool::*;
-pub use self::trace_event::*;
-pub use self::vec::*;
+use globals;
+use daemonize::{Daemonize, DaemonizeError};
+
+pub fn daemonize(config: &globals::Globals) -> Result<(), DaemonizeError> {
+    let daemonize = Daemonize::new()
+        .pid_file("/run/precached.pid") // Every method except `new` and `start`
+        .chown_pid_file(true)      // is optional, see `Daemonize` documentation
+        .working_directory("/tmp") // for default behaviour.
+        .user("root")
+        .group("root");
+        // .privileged_action(|| "Executed before drop privileges");
+
+     daemonize.start()
+}

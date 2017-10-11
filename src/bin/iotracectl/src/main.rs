@@ -253,7 +253,7 @@ fn default_table_format(config: &Config) -> format::TableFormat {
                 format::LinePosition::Top,
                 format::LineSeparator::new('-', '+', '+', '+'),
             )
-            .padding(1, 1)
+            .padding(0, 0)
             .build()
     } else {
         // Use Unicode code points
@@ -272,7 +272,7 @@ fn default_table_format(config: &Config) -> format::TableFormat {
                 &[format::LinePosition::Bottom],
                 format::LineSeparator::new('─', '┴', '└', '┘'),
             )
-            .padding(1, 1)
+            .padding(0, 0)
             .build()
     }
 }

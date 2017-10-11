@@ -86,6 +86,12 @@ impl<'a, 'b> Config<'a, 'b> {
                     .about("Reload external configuration of the precached daemon"),
             )
             .subcommand(
+                SubCommand::with_name("housekeeping")
+                    .setting(AppSettings::DeriveDisplayOrder)
+                    .alias("do-housekeeping")
+                    .about("Instruct precached daemon to commence housekeeping tasks now"),
+            )
+            .subcommand(
                 SubCommand::with_name("help")
                     .setting(AppSettings::DeriveDisplayOrder)
                     .about("Display this short help text"),
@@ -167,6 +173,9 @@ fn print_status(config: &Config, daemon_config: util::ConfigFile) {}
 /// Reload the precached daemon
 fn daemon_reload(config: &Config, daemon_config: util::ConfigFile) {}
 
+/// Instruct precached to commence housekeeping tasks
+fn do_housekeeping(config: &Config, daemon_config: util::ConfigFile) {}
+
 /// Print help message on how to use this command
 fn print_help(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
@@ -208,6 +217,9 @@ fn main() {
             }
             "reload" | "reload-config" => {
                 daemon_reload(&config, daemon_config);
+            }
+            "housekeeping" | "do-housekeeping" => {
+                do_housekeeping(&config, daemon_config);
             }
             "help" => {
                 print_help(&mut config_c);

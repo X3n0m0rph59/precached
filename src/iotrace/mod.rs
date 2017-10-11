@@ -99,6 +99,7 @@ impl IOTraceLog {
         }
     }
 
+    /// De-serialize from a file
     pub fn from_file(filename: &String) -> Result<IOTraceLog> {
         Self::deserialize(filename)
     }
@@ -115,24 +116,6 @@ impl IOTraceLog {
         let deserialized = serde_json::from_reader::<_, IOTraceLog>(reader)?;
 
         Ok(deserialized)
-    }
-
-    /// Add an I/O operation to the trace log
-    /// Perform neccessary mapping of file descriptors to file name
-    pub fn add_event(&mut self, op: IOOperation) {
-        let operation = op.clone();
-
-        // do we have to add a file map entry?
-        match op {
-            IOOperation::Open(filename, fd) => {
-                self.file_map.entry(fd).or_insert(filename);
-            }
-            _ => { /* Do nothing */ }
-        }
-
-        // append log entry to our log
-        let entry = TraceLogEntry::new(operation);
-        self.trace_log.push(entry);
     }
 
     /// Write the I/O trace log to disk
@@ -154,5 +137,23 @@ impl IOTraceLog {
         }
 
         Ok(())
+    }
+
+    /// Add an I/O operation to the trace log
+    /// Perform neccessary mapping of file descriptors to file name
+    pub fn add_event(&mut self, op: IOOperation) {
+        let operation = op.clone();
+
+        // do we have to add a file map entry?
+        match op {
+            IOOperation::Open(filename, fd) => {
+                self.file_map.entry(fd).or_insert(filename);
+            }
+            _ => { /* Do nothing */ }
+        }
+
+        // append log entry to our log
+        let entry = TraceLogEntry::new(operation);
+        self.trace_log.push(entry);
     }
 }

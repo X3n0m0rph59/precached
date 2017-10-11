@@ -18,6 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use constants;
 use events;
 use events::EventType;
 use globals::*;
@@ -27,7 +28,9 @@ use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use std::any::Any;
+use std::path::Path;
 use storage;
+use util;
 
 static NAME: &str = "iotrace_log_manager";
 static DESCRIPTION: &str = "Manage I/O activity trace log files";
@@ -50,13 +53,85 @@ impl IOtraceLogManager {
         IOtraceLogManager {}
     }
 
-    /// Prunes I/O trace logs that have expired because they are too old
-    pub fn prune_expired_trace_logs(&self) {
-        debug!("Pruning stale I/O trace logs...")
+    fn shall_io_trace_be_pruned(&self, io_trace: &iotrace::IOTraceLog) -> bool {
+        // TODO:
+        // test if the trace is valid at all
+        // test if the trace is older than the binary (out-of-date)
+        // test that the binary does exist (bin-does-not-exist)
+        // test if the trace is from last run of binary!? (current or not-current)
+
+        // let result = util::
+                
+        false
+    }
+
+    /// Prunes I/O trace logs that have expired or are invalid
+    /// Prune I/O trace logs if:
+    ///  * They are corrupt
+    ///  * The corresponding executable has vanished from the filesystem
+    ///  * They are too old (older than n days)
+    ///  * The ctime of the binary is newer than the ctime of the trace file (obsolete)
+    ///  * The atime of the I/O trace was updated more than n days ago
+    ///    (how to handle noatime mounts then??)
+    pub fn prune_expired_trace_logs(&self, globals: &mut Globals, manager: &Manager) {
+        debug!("Pruning stale I/O trace logs...");
+
+        let config = globals.config.config_file.clone().unwrap();
+        let state_dir = config.state_dir.unwrap_or(
+            String::from(constants::STATE_DIR),
+        );
+        let traces_path = String::from(
+            Path::new(&state_dir)
+                .join(Path::new(&constants::IOTRACE_DIR))
+                .to_string_lossy(),
+        );
+
+        let mut counter = 0;
+        let mut pruned = 0;
+        let mut errors = 0;
+
+        match util::walk_directories(&vec![traces_path], &mut |path| {
+            let filename = String::from(path.to_string_lossy());
+            match iotrace::IOTraceLog::from_file(&filename) {
+                Err(e) => {
+                    error!("Skipped invalid I/O trace file, file not readable: {}", e);
+                    errors += 1;
+                }
+                Ok(io_trace) => {
+                    if self.shall_io_trace_be_pruned(&io_trace) {
+                        debug!("Pruning I/O trace log: '{}'", &filename);
+
+                        // TODO: don't dry run here on release, only for testing!
+                        util::remove_file(&filename, true);
+
+                        pruned += 1;
+                    }
+                }
+            }
+
+            counter += 1;
+        }) {
+            Err(e) => error!("Error during enumeration of I/O trace files: {}", e),
+            _ => { /* Do nothing */ }
+        }
+
+        if pruned < 1 {
+            debug!(
+                "{} I/O trace logs examined, no I/O trace logs needed to be pruned",
+                counter
+            );
+        } else {
+            debug!(
+                "{} I/O trace logs examined, {} stale logs pruned, {} errors occured",
+                counter,
+                pruned,
+                errors
+            );
+        }
     }
 
     // Returns the most recent I/O trace log for `comm`.
-    pub fn get_trace_log_for(&self, comm: &String) -> Result<iotrace::IOTraceLog, &'static str> {
+    pub fn get_trace_log_for(&self, _comm: &String) -> Result<iotrace::IOTraceLog, &'static str> {
         Err("Not implemented!")
     }
 }
@@ -85,10 +160,10 @@ impl Plugin for IOtraceLogManager {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             EventType::DoHousekeeping => {
-                self.prune_expired_trace_logs();
+                self.prune_expired_trace_logs(globals, manager);
             }
             _ => {
                 // Ignore all other events
