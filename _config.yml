@@ -1,3 +1,4 @@
 theme: jekyll-theme-architect
 name: precached
+show_downloads: true
 description: A Linux process monitor and pre-caching daemon
