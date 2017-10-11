@@ -32,8 +32,8 @@ pub mod logger;
 pub mod thread_pool;
 pub mod task_scheduler;
 
-pub use self::files::*;
 pub use self::daemon::*;
+pub use self::files::*;
 pub use self::ftrace::*;
 pub use self::iotrace::*;
 pub use self::logger::*;

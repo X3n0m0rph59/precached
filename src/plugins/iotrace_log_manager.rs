@@ -61,7 +61,7 @@ impl IOtraceLogManager {
         // test if the trace is from last run of binary!? (current or not-current)
 
         // let result = util::
-                
+
         false
     }
 

@@ -36,6 +36,7 @@ use prettytable::Table;
 use prettytable::cell::Cell;
 use prettytable::format;
 use prettytable::row::Row;
+use std::io;
 
 /// Runtime configuration for precachedctl
 #[derive(Clone)]
@@ -89,7 +90,9 @@ impl<'a, 'b> Config<'a, 'b> {
                 SubCommand::with_name("housekeeping")
                     .setting(AppSettings::DeriveDisplayOrder)
                     .alias("do-housekeeping")
-                    .about("Instruct precached daemon to commence housekeeping tasks now"),
+                    .about(
+                        "Instruct precached daemon to commence housekeeping tasks now",
+                    ),
             )
             .subcommand(
                 SubCommand::with_name("help")
@@ -117,6 +120,11 @@ This is free software, and you are welcome to redistribute it
 under certain conditions.
 "
     );
+}
+
+/// Read the pid of the precached daemon from the file `/run/precached.pid`
+fn read_daemon_pid() -> io::Result<String> {
+    util::read_uncompressed_text_file(constants::DAEMON_PID_FILE)
 }
 
 /// Define a table format using only Unicode character points as
@@ -168,13 +176,56 @@ fn default_table_format(config: &Config) -> format::TableFormat {
 }
 
 /// Print status of the precached daemon
-fn print_status(config: &Config, daemon_config: util::ConfigFile) {}
+fn print_status(config: &Config, daemon_config: util::ConfigFile) {
+    match read_daemon_pid() {
+        Err(e) => {
+            println!("precached is NOT running");
+        }
+        Ok(_pid) => {
+            println!("precached is up and running");
+        }
+    }
+}
 
-/// Reload the precached daemon
-fn daemon_reload(config: &Config, daemon_config: util::ConfigFile) {}
+use nix::libc::pid_t;
+use nix::sys::signal::*;
+use nix::unistd::*;
+
+/// Reload the precached daemon's external configuration file
+fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
+    match read_daemon_pid() {
+        Err(_e) => {
+            println!("precached is NOT running, did not send signal");
+        }
+        Ok(pid_str) => {
+            let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
+            match kill(pid, SIGHUP) {
+                Err(e) => {
+                    println!("Could not send signal! {}", e);
+                }
+                Ok(()) => { println!("Success"); }
+            }
+        }
+    };
+}
 
 /// Instruct precached to commence housekeeping tasks
-fn do_housekeeping(config: &Config, daemon_config: util::ConfigFile) {}
+fn do_housekeeping(_config: &Config, _daemon_config: util::ConfigFile) {
+    match read_daemon_pid() {
+        Err(_e) => {
+            println!("precached is NOT running, did not send signal");
+        }
+        Ok(pid_str) => {
+            let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
+            match kill(pid, SIGUSR1) {
+                Err(e) => {
+                    println!("Could not send signal! {}", e);
+                }
+                Ok(()) => { println!("Success"); }
+            }
+        }
+    };
+}
 
 /// Print help message on how to use this command
 fn print_help(config: &mut Config) {
@@ -218,7 +269,8 @@ fn main() {
             "reload" | "reload-config" => {
                 daemon_reload(&config, daemon_config);
             }
-            "housekeeping" | "do-housekeeping" => {
+            "housekeeping" |
+            "do-housekeeping" => {
                 do_housekeeping(&config, daemon_config);
             }
             "help" => {

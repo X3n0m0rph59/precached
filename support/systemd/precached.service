@@ -4,10 +4,9 @@ Documentation=man:precached(8) man:precached.conf(5)
 
 [Service]
 Environment=RUST_LOG=debug RUST_BACKTRACE=1
-ExecStart=/usr/sbin/precached -f -c /etc/precached/precached.conf
-ExecReload=/bin/kill -HUP $MAINPID
-Type=simple
-StandardOutput=syslog
+ExecStart=/usr/sbin/precached -c /etc/precached/precached.conf
+ExecReload=/usr/sbin/precachedctl reload
+Type=forking
 Restart=always
 LimitAS=infinity
 LimitRSS=infinity

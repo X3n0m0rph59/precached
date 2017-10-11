@@ -20,17 +20,18 @@
 
 extern crate daemonize;
 
-use globals;
+use constants;
 use daemonize::{Daemonize, DaemonizeError};
+use globals;
 
 pub fn daemonize(config: &globals::Globals) -> Result<(), DaemonizeError> {
     let daemonize = Daemonize::new()
-        .pid_file("/run/precached.pid") // Every method except `new` and `start`
+        .pid_file(constants::DAEMON_PID_FILE) // Every method except `new` and `start`
         .chown_pid_file(true)      // is optional, see `Daemonize` documentation
         .working_directory("/tmp") // for default behaviour.
         .user("root")
         .group("root");
-        // .privileged_action(|| "Executed before drop privileges");
+    // .privileged_action(|| "Executed before drop privileges");
 
-     daemonize.start()
+    daemonize.start()
 }

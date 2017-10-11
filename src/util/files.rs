@@ -62,6 +62,17 @@ pub fn read_text_file(filename: &str) -> io::Result<String> {
     Ok(result)
 }
 
+pub fn read_uncompressed_text_file(filename: &str) -> io::Result<String> {
+    let path = Path::new(filename);
+    let mut file = try!(OpenOptions::new().read(true).open(&path));
+
+    let mut result = String::new();
+    let mut reader = BufReader::new(file);
+    reader.read_to_string(&mut result);
+
+    Ok(result)
+}
+
 pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
     let path = Path::new(filename);
     let mut file = try!(
@@ -108,8 +119,6 @@ pub fn append(filename: &str, mut text: String) -> io::Result<()> {
 }
 
 pub fn remove_file(filename: &str, dry_run: bool) -> io::Result<()> {
-    let path = Path::new(filename);
-
     trace!("deleting file: '{}'", &filename);
 
     if !dry_run {

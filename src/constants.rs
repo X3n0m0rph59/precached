@@ -31,6 +31,9 @@ pub const CONFIG_FILE: &'static str = "/etc/precached/precached.conf";
 /// Default directory where the daemon state shall be saved
 pub const STATE_DIR: &'static str = "/var/lib/precached/";
 
+/// PID file of the precached daemon
+pub const DAEMON_PID_FILE: &'static str = "/run/precached.pid";
+
 /// Default directory where I/O traces shall be saved
 pub const IOTRACE_DIR: &'static str = "iotrace/";
 

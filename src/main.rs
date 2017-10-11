@@ -48,13 +48,14 @@ extern crate nix;
 extern crate toml;
 
 use ansi_term::Style;
+use log::LogLevel;
 use nix::sys::signal;
 use std::io;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::{Duration, Instant};
-use syslog::Facility;
+use syslog::{Facility, Severity};
 
 mod constants;
 
@@ -278,27 +279,31 @@ fn setup_logging() -> Result<(), fern::InitError> {
         .chain(io::stdout());
 
 
-    // TODO: Implement syslog backend
     // syslog::init(Facility::LOG_DAEMON, LogLevelFilter::Debug, Some("precached")).unwrap();
+    let mut connection = syslog::unix(Facility::LOG_DAEMON).unwrap();
+    connection.set_process_name(String::from("precached"));
 
-    // let connection = syslog::unix(Facility::LOG_DAEMON).unwrap();
-    //
-    // let syslog = fern::Dispatch::new()
-    //     .format(|out, message, record| {
-    //         out.finish(format_args!(
-    //             "{}[{}][{}] {}",
-    //             chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
-    //             record.target(),
-    //             record.level(),
-    //             message
-    //         ))
-    //     })
-    //     .chain(connection);
+    let syslog = fern::Dispatch::new()
+        .format(move |_out, message, record| {
+            let severity = match record.level() {
+                LogLevel::Trace => Severity::LOG_DEBUG,
+                LogLevel::Debug => Severity::LOG_DEBUG,
+                LogLevel::Info => Severity::LOG_INFO,
+                LogLevel::Warn => Severity::LOG_WARNING,
+                LogLevel::Error => Severity::LOG_ERR,
+            };
 
-    base_config.chain(console)
-               // .chain(syslog)
-               .level(log::LogLevelFilter::Debug)
-               .apply()?;
+            match connection.send(severity, message) {
+                Err(e) => error!("Syslog error: {}", e),
+                Ok(_) => { /* Do nothing */ }
+            }
+        })
+        .chain(console);
+
+    base_config
+        .chain(syslog)
+        .level(log::LogLevelFilter::Debug)
+        .apply()?;
 
     Ok(())
 }
@@ -347,9 +352,18 @@ fn main() {
 
     // Become a daemon now, if not otherwise specified
     if globals.config.daemonize {
+        info!("Daemonizing...");
+
         match util::daemonize(&globals) {
-            Err(e) => { error!("Could not become a daemon: {}", e) }
-            Ok(()) => { info!("Daemonized successfuly!") }
+            Err(e) => {
+                error!("Could not become a daemon: {}", e);
+                return; // Must fail here, since we were asked to
+                // daemonize, and maybe there is another
+                // instance already running!
+            }
+            Ok(()) => {
+                trace!("Daemonized successfuly!");
+            }
         }
     }
 
@@ -515,6 +529,8 @@ fn main() {
     trace!("Cleaning up...");
 
     util::notify(&String::from("precached terminating!"), &manager);
+
+    #[allow(unused_must_use)] util::remove_file(constants::DAEMON_PID_FILE, false);
 
     // Unregister plugins and hooks
     plugins::unregister_plugins(&mut globals, &mut manager);

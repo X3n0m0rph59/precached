@@ -56,14 +56,13 @@ impl Config {
                 Arg::with_name("foreground")
                     .short("f")
                     .long("foreground")
-                    .default_value("true")
                     .help("Stay in foreground (do not daemonize)"),
             )
             .get_matches();
 
         Config {
             verbosity: matches.occurrences_of("v") as u8,
-            daemonize: matches.value_of("foreground").unwrap() == "true",
+            daemonize: !matches.is_present("foreground"),
             config_filename: String::from(matches.value_of("config").unwrap_or(constants::CONFIG_FILE)),
             config_file: None,
         }
