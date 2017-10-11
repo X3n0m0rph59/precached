@@ -3,5 +3,5 @@
 
 @import "{{ site.theme }}";
 html {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Roboto', sans-serif !important;
 }
