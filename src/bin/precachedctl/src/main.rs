@@ -84,14 +84,14 @@ impl<'a, 'b> Config<'a, 'b> {
                 SubCommand::with_name("reload")
                     .setting(AppSettings::DeriveDisplayOrder)
                     .alias("reload-config")
-                    .about("Reload external configuration of the precached daemon"),
+                    .about("Reload external configuration of precached"),
             )
             .subcommand(
                 SubCommand::with_name("housekeeping")
                     .setting(AppSettings::DeriveDisplayOrder)
                     .alias("do-housekeeping")
                     .about(
-                        "Instruct precached daemon to commence housekeeping tasks now",
+                        "Instruct precached to commence housekeeping tasks",
                     ),
             )
             .subcommand(

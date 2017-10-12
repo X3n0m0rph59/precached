@@ -45,8 +45,8 @@ pub enum IOOperation {
 /// and a timestamp of when the operation occured
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TraceLogEntry {
-    timestamp: DateTime<Utc>,
-    operation: IOOperation,
+    pub timestamp: DateTime<Utc>,
+    pub operation: IOOperation,
 }
 
 impl TraceLogEntry {
