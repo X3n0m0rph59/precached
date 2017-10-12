@@ -27,7 +27,7 @@ memory to speed up loading of programs and increase the perceived overall
 'snappiness' of the system.
 
 %prep
-%setup -n %{name}-%{gittag}
+%autosetup -S git -n %{name}-%{gittag}
 
 %build
 cargo build --all --release --verbose
