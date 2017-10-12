@@ -1,6 +1,6 @@
 Name:    precached
 Version: 0.1.0
-Release: 35%{?dist}
+Release: 36%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -36,6 +36,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_mandir}/man1
 %{__mkdir_p} %{buildroot}%{_mandir}/man5
 %{__mkdir_p} %{buildroot}%{_mandir}/man8
+%{__mkdir_p} %{buildroot}%{_datarootdir}/metainfo/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
@@ -50,6 +51,7 @@ cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.8 %{buildroot}/%{_man
 cp -a %{_builddir}/%{name}-%{gittag}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{gittag}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/
+cp -a %{_builddir}/%{name}-%{gittag}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -ra %{_builddir}/%{name}-%{gittag}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
 install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
@@ -78,15 +80,18 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/iotracectl %{b
 %{_sbindir}/iotracectl
 %{_unitdir}/precached.service
 %config(noreplace) %{_sysconfdir}/dbus-1/org.precached.precached1.conf
+%{_datarootdir}/metainfo/org.precache.precached.appdata.xml
 %{_sharedstatedir}/%{name}/
 %{_sharedstatedir}/%{name}/iotrace/
 %{_docdir}/%{name}/examples/
 #%{_datadir}/%{name}/
 
 %changelog
+* Thu Oct 12 2017 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 0.1.0-36
+- rebuilt
+
 * Thu Oct 12 2017 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 0.1.0-35
 - rebuilt
 
 * Thu Oct 12 2017 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 0.1.0-34
 - rebuilt
-

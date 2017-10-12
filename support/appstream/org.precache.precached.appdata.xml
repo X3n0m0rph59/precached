@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+​<!-- Copyright 2017 X3n0m0rph59 <x3n0m0rph59@gmail.com> -->
+​<component type="Application">
+​  <id>org.precache.precached</id>
+​  <metadata_license>FSFAP</metadata_license>
+​  <project_license>GPL-3.0+</project_license>
+​  <name>precached</name>
+​  <summary>A Linux process monitor and pre-caching daemon</summary>
+​
+​  <description>
+​    <p>
+​      Precached is written in Rust and utilises the Linux netlink connector interface
+			to monitor the system for process events. It can act upon such events via
+			multiple means. E.g. in the future it will be able to pre-fault pages into
+			memory to speed up loading of programs and increase the perceived overall
+			'snappiness' of the system.
+​    </p>
+​  </description>
+​
+​  <launchable type="service">precached</launchable>
+​
+​  <screenshots>
+​    <screenshot type="default">
+​      <caption>precached project logo</caption>
+​      <image>https://x3n0m0rph59.github.io/precached/images/precached.png</image>
+​    </screenshot>
+​    <screenshot>
+​      <caption>precached running in terminal</caption>
+​      <image>https://x3n0m0rph59.github.io/precached/images/screenshot.png</image>
+​    </screenshot>
+​  </screenshots>
+​
+​  <url type="homepage">https://x3n0m0rph59.github.io/precached/</url>
+​  <project_group>precached</project_group>
+​
+​  <provides>
+​    <binary>precached</binary>
+​    <binary>precachedctl</binary>
+​    <binary>iotracectl</binary>
+
+		<dbus type="system">org.precached.precached1</dbus>
+​  </provides>
+​
+​  <releases>
+​    <release version="0.1.0" date="2017-10-12">
+​      <description>
+​        <p>Development release</p>
+​      </description>
+​    </release>
+​  </releases>
+
+	<developer_name>precached Team</developer_name>
+	<update_contact>x3n0m0rph59@gmail.com</update_contact>
+​</component>
