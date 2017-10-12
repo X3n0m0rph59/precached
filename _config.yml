@@ -5,8 +5,10 @@ show_downloads: true
 github:
   private: false
   license:
-    name: GPL3
+    name: "GPL3+"
   source:
     branch: "master"
     path: "/"
     repository_url: "https://github.com/X3n0m0rph59/precached.git"
+  zip_url: "https://github.com/X3n0m0rph59/archive/master.zip"
+  tar_url: "https://github.com/X3n0m0rph59/archive/master.tar.gz"
