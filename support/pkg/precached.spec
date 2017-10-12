@@ -1,6 +1,6 @@
 Name:    precached
 Version: 0.1.0
-Release: 37%{?dist}
+Release: 38%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -27,7 +27,7 @@ memory to speed up loading of programs and increase the perceived overall
 'snappiness' of the system.
 
 %prep
-%autosetup -S git -n %{gittag}
+%autosetup -S git -n %{name}-%{version}
 
 %build
 cargo build --all --release --verbose
@@ -87,6 +87,9 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/iotracectl %{b
 #%{_datadir}/%{name}/
 
 %changelog
+* Thu Oct 12 2017 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 0.1.0-38
+- rebuilt
+
 * Thu Oct 12 2017 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 0.1.0-37
 - rebuilt
 
