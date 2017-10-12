@@ -9,4 +9,4 @@ github:
   source:
     branch: "master"
     path: "/"
-    repository_url: "https://github.com/X3n0m0rph59/precached"
+    repository_url: "https://github.com/X3n0m0rph59/precached.git"
