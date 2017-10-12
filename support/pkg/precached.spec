@@ -1,6 +1,6 @@
 Name:    precached
 Version: 0.1.0
-Release: 31%{?dist}
+Release: 32%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -25,7 +25,7 @@ memory to speed up loading of programs and increase the perceived overall
 'snappiness' of the system.
 
 %prep
-%autosetup -n %{name}-%{gittag}
+%autosetup -vn %{gittag}
 
 %build
 cargo build --all --release --verbose
