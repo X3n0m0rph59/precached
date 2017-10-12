@@ -1,6 +1,6 @@
 Name:    precached
 Version: 0.1.0
-Release: 39%{?dist}
+Release: 40%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -44,18 +44,18 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{name}/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{name}/
-cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
-cp -a %{_builddir}/%{name}-%{gittag}/support/man/iotracectl.8 %{buildroot}/%{_mandir}/man8/
-cp -a %{_builddir}/%{name}-%{gittag}/support/man/precachedctl.8 %{buildroot}/%{_mandir}/man8/
-cp -a %{_builddir}/%{name}-%{gittag}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
-cp -a %{_builddir}/%{name}-%{gittag}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
-cp -a %{_builddir}/%{name}-%{gittag}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
-cp -a %{_builddir}/%{name}-%{gittag}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/
-cp -a %{_builddir}/%{name}-%{gittag}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
-cp -ra %{_builddir}/%{name}-%{gittag}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
-install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precached %{buildroot}%{_sbindir}/precached
-install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
-install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
+cp -a %{_builddir}/%{name}-%{version}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
+cp -a %{_builddir}/%{name}-%{version}/support/man/iotracectl.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{name}-%{version}/support/man/precachedctl.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{name}-%{version}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{name}-%{version}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
+cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
+cp -a %{_builddir}/%{name}-%{version}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/
+cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
+cp -ra %{_builddir}/%{name}-%{version}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
+install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
+install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
+install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
 
 %post
 %systemd_post %{name}.service
@@ -87,6 +87,9 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{gittag}/target/release/iotracectl %{b
 #%{_datadir}/%{name}/
 
 %changelog
+* Thu Oct 12 2017 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 0.1.0-40
+- rebuilt
+
 * Thu Oct 12 2017 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 0.1.0-39
 - rebuilt
 
