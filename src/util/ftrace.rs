@@ -248,13 +248,11 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         // prune expired tracers
-        match hooks::ftrace_logger::ACTIVE_TRACERS.try_lock() {
-            Err(e) => {
-                trace!(
-                    "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                    e
-                )
-            }
+        // NOTE: We have to use `lock()` here instead of `try_lock()`
+        //       because we don't want to miss events in any case.
+        //       Will deadlock with `.try_lock()`
+        match hooks::ftrace_logger::ACTIVE_TRACERS.lock() {
+            Err(e) => trace!("Could not take a lock on a shared data structure! {}", e),
             Ok(mut active_tracers) => {
                 check_expired_tracers(&mut active_tracers, &iotrace_dir);
             }
