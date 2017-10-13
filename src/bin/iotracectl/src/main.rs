@@ -108,9 +108,10 @@ impl<'a, 'b> Config<'a, 'b> {
                     .arg(
                         Arg::with_name("tabular")
                             .long("tabular")
-                            .short("t")
+                            // .short("t")
                             .conflicts_with("full")
                             .conflicts_with("short")
+                            .conflicts_with("terse")
                             .help("Use 'tabular' display format"),
                     )
                     .arg(
@@ -119,7 +120,8 @@ impl<'a, 'b> Config<'a, 'b> {
                             .short("f")
                             .conflicts_with("tabular")
                             .conflicts_with("short")
-                            .help("Use 'full' display format"),
+                            .conflicts_with("terse")
+                            .help("Use 'full' display format (list all fields)"),
                     )
                     .arg(
                         Arg::with_name("short")
@@ -127,7 +129,17 @@ impl<'a, 'b> Config<'a, 'b> {
                             .short("s")
                             .conflicts_with("tabular")
                             .conflicts_with("full")
-                            .help("Use 'short' display format"),
+                            .conflicts_with("terse")
+                            .help("Use 'short' display format (list important fields only)"),
+                    )
+                    .arg(
+                        Arg::with_name("terse")
+                            .long("terse")
+                            .short("t")
+                            .conflicts_with("tabular")
+                            .conflicts_with("full")
+                            .conflicts_with("short")
+                            .help("Use 'terse' display format (list executables only)"),
                     ),
             )
             .subcommand(
@@ -161,7 +173,7 @@ impl<'a, 'b> Config<'a, 'b> {
             .subcommand(
                 SubCommand::with_name("dump")
                     .setting(AppSettings::DeriveDisplayOrder)
-                    .about("Dump I/O trace log entries")
+                    .about("Dump I/O trace log entries (file access operations)")
                     .arg(
                         Arg::with_name("hash")
                             .long("hash")
@@ -172,15 +184,28 @@ impl<'a, 'b> Config<'a, 'b> {
                     ),
             )
             .subcommand(
-                SubCommand::with_name("optimize")
+                SubCommand::with_name("analyze")
                     .setting(AppSettings::DeriveDisplayOrder)
-                    .about("Optimize I/O trace logs")
+                    .about("Analyze I/O trace logs (check for missing files)")
                     .arg(
                         Arg::with_name("hash")
                             .long("hash")
                             .short("p")
                             .takes_value(true)
                             .required(true)
+                            .help("The hash of the I/O trace to analyze"),
+                    ),
+            )
+            .subcommand(
+                SubCommand::with_name("optimize")
+                    .setting(AppSettings::DeriveDisplayOrder)
+                    .about("Optimize I/O trace logs (optimize access patterns)")
+                    .arg(
+                        Arg::with_name("hash")
+                            .long("hash")
+                            .short("p")
+                            .takes_value(true)
+                            .required(false)
                             .help("The hash of the I/O trace to optimize"),
                     ),
             )
@@ -332,6 +357,9 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
             io_trace.trace_log.len(),
             flags
         );
+    } else if matches.is_present("terse") {
+        // Print in "terse" format
+        println!("{}", io_trace.exe);
     } else
     /*if matches.is_present("tabular")*/
     {
@@ -715,8 +743,8 @@ fn map_status_to_color(status: &Vec<String>) -> Color {
     GREEN
 }
 
-/// Optimize I/O trace file access pattern
-fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
+/// Analyze I/O trace file
+fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let state_dir = daemon_config.state_dir.unwrap_or(
         String::from(constants::STATE_DIR),
     );
@@ -732,7 +760,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     let hash = config
         .matches
-        .subcommand_matches("optimize")
+        .subcommand_matches("analyze")
         .unwrap()
         .value_of("hash")
         .unwrap();
@@ -845,6 +873,130 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         matching,
         errors
     );
+}
+
+/// Optimize I/O trace file access pattern
+fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
+    let state_dir = daemon_config.state_dir.unwrap_or(
+        String::from(constants::STATE_DIR),
+    );
+    let traces_path = String::from(
+        Path::new(&state_dir)
+            .join(Path::new(&constants::IOTRACE_DIR))
+            .to_string_lossy(),
+    );
+
+    let mut counter = 0;
+    let mut matching = 0;
+    let mut errors = 0;
+
+    // let hash = config
+    //     .matches
+    //     .subcommand_matches("optimize")
+    //     .unwrap()
+    //     .value_of("hash")
+    //     .unwrap();
+
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
+
+    // let p = Path::new(&traces_path).join(Path::new(&format!("{}.trace", hash)));
+    // let filename = String::from(p.to_string_lossy());
+
+    let mut errors = 0;
+    let mut matching = 0;
+
+    let dry_run = config
+        .matches
+        .subcommand_matches("optimize")
+        .unwrap()
+        .is_present("dryrun");
+
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
+
+    // Add table row header
+    table.add_row(Row::new(vec![
+        Cell::new("#"),
+        Cell::new("Trace"),
+        Cell::new("Status"),
+    ]));
+
+    match util::walk_directories(&vec![traces_path], &mut |path| {
+        trace!("{:?}", path);
+
+        let filename = String::from(path.to_string_lossy());
+
+        match iotrace::IOTraceLog::from_file(&filename) {
+            Err(_e) => {
+                // Print in "tabular" format (the default)
+                table.add_row(Row::new(vec![
+                    Cell::new_align(
+                        &format!("{}", counter + 1),
+                        Alignment::RIGHT
+                    ),
+                    Cell::new(&filename).with_style(Attr::Bold),
+                    Cell::new(&"file error").with_style(Attr::Bold).with_style(
+                        Attr::ForegroundColor(RED)
+                    ),
+                ]));
+                errors += 1;
+            },
+            Ok(io_trace) => {
+                match util::optimize_io_trace_log(&io_trace, dry_run) {
+                    Err(_) => {
+                        // Print in "tabular" format (the default)
+                        table.add_row(Row::new(vec![
+                            Cell::new_align(
+                                &format!("{}", counter + 1),
+                                Alignment::RIGHT
+                            ),
+                            Cell::new(&filename).with_style(Attr::Bold),
+                            Cell::new(&"optimizer failed").with_style(Attr::Bold).with_style(
+                                Attr::ForegroundColor(RED)
+                            ),
+                        ]));
+                        errors += 1;
+                    }
+                    Ok(_) => {
+                        // Print in "tabular" format (the default)
+                        table.add_row(Row::new(vec![
+                            Cell::new_align(
+                                &format!("{}", counter + 1),
+                                Alignment::RIGHT
+                            ),
+                            Cell::new(&filename).with_style(Attr::Bold),
+                            Cell::new(&"optimized")
+                                .with_style(Attr::Bold)
+                                .with_style(Attr::ForegroundColor(GREEN)),
+                        ]));
+                        matching += 1;
+                    }
+                }
+            }
+        }
+    }) {
+        Err(e) => error!("Error during enumeration of I/O trace files: {}", e),
+        _ => { /* Do nothing */ }
+    }
+
+    table.printstd();
+
+    if dry_run {
+        println!(
+            "\nSummary: {} I/O trace files would have been optimized, {} matching filter, {} errors occured",
+            matching,
+            matching,
+            errors
+        );
+    } else {
+        println!(
+            "\nSummary: {} I/O trace files optimized, {} matching filter, {} errors occured",
+            matching,
+            matching,
+            errors
+        );
+    }
 }
 
 /// Remove I/O traces
@@ -1124,6 +1276,9 @@ fn main() {
             }
             "dump" => {
                 dump_io_traces(&config, daemon_config.clone());
+            }
+            "analyze" => {
+                analyze_io_traces(&config, daemon_config.clone());
             }
             "optimize" => {
                 optimize_io_traces(&config, daemon_config.clone());

@@ -156,6 +156,65 @@ impl IOtraceLogManager {
             );
         }
     }
+
+    pub fn optimize_trace_logs(&self, globals: &mut Globals, manager: &Manager ) {
+        debug!("Optimizing all I/O trace logs...");
+
+        let config = globals.config.config_file.clone().unwrap();
+        let state_dir = config.state_dir.unwrap_or(
+            String::from(constants::STATE_DIR),
+        );
+        let traces_path = String::from(
+            Path::new(&state_dir)
+                .join(Path::new(&constants::IOTRACE_DIR))
+                .to_string_lossy(),
+        );
+
+        let mut counter = 0;
+        let mut optimized = 0;
+        let mut errors = 0;
+
+        match util::walk_directories(&vec![traces_path], &mut |path| {
+            let filename = String::from(path.to_string_lossy());
+            match iotrace::IOTraceLog::from_file(&filename) {
+                Err(e) => {
+                    error!("Skipped invalid I/O trace file, file not readable: {}", e);
+                    errors += 1;
+                }
+                Ok(io_trace) => {
+                    match util::optimize_io_trace_log(&io_trace, false) {
+                        Err(e) => {
+                            error!("Could not optimize I/O trace log for '{}': {}", io_trace.exe, e);
+
+                            // util::remove_file(&filename, true);
+                        },
+                        Ok(_) => {
+                            optimized += 1;
+                        }
+                    }
+                }
+            }
+
+            counter += 1;
+        }) {
+            Err(e) => error!("Error during enumeration of I/O trace files: {}", e),
+            _ => { /* Do nothing */ }
+        }
+
+        if optimized < 1 {
+            debug!(
+                "{} I/O trace logs examined, no I/O trace logs needed to be optimized",
+                counter
+            );
+        } else {
+            debug!(
+                "{} I/O trace logs examined, {} logs optimized, {} errors occured",
+                counter,
+                optimized,
+                errors
+            );
+        }
+    }
 }
 
 impl Plugin for IOtraceLogManager {
@@ -186,6 +245,7 @@ impl Plugin for IOtraceLogManager {
         match event.event_type {
             EventType::DoHousekeeping => {
                 self.prune_expired_trace_logs(globals, manager);
+                self.optimize_trace_logs(globals, manager);
             }
             _ => {
                 // Ignore all other events

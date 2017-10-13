@@ -302,7 +302,7 @@ fn setup_logging() -> Result<(), fern::InitError> {
 
     base_config
         .chain(syslog)
-        .level(log::LogLevelFilter::Trace)
+        .level(log::LogLevelFilter::Debug)
         .apply()?;
 
     Ok(())

@@ -20,3 +20,12 @@
 
 extern crate libc;
 extern crate regex;
+
+use iotrace;
+use std::io::Result;
+
+pub fn optimize_io_trace_log(iotrace: &iotrace::IOTraceLog, dry_run: bool) -> Result<()> {
+    trace!("Optimizing I/O trace log...");
+
+    Ok(())
+}
