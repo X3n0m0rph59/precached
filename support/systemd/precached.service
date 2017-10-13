@@ -1,11 +1,12 @@
 [Unit]
 Description=Precached - Linux process monitor and pre-caching daemon
-Documentation=man:precached(8) man:precached.conf(5)
+Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precached.conf(5)
 
 [Service]
 Environment=RUST_LOG=debug RUST_BACKTRACE=1
 ExecStart=/usr/sbin/precached -c /etc/precached/precached.conf
 ExecReload=/usr/sbin/precachedctl reload
+ExecStop=/usr/sbin/precachedctl stop
 PIDFile=/run/precached.pid
 Type=forking
 Restart=always

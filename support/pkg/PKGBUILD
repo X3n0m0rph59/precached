@@ -1,14 +1,14 @@
 # Maintainer: X3n0m0rph59 <x3n0m0rph59@gmail.com>
-pkgname=NAME
-pkgver=VERSION
+pkgname=precached
+pkgver=0.1.0
 pkgrel=1
-pkgdesc=""
-arch=()
-url=""
+pkgdesc="A Linux process monitor and pre-caching daemon"
+arch=('i686' 'x86_64')
+url="https://x3n0m0rph59.github.io/precached/"
 license=('GPL')
 groups=()
-depends=()
-makedepends=()
+depends=('dbus')
+makedepends=('rust' 'dbus' 'systemd')
 optdepends=()
 provides=()
 conflicts=()
@@ -17,19 +17,39 @@ backup=()
 options=()
 install=
 changelog=
-source=($pkgname-$pkgver.tar.gz)
+source=("git+https://github.com/X3n0m0rph59/precached.git")
 noextract=()
 md5sums=() #autofill using updpkgsums
 
 build() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname"
 
-  ./configure --prefix=/usr
-  make
+  cargo build --all --release
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname"
 
-  make DESTDIR="$pkgdir/" install
+  mkdir -p "$pkgdir/usr/bin"
+  mkdir -p "$pkgdir/etc/precached"
+  mkdir -p "$pkgdir/var/lib/precached/iotrace"
+  mkdir -p "$pkgdir/usr/share/doc/precached/examples"
+  mkdir -p "$pkgdir/usr/lib/systemd/system/"
+  mkdir -p "$pkgdir/etc/dbus-1/"
+  mkdir -p "$pkgdir/usr/share/man/man8/"
+  mkdir -p "$pkgdir/usr/share/man/man5/"
+  mkdir -p "$pkgdir/usr/share/doc/precached/examples/"
+
+  install -m 755 "target/release/precached" "$pkgdir/usr/bin/"
+  install -m 755 "target/release/precachedctl" "$pkgdir/usr/bin/"
+  install -m 755 "target/release/iotracectl" "$pkgdir/usr/bin/"
+
+  install -m 644 "support/config/precached.conf" "$pkgdir/etc/precached/"
+  install -m 644 "support/systemd/precached.service" "$pkgdir/usr/lib/systemd/system/"
+  install -m 644 "support/dbus/org.precached.precached1.conf" "$pkgdir/etc/dbus-1/"
+
+  install -m 644 "support/man/precached.8" "$pkgdir/usr/share/man/man8/"
+  install -m 644 "support/man/precachedctl.8" "$pkgdir/usr/share/man/man8/"
+  install -m 644 "support/man/iotracectl.8" "$pkgdir/usr/share/man/man8/"
+  install -m 644 "support/man/precached.conf.5" "$pkgdir/usr/share/man/man5/"
 }

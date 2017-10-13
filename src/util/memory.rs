@@ -119,6 +119,64 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
     }
 }
 
+pub fn cache_file(filename: &str) -> Result<()> {
+    trace!("Caching file: '{}'", filename);
+
+    let file = File::open(filename)?;
+    let fd = file.into_raw_fd();
+
+    let mut stat: libc::stat = unsafe { std::mem::zeroed() };
+    unsafe {
+        libc::fstat(fd, &mut stat);
+    };
+    let addr = unsafe {
+        libc::mmap(
+            0 as *mut libc::c_void,
+            stat.st_size as usize,
+            libc::PROT_READ,
+            libc::MAP_SHARED,
+            fd,
+            0,
+        )
+    };
+
+    if addr < 0 as *mut libc::c_void {
+        // Try to close the file descriptor
+        unsafe { libc::close(fd) };
+
+        Err(std::io::Error::last_os_error())
+    } else {
+        trace!("Successfuly called mmap() for: '{}'", filename);
+
+        let result = unsafe {
+            libc::madvise(
+                addr as *mut libc::c_void,
+                stat.st_size as usize,
+                libc::MADV_WILLNEED, /*| libc::MADV_SEQUENTIAL*/
+                                     /*| libc::MADV_MERGEABLE*/
+            )
+        };
+
+        if result < 0 as libc::c_int {
+            // Try to close the file descriptor
+            unsafe { libc::close(fd) };
+
+            Err(std::io::Error::last_os_error())
+        } else {
+            trace!("Successfuly called madvise() for: '{}'", filename);
+
+            let result = unsafe { libc::close(fd) };
+            if result < 0 as libc::c_int {
+                Err(std::io::Error::last_os_error())
+            } else {
+                trace!("Successfuly called close() for: '{}'", filename);
+
+                Ok(())
+            }
+        }
+    }
+}
+
 pub fn prime_metadata_cache(filename: &str) -> Result<()> {
     trace!("Caching metadata of file : '{}'", filename);
 

@@ -37,9 +37,9 @@ extern crate zstd;
 use chrono::{DateTime, Utc};
 use clap::{App, AppSettings, Arg, SubCommand};
 use prettytable::Table;
-use prettytable::row::Row;
 use prettytable::cell::Cell;
 use prettytable::format::*;
+use prettytable::row::Row;
 use std::path::Path;
 use term::Attr;
 use term::color::*;
@@ -169,7 +169,20 @@ impl<'a, 'b> Config<'a, 'b> {
                             .takes_value(true)
                             .required(true)
                             .help("The hash of the I/O trace to dump"),
-                    )
+                    ),
+            )
+            .subcommand(
+                SubCommand::with_name("optimize")
+                    .setting(AppSettings::DeriveDisplayOrder)
+                    .about("Optimize I/O trace logs")
+                    .arg(
+                        Arg::with_name("hash")
+                            .long("hash")
+                            .short("p")
+                            .takes_value(true)
+                            .required(true)
+                            .help("The hash of the I/O trace to optimize"),
+                    ),
             )
             .subcommand(
                 SubCommand::with_name("remove")
@@ -206,7 +219,7 @@ impl<'a, 'b> Config<'a, 'b> {
             .subcommand(
                 SubCommand::with_name("test-tracing")
                     .setting(AppSettings::DeriveDisplayOrder)
-                    .about("Test the I/O tracing subsystem of precached")
+                    .about("Test the I/O tracing subsystem of precached"),
             );
 
         let clap_c = clap.clone();
@@ -239,22 +252,10 @@ fn default_table_format(config: &Config) -> TableFormat {
         FormatBuilder::new()
             .column_separator('|')
             .borders('|')
-            .separator(
-                LinePosition::Intern,
-                LineSeparator::new('-', '+', '+', '+'),
-            )
-            .separator(
-                LinePosition::Title,
-                LineSeparator::new('=', '+', '+', '+'),
-            )
-            .separator(
-                LinePosition::Bottom,
-                LineSeparator::new('-', '+', '+', '+'),
-            )
-            .separator(
-                LinePosition::Top,
-                LineSeparator::new('-', '+', '+', '+'),
-            )
+            .separator(LinePosition::Intern, LineSeparator::new('-', '+', '+', '+'))
+            .separator(LinePosition::Title, LineSeparator::new('=', '+', '+', '+'))
+            .separator(LinePosition::Bottom, LineSeparator::new('-', '+', '+', '+'))
+            .separator(LinePosition::Top, LineSeparator::new('-', '+', '+', '+'))
             .padding(1, 1)
             .build()
     } else {
@@ -363,11 +364,7 @@ fn io_trace_top(_config: &Config, _daemon_config: util::ConfigFile) {
 }
 
 fn map_bool_to_color(b: bool) -> Color {
-    if b {
-        GREEN
-    } else {
-        RED
-    }
+    if b { GREEN } else { RED }
 }
 
 /// Print the status of the I/O tracing subsystem
@@ -672,26 +669,165 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 Cell::new("I/O Operation"),
                 Cell::new("Payload"),
                 Cell::new("Flags"),
-                ]));
+            ]));
 
             for e in io_trace.trace_log.iter() {
                 // println!("{:?}", e);
 
                 /*if matches.is_present("tabular")*/
                 {
-                    let flags = vec!(String::from("OK"));
+                    let flags = vec![String::from("OK")];
 
                     // Print in "tabular" format (the default)
                     table.add_row(Row::new(vec![
                         Cell::new_align(&format!("{}", index), Alignment::RIGHT),
-                        Cell::new(&e
-                            .timestamp
+                        Cell::new(&e.timestamp
                             .format(constants::DATETIME_FORMAT_DEFAULT)
                             .to_string()),
                         Cell::new(&format!("{:?}", e.operation)),
                         Cell::new(&format!("{}", String::from("n/a"))),
                         Cell::new(&format!("{:?}", flags)).with_style(
                             Attr::Italic(true)
+                        ),
+                    ]));
+                }
+
+                index += 1;
+            }
+
+            table.printstd();
+        }
+    }
+
+    println!(
+        "\nSummary: {} I/O trace files processed, {} matching filter, {} errors occured",
+        matching,
+        matching,
+        errors
+    );
+}
+
+fn map_status_to_color(status: &Vec<String>) -> Color {
+    if status.contains(&String::from("NONEXISTENT")) {
+        return RED;
+    }
+
+    GREEN
+}
+
+/// Optimize I/O trace file access pattern
+fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
+    let state_dir = daemon_config.state_dir.unwrap_or(
+        String::from(constants::STATE_DIR),
+    );
+    let traces_path = String::from(
+        Path::new(&state_dir)
+            .join(Path::new(&constants::IOTRACE_DIR))
+            .to_string_lossy(),
+    );
+
+    let mut counter = 0;
+    let mut matching = 0;
+    let mut errors = 0;
+
+    let hash = config
+        .matches
+        .subcommand_matches("optimize")
+        .unwrap()
+        .value_of("hash")
+        .unwrap();
+
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
+
+    let p = Path::new(&traces_path).join(Path::new(&format!("{}.trace", hash)));
+    let filename = String::from(p.to_string_lossy());
+
+    let mut errors = 0;
+    let mut matching = 0;
+
+    match iotrace::IOTraceLog::from_file(&filename) {
+        Err(e) => {
+            error!("Invalid I/O trace file, file not readable: {}", e);
+            errors += 1;
+        }
+        Ok(io_trace) => {
+            let flags = get_io_trace_flags(&io_trace);
+
+            // Print in "full" format
+            println!(
+                "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                 Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
+                 Flags:\t\t{:?}\n\n",
+                filename,
+                io_trace.exe,
+                io_trace.comm,
+                io_trace.hash,
+                io_trace
+                    .created_at
+                    .format(constants::DATETIME_FORMAT_DEFAULT)
+                    .to_string(),
+                io_trace
+                    .trace_stopped_at
+                    .format(constants::DATETIME_FORMAT_DEFAULT)
+                    .to_string(),
+                io_trace.file_map.len(),
+                io_trace.trace_log.len(),
+                flags
+            );
+
+            matching += 1;
+
+            // dump all I/O trace log entries
+            let mut index = 0;
+
+            let mut table = Table::new();
+            table.set_format(default_table_format(&config));
+
+            // Add table row header
+            table.add_row(Row::new(vec![
+                Cell::new("#"),
+                Cell::new("Timestamp"),
+                Cell::new("I/O Operation"),
+                Cell::new("Payload"),
+                Cell::new("Flags"),
+                Cell::new("Status"),
+            ]));
+
+            for e in io_trace.trace_log.iter() {
+                // println!("{:?}", e);
+
+                /*if matches.is_present("tabular")*/
+                {
+                    let flags = vec![String::from("OK")];
+                    let mut status = vec![];
+
+                    // TODO: Perform consistency checks
+                    //       * Timestamp of I/O operation newer than target file?
+                    match e.operation {
+                        iotrace::IOOperation::Open(ref filename, ref _fd) => {
+                            if util::is_file_accessible(filename) {
+                                status.push(String::from("OK"));
+                            } else {
+                                status.push(String::from("NONEXISTENT"));
+                            }
+                        }
+                        _ => { /* Do nothing */ }
+                    }
+
+                    // Print in "tabular" format (the default)
+                    table.add_row(Row::new(vec![
+                        Cell::new_align(&format!("{}", index), Alignment::RIGHT),
+                        Cell::new(&e.timestamp
+                            .format(constants::DATETIME_FORMAT_DEFAULT)
+                            .to_string()),
+                        Cell::new(&format!("{:?}", e.operation)),
+                        Cell::new(&format!("{}", String::from("n/a"))),
+                        Cell::new(&format!("{:?}", flags)).with_style(
+                            Attr::Italic(true)
+                        ),
+                        Cell::new(&format!("{:?}", status)).with_style(
+                            Attr::ForegroundColor(map_status_to_color(&status))
                         ),
                     ]));
                 }
@@ -763,7 +899,10 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Err(_) => {
             // Print in "tabular" format (the default)
             table.add_row(Row::new(vec![
-                Cell::new_align(&format!("{}", counter + 1), Alignment::RIGHT),
+                Cell::new_align(
+                    &format!("{}", counter + 1),
+                    Alignment::RIGHT
+                ),
                 Cell::new(&filename).with_style(Attr::Bold),
                 Cell::new(&"error").with_style(Attr::Bold).with_style(
                     Attr::ForegroundColor(RED)
@@ -774,7 +913,10 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Ok(_) => {
             // Print in "tabular" format (the default)
             table.add_row(Row::new(vec![
-                Cell::new_align(&format!("{}", counter + 1), Alignment::RIGHT),
+                Cell::new_align(
+                    &format!("{}", counter + 1),
+                    Alignment::RIGHT
+                ),
                 Cell::new(&filename).with_style(Attr::Bold),
                 Cell::new(&"removed")
                     .with_style(Attr::Bold)
@@ -844,7 +986,10 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             Err(_) => {
                 // Print in "tabular" format (the default)
                 table.add_row(Row::new(vec![
-                    Cell::new_align(&format!("{}", counter + 1), Alignment::RIGHT),
+                    Cell::new_align(
+                        &format!("{}", counter + 1),
+                        Alignment::RIGHT
+                    ),
                     Cell::new(&filename).with_style(Attr::Bold),
                     Cell::new(&"error").with_style(Attr::Bold).with_style(
                         Attr::ForegroundColor(RED)
@@ -855,7 +1000,10 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             Ok(_) => {
                 // Print in "tabular" format (the default)
                 table.add_row(Row::new(vec![
-                    Cell::new_align(&format!("{}", counter + 1), Alignment::RIGHT),
+                    Cell::new_align(
+                        &format!("{}", counter + 1),
+                        Alignment::RIGHT
+                    ),
                     Cell::new(&filename).with_style(Attr::Bold),
                     Cell::new(&"removed")
                         .with_style(Attr::Bold)
@@ -976,6 +1124,9 @@ fn main() {
             }
             "dump" => {
                 dump_io_traces(&config, daemon_config.clone());
+            }
+            "optimize" => {
+                optimize_io_traces(&config, daemon_config.clone());
             }
             "remove" | "delete" => {
                 remove_io_traces(&config, daemon_config.clone());

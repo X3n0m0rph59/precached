@@ -102,7 +102,7 @@ impl hook::Hook for ProcessTracker {
                 // update our histogram of mapped files
                 match process.get_mapped_files() {
                     Err(_) => {
-                        warn!(
+                        debug!(
                             "Error while reading mapped files of process '{}' with pid: {}. Process disappeared early",
                             process.get_comm().unwrap_or(String::from("<invalid>")),
                             process.pid

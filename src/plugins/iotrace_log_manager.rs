@@ -18,6 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate fnv;
+
 use constants;
 use events;
 use events::EventType;
@@ -28,6 +30,9 @@ use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use std::any::Any;
+use std::hash::Hasher;
+use std::io::BufReader;
+use std::io::Result;
 use std::path::Path;
 use storage;
 use util;
@@ -51,6 +56,28 @@ pub struct IOtraceLogManager {}
 impl IOtraceLogManager {
     pub fn new() -> IOtraceLogManager {
         IOtraceLogManager {}
+    }
+
+    // Returns the most recent I/O trace log for the executable `exe_name`.
+    pub fn get_trace_log(&self, exe_name: String, globals: &Globals) -> Result<iotrace::IOTraceLog> {
+        let config = globals.config.config_file.clone().unwrap();
+
+        let mut hasher = fnv::FnvHasher::default();
+        hasher.write(&exe_name.into_bytes());
+        let hashval = hasher.finish();
+
+        let iotrace_dir = config.state_dir.unwrap_or(
+            String::from(constants::STATE_DIR),
+        );
+
+        let path = Path::new(&iotrace_dir)
+            .join(Path::new(&constants::IOTRACE_DIR))
+            .join(Path::new(&format!("{}.trace", hashval)));
+
+        let filename = path.to_string_lossy();
+        let result = iotrace::IOTraceLog::from_file(&String::from(filename))?;
+
+        Ok(result)
     }
 
     fn shall_io_trace_be_pruned(&self, io_trace: &iotrace::IOTraceLog) -> bool {
@@ -128,11 +155,6 @@ impl IOtraceLogManager {
                 errors
             );
         }
-    }
-
-    // Returns the most recent I/O trace log for `comm`.
-    pub fn get_trace_log_for(&self, _comm: &String) -> Result<iotrace::IOTraceLog, &'static str> {
-        Err("Not implemented!")
     }
 }
 

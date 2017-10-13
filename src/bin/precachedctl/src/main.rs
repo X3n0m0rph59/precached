@@ -87,12 +87,16 @@ impl<'a, 'b> Config<'a, 'b> {
                     .about("Reload external configuration of precached"),
             )
             .subcommand(
+                SubCommand::with_name("stop")
+                    .setting(AppSettings::DeriveDisplayOrder)
+                    .alias("shutdown")
+                    .about("Instruct precached to shutdown and quit"),
+            )
+            .subcommand(
                 SubCommand::with_name("housekeeping")
                     .setting(AppSettings::DeriveDisplayOrder)
                     .alias("do-housekeeping")
-                    .about(
-                        "Instruct precached to commence housekeeping tasks",
-                    ),
+                    .about("Instruct precached to commence housekeeping tasks"),
             )
             .subcommand(
                 SubCommand::with_name("help")
@@ -209,6 +213,24 @@ fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
     };
 }
 
+/// Tell precached to shutdown and quit
+fn daemon_shutdown(_config: &Config, _daemon_config: util::ConfigFile) {
+    match read_daemon_pid() {
+        Err(_e) => {
+            println!("precached is NOT running, did not send signal");
+        }
+        Ok(pid_str) => {
+            let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
+            match kill(pid, SIGTERM) {
+                Err(e) => {
+                    println!("Could not send signal! {}", e);
+                }
+                Ok(()) => { println!("Success"); }
+            }
+        }
+    };
+}
+
 /// Instruct precached to commence housekeeping tasks
 fn do_housekeeping(_config: &Config, _daemon_config: util::ConfigFile) {
     match read_daemon_pid() {
@@ -268,6 +290,9 @@ fn main() {
             }
             "reload" | "reload-config" => {
                 daemon_reload(&config, daemon_config);
+            }
+            "stop" | "shutdown" => {
+                daemon_shutdown(&config, daemon_config);
             }
             "housekeeping" |
             "do-housekeeping" => {

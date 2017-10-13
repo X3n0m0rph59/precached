@@ -29,7 +29,7 @@ use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::rc::Rc;
 
 pub struct HookManager {
-    hooks: RefCell<HashMap<String, Rc<RefCell<Box<Hook + Sync + Send>>>>>,
+    hooks: RefCell<HashMap<String, Rc<RefCell<Box<Hook>>>>>,
 }
 
 impl HookManager {
@@ -37,7 +37,7 @@ impl HookManager {
         HookManager { hooks: RefCell::new(HashMap::new()) }
     }
 
-    pub fn register_hook(&self, mut hook: Box<Hook + Sync + Send>) {
+    pub fn register_hook(&self, mut hook: Box<Hook>) {
         hook.register();
         self.hooks.borrow_mut().insert(
             String::from(hook.get_name()),
@@ -63,7 +63,7 @@ impl HookManager {
     }
 
 
-    pub fn get_hook_by_name(&self, name: &String) -> Option<Rc<RefCell<Box<Hook + Sync + Send>>>> {
+    pub fn get_hook_by_name(&self, name: &String) -> Option<Rc<RefCell<Box<Hook>>>> {
         self.hooks.borrow().get(name).map(|x| x.clone())
     }
 
