@@ -22,8 +22,9 @@ extern crate chrono;
 extern crate fnv;
 extern crate libc;
 extern crate serde_json;
+extern crate term;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, Duration};
 use constants;
 use process::Process;
 use std::collections::HashMap;
@@ -31,6 +32,10 @@ use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
+use std::fs;
+use self::term::Attr;
+use self::term::color::*;
+
 use util;
 
 /// Represents an I/O operation in an I/O trace log entry
@@ -56,6 +61,100 @@ impl TraceLogEntry {
             operation: operation,
         }
     }
+}
+
+/// Status flags for I/O trace logs
+#[derive(Debug, Hash, Copy, Clone, PartialEq, Eq)]
+pub enum IOTraceLogFlag {
+    /// Unknown value
+    Unknown,
+
+    /// I/O Trace has a valid format
+    Valid,
+    /// I/O Trace has an invalid format
+    Invalid,
+
+    /// Trace is younger than n days
+    Fresh,
+    /// Trace is older than n days
+    Expired,
+
+    /// I/O Trace is newer than it's traced binary
+    Current,
+    /// The binary is newer than the I/O Trace
+    Outdated,
+
+    /// The binary is missing
+    MissingBinary,
+
+}
+
+pub fn map_io_trace_flag_to_string(flag: IOTraceLogFlag) -> &'static str {
+    match flag {
+        IOTraceLogFlag::Unknown => "Unknown",
+        IOTraceLogFlag::Valid   => "Valid",
+        IOTraceLogFlag::Invalid => "Invalid",
+        IOTraceLogFlag::Fresh => "Fresh",
+        IOTraceLogFlag::Expired => "Expired",
+        IOTraceLogFlag::Current => "Current",
+        IOTraceLogFlag::Outdated => "Binary Newer",
+        IOTraceLogFlag::MissingBinary => "Missing Binary",
+    }
+}
+
+// pub fn map_io_trace_flag_to_color(flag: IOTraceLogFlag) -> Color {
+//     match flag {
+//         IOTraceLogFlag::Unknown => YELLOW,
+//         IOTraceLogFlag::Valid   => GREEN,
+//         IOTraceLogFlag::Invalid => RED,
+//         IOTraceLogFlag::Current => GREEN,
+//         IOTraceLogFlag::Expired => YELLOW,
+//         IOTraceLogFlag::Fresh => GREEN,
+//         IOTraceLogFlag::Outdated => RED,
+//         IOTraceLogFlag::MissingBinary => RED,
+//     }
+// }
+
+pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>, bool, Color) {
+    let mut flags = Vec::new();
+    let mut err = false;
+    let mut color = RED;
+
+    if !util::is_file_accessible(&io_trace.exe) {
+        flags.push(IOTraceLogFlag::MissingBinary);
+        err = true;
+        color = RED;
+    } else {
+        // check that I/O trace is newer than the binary
+        match fs::metadata(Path::new(&io_trace.exe)) {
+            Err(e) => { error!("Could not get metadata of executable file! {}", e) },
+            Ok(m) => {
+                let binary_created = m.modified().unwrap();
+
+                if io_trace.created_at <= DateTime::from(binary_created) {
+                    flags.push(IOTraceLogFlag::Outdated);
+                    color = RED;
+                    err = true;
+                } else {
+                    flags.push(IOTraceLogFlag::Current);
+                    color = GREEN;
+                }
+            }
+        }
+    }
+
+    if Utc::now() - Duration::days(constants::IO_TRACE_EXPIRY_DAYS) >= io_trace.created_at {
+        flags.push(IOTraceLogFlag::Expired);        
+        color = YELLOW;
+    }
+
+    if !err {
+        flags.push(IOTraceLogFlag::Valid);
+    } else {
+        flags.push(IOTraceLogFlag::Invalid);
+    }
+
+    (flags, err, color)
 }
 
 /// Represents an I/O trace log `.trace` file

@@ -97,9 +97,7 @@ impl IOtraceLogManager {
     ///  * They are corrupt
     ///  * The corresponding executable has vanished from the filesystem
     ///  * They are too old (older than n days)
-    ///  * The ctime of the binary is newer than the ctime of the trace file (obsolete)
-    ///  * The atime of the I/O trace was updated more than n days ago
-    ///    (how to handle noatime mounts then??)
+    ///  * The ctime of the binary is newer than the ctime of the trace file (obsolete)    
     pub fn prune_expired_trace_logs(&self, globals: &mut Globals, manager: &Manager) {
         debug!("Pruning stale I/O trace logs...");
 
@@ -157,7 +155,7 @@ impl IOtraceLogManager {
         }
     }
 
-    pub fn optimize_trace_logs(&self, globals: &mut Globals, manager: &Manager ) {
+    pub fn optimize_trace_logs(&self, globals: &mut Globals, manager: &Manager) {
         debug!("Optimizing all I/O trace logs...");
 
         let config = globals.config.config_file.clone().unwrap();
@@ -184,10 +182,14 @@ impl IOtraceLogManager {
                 Ok(io_trace) => {
                     match util::optimize_io_trace_log(&io_trace, false) {
                         Err(e) => {
-                            error!("Could not optimize I/O trace log for '{}': {}", io_trace.exe, e);
+                            error!(
+                                "Could not optimize I/O trace log for '{}': {}",
+                                io_trace.exe,
+                                e
+                            );
 
                             // util::remove_file(&filename, true);
-                        },
+                        }
                         Ok(_) => {
                             optimized += 1;
                         }

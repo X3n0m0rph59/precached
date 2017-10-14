@@ -55,6 +55,9 @@ pub const PING_INTERVAL_MILLIS: u64 = 2000;
 /// Duration that we trace a process' I/O activity
 pub const IO_TRACE_TIME_SECS: u64 = 5;
 
+/// After how many days an I/O trace is flagged as expired
+pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
+
 
 /// Initial gap width of console log output
 pub const INITIAL_MODULE_WIDTH: usize = 40;

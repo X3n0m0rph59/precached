@@ -34,7 +34,7 @@ extern crate term;
 extern crate toml;
 extern crate zstd;
 
-use chrono::{DateTime, Utc};
+use std::collections::HashSet;
 use clap::{App, AppSettings, Arg, SubCommand};
 use prettytable::Table;
 use prettytable::cell::Cell;
@@ -92,14 +92,34 @@ impl<'a, 'b> Config<'a, 'b> {
                     .about(
                         "Show the current status of the precached I/O tracing subsystem",
                     )
-                    .arg(Arg::with_name("full").short("f").help(
-                        "Use 'full' display format",
-                    )),
+                    .arg(Arg::with_name("tabular")
+                            .long("tabular")
+                            // .short("t")
+                            // .conflicts_with("full")
+                            // .conflicts_with("short")
+                            // .conflicts_with("terse")
+                            .help("Use 'tabular' display format")),
             )
             .subcommand(
                 SubCommand::with_name("top")
                     .setting(AppSettings::DeriveDisplayOrder)
-                    .about("Top/htop like display of in-flight I/O traces"),
+                    .about("Top/htop like display of in-flight I/O traces")
+                    .arg(
+                        Arg::with_name("hash")
+                            .long("hash")
+                            .short("p")
+                            .takes_value(true)
+                            .required(false)
+                            .help("Filter for the hash value of the I/O trace"),
+                    )
+                    .arg(
+                        Arg::with_name("executable")
+                            .long("executable")
+                            .short("e")
+                            .takes_value(true)
+                            .required(false)
+                            .help("Filter for executable name of the I/O trace"),
+                    ),
             )
             .subcommand(
                 SubCommand::with_name("list")
@@ -140,21 +160,29 @@ impl<'a, 'b> Config<'a, 'b> {
                             .conflicts_with("full")
                             .conflicts_with("short")
                             .help("Use 'terse' display format (list executables only)"),
+                    )
+                    .arg(
+                        Arg::with_name("hash")
+                            .long("hash")
+                            .short("p")
+                            .takes_value(true)
+                            .required(false)
+                            .help("Filter for the hash value of the I/O trace"),
+                    )
+                    .arg(
+                        Arg::with_name("executable")
+                            .long("executable")
+                            .short("e")
+                            .takes_value(true)
+                            .required(false)
+                            .help("Filter for executable name of the I/O trace"),
                     ),
             )
             .subcommand(
                 SubCommand::with_name("info")
                     .setting(AppSettings::DeriveDisplayOrder)
                     .alias("show")
-                    .about("Print metadata information about specific I/O traces")
-                    .arg(
-                        Arg::with_name("hash")
-                            .long("hash")
-                            .short("p")
-                            .takes_value(true)
-                            .required(true)
-                            .help("The hash of the I/O trace to display"),
-                    )
+                    .about("Print metadata information of specific I/O traces")
                     .arg(
                         Arg::with_name("full")
                             .long("full")
@@ -168,6 +196,22 @@ impl<'a, 'b> Config<'a, 'b> {
                             .short("s")
                             .conflicts_with("full")
                             .help("Use 'short' display format"),
+                    )
+                    .arg(
+                        Arg::with_name("hash")
+                            .long("hash")
+                            .short("p")
+                            .takes_value(true)
+                            .required(false)
+                            .help("Filter for the hash value of the I/O trace"),
+                    )
+                    .arg(
+                        Arg::with_name("executable")
+                            .long("executable")
+                            .short("e")
+                            .takes_value(true)
+                            .required(false)
+                            .help("Filter for executable name of the I/O trace"),
                     ),
             )
             .subcommand(
@@ -180,7 +224,7 @@ impl<'a, 'b> Config<'a, 'b> {
                             .short("p")
                             .takes_value(true)
                             .required(true)
-                            .help("The hash of the I/O trace to dump"),
+                            .help("The hash value of the I/O trace to dump"),
                     ),
             )
             .subcommand(
@@ -193,7 +237,7 @@ impl<'a, 'b> Config<'a, 'b> {
                             .short("p")
                             .takes_value(true)
                             .required(true)
-                            .help("The hash of the I/O trace to analyze"),
+                            .help("The hash value of the I/O trace to analyze"),
                     ),
             )
             .subcommand(
@@ -206,7 +250,15 @@ impl<'a, 'b> Config<'a, 'b> {
                             .short("p")
                             .takes_value(true)
                             .required(false)
-                            .help("The hash of the I/O trace to optimize"),
+                            .help("Filter for the hash value of the I/O trace"),
+                    )
+                    .arg(
+                        Arg::with_name("executable")
+                            .long("executable")
+                            .short("e")
+                            .takes_value(true)
+                            .required(false)
+                            .help("Filter for executable name of the I/O trace"),
                     ),
             )
             .subcommand(
@@ -220,8 +272,24 @@ impl<'a, 'b> Config<'a, 'b> {
                             .short("p")
                             .takes_value(true)
                             .required(true)
-                            .help("The hash of the I/O trace to display"),
+                            .help("The hash value of the I/O trace to remove"),
                     )
+                    // .arg(
+                    //     Arg::with_name("hash")
+                    //         .long("hash")
+                    //         .short("p")
+                    //         .takes_value(true)
+                    //         .required(false)
+                    //         .help("Filter for the hash value of the I/O trace"),
+                    // )
+                    // .arg(
+                    //     Arg::with_name("executable")
+                    //         .long("executable")
+                    //         .short("e")
+                    //         .takes_value(true)
+                    //         .required(false)
+                    //         .help("Filter for executable name of the I/O trace"),
+                    // )
                     .arg(Arg::with_name("dryrun").long("dry-run").short("n").help(
                         "Do not actually remove anything, just pretend to",
                     )),
@@ -305,19 +373,51 @@ fn default_table_format(config: &Config) -> TableFormat {
     }
 }
 
-/// Returns true if all of the supplied filters match the I/O trace
-fn filter_matches(_io_trace: &iotrace::IOTraceLog) -> bool {
+/// Returns true if all of the supplied command-line filters match the given I/O trace
+fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::IOTraceLog, config: &Config) -> bool {
+
+    let matches = config.matches.subcommand_matches(subcommand).unwrap();
+
+    if matches.is_present("hash") {
+        if let Some(hash) = matches.value_of("hash") {
+            if io_trace.hash != hash {
+                return false;
+            }
+        }
+    }
+
+    if matches.is_present("executable") {
+        if let Some(exe) = matches.value_of("executable") {
+            if !io_trace.exe.contains(exe) {
+                return false;
+            }
+        }
+    }
+
     true
 }
 
-fn get_io_trace_flags(_io_trace: &iotrace::IOTraceLog) -> Vec<String> {
-    // TODO: Implement this
-    vec![String::from("Valid"), String::from("Current")]
+fn get_io_trace_flags(io_trace: &iotrace::IOTraceLog) -> (String, bool, Color) {
+    let mut result = String::from("");
+    let (flags, err, color) = iotrace::get_io_trace_flags_and_err(io_trace);
+
+    let mut counter = 0;
+    let len = flags.len();
+    for e in flags {
+        result += iotrace::map_io_trace_flag_to_string(e);
+
+        if counter < len-1 {
+            result += ", ";
+        }
+        counter += 1;
+    }
+
+    (result, err, color)
 }
 
 fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usize, config: &Config, table: &mut Table) {
     let matches = config.matches.subcommand_matches("list").unwrap();
-    let flags = get_io_trace_flags(&io_trace);
+    let (flags, err, color) = get_io_trace_flags(&io_trace);
 
     if matches.is_present("full") {
         // Print in "full" format
@@ -379,9 +479,8 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
             // Cell::new(&"Zstd"),
             Cell::new(&format!("{}", io_trace.file_map.len())),
             Cell::new(&format!("{}", io_trace.trace_log.len())),
-            Cell::new(&format!("{:?}", flags)).with_style(
-                Attr::Italic(true)
-            ),
+            Cell::new(&format!("{}", flags)).with_style(Attr::Bold)
+                                            .with_style(Attr::ForegroundColor(color)),
         ]));
     }
 }
@@ -392,7 +491,11 @@ fn io_trace_top(_config: &Config, _daemon_config: util::ConfigFile) {
 }
 
 fn map_bool_to_color(b: bool) -> Color {
-    if b { GREEN } else { RED }
+    if b {
+        GREEN
+    } else {
+        RED
+    }
 }
 
 /// Print the status of the I/O tracing subsystem
@@ -505,12 +608,6 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     match util::walk_directories(&vec![traces_path], &mut |path| {
         trace!("{:?}", path);
 
-        // TODO:
-        // test if the trace is valid at all
-        // test if the trace is older than the binary (out-of-date)
-        // test that the binary does exist (bin-does-not-exist)
-        // test if the trace is from last run of binary!? (current or not-current)
-
         let filename = String::from(path.to_string_lossy());
         match iotrace::IOTraceLog::from_file(&filename) {
             Err(e) => {
@@ -518,7 +615,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 errors += 1;
             }
             Ok(io_trace) => {
-                if filter_matches(&io_trace) {
+                if filter_matches(&String::from("list"), &filename, &io_trace, &config) {
                     print_io_trace(&filename, &io_trace, counter + 1, config, &mut table);
                     matching += 1;
                 }
@@ -537,6 +634,9 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         if table.len() > 1 {
             // Print the generated table to stdout
             table.printstd();
+        } else if matching < 1 {
+                println!("No I/O trace matched the query parameter(s)");
+            }
         }
 
         println!(
@@ -563,59 +663,66 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
     let mut matching = 0;
     let mut errors = 0;
 
-    let hash = config
-        .matches
-        .subcommand_matches("info")
-        .unwrap()
-        .value_of("hash")
-        .unwrap();
-
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
-
-    let p = Path::new(&traces_path).join(Path::new(&format!("{}.trace", hash)));
-    let filename = String::from(p.to_string_lossy());
 
     let mut errors = 0;
     let mut matching = 0;
 
-    match iotrace::IOTraceLog::from_file(&filename) {
-        Err(e) => {
-            error!("Invalid I/O trace file, file not readable: {}", e);
-            errors += 1;
-        }
-        Ok(io_trace) => {
-            let flags = get_io_trace_flags(&io_trace);
+    match util::walk_directories(&vec![traces_path], &mut |path| {
+        trace!("{:?}", path);
 
-            // Print in "full" format
-            println!(
-                "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
-                 Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-                 Flags:\t\t{:?}\n\n",
-                filename,
-                io_trace.exe,
-                io_trace.comm,
-                io_trace.hash,
-                io_trace
-                    .created_at
-                    .format(constants::DATETIME_FORMAT_DEFAULT)
-                    .to_string(),
-                io_trace
-                    .trace_stopped_at
-                    .format(constants::DATETIME_FORMAT_DEFAULT)
-                    .to_string(),
-                io_trace.file_map.len(),
-                io_trace.trace_log.len(),
-                flags
-            );
+        let filename = String::from(path.to_string_lossy());
+        match iotrace::IOTraceLog::from_file(&filename) {
+            Err(e) => {
+                error!("Invalid I/O trace file, file not readable: {}", e);
+                errors += 1;
+            }
+            Ok(io_trace) => {
+                if filter_matches(&String::from("info"), &filename, &io_trace, &config) {
+                    let flags = get_io_trace_flags(&io_trace);
 
-            matching += 1;
+                    // TODO: Support other formats here
+                    // Print in "full" format
+                    println!(
+                        "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                         Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
+                         Flags:\t\t{:?}\n\n",
+                        filename,
+                        io_trace.exe,
+                        io_trace.comm,
+                        io_trace.hash,
+                        io_trace
+                            .created_at
+                            .format(constants::DATETIME_FORMAT_DEFAULT)
+                            .to_string(),
+                        io_trace
+                            .trace_stopped_at
+                            .format(constants::DATETIME_FORMAT_DEFAULT)
+                            .to_string(),
+                        io_trace.file_map.len(),
+                        io_trace.trace_log.len(),
+                        flags
+                    );
+
+                    matching += 1;
+                }
+            }
         }
+
+        counter += 1;
+    }) {
+        Err(e) => error!("Error during enumeration of I/O trace files: {}", e),
+        _ => { /* Do nothing */ }
+    }
+
+    if matching == 0 {
+        println!("No I/O trace matched the query parameter(s)");
     }
 
     println!(
         "\nSummary: {} I/O trace files processed, {} matching filter, {} errors occured",
-        matching,
+        counter,
         matching,
         errors
     );
@@ -708,7 +815,10 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
                     // Print in "tabular" format (the default)
                     table.add_row(Row::new(vec![
-                        Cell::new_align(&format!("{}", index), Alignment::RIGHT),
+                        Cell::new_align(
+                            &format!("{}", index + 1),
+                            Alignment::RIGHT
+                        ),
                         Cell::new(&e.timestamp
                             .format(constants::DATETIME_FORMAT_DEFAULT)
                             .to_string()),
@@ -890,18 +1000,8 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let mut matching = 0;
     let mut errors = 0;
 
-    // let hash = config
-    //     .matches
-    //     .subcommand_matches("optimize")
-    //     .unwrap()
-    //     .value_of("hash")
-    //     .unwrap();
-
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
-
-    // let p = Path::new(&traces_path).join(Path::new(&format!("{}.trace", hash)));
-    // let filename = String::from(p.to_string_lossy());
 
     let mut errors = 0;
     let mut matching = 0;
@@ -926,7 +1026,6 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         trace!("{:?}", path);
 
         let filename = String::from(path.to_string_lossy());
-
         match iotrace::IOTraceLog::from_file(&filename) {
             Err(_e) => {
                 // Print in "tabular" format (the default)
@@ -936,63 +1035,71 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                         Alignment::RIGHT
                     ),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&"file error").with_style(Attr::Bold).with_style(
-                        Attr::ForegroundColor(RED)
-                    ),
+                    Cell::new(&"file error")
+                        .with_style(Attr::Bold)
+                        .with_style(Attr::ForegroundColor(RED)),
                 ]));
                 errors += 1;
-            },
+            }
             Ok(io_trace) => {
-                match util::optimize_io_trace_log(&io_trace, dry_run) {
-                    Err(_) => {
-                        // Print in "tabular" format (the default)
-                        table.add_row(Row::new(vec![
-                            Cell::new_align(
-                                &format!("{}", counter + 1),
-                                Alignment::RIGHT
-                            ),
-                            Cell::new(&filename).with_style(Attr::Bold),
-                            Cell::new(&"optimizer failed").with_style(Attr::Bold).with_style(
-                                Attr::ForegroundColor(RED)
-                            ),
-                        ]));
-                        errors += 1;
-                    }
-                    Ok(_) => {
-                        // Print in "tabular" format (the default)
-                        table.add_row(Row::new(vec![
-                            Cell::new_align(
-                                &format!("{}", counter + 1),
-                                Alignment::RIGHT
-                            ),
-                            Cell::new(&filename).with_style(Attr::Bold),
-                            Cell::new(&"optimized")
-                                .with_style(Attr::Bold)
-                                .with_style(Attr::ForegroundColor(GREEN)),
-                        ]));
-                        matching += 1;
+                if filter_matches(&String::from("optimize"), &filename, &io_trace, &config) {
+                    match util::optimize_io_trace_log(&io_trace, dry_run) {
+                        Err(_) => {
+                            // Print in "tabular" format (the default)
+                            table.add_row(Row::new(vec![
+                                Cell::new_align(
+                                    &format!("{}", counter + 1),
+                                    Alignment::RIGHT
+                                ),
+                                Cell::new(&filename).with_style(Attr::Bold),
+                                Cell::new(&"optimizer failed")
+                                    .with_style(Attr::Bold)
+                                    .with_style(Attr::ForegroundColor(RED)),
+                            ]));
+                            errors += 1;
+                        }
+                        Ok(_) => {
+                            // Print in "tabular" format (the default)
+                            table.add_row(Row::new(vec![
+                                Cell::new_align(
+                                    &format!("{}", counter + 1),
+                                    Alignment::RIGHT
+                                ),
+                                Cell::new(&filename).with_style(Attr::Bold),
+                                Cell::new(&"optimized")
+                                    .with_style(Attr::Bold)
+                                    .with_style(Attr::ForegroundColor(GREEN)),
+                            ]));
+                            matching += 1;
+                        }
                     }
                 }
             }
         }
+
+        counter += 1;
     }) {
         Err(e) => error!("Error during enumeration of I/O trace files: {}", e),
         _ => { /* Do nothing */ }
     }
 
-    table.printstd();
+    if table.len() > 1 {
+        table.printstd();
+    } else {
+        println!("No I/O trace matched the query parameter(s)");
+    }
 
     if dry_run {
         println!(
             "\nSummary: {} I/O trace files would have been optimized, {} matching filter, {} errors occured",
-            matching,
+            counter,
             matching,
             errors
         );
     } else {
         println!(
             "\nSummary: {} I/O trace files optimized, {} matching filter, {} errors occured",
-            matching,
+            counter,
             matching,
             errors
         );
