@@ -18,7 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#[allow(unused_imports)]
+#![allow(unused_imports)]
 
 extern crate clap;
 #[macro_use]

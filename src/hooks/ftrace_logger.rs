@@ -97,7 +97,7 @@ impl FtraceLogger {
                             Occupied(mut tracer_data) => {
                                 // We successfuly found tracer data for process `pid`
                                 // Add an event record to the I/O trace log of that process
-                                let mut iotrace_log = &mut tracer_data.get_mut().trace_log;
+                                let iotrace_log = &mut tracer_data.get_mut().trace_log;
                                 match event.syscall {
                                     util::SysCall::Open(ref filename, fd) => {
                                         trace!(

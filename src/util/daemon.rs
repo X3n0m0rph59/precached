@@ -24,7 +24,7 @@ use constants;
 use daemonize::{Daemonize, DaemonizeError};
 use globals;
 
-pub fn daemonize(config: &globals::Globals) -> Result<(), DaemonizeError> {
+pub fn daemonize(_config: &globals::Globals) -> Result<(), DaemonizeError> {
     let daemonize = Daemonize::new()
         .pid_file(constants::DAEMON_PID_FILE) // Every method except `new` and `start`
         .chown_pid_file(true)      // is optional, see `Daemonize` documentation

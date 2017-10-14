@@ -25,6 +25,8 @@
     These are default values, maybe they are overridden by external configuration files!
 */
 
+#![allow(unused)]
+
 /// Config file, where the daemon's config is located
 pub const CONFIG_FILE: &'static str = "/etc/precached/precached.conf";
 

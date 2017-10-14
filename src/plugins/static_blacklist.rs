@@ -94,7 +94,7 @@ impl Plugin for StaticBlacklist {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             events::EventType::Startup => {}
             events::EventType::ConfigurationReloaded => {

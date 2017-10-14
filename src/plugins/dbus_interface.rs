@@ -82,7 +82,7 @@ impl tree::DataType for TData {
     type Signal = ();
 }
 
-fn create_iface(process_event_s: mpsc::Sender<i32>) -> (Interface<MTFn<TData>, TData>, Arc<Signal<TData>>) {
+fn create_iface(_process_event_s: mpsc::Sender<i32>) -> (Interface<MTFn<TData>, TData>, Arc<Signal<TData>>) {
     let f = tree::Factory::new_fn();
 
     let process_event = Arc::new(f.signal("ProcessEvent", ()));
@@ -196,7 +196,7 @@ impl DBUSInterface {
 
         // Create tree
         let (process_event_s, _process_event_r) = mpsc::channel::<i32>();
-        let (iface, sig) = create_iface(process_event_s);
+        let (iface, _sig) = create_iface(process_event_s);
         let tree = create_tree(&self.process_stats, &Arc::new(iface));
 
         // Setup DBus connection

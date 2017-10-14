@@ -80,7 +80,7 @@ impl IOtraceLogManager {
         Ok(result)
     }
 
-    fn shall_io_trace_be_pruned(&self, io_trace: &iotrace::IOTraceLog) -> bool {
+    fn shall_io_trace_be_pruned(&self, _io_trace: &iotrace::IOTraceLog) -> bool {
         // TODO:
         // test if the trace is valid at all
         // test if the trace is older than the binary (out-of-date)
@@ -98,7 +98,7 @@ impl IOtraceLogManager {
     ///  * The corresponding executable has vanished from the filesystem
     ///  * They are too old (older than n days)
     ///  * The ctime of the binary is newer than the ctime of the trace file (obsolete)
-    pub fn prune_expired_trace_logs(&self, globals: &mut Globals, manager: &Manager) {
+    pub fn prune_expired_trace_logs(&self, globals: &mut Globals, _manager: &Manager) {
         debug!("Pruning stale I/O trace logs...");
 
         let config = globals.config.config_file.clone().unwrap();
@@ -155,7 +155,7 @@ impl IOtraceLogManager {
         }
     }
 
-    pub fn optimize_trace_logs(&self, globals: &mut Globals, manager: &Manager) {
+    pub fn optimize_trace_logs(&self, globals: &mut Globals, _manager: &Manager) {
         debug!("Optimizing all I/O trace logs...");
 
         let config = globals.config.config_file.clone().unwrap();

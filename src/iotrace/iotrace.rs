@@ -18,6 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#![allow(unused)]
+
 extern crate chrono;
 extern crate fnv;
 extern crate libc;

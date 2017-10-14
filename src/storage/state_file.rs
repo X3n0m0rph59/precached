@@ -40,7 +40,7 @@ where
     Ok(())
 }
 
-pub fn deserialize<T>(t: &T, globals: &mut Globals)
+pub fn deserialize<T>(_t: &T, _globals: &mut Globals)
 where
     T: Serialize,
 {

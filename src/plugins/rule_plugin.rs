@@ -74,7 +74,7 @@ impl Plugin for RulePlugin {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             _ => {
                 // Ignore all other events

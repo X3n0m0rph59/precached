@@ -54,7 +54,7 @@ pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
 
 pub fn read_text_file(filename: &str) -> io::Result<String> {
     let path = Path::new(filename);
-    let mut file = try!(OpenOptions::new().read(true).open(&path));
+    let file = try!(OpenOptions::new().read(true).open(&path));
 
     let decompressed = zstd::decode_all(BufReader::new(file)).unwrap();
     let result = String::from_utf8(decompressed).unwrap();
@@ -64,11 +64,11 @@ pub fn read_text_file(filename: &str) -> io::Result<String> {
 
 pub fn read_uncompressed_text_file(filename: &str) -> io::Result<String> {
     let path = Path::new(filename);
-    let mut file = try!(OpenOptions::new().read(true).open(&path));
+    let file = try!(OpenOptions::new().read(true).open(&path));
 
     let mut result = String::new();
     let mut reader = BufReader::new(file);
-    #[allow(unused_must_use)] reader.read_to_string(&mut result);
+    #[allow(unused_must_use)] reader.read_to_string(&mut result).unwrap();
 
     Ok(result)
 }

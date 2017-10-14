@@ -33,7 +33,7 @@ use std::path::Path;
 
 use util;
 
-pub fn optimize_io_trace_log(iotrace: &iotrace::IOTraceLog, dry_run: bool) -> Result<()> {
+pub fn optimize_io_trace_log(_iotrace: &iotrace::IOTraceLog, _dry_run: bool) -> Result<()> {
     trace!("Optimizing I/O trace log...");
 
     Ok(())

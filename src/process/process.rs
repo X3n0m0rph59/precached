@@ -60,8 +60,7 @@ pub struct Process {
 impl Process {
     pub fn new(pid: libc::pid_t) -> Process {
         let filename = format!("/proc/{}/comm", pid);
-        // let comm = &util::get_lines_from_file(&filename).unwrap_or(vec![String::from("<unknown>")])[0];
-        let comm = String::from("<unknown>");
+        let comm = &util::get_lines_from_file(&filename).unwrap_or(vec![String::from("<unknown>")])[0];
 
         Process {
             pid: pid,

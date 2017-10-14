@@ -88,7 +88,7 @@ impl Plugin for MarkovLogManager {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             events::EventType::Startup => {
                 //
