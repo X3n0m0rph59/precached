@@ -635,8 +635,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             // Print the generated table to stdout
             table.printstd();
         } else if matching < 1 {
-                println!("No I/O trace matched the query parameter(s)");
-            }
+            println!("No I/O trace matched the filter parameter(s)");
         }
 
         println!(
@@ -717,7 +716,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
     }
 
     if matching == 0 {
-        println!("No I/O trace matched the query parameter(s)");
+        println!("No I/O trace matched the filter parameter(s)");
     }
 
     println!(
@@ -1086,7 +1085,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     if table.len() > 1 {
         table.printstd();
     } else {
-        println!("No I/O trace matched the query parameter(s)");
+        println!("No I/O trace matched the filter parameter(s)");
     }
 
     if dry_run {
