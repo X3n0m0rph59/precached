@@ -18,12 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#[allow(unused_imports)]
+
 extern crate clap;
 #[macro_use]
 extern crate log;
 extern crate nix;
 extern crate pretty_env_logger;
-#[macro_use]
+// #[macro_use]
 extern crate prettytable;
 #[macro_use]
 extern crate serde_derive;

@@ -97,7 +97,7 @@ impl IOtraceLogManager {
     ///  * They are corrupt
     ///  * The corresponding executable has vanished from the filesystem
     ///  * They are too old (older than n days)
-    ///  * The ctime of the binary is newer than the ctime of the trace file (obsolete)    
+    ///  * The ctime of the binary is newer than the ctime of the trace file (obsolete)
     pub fn prune_expired_trace_logs(&self, globals: &mut Globals, manager: &Manager) {
         debug!("Pruning stale I/O trace logs...");
 

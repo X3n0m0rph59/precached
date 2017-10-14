@@ -22,16 +22,16 @@ extern crate libc;
 extern crate regex;
 extern crate term;
 
-use chrono::{DateTime, Utc, Duration};
-use iotrace::*;
-use std::io::Result;
-use std::fs;
-use std::path::Path;
 use self::term::Attr;
 use self::term::color::*;
+use chrono::{DateTime, Utc, Duration};
+use constants;
+use iotrace::*;
+use std::fs;
+use std::io::Result;
+use std::path::Path;
 
 use util;
-use constants;
 
 pub fn optimize_io_trace_log(iotrace: &iotrace::IOTraceLog, dry_run: bool) -> Result<()> {
     trace!("Optimizing I/O trace log...");
@@ -64,7 +64,7 @@ pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>
     } else {
         // check that I/O trace is newer than the binary
         match fs::metadata(Path::new(&io_trace.exe)) {
-            Err(e) => { error!("Could not get metadata of executable file! {}", e) },
+            Err(e) => error!("Could not get metadata of executable file! {}", e),
             Ok(m) => {
                 let binary_created = m.modified().unwrap();
 

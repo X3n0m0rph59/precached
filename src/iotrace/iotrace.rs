@@ -80,9 +80,9 @@ pub enum IOTraceLogEntryFlag {
 pub fn map_io_trace_log_entry_flag_to_string(flag: IOTraceLogEntryFlag) -> &'static str {
     match flag {
         IOTraceLogEntryFlag::Unknown => "Unknown",
-        IOTraceLogEntryFlag::Valid   => "Valid",
+        IOTraceLogEntryFlag::Valid => "Valid",
         IOTraceLogEntryFlag::Invalid => "Invalid",
-        IOTraceLogEntryFlag::OK      => "OK",
+        IOTraceLogEntryFlag::OK => "OK",
         IOTraceLogEntryFlag::MissingFile => "Missing File",
     }
 }
@@ -110,13 +110,12 @@ pub enum IOTraceLogFlag {
 
     /// The binary is missing
     MissingBinary,
-
 }
 
 pub fn map_io_trace_flag_to_string(flag: IOTraceLogFlag) -> &'static str {
     match flag {
         IOTraceLogFlag::Unknown => "Unknown",
-        IOTraceLogFlag::Valid   => "Valid",
+        IOTraceLogFlag::Valid => "Valid",
         IOTraceLogFlag::Invalid => "Invalid",
         IOTraceLogFlag::Fresh => "Fresh",
         IOTraceLogFlag::Expired => "Expired",

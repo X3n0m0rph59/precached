@@ -68,7 +68,7 @@ pub fn read_uncompressed_text_file(filename: &str) -> io::Result<String> {
 
     let mut result = String::new();
     let mut reader = BufReader::new(file);
-    reader.read_to_string(&mut result);
+    #[allow(unused_must_use)] reader.read_to_string(&mut result);
 
     Ok(result)
 }

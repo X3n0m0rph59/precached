@@ -27,7 +27,10 @@
 
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
+
 #![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_must_use)]
 
 extern crate ansi_term;
 extern crate chrono;

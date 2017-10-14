@@ -18,6 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#[allow(unused_imports)]
+
 extern crate chrono;
 extern crate clap;
 #[macro_use]
@@ -34,12 +36,12 @@ extern crate term;
 extern crate toml;
 extern crate zstd;
 
-use std::collections::HashSet;
 use clap::{App, AppSettings, Arg, SubCommand};
 use prettytable::Table;
 use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::row::Row;
+use std::collections::HashSet;
 use std::path::Path;
 use term::Attr;
 use term::color::*;
@@ -406,7 +408,7 @@ fn get_io_trace_flags(io_trace: &iotrace::IOTraceLog) -> (String, bool, Color) {
     for e in flags {
         result += iotrace::map_io_trace_flag_to_string(e);
 
-        if counter < len-1 {
+        if counter < len - 1 {
             result += ", ";
         }
         counter += 1;
@@ -479,8 +481,9 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
             // Cell::new(&"Zstd"),
             Cell::new(&format!("{}", io_trace.file_map.len())),
             Cell::new(&format!("{}", io_trace.trace_log.len())),
-            Cell::new(&format!("{}", flags)).with_style(Attr::Bold)
-                                            .with_style(Attr::ForegroundColor(color)),
+            Cell::new(&format!("{}", flags))
+                .with_style(Attr::Bold)
+                .with_style(Attr::ForegroundColor(color)),
         ]));
     }
 }
@@ -491,11 +494,7 @@ fn io_trace_top(_config: &Config, _daemon_config: util::ConfigFile) {
 }
 
 fn map_bool_to_color(b: bool) -> Color {
-    if b {
-        GREEN
-    } else {
-        RED
-    }
+    if b { GREEN } else { RED }
 }
 
 /// Print the status of the I/O tracing subsystem
@@ -853,7 +852,7 @@ fn get_io_trace_entry_flags(entry: &iotrace::TraceLogEntry) -> (String, bool, Co
     for e in flags {
         result += iotrace::map_io_trace_log_entry_flag_to_string(e);
 
-        if counter < len-1 {
+        if counter < len - 1 {
             result += ", ";
         }
         counter += 1;
@@ -955,9 +954,9 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                             .to_string()),
                         Cell::new(&format!("{:?}", e.operation)),
                         Cell::new(&format!("{}", String::from("n/a"))),
-                        Cell::new(&format!("{}", flags)).with_style(Attr::Bold).with_style(
-                            Attr::ForegroundColor(color)
-                        ),
+                        Cell::new(&format!("{}", flags))
+                            .with_style(Attr::Bold)
+                            .with_style(Attr::ForegroundColor(color)),
                     ]));
                 }
 
