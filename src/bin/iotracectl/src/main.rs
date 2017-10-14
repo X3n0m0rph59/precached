@@ -399,7 +399,7 @@ fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::I
 
 fn get_io_trace_flags(io_trace: &iotrace::IOTraceLog) -> (String, bool, Color) {
     let mut result = String::from("");
-    let (flags, err, color) = iotrace::get_io_trace_flags_and_err(io_trace);
+    let (flags, err, color) = util::get_io_trace_flags_and_err(io_trace);
 
     let mut counter = 0;
     let len = flags.len();
@@ -844,12 +844,22 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     );
 }
 
-fn map_status_to_color(status: &Vec<String>) -> Color {
-    if status.contains(&String::from("NONEXISTENT")) {
-        return RED;
+fn get_io_trace_entry_flags(entry: &iotrace::TraceLogEntry) -> (String, bool, Color) {
+    let mut result = String::from("");
+    let (flags, err, color) = util::get_io_trace_log_entry_flags_and_err(entry);
+
+    let mut counter = 0;
+    let len = flags.len();
+    for e in flags {
+        result += iotrace::map_io_trace_log_entry_flag_to_string(e);
+
+        if counter < len-1 {
+            result += ", ";
+        }
+        counter += 1;
     }
 
-    GREEN
+    (result, err, color)
 }
 
 /// Analyze I/O trace file
@@ -928,7 +938,6 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 Cell::new("I/O Operation"),
                 Cell::new("Payload"),
                 Cell::new("Flags"),
-                Cell::new("Status"),
             ]));
 
             for e in io_trace.trace_log.iter() {
@@ -936,21 +945,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
                 /*if matches.is_present("tabular")*/
                 {
-                    let flags = vec![String::from("OK")];
-                    let mut status = vec![];
-
-                    // TODO: Perform consistency checks
-                    //       * Timestamp of I/O operation newer than target file?
-                    match e.operation {
-                        iotrace::IOOperation::Open(ref filename, ref _fd) => {
-                            if util::is_file_accessible(filename) {
-                                status.push(String::from("OK"));
-                            } else {
-                                status.push(String::from("NONEXISTENT"));
-                            }
-                        }
-                        _ => { /* Do nothing */ }
-                    }
+                    let (flags, err, color) = get_io_trace_entry_flags(&e);
 
                     // Print in "tabular" format (the default)
                     table.add_row(Row::new(vec![
@@ -960,11 +955,8 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                             .to_string()),
                         Cell::new(&format!("{:?}", e.operation)),
                         Cell::new(&format!("{}", String::from("n/a"))),
-                        Cell::new(&format!("{:?}", flags)).with_style(
-                            Attr::Italic(true)
-                        ),
-                        Cell::new(&format!("{:?}", status)).with_style(
-                            Attr::ForegroundColor(map_status_to_color(&status))
+                        Cell::new(&format!("{}", flags)).with_style(Attr::Bold).with_style(
+                            Attr::ForegroundColor(color)
                         ),
                     ]));
                 }

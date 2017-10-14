@@ -29,12 +29,9 @@ use constants;
 use process::Process;
 use std::collections::HashMap;
 use std::hash::Hasher;
+use std::io;
 use std::io::BufReader;
-use std::io::Result;
 use std::path::Path;
-use std::fs;
-use self::term::Attr;
-use self::term::color::*;
 
 use util;
 
@@ -60,6 +57,33 @@ impl TraceLogEntry {
             timestamp: Utc::now(),
             operation: operation,
         }
+    }
+}
+
+/// Status flags for I/O trace logs
+#[derive(Debug, Hash, Copy, Clone, PartialEq, Eq)]
+pub enum IOTraceLogEntryFlag {
+    /// Unknown value
+    Unknown,
+
+    /// I/O Trace has a valid format
+    Valid,
+    /// I/O Trace has an invalid format
+    Invalid,
+
+    /// The destination file is accessible
+    OK,
+    /// The destination file is missing
+    MissingFile,
+}
+
+pub fn map_io_trace_log_entry_flag_to_string(flag: IOTraceLogEntryFlag) -> &'static str {
+    match flag {
+        IOTraceLogEntryFlag::Unknown => "Unknown",
+        IOTraceLogEntryFlag::Valid   => "Valid",
+        IOTraceLogEntryFlag::Invalid => "Invalid",
+        IOTraceLogEntryFlag::OK      => "OK",
+        IOTraceLogEntryFlag::MissingFile => "Missing File",
     }
 }
 
@@ -100,61 +124,6 @@ pub fn map_io_trace_flag_to_string(flag: IOTraceLogFlag) -> &'static str {
         IOTraceLogFlag::Outdated => "Binary Newer",
         IOTraceLogFlag::MissingBinary => "Missing Binary",
     }
-}
-
-// pub fn map_io_trace_flag_to_color(flag: IOTraceLogFlag) -> Color {
-//     match flag {
-//         IOTraceLogFlag::Unknown => YELLOW,
-//         IOTraceLogFlag::Valid   => GREEN,
-//         IOTraceLogFlag::Invalid => RED,
-//         IOTraceLogFlag::Current => GREEN,
-//         IOTraceLogFlag::Expired => YELLOW,
-//         IOTraceLogFlag::Fresh => GREEN,
-//         IOTraceLogFlag::Outdated => RED,
-//         IOTraceLogFlag::MissingBinary => RED,
-//     }
-// }
-
-pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>, bool, Color) {
-    let mut flags = Vec::new();
-    let mut err = false;
-    let mut color = RED;
-
-    if !util::is_file_accessible(&io_trace.exe) {
-        flags.push(IOTraceLogFlag::MissingBinary);
-        err = true;
-        color = RED;
-    } else {
-        // check that I/O trace is newer than the binary
-        match fs::metadata(Path::new(&io_trace.exe)) {
-            Err(e) => { error!("Could not get metadata of executable file! {}", e) },
-            Ok(m) => {
-                let binary_created = m.modified().unwrap();
-
-                if io_trace.created_at <= DateTime::from(binary_created) {
-                    flags.push(IOTraceLogFlag::Outdated);
-                    color = RED;
-                    err = true;
-                } else {
-                    flags.push(IOTraceLogFlag::Current);
-                    color = GREEN;
-                }
-            }
-        }
-    }
-
-    if Utc::now() - Duration::days(constants::IO_TRACE_EXPIRY_DAYS) >= io_trace.created_at {
-        flags.push(IOTraceLogFlag::Expired);        
-        color = YELLOW;
-    }
-
-    if !err {
-        flags.push(IOTraceLogFlag::Valid);
-    } else {
-        flags.push(IOTraceLogFlag::Invalid);
-    }
-
-    (flags, err, color)
 }
 
 /// Represents an I/O trace log `.trace` file
@@ -199,7 +168,7 @@ impl IOTraceLog {
     }
 
     /// De-serialize from a file
-    pub fn from_file(filename: &String) -> Result<IOTraceLog> {
+    pub fn from_file(filename: &String) -> io::Result<IOTraceLog> {
         Self::deserialize(filename)
     }
 
@@ -208,7 +177,7 @@ impl IOTraceLog {
     /// with the "Zstd" compressor), convert it into an Unicode UTF-8
     /// JSON representation, and de-serialize an `IOTraceLog` from
     /// that JSON representation.
-    fn deserialize(filename: &String) -> Result<IOTraceLog> {
+    fn deserialize(filename: &String) -> io::Result<IOTraceLog> {
         let text = util::read_text_file(&filename)?;
 
         let reader = BufReader::new(text.as_bytes());
@@ -218,7 +187,7 @@ impl IOTraceLog {
     }
 
     /// Write the I/O trace log to disk
-    pub fn save(&self, iotrace_dir: &String) -> Result<()> {
+    pub fn save(&self, iotrace_dir: &String) -> io::Result<()> {
         if self.trace_log.len() > 0 {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
 

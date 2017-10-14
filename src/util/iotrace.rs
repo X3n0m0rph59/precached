@@ -20,12 +20,112 @@
 
 extern crate libc;
 extern crate regex;
+extern crate term;
 
-use iotrace;
+use chrono::{DateTime, Utc, Duration};
+use iotrace::*;
 use std::io::Result;
+use std::fs;
+use std::path::Path;
+use self::term::Attr;
+use self::term::color::*;
+
+use util;
+use constants;
 
 pub fn optimize_io_trace_log(iotrace: &iotrace::IOTraceLog, dry_run: bool) -> Result<()> {
     trace!("Optimizing I/O trace log...");
 
     Ok(())
+}
+
+// pub fn map_io_trace_flag_to_color(flag: IOTraceLogFlag) -> Color {
+//     match flag {
+//         IOTraceLogFlag::Unknown => YELLOW,
+//         IOTraceLogFlag::Valid   => GREEN,
+//         IOTraceLogFlag::Invalid => RED,
+//         IOTraceLogFlag::Current => GREEN,
+//         IOTraceLogFlag::Expired => YELLOW,
+//         IOTraceLogFlag::Fresh => GREEN,
+//         IOTraceLogFlag::Outdated => RED,
+//         IOTraceLogFlag::MissingBinary => RED,
+//     }
+// }
+
+pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>, bool, Color) {
+    let mut flags = Vec::new();
+    let mut err = false;
+    let mut color = RED;
+
+    if !util::is_file_accessible(&io_trace.exe) {
+        flags.push(IOTraceLogFlag::MissingBinary);
+        err = true;
+        color = RED;
+    } else {
+        // check that I/O trace is newer than the binary
+        match fs::metadata(Path::new(&io_trace.exe)) {
+            Err(e) => { error!("Could not get metadata of executable file! {}", e) },
+            Ok(m) => {
+                let binary_created = m.modified().unwrap();
+
+                if io_trace.created_at <= DateTime::from(binary_created) {
+                    flags.push(IOTraceLogFlag::Outdated);
+                    color = RED;
+                    err = true;
+                } else {
+                    flags.push(IOTraceLogFlag::Current);
+                    color = GREEN;
+                }
+            }
+        }
+    }
+
+    if Utc::now() - Duration::days(constants::IO_TRACE_EXPIRY_DAYS) >= io_trace.created_at {
+        flags.push(IOTraceLogFlag::Expired);
+        color = YELLOW;
+    }
+
+    if !err {
+        flags.push(IOTraceLogFlag::Valid);
+    } else {
+        flags.push(IOTraceLogFlag::Invalid);
+    }
+
+    // reverse elements, for better looking result
+    flags.reverse();
+
+    (flags, err, color)
+}
+
+pub fn get_io_trace_log_entry_flags_and_err(entry: &TraceLogEntry) -> (Vec<IOTraceLogEntryFlag>, bool, Color) {
+    let mut flags = Vec::new();
+    let mut err = false;
+    let mut color = RED;
+
+    // TODO: Perform consistency checks
+    //       * Timestamp of I/O operation newer than target file?
+    match entry.operation {
+        IOOperation::Open(ref filename, ref _fd) => {
+            if util::is_file_accessible(filename) {
+                flags.push(IOTraceLogEntryFlag::OK);
+                color = GREEN;
+            } else {
+                flags.push(IOTraceLogEntryFlag::MissingFile);
+                err = true;
+                color = RED;
+            }
+        }
+        _ => { /* Do nothing */ }
+    }
+
+    if !err {
+        flags.push(IOTraceLogEntryFlag::Valid);
+    } else {
+        flags.push(IOTraceLogEntryFlag::Invalid);
+    }
+
+    // reverse elements, for better looking result
+    flags.reverse();
+
+    (flags, err, color)
 }
