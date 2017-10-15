@@ -170,15 +170,34 @@ pub fn is_file_blacklisted(filename: &String, pattern: &Vec<String>) -> bool {
     set.matches(&filename).len() > 0
 }
 
-pub fn is_path_a_directory(path: &String) -> bool {
-    match fs::metadata(Path::new(&path)) {
-        Err(_) => false,
-        Ok(metadata) => metadata.is_dir(),
-    }
-}
-
 pub fn is_file_accessible(filename: &String) -> bool {
     fs::metadata(Path::new(&filename)).is_ok()
+}
+
+pub fn is_file(filename: &String) -> bool {
+    Path::new(filename).is_file()
+}
+
+pub fn is_directory(filename: &String) -> bool {
+    Path::new(filename).is_dir()
+}
+
+pub fn ellipsize_filename(filename: &String) -> String {
+    let mut result = String::from("");
+
+    const MAX_LEN: usize = 70;
+    const CUTOFF: usize = 25;
+
+    if filename.len() > MAX_LEN {
+        result.push_str(&filename[0..MAX_LEN / 2 - CUTOFF]);
+        result.push_str(&"...");
+        result.push_str(&filename[MAX_LEN / 2 + CUTOFF..]);
+
+    } else {
+        result += filename;
+    }
+
+    result
 }
 
 pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&Path)) -> io::Result<()> {

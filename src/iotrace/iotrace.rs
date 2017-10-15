@@ -47,7 +47,7 @@ pub enum IOOperation {
 /// An entry in an I/O trace log
 /// Holds the specific I/O operation with associated parameters,
 /// and a timestamp of when the operation occured
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TraceLogEntry {
     pub timestamp: DateTime<Utc>,
     pub operation: IOOperation,

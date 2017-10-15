@@ -36,9 +36,37 @@ use util;
 pub fn optimize_io_trace_log(state_dir: &String, io_trace: &mut iotrace::IOTraceLog, _dry_run: bool) -> Result<()> {
     trace!("Optimizing I/O trace log...");
 
-    let optimized_trace_log = vec![];
+    let mut optimized_trace_log = Vec::<TraceLogEntry>::new();
 
-    io_trace.trace_log = optimized_trace_log;
+    let mut already_opened = vec![];
+
+    for e in io_trace.trace_log.iter() {
+        let entry = e.clone();
+
+        match e.operation {
+            IOOperation::Open(ref filename, ref _fd) => {
+                // Check if filename is a (valid) file
+                if !util::is_file(filename) {
+                    continue;
+                }
+
+                // Check if filename is already on the list
+                if already_opened.contains(filename) {
+                    continue;
+                } else {
+                    already_opened.push(filename.clone());
+                }
+            }
+            _ => { /* Ignore others */ }
+        }
+
+        // All tests passed successfuly, append `e` to the optimized trace log
+        optimized_trace_log.push(entry);
+    }
+
+    io_trace.trace_log.clear();
+    io_trace.trace_log.append(&mut optimized_trace_log);
+
     io_trace.trace_log_optimized = true;
 
     io_trace.save(state_dir, true)?;

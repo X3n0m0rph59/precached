@@ -487,7 +487,7 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
             Cell::new_align(&format!("{}", index), Alignment::RIGHT),
-            Cell::new(&io_trace.exe).with_style(Attr::Bold),
+            Cell::new(&util::ellipsize_filename(&io_trace.exe)).with_style(Attr::Bold),
             Cell::new(&io_trace.hash),
             Cell::new(&io_trace
                 .created_at
@@ -500,6 +500,9 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
             // Cell::new(&"Zstd"),
             Cell::new(&format!("{}", io_trace.file_map.len())),
             Cell::new(&format!("{}", io_trace.trace_log.len())),
+            Cell::new(&format!("{}", io_trace.trace_log_optimized))
+                .with_style(Attr::Bold)
+                .with_style(Attr::ForegroundColor(map_bool_to_color(io_trace.trace_log_optimized))),
             Cell::new(&format!("{}", flags))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(color)),
@@ -620,6 +623,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         // Cell::new("Compression"),
         Cell::new("# Files"),
         Cell::new("# I/O Ops"),
+        Cell::new("Optimized"),
         Cell::new("Flags"),
     ]));
 
@@ -1055,7 +1059,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                                     Alignment::RIGHT
                                 ),
                                 Cell::new(&filename).with_style(Attr::Bold),
-                                Cell::new(&"optimizer failed (permission?)")
+                                Cell::new(&"failed (permission problem?)")
                                     .with_style(Attr::Bold)
                                     .with_style(Attr::ForegroundColor(RED)),
                             ]));
@@ -1162,7 +1166,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                     Alignment::RIGHT
                 ),
                 Cell::new(&filename).with_style(Attr::Bold),
-                Cell::new(&"error").with_style(Attr::Bold).with_style(
+                Cell::new(&"error (permission problem?)").with_style(Attr::Bold).with_style(
                     Attr::ForegroundColor(RED)
                 ),
             ]));
