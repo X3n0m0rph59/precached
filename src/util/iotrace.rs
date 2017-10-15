@@ -39,19 +39,6 @@ pub fn optimize_io_trace_log(_iotrace: &iotrace::IOTraceLog, _dry_run: bool) -> 
     Ok(())
 }
 
-// pub fn map_io_trace_flag_to_color(flag: IOTraceLogFlag) -> Color {
-//     match flag {
-//         IOTraceLogFlag::Unknown => YELLOW,
-//         IOTraceLogFlag::Valid   => GREEN,
-//         IOTraceLogFlag::Invalid => RED,
-//         IOTraceLogFlag::Current => GREEN,
-//         IOTraceLogFlag::Expired => YELLOW,
-//         IOTraceLogFlag::Fresh => GREEN,
-//         IOTraceLogFlag::Outdated => RED,
-//         IOTraceLogFlag::MissingBinary => RED,
-//     }
-// }
-
 pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>, bool, Color) {
     let mut flags = Vec::new();
     let mut err = false;
@@ -62,7 +49,7 @@ pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>
         err = true;
         color = RED;
     } else {
-        // check that I/O trace is newer than the binary
+        // check that the I/O trace is newer than the binary
         match fs::metadata(Path::new(&io_trace.exe)) {
             Err(e) => error!("Could not get metadata of executable file! {}", e),
             Ok(m) => {
@@ -80,9 +67,14 @@ pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>
         }
     }
 
-    if Utc::now() - Duration::days(constants::IO_TRACE_EXPIRY_DAYS) >= io_trace.created_at {
+    if io_trace.created_at <= (Utc::now() - Duration::days(constants::IO_TRACE_EXPIRY_DAYS)) {
         flags.push(IOTraceLogFlag::Expired);
-        color = YELLOW;
+
+        if !err {
+            color = YELLOW;
+        }
+    } else {
+        flags.push(IOTraceLogFlag::Fresh);
     }
 
     if !err {
@@ -91,7 +83,7 @@ pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>
         flags.push(IOTraceLogFlag::Invalid);
     }
 
-    // reverse elements, for better looking result
+    // reverse elements, for a better looking result
     flags.reverse();
 
     (flags, err, color)
@@ -124,7 +116,7 @@ pub fn get_io_trace_log_entry_flags_and_err(entry: &TraceLogEntry) -> (Vec<IOTra
         flags.push(IOTraceLogEntryFlag::Invalid);
     }
 
-    // reverse elements, for better looking result
+    // reverse elements, for a better looking result
     flags.reverse();
 
     (flags, err, color)

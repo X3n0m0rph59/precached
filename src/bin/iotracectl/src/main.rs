@@ -377,7 +377,6 @@ fn default_table_format(config: &Config) -> TableFormat {
 
 /// Returns true if all of the supplied command-line filters match the given I/O trace
 fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::IOTraceLog, config: &Config) -> bool {
-
     let matches = config.matches.subcommand_matches(subcommand).unwrap();
 
     if matches.is_present("hash") {
@@ -417,7 +416,8 @@ fn get_io_trace_flags(io_trace: &iotrace::IOTraceLog) -> (String, bool, Color) {
     (result, err, color)
 }
 
-fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usize, config: &Config, table: &mut Table) {
+fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usize,
+                  config: &Config, table: &mut Table) {
     let matches = config.matches.subcommand_matches("list").unwrap();
     let (flags, _err, color) = get_io_trace_flags(&io_trace);
 
@@ -498,7 +498,7 @@ fn map_bool_to_color(b: bool) -> Color {
 }
 
 /// Print the status of the I/O tracing subsystem
-fn print_io_trace_status(config: &Config, daemon_config: util::ConfigFile) {
+fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigFile) {
     let conf = daemon_config.disabled_plugins.unwrap_or(vec![]);
 
     let ftrace_logger_enabled = !conf.contains(&String::from("ftrace_logger"));
@@ -1352,7 +1352,7 @@ fn main() {
     if let Some(command) = config.matches.subcommand_name() {
         match command {
             "status" => {
-                print_io_trace_status(&config, daemon_config);
+                print_io_trace_subsystem_status(&config, daemon_config);
             }
             "top" => {
                 io_trace_top(&config, daemon_config.clone());

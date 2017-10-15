@@ -35,21 +35,22 @@ pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     let path = Path::new(filename);
     let file = try!(OpenOptions::new().read(true).open(&path));
 
-    let reader = BufReader::new(file);
-    Ok(
-        reader
-            .lines()
-            .filter_map(|l| {
-                match l {
-                    Ok(s) => Some(s),
-                    Err(_) => {
-                        // error!("Error while reading file!");
-                        return None;
-                    }
-                }
-            })
-            .collect(),
-    )
+    let mut result = vec![];
+
+    let mut reader = BufReader::new(file);
+
+    'LINE_LOOP: loop {
+        let mut line = String::new();
+        let len = reader.read_line(&mut line).unwrap_or(0);
+
+        if len > 0 {
+            result.push(line);
+        } else {
+            break 'LINE_LOOP;
+        }
+    }
+
+    Ok(result)
 }
 
 pub fn read_text_file(filename: &str) -> io::Result<String> {
@@ -68,7 +69,7 @@ pub fn read_uncompressed_text_file(filename: &str) -> io::Result<String> {
 
     let mut result = String::new();
     let mut reader = BufReader::new(file);
-    #[allow(unused_must_use)] reader.read_to_string(&mut result).unwrap();
+    reader.read_to_string(&mut result)?;
 
     Ok(result)
 }
