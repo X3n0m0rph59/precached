@@ -142,9 +142,11 @@ pub struct IOTraceLog {
     pub trace_stopped_at: DateTime<Utc>,
     /// Map file names to file descriptors used in trace log
     pub file_map: HashMap<libc::int32_t, String>,
-    /// The I/O trace log, contains all relervant I/O operations
+    /// The I/O trace log, contains all relevant I/O operations
     /// performed by the process being traced
     pub trace_log: Vec<TraceLogEntry>,
+    /// Specifies whether the trace_log has been optimized already
+    pub trace_log_optimized: bool,
 }
 
 impl IOTraceLog {
@@ -165,6 +167,7 @@ impl IOTraceLog {
             trace_stopped_at: Utc::now(),
             file_map: HashMap::new(),
             trace_log: vec![],
+            trace_log_optimized: false,
         }
     }
 
@@ -188,8 +191,8 @@ impl IOTraceLog {
     }
 
     /// Write the I/O trace log to disk
-    pub fn save(&self, iotrace_dir: &String) -> io::Result<()> {
-        if self.trace_log.len() > 0 {
+    pub fn save(&self, iotrace_dir: &String, allow_truncate: bool) -> io::Result<()> {
+        if self.trace_log.len() > 0 || allow_truncate {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
 
             let path = Path::new(iotrace_dir)

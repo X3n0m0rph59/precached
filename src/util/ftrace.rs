@@ -202,7 +202,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
             v.trace_time_expired = true;
             v.trace_log.trace_stopped_at = Utc::now();
 
-            match v.trace_log.save(&iotrace_dir) {
+            match v.trace_log.save(&iotrace_dir, false) {
                 Err(e) => {
                     error!(
                         "Error while saving the I/O trace log for process '{}' with pid: {}. {}",

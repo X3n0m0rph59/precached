@@ -22,6 +22,7 @@ use globals::*;
 use std::io;
 use toml;
 use util;
+use constants;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ConfigFile {
@@ -40,7 +41,7 @@ impl Default for ConfigFile {
             user: Some(String::from("root")),
             group: Some(String::from("root")),
             worker_threads: Some(String::from("auto")),
-            state_dir: Some(String::from("/var/lib/precached/")),
+            state_dir: Some(String::from(constants::STATE_DIR)),
             whitelist: Some(vec![String::from("")]),
             blacklist: Some(vec![String::from("")]),
             disabled_plugins: Some(vec![String::from("")]),

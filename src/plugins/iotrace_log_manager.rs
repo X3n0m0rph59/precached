@@ -172,6 +172,8 @@ impl IOtraceLogManager {
         let mut optimized = 0;
         let mut errors = 0;
 
+        let state_dir_c = state_dir.clone();
+
         match util::walk_directories(&vec![traces_path], &mut |path| {
             let filename = String::from(path.to_string_lossy());
             match iotrace::IOTraceLog::from_file(&filename) {
@@ -179,8 +181,8 @@ impl IOtraceLogManager {
                     error!("Skipped invalid I/O trace file, file not readable: {}", e);
                     errors += 1;
                 }
-                Ok(io_trace) => {
-                    match util::optimize_io_trace_log(&io_trace, false) {
+                Ok(mut io_trace) => {
+                    match util::optimize_io_trace_log(&state_dir_c, &mut io_trace, false) {
                         Err(e) => {
                             error!(
                                 "Could not optimize I/O trace log for '{}': {}",

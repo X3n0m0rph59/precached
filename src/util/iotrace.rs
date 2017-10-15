@@ -33,8 +33,15 @@ use std::path::Path;
 
 use util;
 
-pub fn optimize_io_trace_log(_iotrace: &iotrace::IOTraceLog, _dry_run: bool) -> Result<()> {
+pub fn optimize_io_trace_log(state_dir: &String, io_trace: &mut iotrace::IOTraceLog, _dry_run: bool) -> Result<()> {
     trace!("Optimizing I/O trace log...");
+
+    let optimized_trace_log = vec![];
+
+    io_trace.trace_log = optimized_trace_log;
+    io_trace.trace_log_optimized = true;
+
+    io_trace.save(state_dir, true)?;
 
     Ok(())
 }

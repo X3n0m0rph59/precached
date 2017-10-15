@@ -240,6 +240,24 @@ impl<'a, 'b> Config<'a, 'b> {
                             .takes_value(true)
                             .required(true)
                             .help("The hash value of the I/O trace to analyze"),
+                    )
+                    .arg(
+                        Arg::with_name("tabular")
+                            .long("tabular")
+                            // .short("t")
+                            // .conflicts_with("full")
+                            // .conflicts_with("short")
+                            .conflicts_with("terse")
+                            .help("Use 'tabular' display format"),
+                    )
+                    .arg(
+                        Arg::with_name("terse")
+                            .long("terse")
+                            .short("t")
+                            // .conflicts_with("tabular")
+                            // .conflicts_with("full")
+                            // .conflicts_with("short")
+                            .help("Use 'terse' display format (list files only)"),
                     ),
             )
             .subcommand(
@@ -425,7 +443,7 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
         // Print in "full" format
         println!(
             "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\n\
-             Compression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\nFlags:\t\t{:?}\n\n",
+             Compression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
             filename,
             io_trace.exe,
             io_trace.comm,
@@ -440,6 +458,7 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
                 .to_string(),
             io_trace.file_map.len(),
             io_trace.trace_log.len(),
+            io_trace.trace_log_optimized,
             flags
         );
     } else if matches.is_present("short") {
@@ -682,7 +701,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
                     println!(
                         "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                          Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-                         Flags:\t\t{:?}\n\n",
+                         Optimized:\t{}\nFlags:\t\t{:?}\n\n",
                         filename,
                         io_trace.exe,
                         io_trace.comm,
@@ -697,7 +716,8 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
                             .to_string(),
                         io_trace.file_map.len(),
                         io_trace.trace_log.len(),
-                        flags
+                        io_trace.trace_log_optimized,
+                        flags.0
                     );
 
                     matching += 1;
@@ -763,7 +783,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             println!(
                 "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-                 Flags:\t\t{:?}\n\n",
+                 Optimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
                 io_trace.exe,
                 io_trace.comm,
@@ -778,7 +798,8 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                     .to_string(),
                 io_trace.file_map.len(),
                 io_trace.trace_log.len(),
-                flags
+                io_trace.trace_log_optimized,
+                flags.0
             );
 
             matching += 1;
@@ -794,8 +815,6 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 Cell::new("#"),
                 Cell::new("Timestamp"),
                 Cell::new("I/O Operation"),
-                Cell::new("Payload"),
-                Cell::new("Flags"),
             ]));
 
             for e in io_trace.trace_log.iter() {
@@ -803,8 +822,6 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
                 /*if matches.is_present("tabular")*/
                 {
-                    let flags = vec![String::from("OK")];
-
                     // Print in "tabular" format (the default)
                     table.add_row(Row::new(vec![
                         Cell::new_align(
@@ -815,10 +832,6 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                             .format(constants::DATETIME_FORMAT_DEFAULT)
                             .to_string()),
                         Cell::new(&format!("{:?}", e.operation)),
-                        Cell::new(&format!("{}", String::from("n/a"))),
-                        Cell::new(&format!("{:?}", flags)).with_style(
-                            Attr::Italic(true)
-                        ),
                     ]));
                 }
 
@@ -859,6 +872,8 @@ fn get_io_trace_entry_flags(entry: &iotrace::TraceLogEntry) -> (String, bool, Co
 
 /// Analyze I/O trace file
 fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
+    let matches = config.matches.subcommand_matches("analyze").unwrap();
+
     let state_dir = daemon_config.state_dir.unwrap_or(
         String::from(constants::STATE_DIR),
     );
@@ -897,7 +912,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             println!(
                 "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-                 Flags:\t\t{:?}\n\n",
+                 Optimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
                 io_trace.exe,
                 io_trace.comm,
@@ -912,7 +927,8 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                     .to_string(),
                 io_trace.file_map.len(),
                 io_trace.trace_log.len(),
-                flags
+                io_trace.trace_log_optimized,
+                flags.0
             );
 
             matching += 1;
@@ -935,8 +951,9 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             for e in io_trace.trace_log.iter() {
                 // println!("{:?}", e);
 
-                /*if matches.is_present("tabular")*/
-                {
+                if matches.is_present("terse") {
+                    println!("{:?}", e.operation);
+                } else /*if matches.is_present("tabular")*/ {
                     let (flags, err, color) = get_io_trace_entry_flags(&e);
 
                     // Print in "tabular" format (the default)
@@ -956,7 +973,9 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 index += 1;
             }
 
-            table.printstd();
+            if !matches.is_present("terse") {
+                table.printstd();
+            }
         }
     }
 
@@ -1004,6 +1023,8 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Cell::new("Status"),
     ]));
 
+    let state_dir_c = state_dir.clone();
+
     match util::walk_directories(&vec![traces_path], &mut |path| {
         trace!("{:?}", path);
 
@@ -1023,9 +1044,9 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 ]));
                 errors += 1;
             }
-            Ok(io_trace) => {
+            Ok(mut io_trace) => {
                 if filter_matches(&String::from("optimize"), &filename, &io_trace, &config) {
-                    match util::optimize_io_trace_log(&io_trace, dry_run) {
+                    match util::optimize_io_trace_log(&state_dir_c, &mut io_trace, dry_run) {
                         Err(_) => {
                             // Print in "tabular" format (the default)
                             table.add_row(Row::new(vec![
@@ -1034,7 +1055,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                                     Alignment::RIGHT
                                 ),
                                 Cell::new(&filename).with_style(Attr::Bold),
-                                Cell::new(&"optimizer failed")
+                                Cell::new(&"optimizer failed (permission?)")
                                     .with_style(Attr::Bold)
                                     .with_style(Attr::ForegroundColor(RED)),
                             ]));
@@ -1073,14 +1094,14 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     if dry_run {
         println!(
-            "\nSummary: {} I/O trace files would have been optimized, {} matching filter, {} errors occured",
+            "\nSummary: {} I/O trace files examined, {} trace files would have been optimized, {} errors occured",
             counter,
             matching,
             errors
         );
     } else {
         println!(
-            "\nSummary: {} I/O trace files optimized, {} matching filter, {} errors occured",
+            "\nSummary: {} I/O trace files examined, {} optimized, {} errors occured",
             counter,
             matching,
             errors
