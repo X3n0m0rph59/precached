@@ -72,11 +72,25 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
     } else {
         trace!("Successfuly called mmap() for: '{}'", filename);
 
+        // If we are on a 64 bit architecture
+        #[cfg(target_pointer_width = "64")]
         let result = unsafe {
             libc::posix_fadvise(
                 fd,
                 0,
                 stat.st_size as i64,
+                libc::POSIX_FADV_WILLNEED |
+                libc::POSIX_FADV_RANDOM
+            )
+        };
+
+        // If we are on a 32 bit architecture
+        #[cfg(target_pointer_width = "32")]
+        let result = unsafe {
+            libc::posix_fadvise(
+                fd,
+                0,
+                stat.st_size as i32,
                 libc::POSIX_FADV_WILLNEED |
                 libc::POSIX_FADV_RANDOM
             )
