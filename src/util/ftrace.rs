@@ -39,6 +39,7 @@ use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::thread;
 use std::time::{Duration, Instant};
+use nix::unistd::{Pid, gettid};
 
 /// Global 'shall we exit now' flag
 pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -73,11 +74,95 @@ impl PerTracerData {
     }
 }
 
-
 /// Enable ftrace tracing on the system
 pub fn enable_ftrace_tracing() -> io::Result<()> {
+    // clear first
+    echo(&format!("{}/set_event", TRACING_DIR), String::from(""))?;
+
     // enable the ftrace function tracer
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
+
+    // enable ftrace
+    echo(&format!("{}/tracing_on", TRACING_DIR), String::from("1"))?;
+
+    let filter = format!("common_pid != {}", unsafe { libc::getpid() });
+    trace!("PID Filter: {}", filter);
+
+    // echo(
+    //     &format!("{}/events/syscalls/filter", TRACING_DIR),
+    //     filter.clone(),
+    // )?;
+
+    // enable tracing
+    echo(
+        &format!("{}/events/syscalls/sys_exit_open/enable", TRACING_DIR),
+        String::from("1"),
+    )?;
+    echo(
+        &format!("{}/events/syscalls/sys_exit_open/filter", TRACING_DIR),
+        filter.clone(),
+    )?;
+
+
+    echo(
+        &format!("{}/events/syscalls/sys_exit_openat/enable", TRACING_DIR),
+        String::from("1"),
+    )?;
+    echo(
+        &format!("{}/events/syscalls/sys_exit_openat/filter", TRACING_DIR),
+        filter.clone(),
+    )?;
+
+
+    echo(
+        &format!("{}/events/syscalls/sys_exit_open_by_handle_at/enable", TRACING_DIR),
+        String::from("1"),
+    )?;
+    echo(
+        &format!("{}/events/syscalls/sys_exit_open_by_handle_at/filter", TRACING_DIR),
+        filter.clone(),
+    )?;
+
+
+    echo(
+        &format!("{}/events/syscalls/sys_exit_read/enable", TRACING_DIR),
+        String::from("1"),
+    )?;
+    echo(
+        &format!("{}/events/syscalls/sys_exit_read/filter", TRACING_DIR),
+        filter.clone(),
+    )?;
+
+
+    echo(
+        &format!("{}/events/syscalls/sys_exit_readv/enable", TRACING_DIR),
+        String::from("1"),
+    )?;
+    echo(
+        &format!("{}/events/syscalls/sys_exit_readv/filter", TRACING_DIR),
+        filter.clone(),
+    )?;
+
+
+    echo(
+        &format!("{}/events/syscalls/sys_exit_preadv2/enable", TRACING_DIR),
+        String::from("1"),
+    )?;
+    echo(
+        &format!("{}/events/syscalls/sys_exit_preadv2/filter", TRACING_DIR),
+        filter.clone(),
+    )?;
+
+
+    echo(
+        &format!("{}/events/syscalls/sys_exit_pread64/enable", TRACING_DIR),
+        String::from("1"),
+    )?;
+    echo(
+        &format!("{}/events/syscalls/sys_exit_pread64/filter", TRACING_DIR),
+        filter.clone(),
+    )?;
+
 
     // install a kprobe, used to resolve filenames
     echo(
@@ -85,8 +170,14 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         String::from("r:getnameprobe getname +0(+0($retval)):string"),
     )?;
 
-    // clear first
-    echo(&format!("{}/set_event", TRACING_DIR), String::from(""))?;
+    echo(
+        &format!("{}/events/kprobes/getnameprobe/enable", TRACING_DIR),
+        String::from("1"),
+    )?;
+
+    // enable the ftrace function tracer just in case it was disabled
+    // NOTE: This fails sometimes with "Device or Resource busy"
+    // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
 
     Ok(())
 }
@@ -95,7 +186,9 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
 /// Disable ftrace tracing on the system
 pub fn disable_ftrace_tracing() -> io::Result<()> {
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("nop"))?;
+
     echo(&format!("{}/tracing_on", TRACING_DIR), String::from("0"))?;
+
     echo(
         &format!("{}/free_buffer", TRACING_DIR),
         String::from("free"),
@@ -111,28 +204,6 @@ pub fn trace_process_io_ftrace(pid: libc::pid_t) -> io::Result<()> {
         &format!("{}/set_event_pid", TRACING_DIR),
         format!("{}", pid),
     )?;
-
-    // enable tracing
-    echo(
-        &format!("{}/events/syscalls/sys_exit_open/enable", TRACING_DIR),
-        String::from("1"),
-    )?;
-    echo(
-        &format!("{}/events/syscalls/sys_exit_read/enable", TRACING_DIR),
-        String::from("1"),
-    )?;
-
-    echo(
-        &format!("{}/events/kprobes/getnameprobe/enable", TRACING_DIR),
-        String::from("1"),
-    )?;
-
-    // enable the ftrace function tracer just in case it was disabled
-    // NOTE: This fails sometimes with "Device or Resource busy"
-    // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
-
-    // enable ftrace
-    echo(&format!("{}/tracing_on", TRACING_DIR), String::from("1"))?;
 
     Ok(())
 }
@@ -288,15 +359,24 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         let fields: Vec<&str> = l.split_whitespace().collect();
 
         if fields.len() >= 5 {
-            if !fields[4].contains("sys_open") && !fields[4].contains("sys_read") && !fields[4].contains("getnameprobe") {
+            if !fields[4].contains("sys_open") &&
+               !fields[4].contains("sys_openat") &&
+               !fields[4].contains("sys_open_by_handle_at") &&
+               !fields[4].contains("sys_read") &&
+               !fields[4].contains("sys_readv") &&
+               !fields[4].contains("sys_preadv2") &&
+               !fields[4].contains("sys_pread64") &&
+               !fields[4].contains("getnameprobe") {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
         }
 
+
         // extract process' pid off of current trace entry
         let mut pid: libc::pid_t = 0;
-        if fields.len() >= 1 {
-            let s: Vec<&str> = fields[0].split("-").collect();
+        let fields2: Vec<&str> = l.split(" [").collect();
+        if fields2.len() >= 1 {
+            let s: Vec<&str> = fields2[0].split("-").collect();
             let pid_s = String::from(s[s.len() - 1].trim());
 
             match pid_s.parse() {
@@ -312,6 +392,11 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     pid = p;
                 }
             }
+        }
+
+        // Don't trace our own threads
+        if Pid::from_raw(pid) == gettid() {
+            continue;
         }
 
         // getnameprobe kprobe event
@@ -330,7 +415,10 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         // sys_open syscall
-        if l.contains("sys_open") && !l.contains("getnameprobe") {
+        if (l.contains("sys_open") ||
+            l.contains("sys_openat") ||
+            l.contains("sys_open_by_handle_at")) &&
+           !l.contains("getnameprobe") {
             if fields.len() >= 6 {
                 // debug!("{:#?}", l);
 
@@ -370,7 +458,10 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         // sys_read syscall
-        if l.contains("sys_read") {
+        if l.contains("sys_read") ||
+           l.contains("sys_readv") ||
+           l.contains("sys_preadv2") ||
+           l.contains("sys_pread64") {
             // debug!("{:#?}", l);
 
             if fields.len() >= 5 {
