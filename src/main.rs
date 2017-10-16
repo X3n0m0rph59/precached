@@ -353,6 +353,15 @@ fn main() {
         }
     }
 
+    // Now set process properties
+    match util::set_process_properties() {
+        Ok(_) => info!("Process properties changed successfuly!"),
+        Err(s) => {
+            error!("Error while changing the daemon's process properties: {}", s);
+            return;
+        }
+    }
+
     // Become a daemon now, if not otherwise specified
     if globals.config.daemonize {
         info!("Daemonizing...");

@@ -54,11 +54,14 @@ pub struct IOtracePrefetcher {
 
 impl IOtracePrefetcher {
     pub fn new() -> IOtracePrefetcher {
+        let pool = threadpool::Builder::new()
+                        .num_threads(4)
+                        .thread_name(String::from("prefetch"))
+                        .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
+                        .build();
+
         IOtracePrefetcher {
-            prefetch_pool: threadpool::Builder::new()
-                .num_threads(4)
-                .thread_name(String::from("prefetch"))
-                .build(),
+            prefetch_pool: pool,
         }
     }
 

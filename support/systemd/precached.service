@@ -3,7 +3,7 @@ Description=Precached - Linux process monitor and pre-caching daemon
 Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precached.conf(5)
 
 [Service]
-Environment=RUST_LOG=debug RUST_BACKTRACE=1
+Environment=RUST_LOG=warn RUST_BACKTRACE=1
 ExecStart=/usr/sbin/precached -c /etc/precached/precached.conf
 ExecReload=/usr/sbin/precachedctl reload
 ExecStop=/usr/sbin/precachedctl stop
@@ -14,7 +14,11 @@ LimitAS=infinity
 LimitRSS=infinity
 LimitCORE=infinity
 LimitMEMLOCK=infinity
-LimitNOFILE=65535
+LimitNOFILE=infinity
+# IOSchedulingClass=realtime
+# IOSchedulingPriority=99
+# CPUWeight=10000
+# IOWeight=10000
 
 [Install]
 WantedBy=multi-user.target

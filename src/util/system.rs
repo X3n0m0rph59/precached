@@ -18,6 +18,11 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate libc;
+extern crate nix;
+
+use std::result::Result;
+
 pub fn check_system() -> Result<bool, &'static str> {
     // TODO: Check sysctl tunable 'vm.max_map_count'
     // and ulimit -l 'max locked memory' rlimit
@@ -26,5 +31,33 @@ pub fn check_system() -> Result<bool, &'static str> {
 }
 
 pub fn prepare_system_config() -> Result<bool, &'static str> {
+    Ok(true)
+}
+
+pub fn set_process_properties() -> Result<bool, &'static str> {
+    let result = unsafe {
+                        libc::sched_setscheduler(
+                            0,
+                            libc::SCHED_RR,
+                            &mut libc::sched_param { sched_priority: 99 } as *mut libc::sched_param,
+                        )
+                    };
+
+    if result < 0 {
+        return Err(&"Could not set scheduling class and priority!")
+    }
+
+    /*let result = unsafe {
+                        libc::ioprio_set(
+                            libc::getpid() as libc::pid_t,
+                            libc::IOPRIO_WHO_PROCESS,
+                            libc::IOPRIO_PRIO_VALUE(IOPRIO_CLASS_RT, 0)
+                        )
+                    };
+
+    if result < 0 {
+        return Err(&"Could not set I/O scheduling class and priority!")
+    }*/
+
     Ok(true)
 }

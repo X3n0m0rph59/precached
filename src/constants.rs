@@ -43,6 +43,8 @@ pub const IOTRACE_DIR: &'static str = "iotrace/";
 /// Default compression ratio for Zstd compressor
 pub const ZSTD_COMPRESSION_RATIO: i32 = 0;
 
+/// Thread niceness (worker threads)
+pub const WORKER_THREAD_NICENESS: i32 = 10;
 
 /// Thread wait time (main loop)
 pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 1000;

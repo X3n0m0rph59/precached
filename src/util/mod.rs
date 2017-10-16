@@ -30,6 +30,7 @@ pub mod ftrace;
 pub mod iotrace;
 pub mod logger;
 pub mod thread_pool;
+pub mod thread;
 pub mod task_scheduler;
 
 pub use self::daemon::*;
@@ -43,5 +44,6 @@ pub use self::ptrace::*;
 pub use self::system::*;
 pub use self::task_scheduler::*;
 pub use self::thread_pool::*;
+pub use self::thread::*;
 pub use self::trace_event::*;
 pub use self::vec::*;
