@@ -22,6 +22,9 @@ use hooks::HookManager;
 use plugins::PluginManager;
 use std::cell::RefCell;
 
+/// Global `manager` data structure.
+/// Holds state for managers like the `PluginManager`
+/// or the `HookManager`
 pub struct Manager {
     pub plugin_manager: RefCell<PluginManager>,
     pub hook_manager: RefCell<HookManager>,

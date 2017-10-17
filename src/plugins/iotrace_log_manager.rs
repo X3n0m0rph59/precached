@@ -80,7 +80,7 @@ impl IOtraceLogManager {
         Ok(result)
     }
 
-    fn shall_io_trace_be_pruned(&self, _io_trace: &iotrace::IOTraceLog) -> bool {
+    fn shall_io_trace_be_pruned(_io_trace: &iotrace::IOTraceLog) -> bool {
         // TODO:
         // test if the trace is valid at all
         // test if the trace is older than the binary (out-of-date)
@@ -88,6 +88,10 @@ impl IOtraceLogManager {
         // test if the trace is from last run of binary!? (current or not-current)
 
         // let result = util::
+
+        // let (flags, err, _) = util::get_io_trace_log_flags_and_err(&io_trace);
+        //
+        // if flags.contains()
 
         false
     }
@@ -98,13 +102,9 @@ impl IOtraceLogManager {
     ///  * The corresponding executable has vanished from the filesystem
     ///  * They are too old (older than n days)
     ///  * The ctime of the binary is newer than the ctime of the trace file (obsolete)
-    pub fn prune_expired_trace_logs(&self, globals: &mut Globals, _manager: &Manager) {
+    pub fn prune_expired_trace_logs(state_dir: String) {
         debug!("Pruning stale I/O trace logs...");
 
-        let config = globals.config.config_file.clone().unwrap();
-        let state_dir = config.state_dir.unwrap_or(
-            String::from(constants::STATE_DIR),
-        );
         let traces_path = String::from(
             Path::new(&state_dir)
                 .join(Path::new(&constants::IOTRACE_DIR))
@@ -123,7 +123,7 @@ impl IOtraceLogManager {
                     errors += 1;
                 }
                 Ok(io_trace) => {
-                    if self.shall_io_trace_be_pruned(&io_trace) {
+                    if Self::shall_io_trace_be_pruned(&io_trace) {
                         debug!("Pruning I/O trace log: '{}'", &filename);
 
                         // TODO: don't dry run here on release, only for testing!
@@ -155,13 +155,9 @@ impl IOtraceLogManager {
         }
     }
 
-    pub fn optimize_trace_logs(&self, globals: &mut Globals, _manager: &Manager) {
+    pub fn optimize_trace_logs(state_dir: String) {
         debug!("Optimizing all I/O trace logs...");
 
-        let config = globals.config.config_file.clone().unwrap();
-        let state_dir = config.state_dir.unwrap_or(
-            String::from(constants::STATE_DIR),
-        );
         let traces_path = String::from(
             Path::new(&state_dir)
                 .join(Path::new(&constants::IOTRACE_DIR))
@@ -182,18 +178,21 @@ impl IOtraceLogManager {
                     errors += 1;
                 }
                 Ok(mut io_trace) => {
-                    match util::optimize_io_trace_log(&state_dir_c, &mut io_trace, false) {
-                        Err(e) => {
-                            error!(
-                                "Could not optimize I/O trace log for '{}': {}",
-                                io_trace.exe,
-                                e
-                            );
+                    // Only optimize if the trace log is not optimized already
+                    if !io_trace.trace_log_optimized {
+                        match util::optimize_io_trace_log(&state_dir_c, &mut io_trace, false) {
+                            Err(e) => {
+                                error!(
+                                    "Could not optimize I/O trace log for '{}': {}",
+                                    io_trace.exe,
+                                    e
+                                );
 
-                            // util::remove_file(&filename, true);
-                        }
-                        Ok(_) => {
-                            optimized += 1;
+                                // util::remove_file(&filename, true);
+                            }
+                            Ok(_) => {
+                                optimized += 1;
+                            }
                         }
                     }
                 }
@@ -245,11 +244,25 @@ impl Plugin for IOtraceLogManager {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             EventType::DoHousekeeping => {
-                self.prune_expired_trace_logs(globals, manager);
-                self.optimize_trace_logs(globals, manager);
+                match util::SCHEDULER.lock() {
+                    Err(e) => {
+                        error!("Could not lock the global task scheduler! {}", e);
+                    }
+                    Ok(mut scheduler) => {
+                        let config = globals.config.config_file.clone().unwrap();
+                        let state_dir = config.state_dir.unwrap_or(
+                            String::from(constants::STATE_DIR),
+                        );
+
+                        (*scheduler).schedule_job(move || {
+                            Self::prune_expired_trace_logs(state_dir.clone());
+                            Self::optimize_trace_logs(state_dir.clone());
+                        });
+                    }
+                }
             }
             _ => {
                 // Ignore all other events

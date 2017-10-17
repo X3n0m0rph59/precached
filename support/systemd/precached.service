@@ -3,7 +3,7 @@ Description=Precached - Linux process monitor and pre-caching daemon
 Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precached.conf(5)
 
 [Service]
-Environment=RUST_LOG=warn RUST_BACKTRACE=1
+Environment=LOG_LEVEL=warn
 ExecStart=/usr/sbin/precached -c /etc/precached/precached.conf
 ExecReload=/usr/sbin/precachedctl reload
 ExecStop=/usr/sbin/precachedctl stop

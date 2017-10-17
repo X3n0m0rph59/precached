@@ -36,7 +36,6 @@ extern crate ansi_term;
 extern crate chrono;
 extern crate fern;
 
-extern crate env_logger;
 #[macro_use]
 extern crate daemonize;
 #[macro_use]
@@ -51,8 +50,9 @@ extern crate nix;
 extern crate toml;
 
 use ansi_term::Style;
-use log::LogLevel;
+use log::{Log, LogLevel};
 use nix::sys::signal;
+use std::env;
 use std::io;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::channel;
@@ -89,6 +89,7 @@ static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 static RELOAD_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Global 'SIG_USR1 received' flag
+/// SUGUSR1 is curently mapped to the `DoHousekeeping` event
 static SIG_USR1: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Global 'SIG_USR2 received' flag
@@ -115,7 +116,7 @@ extern "C" fn usr2_signal(_: i32) {
     SIG_USR2.store(true, Ordering::Relaxed);
 }
 
-/// Set up signal handlers
+/// Set up signal handlers for the daemon process
 fn setup_signal_handlers() {
     // SIGINT and SIGTERM
     let sig_action = signal::SigAction::new(
@@ -193,6 +194,8 @@ under certain conditions.
     );
 }
 
+/// Shows which plugins have been disabled via the `disabled_plugins = [...]`
+/// parameter in the external text configuration file
 fn print_disabled_plugins_notice(globals: &mut Globals) {
     info!(
         "Disabled Plugins: {:?}",
@@ -258,10 +261,24 @@ fn setup_logging() -> Result<(), fern::InitError> {
     //     })
     //     .chain(io::stdout());
 
+    let level_filter = match env::var("LOG_LEVEL") {
+        Ok(val) => {
+            match val.to_lowercase().as_ref() {
+                "trace" => log::LogLevelFilter::Trace,
+                "debug" => log::LogLevelFilter::Debug,
+                "info" => log::LogLevelFilter::Info,
+                "warn" => log::LogLevelFilter::Warn,
+                "error" => log::LogLevelFilter::Error,
+                &_ => constants::DEFAULT_LOG_LEVEL,
+            }
+        }
+        _ => constants::DEFAULT_LOG_LEVEL,
+    };
+
     util::MAX_MODULE_WIDTH.store(constants::INITIAL_MODULE_WIDTH, Ordering::Relaxed);
 
     let console = fern::Dispatch::new()
-        .format(|out, _message, record| {
+        .format(move |out, _message, record| {
             let mut module_path = record.location().module_path().to_string();
 
             let max_width = util::MAX_MODULE_WIDTH.load(Ordering::Relaxed);
@@ -303,10 +320,7 @@ fn setup_logging() -> Result<(), fern::InitError> {
         })
         .chain(console);
 
-    base_config
-        .chain(syslog)
-        .level(log::LogLevelFilter::Debug)
-        .apply()?;
+    base_config.chain(syslog).level(level_filter).apply()?;
 
     Ok(())
 }

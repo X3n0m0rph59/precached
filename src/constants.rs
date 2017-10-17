@@ -27,6 +27,12 @@
 
 #![allow(unused)]
 
+extern crate log;
+
+/// The initial default log level filter. May be overridden by specifying
+/// an environment variable in the form of `LOG_LEVEL=trace precached`
+pub const DEFAULT_LOG_LEVEL: log::LogLevelFilter = log::LogLevelFilter::Info;
+
 /// Config file, where the daemon's config is located
 pub const CONFIG_FILE: &'static str = "/etc/precached/precached.conf";
 
