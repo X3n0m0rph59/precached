@@ -79,8 +79,7 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
                 fd,
                 0,
                 stat.st_size as i64,
-                libc::POSIX_FADV_WILLNEED |
-                libc::POSIX_FADV_RANDOM
+                libc::POSIX_FADV_WILLNEED | libc::POSIX_FADV_RANDOM,
             )
         };
 
@@ -91,8 +90,7 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
                 fd,
                 0,
                 stat.st_size as i32,
-                libc::POSIX_FADV_WILLNEED |
-                libc::POSIX_FADV_RANDOM
+                libc::POSIX_FADV_WILLNEED | libc::POSIX_FADV_RANDOM,
             )
         };
 
@@ -132,7 +130,7 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
                     trace!("Successfuly called mlock() for: '{}'", filename);
 
                     // Manually fault in all pages
-                    // let mem = unsafe { std::slice::from_raw_parts(addr as *const i32, stat.st_size as usize) };
+                    // let mem = unsafe { std::slice::from_raw_parts(addr as *mut libc::c_void, stat.st_size as usize) };
                     // for v in mem {
                     //     let _tmp = v;
                     // }

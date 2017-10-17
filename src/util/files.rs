@@ -23,6 +23,7 @@ extern crate zstd;
 
 use self::globset::{Glob, GlobSetBuilder};
 use constants;
+use std::cell::RefCell;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io;
@@ -30,6 +31,11 @@ use std::io::BufReader;
 use std::io::prelude::*;
 use std::path;
 use std::path::Path;
+use std::sync::{Arc, Mutex};
+
+lazy_static! {
+    pub static ref GLOB_SET: Arc<Mutex<Option<globset::GlobSet>>> = { Arc::new(Mutex::new(None)) };
+}
 
 pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     let path = Path::new(filename);
@@ -160,14 +166,34 @@ pub fn is_filename_valid(filename: &String) -> bool {
 }
 
 pub fn is_file_blacklisted(filename: &String, pattern: &Vec<String>) -> bool {
-    let mut builder = GlobSetBuilder::new();
+    match GLOB_SET.lock() {
+        Err(e) => {
+            error!("Could not lock a shared data structure! {}", e);
+            false
+        }
+        Ok(mut gs_opt) => {
+            if gs_opt.is_none() {
+                // construct a glob set at the first iteration
+                let mut builder = GlobSetBuilder::new();
+                for p in pattern.iter() {
+                    builder.add(Glob::new(p).unwrap());
+                }
+                let set = builder.build().unwrap();
 
-    for p in pattern.iter() {
-        builder.add(Glob::new(p).unwrap());
+                *gs_opt = Some(set.clone());
+
+                // glob_set already available
+                let matches = set.matches(&filename);
+
+                matches.len() > 0
+            } else {
+                // glob_set already available
+                let matches = gs_opt.clone().unwrap().matches(&filename);
+
+                matches.len() > 0
+            }
+        }
     }
-
-    let set = builder.build().unwrap();
-    set.matches(&filename).len() > 0
 }
 
 pub fn is_file_accessible(filename: &String) -> bool {
@@ -185,8 +211,8 @@ pub fn is_directory(filename: &String) -> bool {
 pub fn ellipsize_filename(filename: &String) -> String {
     let mut result = String::from("");
 
-    const MAX_LEN: usize = 65;
-    const CUTOFF: usize = 15;
+    const MAX_LEN: usize = 55;
+    const CUTOFF: usize = 20;
 
     if filename.len() > MAX_LEN {
         result.push_str(&filename[0..MAX_LEN / 2 - CUTOFF]);

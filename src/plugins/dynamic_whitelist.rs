@@ -24,7 +24,6 @@ extern crate serde_json;
 use self::serde::Serialize;
 use events;
 use globals::*;
-use globals::Globals;
 use hooks::process_tracker::ProcessTracker;
 use manager::*;
 use plugins::plugin::Plugin;

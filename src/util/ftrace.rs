@@ -29,6 +29,7 @@ use constants;
 use globals::Globals;
 use hooks;
 use iotrace;
+use nix::unistd::{Pid, gettid};
 use process::Process;
 use std::collections::HashMap;
 use std::fs::OpenOptions;
@@ -39,7 +40,6 @@ use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::thread;
 use std::time::{Duration, Instant};
-use nix::unistd::{Pid, gettid};
 
 /// Global 'shall we exit now' flag
 pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -115,11 +115,17 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
 
 
     echo(
-        &format!("{}/events/syscalls/sys_exit_open_by_handle_at/enable", TRACING_DIR),
+        &format!(
+            "{}/events/syscalls/sys_exit_open_by_handle_at/enable",
+            TRACING_DIR
+        ),
         String::from("1"),
     )?;
     echo(
-        &format!("{}/events/syscalls/sys_exit_open_by_handle_at/filter", TRACING_DIR),
+        &format!(
+            "{}/events/syscalls/sys_exit_open_by_handle_at/filter",
+            TRACING_DIR
+        ),
         filter.clone(),
     )?;
 
@@ -359,14 +365,9 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         let fields: Vec<&str> = l.split_whitespace().collect();
 
         if fields.len() >= 5 {
-            if !fields[4].contains("sys_open") &&
-               !fields[4].contains("sys_openat") &&
-               !fields[4].contains("sys_open_by_handle_at") &&
-               !fields[4].contains("sys_read") &&
-               !fields[4].contains("sys_readv") &&
-               !fields[4].contains("sys_preadv2") &&
-               !fields[4].contains("sys_pread64") &&
-               !fields[4].contains("getnameprobe") {
+            if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") && !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") && !fields[4].contains("sys_readv") && !fields[4].contains("sys_preadv2") &&
+                !fields[4].contains("sys_pread64") && !fields[4].contains("getnameprobe")
+            {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
         }
@@ -415,10 +416,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         // sys_open syscall
-        if (l.contains("sys_open") ||
-            l.contains("sys_openat") ||
-            l.contains("sys_open_by_handle_at")) &&
-           !l.contains("getnameprobe") {
+        if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at")) && !l.contains("getnameprobe") {
             if fields.len() >= 6 {
                 // debug!("{:#?}", l);
 
@@ -458,10 +456,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         // sys_read syscall
-        if l.contains("sys_read") ||
-           l.contains("sys_readv") ||
-           l.contains("sys_preadv2") ||
-           l.contains("sys_pread64") {
+        if l.contains("sys_read") || l.contains("sys_readv") || l.contains("sys_preadv2") || l.contains("sys_pread64") {
             // debug!("{:#?}", l);
 
             if fields.len() >= 5 {

@@ -43,7 +43,7 @@ pub use self::notify::*;
 pub use self::ptrace::*;
 pub use self::system::*;
 pub use self::task_scheduler::*;
-pub use self::thread_pool::*;
 pub use self::thread::*;
+pub use self::thread_pool::*;
 pub use self::trace_event::*;
 pub use self::vec::*;

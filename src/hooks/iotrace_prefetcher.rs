@@ -20,15 +20,20 @@
 
 extern crate libc;
 extern crate threadpool;
+extern crate num_cpus;
 
 use events;
 use events::EventType;
 use globals::*;
 use hooks::hook;
+use hooks::process_tracker::ProcessTracker;
 
 use iotrace;
 use manager::*;
+use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::iotrace_log_manager::IOtraceLogManager;
+use plugins::static_blacklist::StaticBlacklist;
+use plugins::static_whitelist::StaticWhitelist;
 use process::Process;
 use procmon;
 use std::any::Any;
@@ -50,42 +55,64 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug, Clone)]
 pub struct IOtracePrefetcher {
     prefetch_pool: threadpool::ThreadPool,
+    mapped_files: HashMap<String, util::MemoryMapping>,
 }
 
 impl IOtracePrefetcher {
     pub fn new() -> IOtracePrefetcher {
+        let num_cpus = num_cpus::get();
+
         let pool = threadpool::Builder::new()
-                        .num_threads(4)
-                        .thread_name(String::from("prefetch"))
-                        .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
-                        .build();
+            .num_threads(num_cpus)
+            .thread_name(String::from("prefetch"))
+            .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
+            .build();
 
         IOtracePrefetcher {
             prefetch_pool: pool,
+            mapped_files: HashMap::new(),
         }
     }
 
-    fn prefetch_data(io_trace: &iotrace::IOTraceLog) {
-        let mut already_prefetched = vec![];
+    pub fn prefetch_data(
+        io_trace: &[iotrace::TraceLogEntry],
+        our_mapped_files: &HashMap<String, util::MemoryMapping>,
+        //  system_mapped_files: &HashMap<String, util::MemoryMapping>,
+        static_blacklist: &Vec<String>,
+        static_whitelist: &HashMap<String, util::MemoryMapping>,
+        dynamic_whitelist: &HashMap<String, util::MemoryMapping>,
+    ) {
+        // let mut already_prefetched = vec![];
+        // already_prefetched.reserve(io_trace.len());
 
         // TODO: Use a finer granularity for Prefetching
         //       Don't just cache the whole file
-        for entry in io_trace.trace_log.iter() {
+        for entry in io_trace {
             match entry.operation {
                 iotrace::IOOperation::Open(ref file, ref _fd) => {
                     trace!("Prefetching: {}", file);
 
-                    if !already_prefetched.contains(file) {
+                    // mmap and mlock file, if it is not contained in the blacklist
+                    // and if it was not already mapped by some of the plugins
+                    if Self::shall_we_map_file(
+                        &file,
+                        &static_blacklist,
+                        &our_mapped_files,
+                        // &system_mapped_files,
+                        &static_whitelist,
+                        &dynamic_whitelist,
+                    )
+                    {
                         match util::cache_file(file) {
                             Err(e) => {
                                 error!("Could not prefetch file: '{}': {}", file, e);
 
                                 // inhibit further prefetching of that file
-                                already_prefetched.push(file.clone());
+                                // already_prefetched.push(file.clone());
                             }
                             Ok(_) => {
-                                info!("Successfuly prefetched file: '{}'", file);
-                                already_prefetched.push(file.clone());
+                                trace!("Successfuly prefetched file: '{}'", file);
+                                // already_prefetched.push(file.clone());
                             }
                         }
                     }
@@ -94,6 +121,50 @@ impl IOtracePrefetcher {
                 // _ => { /* Do nothing */ }
             }
         }
+    }
+
+    /// Helper function, that decides if we should subsequently mmap() and mlock() the
+    /// file `filename`. Verifies the validity of `filename`, and check if `filename`
+    /// is not blacklisted. Finally checks if `filename` is mapped already by us or
+    /// another plugin
+    fn shall_we_map_file(
+        filename: &String,
+        static_blacklist: &Vec<String>,
+        our_mapped_files: &HashMap<String, util::MemoryMapping>,
+        //  system_mapped_files: &HashMap<String, util::MemoryMapping>,
+        static_whitelist: &HashMap<String, util::MemoryMapping>,
+        dynamic_whitelist: &HashMap<String, util::MemoryMapping>,
+    ) -> bool {
+        // Check if filename is valid
+        if !util::is_filename_valid(&filename) {
+            return false;
+        }
+
+        // Check if filename matches a blacklist rule
+        if util::is_file_blacklisted(&filename, &static_blacklist) {
+            return false;
+        }
+
+        // Have we already mapped this file?
+        if our_mapped_files.contains_key(filename) {
+            return false;
+        }
+
+        // if system_mapped_files.contains_key(filename) {
+        //     return false;
+        // }
+
+        // Have others already mapped this file?
+        if static_whitelist.contains_key(filename) {
+            return false;
+        }
+
+        if dynamic_whitelist.contains_key(filename) {
+            return false;
+        }
+
+        // If we got here, everything seems to be allright
+        true
     }
 
     pub fn replay_process_io(&self, event: &procmon::Event, globals: &Globals, manager: &Manager) {
@@ -129,9 +200,95 @@ impl IOtracePrefetcher {
                             event.pid
                         );
 
-                        self.prefetch_pool.execute(move || {
-                            Self::prefetch_data(&io_trace);
-                        })
+                        // let hm = manager.hook_manager.borrow();
+                        //
+                        // let mut system_mapped_files_histogram = HashMap::new();
+                        // match hm.get_hook_by_name(&String::from("process_tracker")) {
+                        //     None => {
+                        //         trace!("Hook not loaded: 'process_tracker', skipped");
+                        //     }
+                        //     Some(h) => {
+                        //         let hook_b = h.borrow();
+                        //         let process_tracker_hook = hook_b.as_any().downcast_ref::<ProcessTracker>().unwrap();
+                        //
+                        //         system_mapped_files_histogram = process_tracker_hook.get_mapped_files_histogram().clone();
+                        //     }
+                        // };
+
+                        let mut static_whitelist = HashMap::new();
+                        match pm.get_plugin_by_name(&String::from("static_whitelist")) {
+                            None => {
+                                trace!("Plugin not loaded: 'static_whitelist', skipped");
+                            }
+                            Some(p) => {
+                                let plugin_b = p.borrow();
+                                let static_whitelist_plugin = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
+
+                                static_whitelist = static_whitelist_plugin.get_mapped_files().clone();
+                            }
+                        };
+
+                        let mut dynamic_whitelist = HashMap::new();
+                        match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
+                            None => {
+                                trace!("Plugin not loaded: 'dynamic_whitelist', skipped");
+                            }
+                            Some(p) => {
+                                let plugin_b = p.borrow();
+                                let dynamic_whitelist_plugin = plugin_b
+                                    .as_any()
+                                    .downcast_ref::<DynamicWhitelist>()
+                                    .unwrap();
+
+                                dynamic_whitelist = dynamic_whitelist_plugin.get_mapped_files().clone();
+                            }
+                        };
+
+                        let mut static_blacklist = Vec::<String>::new();
+                        match pm.get_plugin_by_name(&String::from("static_blacklist")) {
+                            None => {
+                                trace!("Plugin not loaded: 'static_blacklist', skipped");
+                            }
+                            Some(p) => {
+                                let plugin_b = p.borrow();
+                                let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+
+                                static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
+                            }
+                        };
+
+                        let our_mapped_files = self.mapped_files.clone();
+
+
+                        // distribute prefetching work evenly across the prefetcher threads
+                        let max = self.prefetch_pool.max_count();
+                        let count_total = io_trace.trace_log.len();
+
+                        for n in 0..max {
+                            // calculate slice bounds for each thread
+                            let low = (count_total / max) * n;
+                            let high = (count_total / max) * n + (count_total / max);
+
+                            let trace_log = io_trace.trace_log.clone();
+
+                            let our_mapped_files_c = our_mapped_files.clone();
+                            // let system_mapped_files_c = system_mapped_files_histogram.clone();
+                            let static_blacklist_c = static_blacklist.clone();
+                            let static_whitelist_c = static_whitelist.clone();
+                            let dynamic_whitelist_c = dynamic_whitelist.clone();
+
+                            self.prefetch_pool.execute(move || {
+                                // submit prefetching work to an idle thread
+                                Self::prefetch_data(
+                                    &trace_log[low..high],
+                                    &our_mapped_files_c,
+                                    // &system_mapped_files_c,
+                                    &static_blacklist_c,
+                                    &static_whitelist_c,
+                                    &dynamic_whitelist_c,
+                                );
+                            })
+                        }
                     }
                 }
             }

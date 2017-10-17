@@ -23,6 +23,8 @@
 extern crate clap;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate lazy_static;
 extern crate nix;
 extern crate pretty_env_logger;
 // #[macro_use]

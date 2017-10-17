@@ -20,10 +20,10 @@
 
 extern crate threadpool;
 
-use std::sync::Arc;
-use std::sync::Mutex;
 
 use constants;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 #[derive(Debug)]
 pub struct ThreadPool {
@@ -36,8 +36,9 @@ impl ThreadPool {
             pool: threadpool::Builder::new()
                 .num_threads(4)
                 .thread_name(String::from("worker"))
-                .thread_scheduling_class(threadpool::SchedulingClass::
-                                            Normal(constants::WORKER_THREAD_NICENESS))
+                .thread_scheduling_class(threadpool::SchedulingClass::Normal(
+                    constants::WORKER_THREAD_NICENESS,
+                ))
                 .build(),
         }
     }

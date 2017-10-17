@@ -28,6 +28,7 @@ use hooks::hook;
 use iotrace;
 use iotrace::*;
 use manager::*;
+use plugins::iotrace_log_manager::IOtraceLogManager;
 use process::Process;
 use procmon;
 use std::any::Any;
@@ -145,7 +146,7 @@ impl FtraceLogger {
     }
 
     /// Add process `event.pid` to the list of traced processes
-    pub fn trace_process_io_activity(&self, event: &procmon::Event, _globals: &mut Globals, _manager: &Manager) {
+    pub fn trace_process_io_activity(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
         let process = Process::new(event.pid);
         let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
 
@@ -169,28 +170,71 @@ impl FtraceLogger {
                         event.pid
                     );
                 } else {
-                    // Begin tracing the process `event.pid`.
-                    // Construct the "PerTracerData" and a companion IOTraceLog
-                    let iotrace_log = iotrace::IOTraceLog::new(event.pid);
-                    let tracer_data = util::PerTracerData::new(iotrace_log);
+                    if Self::shall_new_tracelog_be_created(event.pid, globals, manager) {
+                        // Begin tracing the process `event.pid`.
+                        // Construct the "PerTracerData" and a companion IOTraceLog
+                        let iotrace_log = iotrace::IOTraceLog::new(event.pid);
+                        let tracer_data = util::PerTracerData::new(iotrace_log);
 
-                    active_tracers.insert(event.pid, tracer_data);
+                        active_tracers.insert(event.pid, tracer_data);
 
-                    // Tell ftrace to deliver events for process `event.pid`, from now on
-                    match util::trace_process_io_ftrace(event.pid) {
-                        Err(e) => {
-                            error!(
-                                "Could not enable ftrace for process '{}' with pid {}: {}",
+                        // Tell ftrace to deliver events for process `event.pid`, from now on
+                        match util::trace_process_io_ftrace(event.pid) {
+                            Err(e) => {
+                                error!(
+                                    "Could not enable ftrace for process '{}' with pid {}: {}",
+                                    comm,
+                                    event.pid,
+                                    e
+                                )
+                            }
+                            Ok(()) => trace!(
+                                "Enabled ftrace for process '{}' with pid {}",
                                 comm,
-                                event.pid,
-                                e
-                            )
+                                event.pid
+                            ),
                         }
-                        Ok(()) => trace!(
-                            "Enabled ftrace for process '{}' with pid {}",
+                    } else {
+                        let process = Process::new(event.pid);
+                        let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
+                        info!(
+                            "We already have a valid I/O trace log for process '{}' with pid: {}",
                             comm,
                             event.pid
-                        ),
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    fn shall_new_tracelog_be_created(pid: libc::pid_t, globals: &mut Globals, manager: &Manager) -> bool {
+        let pm = manager.plugin_manager.borrow();
+
+        match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
+            None => {
+                trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
+                false
+            }
+            Some(p) => {
+                let plugin_b = p.borrow();
+                let iotrace_log_manager_plugin = plugin_b
+                    .as_any()
+                    .downcast_ref::<IOtraceLogManager>()
+                    .unwrap();
+
+                let process = Process::new(pid);
+
+                match iotrace_log_manager_plugin.get_trace_log(process.get_exe(), &globals) {
+                    Err(_e) => true,
+                    Ok(io_trace) => {
+                        let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
+
+                        if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) || flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
+                            true
+                        } else {
+                            false
+                        }
                     }
                 }
             }

@@ -353,11 +353,14 @@ fn main() {
         }
     }
 
-    // Now set process properties
+    // Now set process properties, like CPU and I/O scheduling class
     match util::set_process_properties() {
         Ok(_) => info!("Process properties changed successfuly!"),
         Err(s) => {
-            error!("Error while changing the daemon's process properties: {}", s);
+            error!(
+                "Error while changing the daemon's process properties: {}",
+                s
+            );
             return;
         }
     }

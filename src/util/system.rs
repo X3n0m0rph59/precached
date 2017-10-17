@@ -36,15 +36,15 @@ pub fn prepare_system_config() -> Result<bool, &'static str> {
 
 pub fn set_process_properties() -> Result<bool, &'static str> {
     let result = unsafe {
-                        libc::sched_setscheduler(
-                            0,
-                            libc::SCHED_RR,
-                            &mut libc::sched_param { sched_priority: 99 } as *mut libc::sched_param,
-                        )
-                    };
+        libc::sched_setscheduler(
+            0,
+            libc::SCHED_RR,
+            &mut libc::sched_param { sched_priority: 99 } as *mut libc::sched_param,
+        )
+    };
 
     if result < 0 {
-        return Err(&"Could not set scheduling class and priority!")
+        return Err(&"Could not set scheduling class and priority!");
     }
 
     /*let result = unsafe {

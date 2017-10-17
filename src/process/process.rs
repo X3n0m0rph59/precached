@@ -60,9 +60,12 @@ pub struct Process {
 impl Process {
     pub fn new(pid: libc::pid_t) -> Process {
         let filename = format!("/proc/{}/comm", pid);
-        let comm = &String::from(util::read_uncompressed_text_file(&filename)
-                                            .unwrap_or(String::from("<unknown>")).trim());
-                                                    
+        let comm = &String::from(
+            util::read_uncompressed_text_file(&filename)
+                .unwrap_or(String::from("<unknown>"))
+                .trim(),
+        );
+
         Process {
             pid: pid,
             comm: comm.clone(),
@@ -128,8 +131,11 @@ impl Process {
     /// NOTE: This may be different than the stored `comm`
     pub fn get_comm(&self) -> io::Result<String> {
         let filename = format!("/proc/{}/comm", self.pid);
-        let result = String::from(util::read_uncompressed_text_file(&filename)
-                                                .unwrap_or(String::from("<unknown>")).trim());
+        let result = String::from(
+            util::read_uncompressed_text_file(&filename)
+                .unwrap_or(String::from("<unknown>"))
+                .trim(),
+        );
 
         Ok(result)
     }
