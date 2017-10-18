@@ -19,8 +19,10 @@
 */
 
 extern crate sys_info;
+extern crate systemstat;
 
 use self::sys_info::MemInfo;
+use self::systemstat::{System, Platform};
 use events;
 use events::EventType;
 use globals::*;
@@ -57,6 +59,7 @@ pub struct Metrics {
     free_mem_high_watermark_event_sent: bool,
     available_mem_high_watermark_event_sent: bool,
     recovered_from_swap_event_sent: bool,
+    enter_idle_event_sent: bool,
 
     last_swapped_time: Instant,
 }
@@ -74,6 +77,7 @@ impl Metrics {
             free_mem_high_watermark_event_sent: true,
             available_mem_high_watermark_event_sent: true,
             recovered_from_swap_event_sent: true,
+            enter_idle_event_sent: false,
 
             last_swapped_time: Instant::now(),
         }
@@ -146,6 +150,24 @@ impl Metrics {
         }
 
         self.mem_info_last = Some(mem_info);
+
+        // Idle time tracking
+        let sys = System::new();
+        if sys.load_average().unwrap().five <= 2.0 {
+            if self.enter_idle_event_sent == false {
+                events::queue_internal_event(EventType::EnterIdle, globals);
+                self.enter_idle_event_sent = true;
+            }
+        } else {
+            // rearm event
+            self.enter_idle_event_sent = false;
+        }
+
+        if sys.load_average().unwrap().one >= 2.0 {
+            // rearm event
+            self.enter_idle_event_sent = false;
+            events::queue_internal_event(EventType::LeaveIdle, globals);
+        }
     }
 }
 

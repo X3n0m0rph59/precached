@@ -60,6 +60,10 @@ pub enum EventType {
     SystemIsSwapping,
     /// sent when the system is no longer swapping out data
     SystemRecoveredFromSwap,
+    /// sent when the system is idle for n seconds
+    EnterIdle,
+    /// sent when the system is no longer idle for n seconds
+    LeaveIdle,
 }
 
 /// Represents an event
@@ -82,5 +86,5 @@ impl InternalEvent {
 /// Asynchronously queue an event for later execution by plugins and/or hooks
 pub fn queue_internal_event(event_type: EventType, globals: &mut Globals) {
     let event = InternalEvent::new(event_type);
-    globals.get_event_queue_mut().push_back(event);
+    globals.event_queue.push_back(event);
 }

@@ -341,7 +341,10 @@ impl hook::Hook for FtraceLogger {
                 self.tracer_thread = Some(
                     thread::Builder::new()
                         .name(String::from("ftrace"))
-                        .spawn(move || { Self::ftrace_trace_log_parser(&mut globals_c); })
+                        .spawn(move || {
+                            util::set_realtime_priority();
+                            Self::ftrace_trace_log_parser(&mut globals_c);
+                        })
                         .unwrap(),
                 );
             }

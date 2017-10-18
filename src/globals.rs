@@ -20,7 +20,7 @@
 
 use config::Config;
 use events;
-use std::collections::LinkedList;
+use std::collections::VecDeque;
 
 /// Global system state
 #[derive(Debug, Clone)]
@@ -28,22 +28,22 @@ pub struct Globals {
     /// Global configuration
     pub config: Config,
     /// Holds pending events, used by the internal eventing mechanism
-    event_queue: LinkedList<events::InternalEvent>,
+    pub event_queue: VecDeque<events::InternalEvent>,
 }
 
 impl Globals {
     pub fn new() -> Globals {
         Globals {
             config: Config::new(),
-            event_queue: LinkedList::new(),
+            event_queue: VecDeque::new(),
         }
     }
 
-    pub fn get_event_queue(&self) -> &LinkedList<events::InternalEvent> {
+    pub fn get_event_queue(&self) -> &VecDeque<events::InternalEvent> {
         &self.event_queue
     }
 
-    pub fn get_event_queue_mut(&mut self) -> &mut LinkedList<events::InternalEvent> {
+    pub fn get_event_queue_mut(&mut self) -> &mut VecDeque<events::InternalEvent> {
         &mut self.event_queue
     }
 }

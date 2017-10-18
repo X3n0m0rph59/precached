@@ -13,6 +13,7 @@ procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }
 sys-info = { git = "https://github.com/X3n0m0rph59/sys-info-rs" }
 threadpool = { git = "https://github.com/X3n0m0rph59/rust-threadpool" }
 chrono = { version = "0.4.0", features = ["serde"] }
+systemstat = "0.1.2"
 libc = "0.2.32"
 nix = "0.9"
 num_cpus = "1.0"

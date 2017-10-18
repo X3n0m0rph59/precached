@@ -103,6 +103,12 @@ impl Plugin for Statistics {
             events::EventType::SystemRecoveredFromSwap => {
                 warn!("Statistics: System recovered from swapping!");
             }
+            events::EventType::EnterIdle => {
+                warn!("Statistics: System enters idle state!");
+            }
+            events::EventType::LeaveIdle => {
+                warn!("Statistics: System no longer idle!");
+            }
             _ => {
                 // Ignore all other events
             }

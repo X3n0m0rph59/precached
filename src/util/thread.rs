@@ -17,3 +17,19 @@
     You should have received a copy of the GNU General Public License
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+extern crate libc;
+extern crate nix;
+
+pub fn set_realtime_priority() {
+    let tid = nix::unistd::gettid();
+    unsafe { libc::sched_setscheduler(tid.into(), libc::SCHED_RR, 0 as *mut libc::sched_param) };
+
+    unsafe {
+        libc::sched_setscheduler(
+            0,
+            libc::SCHED_RR,
+            &mut libc::sched_param { sched_priority: 99 } as *mut libc::sched_param,
+        )
+    };
+}

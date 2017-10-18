@@ -197,8 +197,6 @@ impl IOtraceLogManager {
         let mut optimized = 0;
         let mut errors = 0;
 
-        let state_dir_c = state_dir.clone();
-
         match util::walk_directories(&vec![traces_path], &mut |path| {
             let filename = String::from(path.to_string_lossy());
             match iotrace::IOTraceLog::from_file(&filename) {
@@ -209,7 +207,7 @@ impl IOtraceLogManager {
                 Ok(mut io_trace) => {
                     // Only optimize if the trace log is not optimized already
                     if !io_trace.trace_log_optimized {
-                        match util::optimize_io_trace_log(&state_dir_c, &mut io_trace, false) {
+                        match util::optimize_io_trace_log(&filename, &mut io_trace, false) {
                             Err(e) => {
                                 error!(
                                     "Could not optimize I/O trace log for '{}': {}",
@@ -290,6 +288,7 @@ impl Plugin for IOtraceLogManager {
                 }
             }
 
+            EventType::EnterIdle |
             EventType::DoHousekeeping => {
                 match util::SCHEDULER.lock() {
                     Err(e) => {

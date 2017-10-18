@@ -210,7 +210,7 @@ fn print_disabled_plugins_notice(globals: &mut Globals) {
 
 /// Process daemon internal events
 fn process_internal_events(globals: &mut Globals, manager: &Manager) {
-    while let Some(internal_event) = globals.get_event_queue_mut().pop_front() {
+    while let Some(internal_event) = globals.event_queue.pop_front() {
         {
             // dispatch daemon internal events to plugins
             let plugin_manager = manager.plugin_manager.borrow();
