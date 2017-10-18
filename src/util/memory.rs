@@ -179,30 +179,67 @@ pub fn cache_file(filename: &str) -> Result<()> {
     } else {
         trace!("Successfuly called mmap() for: '{}'", filename);
 
+        // If we are on a 64 bit architecture
+        #[cfg(target_pointer_width = "64")]
         let result = unsafe {
-            libc::madvise(
-                addr as *mut libc::c_void,
-                stat.st_size as usize,
-                libc::MADV_WILLNEED, /*| libc::MADV_SEQUENTIAL*/
-                                     /*| libc::MADV_MERGEABLE*/
+            libc::posix_fadvise(
+                fd,
+                0,
+                stat.st_size as i64,
+                libc::POSIX_FADV_WILLNEED | libc::POSIX_FADV_RANDOM,
             )
         };
 
-        if result < 0 as libc::c_int {
+        // If we are on a 32 bit architecture
+        #[cfg(target_pointer_width = "32")]
+        let result = unsafe {
+            libc::posix_fadvise(
+                fd,
+                0,
+                stat.st_size as i32,
+                libc::POSIX_FADV_WILLNEED | libc::POSIX_FADV_RANDOM,
+            )
+        };
+
+        if result < 0 {
             // Try to close the file descriptor
             unsafe { libc::close(fd) };
 
             Err(std::io::Error::last_os_error())
         } else {
-            trace!("Successfuly called madvise() for: '{}'", filename);
+            trace!("Successfuly called posix_fadvise() for: '{}'", filename);
 
-            let result = unsafe { libc::close(fd) };
+            let result = unsafe {
+                libc::madvise(
+                    addr as *mut libc::c_void,
+                    stat.st_size as usize,
+                    libc::MADV_WILLNEED, /*| libc::MADV_SEQUENTIAL*/
+                                         /*| libc::MADV_MERGEABLE*/
+                )
+            };
+
             if result < 0 as libc::c_int {
+                // Try to close the file descriptor
+                unsafe { libc::close(fd) };
+
                 Err(std::io::Error::last_os_error())
             } else {
-                trace!("Successfuly called close() for: '{}'", filename);
+                trace!("Successfuly called madvise() for: '{}'", filename);
 
-                Ok(())
+                // Manually fault in all pages
+                // let mem = unsafe { std::slice::from_raw_parts(addr as *mut libc::c_void, stat.st_size as usize) };
+                // for v in mem {
+                //     let _tmp = v;
+                // }
+
+                let result = unsafe { libc::close(fd) };
+                if result < 0 as libc::c_int {
+                    Err(std::io::Error::last_os_error())
+                } else {
+                    trace!("Successfuly called close() for: '{}'", filename);
+
+                    Ok(())
+                }
             }
         }
     }

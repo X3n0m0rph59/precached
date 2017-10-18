@@ -23,7 +23,6 @@ extern crate nix;
 extern crate regex;
 
 use self::regex::*;
-use super::prefault;
 use std::ffi::OsStr;
 use std::io;
 use std::path::Path;
@@ -139,10 +138,6 @@ impl Process {
 
         Ok(result)
     }
-}
-
-impl prefault::Prefault for Process {
-    fn prefault(&self) {}
 }
 
 #[cfg(test)]

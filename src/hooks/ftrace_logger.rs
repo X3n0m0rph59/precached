@@ -111,6 +111,11 @@ impl FtraceLogger {
                                         iotrace_log.add_event(IOOperation::Open(filename.clone(), fd));
                                     }
 
+                                    util::SysCall::Mmap(addr) => {
+                                        trace!("Process: '{}' with pid {} mapped addr: {:?}", comm, pid, addr);
+                                        iotrace_log.add_event(IOOperation::Mmap(0));
+                                    }
+
                                     util::SysCall::Read(fd) => {
                                         trace!("Process: '{}' with pid {} read from fd: {}", comm, pid, fd);
                                         iotrace_log.add_event(IOOperation::Read(fd));

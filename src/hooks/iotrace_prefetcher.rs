@@ -74,10 +74,10 @@ impl IOtracePrefetcher {
         }
     }
 
-    pub fn prefetch_data(
+    fn prefetch_data(
         io_trace: &[iotrace::TraceLogEntry],
         our_mapped_files: &HashMap<String, util::MemoryMapping>,
-        //  system_mapped_files: &HashMap<String, util::MemoryMapping>,
+        // system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_blacklist: &Vec<String>,
         static_whitelist: &HashMap<String, util::MemoryMapping>,
         dynamic_whitelist: &HashMap<String, util::MemoryMapping>,
@@ -117,7 +117,15 @@ impl IOtracePrefetcher {
                         }
                     }
                 }
-                iotrace::IOOperation::Read(ref _fd) => {}
+
+                iotrace::IOOperation::Read(ref _fd) => {
+                    // TODO: Implement this!
+                }
+
+                iotrace::IOOperation::Mmap(ref _fd) => {
+                    // TODO: Implement this!
+                }
+
                 // _ => { /* Do nothing */ }
             }
         }
@@ -165,6 +173,105 @@ impl IOtracePrefetcher {
 
         // If we got here, everything seems to be allright
         true
+    }
+
+    /// Replay I/O trace for program `exe_name` and cache it into to memory
+    pub fn prefetch_data_for_program(&self, exe_name: &String, globals: &Globals, manager: &Manager) {
+        trace!(
+            "Prefetching data for program '{}'",
+            exe_name
+        );
+
+        let pm = manager.plugin_manager.borrow();
+
+        match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
+            None => {
+                trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
+            }
+            Some(p) => {
+                let plugin_b = p.borrow();
+                let iotrace_log_manager_plugin = plugin_b
+                    .as_any()
+                    .downcast_ref::<IOtraceLogManager>()
+                    .unwrap();
+
+                match iotrace_log_manager_plugin.get_trace_log(exe_name.clone(), &globals) {
+                    Err(e) => trace!("No I/O trace available: {}", e),
+                    Ok(io_trace) => {
+                        info!(
+                            "Found valid I/O trace log for program '{}'. Prefetching now...",
+                            exe_name
+                        );
+
+                        // use an empty static whitelist here, because of a circular
+                        // borrowing dependency with the `static_whitelist` plugin
+                        let static_whitelist = HashMap::new();
+
+                        let mut dynamic_whitelist = HashMap::new();
+                        match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
+                            None => {
+                                trace!("Plugin not loaded: 'dynamic_whitelist', skipped");
+                            }
+                            Some(p) => {
+                                let plugin_b = p.borrow();
+                                let dynamic_whitelist_plugin = plugin_b
+                                    .as_any()
+                                    .downcast_ref::<DynamicWhitelist>()
+                                    .unwrap();
+
+                                dynamic_whitelist = dynamic_whitelist_plugin.get_mapped_files().clone();
+                            }
+                        };
+
+                        let mut static_blacklist = Vec::<String>::new();
+                        match pm.get_plugin_by_name(&String::from("static_blacklist")) {
+                            None => {
+                                trace!("Plugin not loaded: 'static_blacklist', skipped");
+                            }
+                            Some(p) => {
+                                let plugin_b = p.borrow();
+                                let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+
+                                static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
+                            }
+                        };
+
+                        let our_mapped_files = self.mapped_files.clone();
+
+
+                        // distribute prefetching work evenly across the prefetcher threads
+                        let max = self.prefetch_pool.max_count();
+                        let count_total = io_trace.trace_log.len();
+
+                        for n in 0..max {
+                            // calculate slice bounds for each thread
+                            let low = (count_total / max) * n;
+                            let high = (count_total / max) * n + (count_total / max);
+
+                            let trace_log = io_trace.trace_log.clone();
+
+                            let our_mapped_files_c = our_mapped_files.clone();
+                            // let system_mapped_files_c = system_mapped_files_histogram.clone();
+                            let static_blacklist_c = static_blacklist.clone();
+                            let static_whitelist_c = static_whitelist.clone();
+                            let dynamic_whitelist_c = dynamic_whitelist.clone();
+
+                            self.prefetch_pool.execute(move || {
+                                // submit prefetching work to an idle thread
+                                Self::prefetch_data(
+                                    &trace_log[low..high],
+                                    &our_mapped_files_c,
+                                    // &system_mapped_files_c,
+                                    &static_blacklist_c,
+                                    &static_whitelist_c,
+                                    &dynamic_whitelist_c,
+                                );
+                            })
+                        }
+                    }
+                }
+            }
+        }
     }
 
     pub fn replay_process_io(&self, event: &procmon::Event, globals: &Globals, manager: &Manager) {

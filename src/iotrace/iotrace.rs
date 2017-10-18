@@ -42,6 +42,7 @@ use util;
 pub enum IOOperation {
     Open(String, libc::int32_t),
     Read(libc::int32_t),
+    Mmap(libc::int32_t)
 }
 
 /// An entry in an I/O trace log

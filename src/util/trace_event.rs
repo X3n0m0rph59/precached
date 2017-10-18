@@ -26,6 +26,8 @@ pub enum SysCall {
     Open(String, libc::int32_t),
     Close(libc::int32_t),
     Read(libc::int32_t),
+    Write(libc::int32_t),
+    Mmap(usize),
 }
 
 #[derive(Debug)]

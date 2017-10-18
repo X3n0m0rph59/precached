@@ -31,6 +31,7 @@ pub struct ConfigFile {
     pub worker_threads: Option<String>,
     pub state_dir: Option<String>,
     pub whitelist: Option<Vec<String>>,
+    pub program_whitelist: Option<Vec<String>>,
     pub blacklist: Option<Vec<String>>,
     pub disabled_plugins: Option<Vec<String>>,
 }
@@ -43,6 +44,7 @@ impl Default for ConfigFile {
             worker_threads: Some(String::from("auto")),
             state_dir: Some(String::from(constants::STATE_DIR)),
             whitelist: Some(vec![String::from("")]),
+            program_whitelist: Some(vec![String::from("")]),
             blacklist: Some(vec![String::from("")]),
             disabled_plugins: Some(vec![String::from("")]),
         }

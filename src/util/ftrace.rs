@@ -77,7 +77,7 @@ impl PerTracerData {
 /// Enable ftrace tracing on the system
 pub fn enable_ftrace_tracing() -> io::Result<()> {
     // clear first
-    echo(&format!("{}/set_event", TRACING_DIR), String::from(""))?;
+    disable_ftrace_tracing();
 
     // enable the ftrace function tracer
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
@@ -94,24 +94,26 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     // )?;
 
     // enable tracing
+
+    // open syscall family
     echo(
         &format!("{}/events/syscalls/sys_exit_open/enable", TRACING_DIR),
         String::from("1"),
-    )?;
+    ).unwrap();
     echo(
         &format!("{}/events/syscalls/sys_exit_open/filter", TRACING_DIR),
         filter.clone(),
-    )?;
+    ).unwrap();
 
 
     echo(
         &format!("{}/events/syscalls/sys_exit_openat/enable", TRACING_DIR),
         String::from("1"),
-    )?;
+    ).unwrap();
     echo(
         &format!("{}/events/syscalls/sys_exit_openat/filter", TRACING_DIR),
         filter.clone(),
-    )?;
+    ).unwrap();
 
 
     echo(
@@ -120,66 +122,77 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
             TRACING_DIR
         ),
         String::from("1"),
-    )?;
+    ).unwrap();
     echo(
         &format!(
             "{}/events/syscalls/sys_exit_open_by_handle_at/filter",
             TRACING_DIR
         ),
         filter.clone(),
-    )?;
+    ).unwrap();
 
-
+    // read syscall family
     echo(
         &format!("{}/events/syscalls/sys_exit_read/enable", TRACING_DIR),
         String::from("1"),
-    )?;
+    ).unwrap();
     echo(
         &format!("{}/events/syscalls/sys_exit_read/filter", TRACING_DIR),
         filter.clone(),
-    )?;
+    ).unwrap();
 
 
     echo(
         &format!("{}/events/syscalls/sys_exit_readv/enable", TRACING_DIR),
         String::from("1"),
-    )?;
+    ).unwrap();
     echo(
         &format!("{}/events/syscalls/sys_exit_readv/filter", TRACING_DIR),
         filter.clone(),
-    )?;
+    ).unwrap();
 
 
     echo(
         &format!("{}/events/syscalls/sys_exit_preadv2/enable", TRACING_DIR),
         String::from("1"),
-    )?;
+    ).unwrap();
     echo(
         &format!("{}/events/syscalls/sys_exit_preadv2/filter", TRACING_DIR),
         filter.clone(),
-    )?;
+    ).unwrap();
 
 
     echo(
         &format!("{}/events/syscalls/sys_exit_pread64/enable", TRACING_DIR),
         String::from("1"),
-    )?;
+    ).unwrap();
     echo(
         &format!("{}/events/syscalls/sys_exit_pread64/filter", TRACING_DIR),
         filter.clone(),
-    )?;
+    ).unwrap();
+
+    // mmap syscall
+    echo(
+        &format!("{}/events/syscalls/sys_exit_mmap/enable", TRACING_DIR),
+        String::from("1"),
+    ).unwrap();
+    echo(
+        &format!("{}/events/syscalls/sys_exit_mmap/filter", TRACING_DIR),
+        filter.clone(),
+    ).unwrap();
 
 
     // install a kprobe, used to resolve filenames
     echo(
         &format!("{}/kprobe_events", TRACING_DIR),
         String::from("r:getnameprobe getname +0(+0($retval)):string"),
-    )?;
+    );
+    // .unwrap();
 
     echo(
         &format!("{}/events/kprobes/getnameprobe/enable", TRACING_DIR),
         String::from("1"),
-    )?;
+    ).unwrap();
 
     // enable the ftrace function tracer just in case it was disabled
     // NOTE: This fails sometimes with "Device or Resource busy"
@@ -196,9 +209,19 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
     echo(&format!("{}/tracing_on", TRACING_DIR), String::from("0"))?;
 
     echo(
-        &format!("{}/free_buffer", TRACING_DIR),
-        String::from("free"),
-    )?;
+        &format!("{}/set_event", TRACING_DIR),
+        String::from(""),
+    ).unwrap();
+
+    echo(
+        &format!("{}/kprobe_events", TRACING_DIR),
+        String::from(""),
+    ).unwrap();
+
+    // echo(
+    //     &format!("{}/free_buffer", TRACING_DIR),
+    //     String::from("free"),
+    // ).unwrap();
 
     Ok(())
 }
@@ -209,7 +232,7 @@ pub fn trace_process_io_ftrace(pid: libc::pid_t) -> io::Result<()> {
     append(
         &format!("{}/set_event_pid", TRACING_DIR),
         format!("{}", pid),
-    )?;
+    ).unwrap();
 
     Ok(())
 }
@@ -366,7 +389,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
         if fields.len() >= 5 {
             if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") && !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") && !fields[4].contains("sys_readv") && !fields[4].contains("sys_preadv2") &&
-                !fields[4].contains("sys_pread64") && !fields[4].contains("getnameprobe")
+                !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") && !fields[4].contains("getnameprobe")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
@@ -459,20 +482,26 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         if l.contains("sys_read") || l.contains("sys_readv") || l.contains("sys_preadv2") || l.contains("sys_pread64") {
             // debug!("{:#?}", l);
 
-            if fields.len() >= 5 {
+            if fields.len() >= 7 {
                 // let comm = String::from(fields[0]);
-                match parse_function_call_syntax(&l) {
-                    Err(e) => error!("Could not parse function call syntax! {}", e),
-                    Ok(r) => {
-                        if r.contains_key("fd") {
-                            let fd = i32::from_str_radix(&r["fd"], 16).unwrap_or(-1);
-                            if cb(pid, IOEvent { syscall: SysCall::Read(fd) }) == false {
-                                break 'LINE_LOOP; // callback returned false, exit requested
-                            }
-                        } else {
-                            // no fd field!?
-                        }
-                    }
+                let fd = i32::from_str_radix(&fields[fields.len()-1], 16).unwrap_or(-1);
+                if cb(pid, IOEvent { syscall: SysCall::Read(fd) }) == false {
+                    break 'LINE_LOOP; // callback returned false, exit requested
+                }
+            } else {
+                error!("Error while parsing current event from trace buffer!");
+            }
+        }
+
+        // sys_mmap syscall
+        if l.contains("sys_mmap") {
+            // debug!("{:#?}", l);
+
+            if fields.len() >= 7 {
+                // let comm = String::from(fields[0]);
+                let addr = usize::from_str_radix(&fields[fields.len()-1], 16).unwrap_or(0);
+                if cb(pid, IOEvent { syscall: SysCall::Mmap(addr) }) == false {
+                    break 'LINE_LOOP; // callback returned false, exit requested
                 }
             } else {
                 error!("Error while parsing current event from trace buffer!");

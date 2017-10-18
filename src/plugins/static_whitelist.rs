@@ -25,6 +25,7 @@ use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 // use hooks::process_tracker::ProcessTracker;
+use hooks::iotrace_prefetcher::IOtracePrefetcher;
 use plugins::static_blacklist::StaticBlacklist;
 use std::any::Any;
 use std::collections::HashMap;
@@ -51,13 +52,15 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct StaticWhitelist {
     mapped_files: HashMap<String, util::MemoryMapping>,
     whitelist: Box<Vec<String>>,
+    program_whitelist: Box<Vec<String>>,
 }
 
 impl StaticWhitelist {
     pub fn new(globals: &Globals) -> StaticWhitelist {
         StaticWhitelist {
             mapped_files: HashMap::new(),
-            whitelist: Box::new(StaticWhitelist::get_file_whitelist(globals)),
+            whitelist: Box::new(Self::get_file_whitelist(globals)),
+            program_whitelist: Box::new(Self::get_program_whitelist(globals)),
         }
     }
 
@@ -72,6 +75,21 @@ impl StaticWhitelist {
             .whitelist
             .unwrap();
         result.append(&mut whitelist);
+
+        result
+    }
+
+    fn get_program_whitelist(globals: &Globals) -> Vec<String> {
+        let mut result = Vec::new();
+
+        let mut program_whitelist = globals
+            .config
+            .config_file
+            .clone()
+            .unwrap()
+            .program_whitelist
+            .unwrap();
+        result.append(&mut program_whitelist);
 
         result
     }
@@ -169,6 +187,33 @@ impl StaticWhitelist {
         }
     }
 
+    pub fn prefetch_whitelisted_programs(&mut self, globals: &Globals, manager: &Manager) {
+        info!("Started prefetching of statically whitelisted programs...");
+
+        let hm = manager.hook_manager.borrow();
+
+        match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
+            None => {
+                trace!("Plugin not loaded: 'iotrace_prefetcher', skipped");
+            }
+            Some(p) => {
+                let hook_b = p.borrow();
+                let iotrace_prefetcher_hook = hook_b
+                    .as_any()
+                    .downcast_ref::<IOtracePrefetcher>()
+                    .unwrap();
+
+                let program_whitelist = self.program_whitelist.clone();
+
+                for exe in program_whitelist.iter() {
+                    iotrace_prefetcher_hook.prefetch_data_for_program(exe, globals, manager);
+                }
+
+                info!("Finished prefetching of statically whitelisted programs");
+            }
+        };
+    }
+
     fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>, our_mapped_files: &HashMap<String, util::MemoryMapping>, dynamic_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
@@ -239,6 +284,7 @@ impl Plugin for StaticWhitelist {
         match event.event_type {
             events::EventType::Startup => {
                 self.cache_whitelisted_files(globals, manager);
+                self.prefetch_whitelisted_programs(globals, manager);
             }
             events::EventType::ConfigurationReloaded => {
                 let whitelist = match globals.config.config_file.clone() {
@@ -247,7 +293,16 @@ impl Plugin for StaticWhitelist {
                 };
 
                 self.whitelist = Box::new(whitelist);
+
+                let program_whitelist = match globals.config.config_file.clone() {
+                    Some(config_file) => config_file.program_whitelist.unwrap_or(vec![]),
+                    None => vec![],
+                };
+
+                self.program_whitelist = Box::new(program_whitelist);
+
                 self.cache_whitelisted_files(globals, manager);
+                self.prefetch_whitelisted_programs(globals, manager);
             }
             events::EventType::PrimeCaches => {
                 // Ignore PrimeCaches event here since we don't manage a dynamic cache
