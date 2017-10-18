@@ -42,7 +42,7 @@ use util;
 pub enum IOOperation {
     Open(String, libc::int32_t),
     Read(libc::int32_t),
-    Mmap(libc::int32_t)
+    Mmap(libc::int32_t),
 }
 
 /// An entry in an I/O trace log
@@ -160,6 +160,13 @@ impl IOTraceLog {
         hasher.write(&exe.clone().into_bytes());
         let hashval = hasher.finish();
 
+        // make the I/O trace contain an open and a read of the binary itself
+        // since we will always miss that event in the tracer
+        let first_entries = vec![
+            TraceLogEntry::new(IOOperation::Open(exe.clone(), 0)),
+            TraceLogEntry::new(IOOperation::Read(0)),
+        ];
+
         IOTraceLog {
             hash: String::from(format!("{}", hashval)),
             exe: exe,
@@ -167,7 +174,7 @@ impl IOTraceLog {
             created_at: Utc::now(),
             trace_stopped_at: Utc::now(),
             file_map: HashMap::new(),
-            trace_log: vec![],
+            trace_log: first_entries,
             trace_log_optimized: false,
         }
     }
@@ -192,24 +199,21 @@ impl IOTraceLog {
     }
 
     /// Write the I/O trace log to disk
-    pub fn save(&self, iotrace_dir: &String, allow_truncate: bool) -> io::Result<()> {
+    pub fn save(&self, filename: &String, allow_truncate: bool) -> io::Result<()> {
+
         if self.trace_log.len() > 0 || allow_truncate {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
-
-            let path = Path::new(iotrace_dir)
-                .join(Path::new(&constants::IOTRACE_DIR))
-                .join(Path::new(&format!("{}.trace", self.hash)));
-
-            let filename = path.to_string_lossy();
             util::write_text_file(&filename, serialized)?;
+
+            Ok(())
         } else {
             info!(
                 "The I/O trace log for process '{}' is empty! Nothing will be saved.",
                 self.comm
             );
-        }
 
-        Ok(())
+            Ok(())
+        }
     }
 
     /// Add an I/O operation to the trace log

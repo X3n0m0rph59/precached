@@ -155,7 +155,36 @@ impl IOtraceLogManager {
         }
     }
 
-    pub fn optimize_trace_logs(state_dir: String) {
+    pub fn optimize_single_trace_log(filename: &String) {
+        debug!("Optimizing single I/O trace log '{}'", filename);
+
+        match iotrace::IOTraceLog::from_file(&filename) {
+            Err(e) => {
+                error!("Skipped invalid I/O trace file, file not readable: {}", e);
+            }
+            Ok(mut io_trace) => {
+                // Only optimize if the trace log is not optimized already
+                if !io_trace.trace_log_optimized {
+                    match util::optimize_io_trace_log(filename, &mut io_trace, false) {
+                        Err(e) => {
+                            error!(
+                                "Could not optimize I/O trace log for '{}': {}",
+                                io_trace.exe,
+                                e
+                            );
+
+                            // util::remove_file(&filename, true);
+                        }
+                        Ok(_) => {
+                            debug!("I/O trace log optimized succesfuly!");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn optimize_all_trace_logs(state_dir: String) {
         debug!("Optimizing all I/O trace logs...");
 
         let traces_path = String::from(
@@ -246,6 +275,21 @@ impl Plugin for IOtraceLogManager {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
+            EventType::OptimizeIOTraceLog(ref filename) => {
+                warn!("Optimizing: {}", filename);
+
+                match util::SCHEDULER.lock() {
+                    Err(e) => {
+                        error!("Could not lock the global task scheduler! {}", e);
+                    }
+                    Ok(mut scheduler) => {
+                        let filename_c = filename.clone();
+
+                        (*scheduler).schedule_job(move || { Self::optimize_single_trace_log(&filename_c); });
+                    }
+                }
+            }
+
             EventType::DoHousekeeping => {
                 match util::SCHEDULER.lock() {
                     Err(e) => {
@@ -259,7 +303,7 @@ impl Plugin for IOtraceLogManager {
 
                         (*scheduler).schedule_job(move || {
                             Self::prune_expired_trace_logs(state_dir.clone());
-                            Self::optimize_trace_logs(state_dir.clone());
+                            Self::optimize_all_trace_logs(state_dir.clone());
                         });
                     }
                 }

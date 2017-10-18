@@ -1053,7 +1053,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             }
             Ok(mut io_trace) => {
                 if filter_matches(&String::from("optimize"), &filename, &io_trace, &config) {
-                    match util::optimize_io_trace_log(&state_dir_c, &mut io_trace, dry_run) {
+                    match util::optimize_io_trace_log(&filename, &mut io_trace, dry_run) {
                         Err(_) => {
                             // Print in "tabular" format (the default)
                             table.add_row(Row::new(vec![

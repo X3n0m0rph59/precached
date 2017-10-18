@@ -15,10 +15,7 @@ LimitRSS=infinity
 LimitCORE=infinity
 LimitMEMLOCK=infinity
 LimitNOFILE=infinity
-# IOSchedulingClass=realtime
-# IOSchedulingPriority=99
-# CPUWeight=10000
-# IOWeight=10000
 
 [Install]
+After=graphical.target
 WantedBy=multi-user.target

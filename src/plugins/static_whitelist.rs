@@ -20,12 +20,12 @@
 
 use events;
 use globals::*;
+// use hooks::process_tracker::ProcessTracker;
+use hooks::iotrace_prefetcher::IOtracePrefetcher;
 use manager::*;
 use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
-// use hooks::process_tracker::ProcessTracker;
-use hooks::iotrace_prefetcher::IOtracePrefetcher;
 use plugins::static_blacklist::StaticBlacklist;
 use std::any::Any;
 use std::collections::HashMap;

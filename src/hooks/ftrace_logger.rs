@@ -112,7 +112,12 @@ impl FtraceLogger {
                                     }
 
                                     util::SysCall::Mmap(addr) => {
-                                        trace!("Process: '{}' with pid {} mapped addr: {:?}", comm, pid, addr);
+                                        trace!(
+                                            "Process: '{}' with pid {} mapped addr: {:?}",
+                                            comm,
+                                            pid,
+                                            addr
+                                        );
                                         iotrace_log.add_event(IOOperation::Mmap(0));
                                     }
 
@@ -237,8 +242,7 @@ impl FtraceLogger {
                     Ok(io_trace) => {
                         let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
 
-                        if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) ||
-                                  flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
+                        if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) || flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
                             true
                         } else {
                             false

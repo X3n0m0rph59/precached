@@ -36,6 +36,8 @@ pub enum EventType {
     PrimeCaches,
     /// advice to plugins to do janitorial tasks now
     DoHousekeeping,
+    /// advice to plugins that an I/O trace log needs to be optimized asap
+    OptimizeIOTraceLog(String),
     /// advice to plugins to gather statistics and performance metrics
     GatherStatsAndMetrics,
     /// occurs *after* the daemon has successfuly reloaded its configuration

@@ -191,10 +191,7 @@ impl IOtracePrefetcher {
 
     /// Replay the I/O trace of the program `exe_name` and cache all files into memory
     pub fn prefetch_data_for_program(&mut self, exe_name: &String, globals: &Globals, manager: &Manager) {
-        trace!(
-            "Prefetching data for program '{}'",
-            exe_name
-        );
+        trace!("Prefetching data for program '{}'", exe_name);
 
         let pm = manager.plugin_manager.borrow();
 
@@ -261,7 +258,7 @@ impl IOtracePrefetcher {
 
                         for n in 0..max {
                             let sc = Mutex::new(sender.clone());
-                            
+
                             // calculate slice bounds for each thread
                             let low = (count_total / max) * n;
                             let high = (count_total / max) * n + (count_total / max);

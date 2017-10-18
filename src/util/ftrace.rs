@@ -26,6 +26,8 @@ use super::{append, echo};
 use super::trace_event::*;
 use chrono::{DateTime, Utc};
 use constants;
+use events;
+use events::EventType;
 use globals::Globals;
 use hooks;
 use iotrace;
@@ -208,15 +210,9 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
 
     echo(&format!("{}/tracing_on", TRACING_DIR), String::from("0"))?;
 
-    echo(
-        &format!("{}/set_event", TRACING_DIR),
-        String::from(""),
-    ).unwrap();
+    echo(&format!("{}/set_event", TRACING_DIR), String::from("")).unwrap();
 
-    echo(
-        &format!("{}/kprobe_events", TRACING_DIR),
-        String::from(""),
-    ).unwrap();
+    echo(&format!("{}/kprobe_events", TRACING_DIR), String::from("")).unwrap();
 
     // echo(
     //     &format!("{}/free_buffer", TRACING_DIR),
@@ -287,7 +283,7 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
 }
 
 /// Check for, and prune expired tracers; save their logs if valid
-fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData>, iotrace_dir: &String) {
+fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData>, iotrace_dir: &String, globals: &mut Globals) {
     for (pid, v) in active_tracers.iter_mut() {
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
             let process = Process::new(*pid);
@@ -302,7 +298,13 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
             v.trace_time_expired = true;
             v.trace_log.trace_stopped_at = Utc::now();
 
-            match v.trace_log.save(&iotrace_dir, false) {
+            let path = Path::new(iotrace_dir)
+                .join(Path::new(&constants::IOTRACE_DIR))
+                .join(Path::new(&format!("{}.trace", v.trace_log.hash)));
+
+            let filename = String::from(path.to_string_lossy());
+
+            match v.trace_log.save(&filename, false) {
                 Err(e) => {
                     error!(
                         "Error while saving the I/O trace log for process '{}' with pid: {}. {}",
@@ -311,11 +313,14 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
                         e
                     )
                 }
-                Ok(()) => info!(
-                    "Sucessfuly saved I/O trace log for process '{}' with pid: {}",
-                    comm,
-                    pid
-                ),
+
+                Ok(()) => {
+                    info!("Sucessfuly saved I/O trace log for process '{}' with pid: {}", comm, pid );
+
+                    // schedule an optimization pass for the newly saved trace log
+                    debug!("Queued an optimization request for '{}'", filename);
+                    events::queue_internal_event(EventType::OptimizeIOTraceLog(filename), globals);
+                }
             }
         }
     }
@@ -354,7 +359,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         match hooks::ftrace_logger::ACTIVE_TRACERS.lock() {
             Err(e) => trace!("Could not take a lock on a shared data structure! {}", e),
             Ok(mut active_tracers) => {
-                check_expired_tracers(&mut active_tracers, &iotrace_dir);
+                check_expired_tracers(&mut active_tracers, &iotrace_dir, globals);
             }
         }
 
@@ -388,8 +393,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         let fields: Vec<&str> = l.split_whitespace().collect();
 
         if fields.len() >= 5 {
-            if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") && !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") && !fields[4].contains("sys_readv") && !fields[4].contains("sys_preadv2") &&
-                !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") && !fields[4].contains("getnameprobe")
+            if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") && !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") && !fields[4].contains("sys_readv") &&
+                !fields[4].contains("sys_preadv2") && !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") && !fields[4].contains("getnameprobe")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
@@ -484,7 +489,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
             if fields.len() >= 7 {
                 // let comm = String::from(fields[0]);
-                let fd = i32::from_str_radix(&fields[fields.len()-1], 16).unwrap_or(-1);
+                let fd = i32::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(-1);
                 if cb(pid, IOEvent { syscall: SysCall::Read(fd) }) == false {
                     break 'LINE_LOOP; // callback returned false, exit requested
                 }
@@ -499,7 +504,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
             if fields.len() >= 7 {
                 // let comm = String::from(fields[0]);
-                let addr = usize::from_str_radix(&fields[fields.len()-1], 16).unwrap_or(0);
+                let addr = usize::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(0);
                 if cb(pid, IOEvent { syscall: SysCall::Mmap(addr) }) == false {
                     break 'LINE_LOOP; // callback returned false, exit requested
                 }

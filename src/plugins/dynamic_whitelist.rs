@@ -168,10 +168,7 @@ impl DynamicWhitelist {
     /// file `filename`. Verifies the validity of `filename`, and check if `filename`
     /// is not blacklisted. Finally checks if `filename` is mapped already by us or
     /// another plugin
-    fn shall_we_map_file(filename: &String,
-            static_blacklist: &Vec<String>,
-            our_mapped_files: &HashMap<String, util::MemoryMapping>,
-            static_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
+    fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>, our_mapped_files: &HashMap<String, util::MemoryMapping>, static_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
             return false;
