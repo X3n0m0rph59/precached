@@ -34,4 +34,5 @@ pub trait Hook {
     fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, manager: &Manager);
 
     fn as_any(&self) -> &Any;
+    fn as_any_mut(&mut self) -> &mut Any;
 }

@@ -197,10 +197,10 @@ impl StaticWhitelist {
                 trace!("Plugin not loaded: 'iotrace_prefetcher', skipped");
             }
             Some(p) => {
-                let hook_b = p.borrow();
+                let mut hook_b = p.borrow_mut();
                 let iotrace_prefetcher_hook = hook_b
-                    .as_any()
-                    .downcast_ref::<IOtracePrefetcher>()
+                    .as_any_mut()
+                    .downcast_mut::<IOtracePrefetcher>()
                     .unwrap();
 
                 let program_whitelist = self.program_whitelist.clone();

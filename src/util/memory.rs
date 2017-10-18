@@ -150,7 +150,7 @@ pub fn map_and_lock_file(filename: &str) -> Result<MemoryMapping> {
     }
 }
 
-pub fn cache_file(filename: &str) -> Result<()> {
+pub fn cache_file(filename: &str) -> Result<MemoryMapping> {
     trace!("Caching file: '{}'", filename);
 
     let file = File::open(filename)?;
@@ -248,7 +248,8 @@ pub fn cache_file(filename: &str) -> Result<()> {
                     } else {
                         trace!("Successfuly called close() for: '{}'", filename);
 
-                        Ok(())
+                        let mapping = MemoryMapping::new(String::from(filename), addr as usize, stat.st_size as usize);
+                        Ok(mapping)
                     }
                 }
             }

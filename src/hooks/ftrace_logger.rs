@@ -213,6 +213,8 @@ impl FtraceLogger {
         }
     }
 
+    /// Returns `true` if we need to re-trace a program, e.g.
+    /// because of the binary being newer than the trace, or the trace being older than n days
     fn shall_new_tracelog_be_created(pid: libc::pid_t, globals: &mut Globals, manager: &Manager) -> bool {
         let pm = manager.plugin_manager.borrow();
 
@@ -235,7 +237,8 @@ impl FtraceLogger {
                     Ok(io_trace) => {
                         let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
 
-                        if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) || flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
+                        if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) ||
+                                  flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
                             true
                         } else {
                             false
@@ -383,6 +386,10 @@ impl hook::Hook for FtraceLogger {
     }
 
     fn as_any(&self) -> &Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut Any {
         self
     }
 }
