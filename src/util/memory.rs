@@ -226,19 +226,30 @@ pub fn cache_file(filename: &str) -> Result<()> {
             } else {
                 trace!("Successfuly called madvise() for: '{}'", filename);
 
-                // Manually fault in all pages
-                // let mem = unsafe { std::slice::from_raw_parts(addr as *mut libc::c_void, stat.st_size as usize) };
-                // for v in mem {
-                //     let _tmp = v;
-                // }
+                let result = unsafe { libc::mlock(addr as *mut libc::c_void, stat.st_size as usize) };
 
-                let result = unsafe { libc::close(fd) };
                 if result < 0 as libc::c_int {
+                    // Try to close the file descriptor
+                    unsafe { libc::close(fd) };
+
                     Err(std::io::Error::last_os_error())
                 } else {
-                    trace!("Successfuly called close() for: '{}'", filename);
+                    trace!("Successfuly called mlock() for: '{}'", filename);
 
-                    Ok(())
+                    // Manually fault in all pages
+                    // let mem = unsafe { std::slice::from_raw_parts(addr as *mut libc::c_void, stat.st_size as usize) };
+                    // for v in mem {
+                    //     let _tmp = v;
+                    // }
+
+                    let result = unsafe { libc::close(fd) };
+                    if result < 0 as libc::c_int {
+                        Err(std::io::Error::last_os_error())
+                    } else {
+                        trace!("Successfuly called close() for: '{}'", filename);
+
+                        Ok(())
+                    }
                 }
             }
         }
