@@ -184,6 +184,26 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     ).unwrap();
 
 
+    // stat(x) syscall
+    // echo(
+    //     &format!("{}/events/syscalls/sys_exit_stat/enable", TRACING_DIR),
+    //     String::from("1"),
+    // ).unwrap();
+    // echo(
+    //     &format!("{}/events/syscalls/sys_exit_stat/filter", TRACING_DIR),
+    //     filter.clone(),
+    // ).unwrap();
+
+    echo(
+        &format!("{}/events/syscalls/sys_exit_statx/enable", TRACING_DIR),
+        String::from("1"),
+    ).unwrap();
+    echo(
+        &format!("{}/events/syscalls/sys_exit_statx/filter", TRACING_DIR),
+        filter.clone(),
+    ).unwrap();
+
+
     // install a kprobe, used to resolve filenames
     echo(
         &format!("{}/kprobe_events", TRACING_DIR),
@@ -394,7 +414,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
         if fields.len() >= 5 {
             if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") && !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") && !fields[4].contains("sys_readv") &&
-                !fields[4].contains("sys_preadv2") && !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") && !fields[4].contains("getnameprobe")
+                !fields[4].contains("sys_preadv2") && !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") && !fields[4].contains("sys_statx") && !fields[4].contains("getnameprobe")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
@@ -508,6 +528,24 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                 if cb(pid, IOEvent { syscall: SysCall::Mmap(addr) }) == false {
                     break 'LINE_LOOP; // callback returned false, exit requested
                 }
+            } else {
+                error!("Error while parsing current event from trace buffer!");
+            }
+        }
+
+        // sys_statx syscall
+        if l.contains("sys_statx") {
+            // debug!("{:#?}", l);
+
+            // TODO: Implement this!
+            warn!("{:#?}", l);
+
+            if fields.len() >= 7 {
+                // let comm = String::from(fields[0]);
+                // let addr = usize::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(0);
+                // if cb(pid, IOEvent { syscall: SysCall::Statx(addr) }) == false {
+                //     break 'LINE_LOOP; // callback returned false, exit requested
+                // }
             } else {
                 error!("Error while parsing current event from trace buffer!");
             }

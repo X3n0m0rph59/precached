@@ -40,6 +40,7 @@ use util;
 /// Represents an I/O operation in an I/O trace log entry
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum IOOperation {
+    Stat(String),
     Open(String, libc::int32_t),
     Read(libc::int32_t),
     Mmap(libc::int32_t),

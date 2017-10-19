@@ -93,6 +93,10 @@ impl IOtracePrefetcher {
         //       Don't just cache the whole file
         for entry in io_trace {
             match entry.operation {
+                iotrace::IOOperation::Stat(ref _file) => {
+                    // TODO: Implement this!
+                },
+
                 iotrace::IOOperation::Open(ref file, ref _fd) => {
                     trace!("Prefetching: {}", file);
 
@@ -122,15 +126,15 @@ impl IOtracePrefetcher {
                             }
                         }
                     }
-                }
+                },
 
                 iotrace::IOOperation::Read(ref _fd) => {
                     // TODO: Implement this!
-                }
+                },
 
                 iotrace::IOOperation::Mmap(ref _fd) => {
                     // TODO: Implement this!
-                }
+                },
 
                 // _ => { /* Do nothing */ }
             }
@@ -439,8 +443,6 @@ impl IOtracePrefetcher {
                                 self.mapped_files.insert(k, v);
                             }
                         }
-
-                        info!("Dynamic whitelist loaded successfuly!");
                     }
                 }
             }
