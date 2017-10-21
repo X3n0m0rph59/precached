@@ -33,14 +33,15 @@ The goal here is to outpace the newly started process and reading all
 the data in _before_ it is actually needed.
 We also do support a preliminary form of offline prefetching by listing the path
 of the program binaries of which dependent files shall be kept in memory in the
-`/etc/precached.conf` file. Precached will then try to keep all files in memory,
-that are referenced by the I/O trace log of that program.
+`/etc/precached/precached.conf` file. Precached will then try to keep all files
+in memory, that are referenced by the I/O trace log of that program.
 ```
 program_whitelist = [
  "/usr/lib64/libreoffice/program/soffice.bin",
 ]
 ```
-This snippet will keep LibreOffice cached in ram
+This snippet will keep LibreOffice (the binary and all dependent files)
+cached in ram
 
 There are two newly written companion executables:
   * iotracectl - manage I/O trace log files
@@ -49,8 +50,7 @@ There are two newly written companion executables:
 I/O trace log files may be managed by the `iotracectl` tool. It currently
 supports these subcommands:
 `$ iotracectl --help`
-```
-    status          Show the current status of the precached I/O tracing subsystem
+`   status          Show the current status of the precached I/O tracing subsystem
     top             Top/htop like display of in-flight I/O traces
     list            List all available I/O traces
     info            Print metadata information of specific I/O traces
@@ -61,7 +61,7 @@ supports these subcommands:
     clear           Completely clear all I/O traces and reset the precached I/O tracing subsystem
     help            Display this short help text
     test-tracing    Test the I/O tracing subsystem of precached
-```
+`
 
 ![iotracectl list](/precached/images/iotracectl_01.png)
 
@@ -86,3 +86,11 @@ implement offline prefetching of application files using a prefetcher based on
 markov chains that will supplement the "manual whitelisting" approach.
 
 The precached team
+
+
+## Article Updates
+
+This posting has been edited at: Sat Oct 21 04:00:00
+
+* Fixed typos
+* Rewordings
