@@ -122,12 +122,7 @@ impl FtraceLogger {
                                     }
 
                                     util::SysCall::Fstat(fd) => {
-                                        trace!(
-                                            "Process: '{}' with pid {} stat()ed fd: {}",
-                                            comm,
-                                            pid,
-                                            fd
-                                        );
+                                        trace!("Process: '{}' with pid {} stat()ed fd: {}", comm, pid, fd);
                                         iotrace_log.add_event(IOOperation::Fstat(fd));
                                     }
 

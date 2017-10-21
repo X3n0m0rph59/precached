@@ -34,6 +34,7 @@ use iotrace;
 use nix::unistd::{Pid, gettid};
 use process::Process;
 use std::collections::HashMap;
+use std::ffi::CString;
 use std::fs::OpenOptions;
 use std::io;
 use std::io::BufRead;
@@ -42,7 +43,6 @@ use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::thread;
 use std::time::{Duration, Instant};
-use std::ffi::CString;
 
 /// Global 'shall we exit now' flag
 pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -89,7 +89,10 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     // enable "disable on free mechanism"
     let filename = CString::new(format!("{}/options/free_buffer", TRACING_DIR)).unwrap();
     let _result = unsafe { libc::open(filename.as_ptr(), libc::O_NOCTTY) };
-    echo(&format!("{}/options/disable_on_free", TRACING_BASE_DIR), String::from("1"))?;
+    echo(
+        &format!("{}/options/disable_on_free", TRACING_BASE_DIR),
+        String::from("1"),
+    )?;
 
     // create our private ftrace instance
     mkdir(&format!("{}", TRACING_DIR)).unwrap();
@@ -258,7 +261,10 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
 
     echo(&format!("{}/set_event", TRACING_DIR), String::from("")).unwrap();
 
-    echo(&format!("{}/kprobe_events", TRACING_BASE_DIR), String::from("")).unwrap();
+    echo(
+        &format!("{}/kprobe_events", TRACING_BASE_DIR),
+        String::from(""),
+    ).unwrap();
 
     // echo(
     //     &format!("{}/free_buffer", TRACING_DIR),
@@ -439,13 +445,9 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         let fields: Vec<&str> = l.split_whitespace().collect();
 
         if fields.len() >= 5 {
-            if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") &&
-               !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") &&
-               !fields[4].contains("sys_readv") && !fields[4].contains("sys_preadv2") &&
-               !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") &&
-               !fields[4].contains("sys_statx") && !fields[4].contains("sys_newstat") &&
-               !fields[4].contains("sys_newfstat") && !fields[4].contains("sys_newfstatat") &&
-               !fields[4].contains("getnameprobe")
+            if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") && !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") && !fields[4].contains("sys_readv") &&
+                !fields[4].contains("sys_preadv2") && !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") && !fields[4].contains("sys_statx") && !fields[4].contains("sys_newstat") &&
+                !fields[4].contains("sys_newfstat") && !fields[4].contains("sys_newfstatat") && !fields[4].contains("getnameprobe")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
@@ -565,8 +567,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         // sys_stat(x) syscall family
-        if l.contains("sys_statx") ||
-           l.contains("sys_newstat") {
+        if l.contains("sys_statx") || l.contains("sys_newstat") {
             // debug!("{:#?}", l);
 
             // TODO: Implement this!
@@ -595,8 +596,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         // sys_fstat(at) syscall family
-        if l.contains("sys_newfstat") ||
-           l.contains("sys_newfstatat") {
+        if l.contains("sys_newfstat") || l.contains("sys_newfstatat") {
             // debug!("{:#?}", l);
 
             // TODO: Implement this!

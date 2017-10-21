@@ -279,8 +279,11 @@ fn setup_logging() -> Result<(), fern::InitError> {
 
     let console = fern::Dispatch::new()
         .format(move |out, _message, record| {
-            let mut module_path = format!("{}:{}", record.location().module_path().to_string(),
-                                                   record.location().__line.to_string());
+            let mut module_path = format!(
+                "{}:{}",
+                record.location().module_path().to_string(),
+                record.location().__line.to_string()
+            );
 
             let max_width = util::MAX_MODULE_WIDTH.load(Ordering::Relaxed);
             if max_width > module_path.len() {

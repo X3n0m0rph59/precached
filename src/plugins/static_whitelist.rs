@@ -159,7 +159,7 @@ impl StaticWhitelist {
                             &dynamic_whitelist,
                         )
                         {
-                            match util::map_and_lock_file(&f) {
+                            match util::cache_file(&f, true) {
                                 Err(s) => {
                                     error!("Could not cache file '{}': {}", &f, &s);
                                 }

@@ -87,7 +87,7 @@ impl IOtracePrefetcher {
         dynamic_whitelist: &HashMap<String, util::MemoryMapping>,
     ) -> HashMap<String, util::MemoryMapping> {
         let mut already_prefetched = HashMap::new();
-        // already_prefetched.reserve(io_trace.len());
+        already_prefetched.reserve(io_trace.len());
 
         // TODO: Use a finer granularity for Prefetching
         //       Don't just cache the whole file
@@ -108,12 +108,12 @@ impl IOtracePrefetcher {
                         &dynamic_whitelist,
                     )
                     {
-                        match util::cache_file(file) {
+                        match util::cache_file(file, false) {
                             Err(e) => {
                                 error!("Could not prefetch file: '{}': {}", file, e);
 
                                 // inhibit further prefetching of that file
-                                // already_prefetched.push(file.clone());
+                                // already_prefetched.insert(file.clone(), None);
                             }
                             Ok(mapping) => {
                                 trace!("Successfuly prefetched file: '{}'", file);
@@ -122,23 +122,23 @@ impl IOtracePrefetcher {
                             }
                         }
                     }
-                },
+                }
 
-                iotrace::IOOperation::Stat(ref _file) => {
-                    // TODO: Implement this!
-                },
+                iotrace::IOOperation::Stat(ref file) => {
+                    util::prime_metadata_cache(file);
+                }
 
                 iotrace::IOOperation::Fstat(ref _fd) => {
                     // TODO: Implement this!
-                },
+                }
 
                 iotrace::IOOperation::Read(ref _fd) => {
                     // TODO: Implement this!
-                },
+                }
 
                 iotrace::IOOperation::Mmap(ref _fd) => {
                     // TODO: Implement this!
-                },
+                }
 
                 // _ => { /* Do nothing */ }
             }

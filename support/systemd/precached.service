@@ -1,6 +1,8 @@
 [Unit]
 Description=Precached - Linux process monitor and pre-caching daemon
 Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precached.conf(5)
+DefaultDependencies=no
+After=sysroot-usr.mount
 
 [Service]
 Environment=LOG_LEVEL=warn
@@ -17,5 +19,4 @@ LimitMEMLOCK=infinity
 LimitNOFILE=infinity
 
 [Install]
-After=graphical.target
-WantedBy=multi-user.target
+WantedBy=local-fs.target
