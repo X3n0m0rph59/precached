@@ -108,7 +108,7 @@ impl IOtracePrefetcher {
                         &dynamic_whitelist,
                     )
                     {
-                        match util::cache_file(file, false) {
+                        match util::cache_file(file, true) {
                             Err(e) => {
                                 error!("Could not prefetch file: '{}': {}", file, e);
 
