@@ -22,7 +22,7 @@ extern crate libc;
 extern crate regex;
 
 use self::regex::Regex;
-use super::{append, echo};
+use super::{append, echo, mkdir};
 use super::trace_event::*;
 use chrono::{DateTime, Utc};
 use constants;
@@ -42,6 +42,7 @@ use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::thread;
 use std::time::{Duration, Instant};
+use std::ffi::CString;
 
 /// Global 'shall we exit now' flag
 pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -54,8 +55,9 @@ lazy_static! {
     pub static ref REGEX_FILTER: Regex = Regex::new(r"CPU:[[:digit:]]+ \[LOST [[:digit:]]+ EVENTS\]").unwrap();
 }
 
-// static TRACING_DIR:     &'static str = "/sys/kernel/tracing";
-static TRACING_DIR: &'static str = "/sys/kernel/debug/tracing";
+// static TRACING_DIR: &'static str = "/sys/kernel/tracing";
+static TRACING_BASE_DIR: &'static str = "/sys/kernel/debug/tracing";
+static TRACING_DIR: &'static str = "/sys/kernel/debug/tracing/instances/precached";
 
 /// Per process metadata
 pub struct PerTracerData {
@@ -83,6 +85,14 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
 
     // enable the ftrace function tracer
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
+
+    // enable "disable on free mechanism"
+    let filename = CString::new(format!("{}/options/free_buffer", TRACING_DIR)).unwrap();
+    let _result = unsafe { libc::open(filename.as_ptr(), libc::O_NOCTTY) };
+    echo(&format!("{}/options/disable_on_free", TRACING_BASE_DIR), String::from("1"))?;
+
+    // create our private ftrace instance
+    mkdir(&format!("{}", TRACING_DIR)).unwrap();
 
     // enable ftrace
     echo(&format!("{}/tracing_on", TRACING_DIR), String::from("1"))?;
@@ -143,7 +153,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         filter.clone(),
     ).unwrap();
 
-
     echo(
         &format!("{}/events/syscalls/sys_exit_readv/enable", TRACING_DIR),
         String::from("1"),
@@ -152,7 +161,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         &format!("{}/events/syscalls/sys_exit_readv/filter", TRACING_DIR),
         filter.clone(),
     ).unwrap();
-
 
     echo(
         &format!("{}/events/syscalls/sys_exit_preadv2/enable", TRACING_DIR),
@@ -163,7 +171,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         filter.clone(),
     ).unwrap();
 
-
     echo(
         &format!("{}/events/syscalls/sys_exit_pread64/enable", TRACING_DIR),
         String::from("1"),
@@ -172,6 +179,7 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         &format!("{}/events/syscalls/sys_exit_pread64/filter", TRACING_DIR),
         filter.clone(),
     ).unwrap();
+
 
     // mmap syscall
     echo(
@@ -185,15 +193,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
 
 
     // stat(x) syscall
-    // echo(
-    //     &format!("{}/events/syscalls/sys_exit_stat/enable", TRACING_DIR),
-    //     String::from("1"),
-    // ).unwrap();
-    // echo(
-    //     &format!("{}/events/syscalls/sys_exit_stat/filter", TRACING_DIR),
-    //     filter.clone(),
-    // ).unwrap();
-
     echo(
         &format!("{}/events/syscalls/sys_exit_statx/enable", TRACING_DIR),
         String::from("1"),
@@ -203,10 +202,37 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         filter.clone(),
     ).unwrap();
 
+    echo(
+        &format!("{}/events/syscalls/sys_exit_newstat/enable", TRACING_DIR),
+        String::from("1"),
+    ).unwrap();
+    echo(
+        &format!("{}/events/syscalls/sys_exit_newstat/filter", TRACING_DIR),
+        filter.clone(),
+    ).unwrap();
+
+    echo(
+        &format!("{}/events/syscalls/sys_exit_newfstat/enable", TRACING_DIR),
+        String::from("1"),
+    ).unwrap();
+    echo(
+        &format!("{}/events/syscalls/sys_exit_newfstat/filter", TRACING_DIR),
+        filter.clone(),
+    ).unwrap();
+
+    echo(
+        &format!("{}/events/syscalls/sys_exit_newfstatat/enable", TRACING_DIR),
+        String::from("1"),
+    ).unwrap();
+    echo(
+        &format!("{}/events/syscalls/sys_exit_newfstatat/filter", TRACING_DIR),
+        filter.clone(),
+    ).unwrap();
+
 
     // install a kprobe, used to resolve filenames
     echo(
-        &format!("{}/kprobe_events", TRACING_DIR),
+        &format!("{}/kprobe_events", TRACING_BASE_DIR),
         String::from("r:getnameprobe getname +0(+0($retval)):string"),
     );
     // .unwrap();
@@ -216,13 +242,13 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         String::from("1"),
     ).unwrap();
 
+
     // enable the ftrace function tracer just in case it was disabled
     // NOTE: This fails sometimes with "Device or Resource busy"
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
 
     Ok(())
 }
-
 
 /// Disable ftrace tracing on the system
 pub fn disable_ftrace_tracing() -> io::Result<()> {
@@ -232,7 +258,7 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
 
     echo(&format!("{}/set_event", TRACING_DIR), String::from("")).unwrap();
 
-    echo(&format!("{}/kprobe_events", TRACING_DIR), String::from("")).unwrap();
+    echo(&format!("{}/kprobe_events", TRACING_BASE_DIR), String::from("")).unwrap();
 
     // echo(
     //     &format!("{}/free_buffer", TRACING_DIR),
@@ -413,8 +439,13 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         let fields: Vec<&str> = l.split_whitespace().collect();
 
         if fields.len() >= 5 {
-            if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") && !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") && !fields[4].contains("sys_readv") &&
-                !fields[4].contains("sys_preadv2") && !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") && !fields[4].contains("sys_statx") && !fields[4].contains("getnameprobe")
+            if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") &&
+               !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") &&
+               !fields[4].contains("sys_readv") && !fields[4].contains("sys_preadv2") &&
+               !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") &&
+               !fields[4].contains("sys_statx") && !fields[4].contains("sys_newstat") &&
+               !fields[4].contains("sys_newfstat") && !fields[4].contains("sys_newfstatat") &&
+               !fields[4].contains("getnameprobe")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
@@ -533,19 +564,50 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             }
         }
 
-        // sys_statx syscall
-        if l.contains("sys_statx") {
+        // sys_stat(x) syscall family
+        if l.contains("sys_statx") ||
+           l.contains("sys_newstat") {
             // debug!("{:#?}", l);
 
             // TODO: Implement this!
             warn!("{:#?}", l);
 
             if fields.len() >= 7 {
+                let mut reset_filename = false;
+                match last_filename {
+                    None => error!("Could not get associated file name of the current trace event!"),
+                    Some(ref c) => {
+                        if cb(pid, IOEvent { syscall: SysCall::Statx(c.clone()) }) == false {
+                            break 'LINE_LOOP; // callback returned false, exit requested
+                        }
+
+                        reset_filename = true;
+                    }
+                }
+
+                // reset the filename so that we won't use it multiple times accidentally
+                if reset_filename {
+                    last_filename = None;
+                }
+            } else {
+                error!("Error while parsing current event from trace buffer!");
+            }
+        }
+
+        // sys_fstat(at) syscall family
+        if l.contains("sys_newfstat") ||
+           l.contains("sys_newfstatat") {
+            // debug!("{:#?}", l);
+
+            // TODO: Implement this!
+            // warn!("{:#?}", l);
+
+            if fields.len() >= 7 {
                 // let comm = String::from(fields[0]);
-                // let addr = usize::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(0);
-                // if cb(pid, IOEvent { syscall: SysCall::Statx(addr) }) == false {
-                //     break 'LINE_LOOP; // callback returned false, exit requested
-                // }
+                let fd = i32::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(-1);
+                if cb(pid, IOEvent { syscall: SysCall::Fstat(fd) }) == false {
+                    break 'LINE_LOOP; // callback returned false, exit requested
+                }
             } else {
                 error!("Error while parsing current event from trace buffer!");
             }

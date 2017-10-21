@@ -40,8 +40,9 @@ use util;
 /// Represents an I/O operation in an I/O trace log entry
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum IOOperation {
-    Stat(String),
     Open(String, libc::int32_t),
+    Stat(String),
+    Fstat(libc::int32_t),
     Read(libc::int32_t),
     Mmap(libc::int32_t),
 }
@@ -130,7 +131,7 @@ pub fn map_io_trace_flag_to_string(flag: IOTraceLogFlag) -> &'static str {
 }
 
 /// Represents an I/O trace log `.trace` file
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IOTraceLog {
     /// Hash of the `comm` of the process being traced
     pub hash: String,
@@ -143,7 +144,7 @@ pub struct IOTraceLog {
     /// Date and Time (in UTC) this trace log was stopped
     pub trace_stopped_at: DateTime<Utc>,
     /// Map file names to file descriptors used in trace log
-    pub file_map: HashMap<libc::int32_t, String>,
+    pub file_map: HashMap<String, usize>,
     /// The I/O trace log, contains all relevant I/O operations
     /// performed by the process being traced
     pub trace_log: Vec<TraceLogEntry>,
@@ -225,7 +226,8 @@ impl IOTraceLog {
         // do we have to add a file map entry?
         match op {
             IOOperation::Open(filename, fd) => {
-                self.file_map.entry(fd).or_insert(filename);
+                let val = self.file_map.entry(filename).or_insert(0);
+                *val += 1;
             }
             _ => { /* Do nothing */ }
         }

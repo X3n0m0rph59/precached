@@ -93,10 +93,6 @@ impl IOtracePrefetcher {
         //       Don't just cache the whole file
         for entry in io_trace {
             match entry.operation {
-                iotrace::IOOperation::Stat(ref _file) => {
-                    // TODO: Implement this!
-                },
-
                 iotrace::IOOperation::Open(ref file, ref _fd) => {
                     trace!("Prefetching: {}", file);
 
@@ -126,6 +122,14 @@ impl IOtracePrefetcher {
                             }
                         }
                     }
+                },
+
+                iotrace::IOOperation::Stat(ref _file) => {
+                    // TODO: Implement this!
+                },
+
+                iotrace::IOOperation::Fstat(ref _fd) => {
+                    // TODO: Implement this!
                 },
 
                 iotrace::IOOperation::Read(ref _fd) => {

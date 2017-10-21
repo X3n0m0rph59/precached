@@ -111,6 +111,26 @@ impl FtraceLogger {
                                         iotrace_log.add_event(IOOperation::Open(filename.clone(), fd));
                                     }
 
+                                    util::SysCall::Statx(ref filename) => {
+                                        trace!(
+                                            "Process: '{}' with pid {} stat()ed file: {}",
+                                            comm,
+                                            pid,
+                                            filename,
+                                        );
+                                        iotrace_log.add_event(IOOperation::Stat(filename.clone()));
+                                    }
+
+                                    util::SysCall::Fstat(fd) => {
+                                        trace!(
+                                            "Process: '{}' with pid {} stat()ed fd: {}",
+                                            comm,
+                                            pid,
+                                            fd
+                                        );
+                                        iotrace_log.add_event(IOOperation::Fstat(fd));
+                                    }
+
                                     util::SysCall::Mmap(addr) => {
                                         trace!(
                                             "Process: '{}' with pid {} mapped addr: {:?}",

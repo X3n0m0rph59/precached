@@ -24,6 +24,7 @@ extern crate libc;
 pub enum SysCall {
     Undefined,
     Statx(String),
+    Fstat(libc::int32_t),
     Open(String, libc::int32_t),
     Close(libc::int32_t),
     Read(libc::int32_t),

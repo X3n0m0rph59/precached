@@ -101,6 +101,12 @@ pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
     Ok(())
 }
 
+pub fn mkdir(filename: &str) -> io::Result<()> {
+    fs::create_dir_all(filename)?;
+
+    Ok(())
+}
+
 pub fn echo(filename: &str, mut text: String) -> io::Result<()> {
     let path = Path::new(filename);
     let mut file = try!(OpenOptions::new().write(true).append(false).open(&path));
