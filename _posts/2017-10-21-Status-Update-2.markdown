@@ -50,18 +50,17 @@ There are two newly written companion executables:
 I/O trace log files may be managed by the `iotracectl` tool. It currently
 supports these subcommands:
 `$ iotracectl --help`
-`   status          Show the current status of the precached I/O tracing subsystem
-    top             Top/htop like display of in-flight I/O traces
-    list            List all available I/O traces
-    info            Print metadata information of specific I/O traces
-    dump            Dump I/O trace log entries (file access operations)
-    analyze         Analyze I/O trace logs (check for missing files)
-    optimize        Optimize I/O trace logs (optimize access patterns)
-    remove          Remove I/O trace
-    clear           Completely clear all I/O traces and reset the precached I/O tracing subsystem
-    help            Display this short help text
-    test-tracing    Test the I/O tracing subsystem of precached
-`
+`status          Show the current status of the precached I/O tracing subsystem
+ top             Top/htop like display of in-flight I/O traces
+ list            List all available I/O traces
+ info            Print metadata information of specific I/O traces
+ dump            Dump I/O trace log entries (file access operations)
+ analyze         Analyze I/O trace logs (check for missing files)
+ optimize        Optimize I/O trace logs (optimize access patterns)
+ remove          Remove I/O trace
+ clear           Completely clear all I/O traces and reset the precached I/O tracing subsystem
+ help            Display this short help text
+ test-tracing    Test the I/O tracing subsystem of precached`
 
 ![iotracectl list](/precached/images/iotracectl_01.png)
 
