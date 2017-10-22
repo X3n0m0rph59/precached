@@ -153,31 +153,37 @@ pub struct IOTraceLog {
 }
 
 impl IOTraceLog {
-    pub fn new(pid: libc::pid_t) -> IOTraceLog {
+    pub fn new(pid: libc::pid_t) -> Result<IOTraceLog, &'static str> {
         let process = Process::new(pid);
-        let exe = process.get_exe();
-        let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
 
-        let mut hasher = fnv::FnvHasher::default();
-        hasher.write(&exe.clone().into_bytes());
-        let hashval = hasher.finish();
+        if process.is_ok() {
+            let process = process.unwrap();
+            let exe = process.get_exe().unwrap();
+            let comm = process.get_comm().unwrap();
 
-        // make the I/O trace contain an open and a read of the binary itself
-        // since we will always miss that event in the tracer
-        let first_entries = vec![
-            TraceLogEntry::new(IOOperation::Open(exe.clone(), 0)),
-            TraceLogEntry::new(IOOperation::Read(0)),
-        ];
+            let mut hasher = fnv::FnvHasher::default();
+            hasher.write(&exe.clone().into_bytes());
+            let hashval = hasher.finish();
 
-        IOTraceLog {
-            hash: String::from(format!("{}", hashval)),
-            exe: exe,
-            comm: comm,
-            created_at: Utc::now(),
-            trace_stopped_at: Utc::now(),
-            file_map: HashMap::new(),
-            trace_log: first_entries,
-            trace_log_optimized: false,
+            // make the I/O trace contain an open and a read of the binary itself
+            // since we will always miss that event in the tracer
+            let first_entries = vec![
+                TraceLogEntry::new(IOOperation::Open(exe.clone(), 0)),
+                // TraceLogEntry::new(IOOperation::Read(0)),
+            ];
+
+            Ok(IOTraceLog {
+                hash: String::from(format!("{}", hashval)),
+                exe: exe,
+                comm: comm,
+                created_at: Utc::now(),
+                trace_stopped_at: Utc::now(),
+                file_map: HashMap::new(),
+                trace_log: first_entries,
+                trace_log_optimized: false,
+            })
+        } else {
+            Err("Process does not exist!")
         }
     }
 

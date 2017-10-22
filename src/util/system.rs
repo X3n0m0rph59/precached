@@ -59,7 +59,7 @@ pub fn set_process_properties() -> Result<bool, &'static str> {
         return Err(&"Could not set I/O scheduling class and priority!")
     }*/
 
-    unsafe { libc::nice(10) };
+    // unsafe { libc::nice(constants::MAIN_THREAD_NICENESS) };
 
     Ok(true)
 }

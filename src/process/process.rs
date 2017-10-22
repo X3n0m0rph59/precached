@@ -57,18 +57,16 @@ pub struct Process {
 }
 
 impl Process {
-    pub fn new(pid: libc::pid_t) -> Process {
+    pub fn new(pid: libc::pid_t) -> io::Result<Process> {
         let filename = format!("/proc/{}/comm", pid);
         let comm = &String::from(
-            util::read_uncompressed_text_file(&filename)
-                .unwrap_or(String::from("<unknown>"))
-                .trim(),
+            util::read_uncompressed_text_file(&filename)?
         );
 
-        Process {
+        Ok(Process {
             pid: pid,
             comm: comm.clone(),
-        }
+        })
     }
 
     pub fn get_mapped_files(&self) -> io::Result<Vec<String>> {
@@ -112,8 +110,8 @@ impl Process {
 
     /// Returns the current `exe` of the process
     /// (Executable image file name)
-    /// Returns: filename of executable image or `<invalid>`
-    pub fn get_exe(&self) -> String {
+    /// Returns: filename of executable image
+    pub fn get_exe(&self) -> Result<String, &'static str> {
         let filename = format!("/proc/{}/exe", self.pid);
         let path = Path::new(&filename);
 
@@ -121,8 +119,8 @@ impl Process {
         let result = nix::fcntl::readlink(path, &mut buffer);
 
         match result {
-            Err(_e) => String::from("<invalid>"),
-            Ok(r) => String::from(r.to_str().unwrap_or("<invalid>")),
+            Err(_e) => Err("Could not get executable file name!"),
+            Ok(r) => Ok(String::from(r.to_str().unwrap().trim())),
         }
     }
 
@@ -131,9 +129,7 @@ impl Process {
     pub fn get_comm(&self) -> io::Result<String> {
         let filename = format!("/proc/{}/comm", self.pid);
         let result = String::from(
-            util::read_uncompressed_text_file(&filename)
-                .unwrap_or(String::from("<unknown>"))
-                .trim(),
+            util::read_uncompressed_text_file(&filename)?.trim()
         );
 
         Ok(result)

@@ -62,6 +62,10 @@ impl HotApplications {
         }
     }
 
+    pub fn is_exe_cached(&self, exe_name: &String) -> bool {
+        self.app_histogram.contains_key(exe_name)
+    }
+
     pub fn prefetch_data(&mut self, globals: &mut Globals, manager: &Manager) {
         let hm = manager.hook_manager.borrow();
 
@@ -88,11 +92,17 @@ impl HotApplications {
     }
 
     pub fn application_executed(&mut self, pid: libc::pid_t) {
-        let process = Process::new(pid);
-        let exe = process.get_exe();
-
-        let val = self.app_histogram.entry(exe).or_insert(0);
-        *val += 1;
+        match Process::new(pid) {
+            Err(e) => { warn!("Could not update hot applications histogram: {}", e) },
+            Ok(process) => {
+                if let Ok(exe) = process.get_exe() {
+                    let val = self.app_histogram.entry(exe).or_insert(0);
+                    *val += 1;
+                } else {
+                    warn!("Could not update hot applications histogram!");
+                }
+            }
+        }
     }
 
     pub fn load_state(&mut self, globals: &mut Globals, _manager: &Manager) {

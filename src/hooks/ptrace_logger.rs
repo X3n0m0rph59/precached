@@ -88,8 +88,8 @@ impl PtraceLogger {
         thread::Builder::new().name(format!("ptrace/pid:{}", pid)).spawn(move || {
             active_tracers.lock().unwrap().push(pid);
 
-            let process = Process::new(pid);
-            let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
+            let process = Process::new(pid).unwrap();
+            let comm = process.get_comm().unwrap_or(String::from("<not available>"));
 
             let mut trace_log = IOTraceLog::new(pid);
             let start_time = Instant::now();

@@ -12,6 +12,7 @@ ExecStop=/usr/sbin/precachedctl stop
 PIDFile=/run/precached.pid
 Type=forking
 Restart=always
+Nice=10
 LimitAS=infinity
 LimitRSS=infinity
 LimitCORE=infinity

@@ -78,8 +78,12 @@ impl FtraceLogger {
                 // NOTE: we get called for each event in the trace buffer
                 //       if we want the underlying loop to quit, we have
                 //       to return `false`. Otherwise we return `true`.
-                let process = Process::new(pid);
-                let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
+
+                // comm is only used for the syslog output
+                let mut comm = String::from("<not available>");
+                if let Ok(process) = Process::new(pid) {
+                    comm = process.get_comm().unwrap_or(String::from("<not available>"));
+                }
 
                 // NOTE: We have to use `lock()`` here instead of `try_lock()``
                 //       because we don't want to miss events in any case
@@ -111,35 +115,36 @@ impl FtraceLogger {
                                         iotrace_log.add_event(IOOperation::Open(filename.clone(), fd));
                                     }
 
-                                    util::SysCall::Statx(ref filename) => {
-                                        trace!(
-                                            "Process: '{}' with pid {} stat()ed file: {}",
-                                            comm,
-                                            pid,
-                                            filename,
-                                        );
-                                        iotrace_log.add_event(IOOperation::Stat(filename.clone()));
-                                    }
-
-                                    util::SysCall::Fstat(fd) => {
-                                        trace!("Process: '{}' with pid {} stat()ed fd: {}", comm, pid, fd);
-                                        iotrace_log.add_event(IOOperation::Fstat(fd));
-                                    }
-
-                                    util::SysCall::Mmap(addr) => {
-                                        trace!(
-                                            "Process: '{}' with pid {} mapped addr: {:?}",
-                                            comm,
-                                            pid,
-                                            addr
-                                        );
-                                        iotrace_log.add_event(IOOperation::Mmap(0));
-                                    }
-
-                                    util::SysCall::Read(fd) => {
-                                        trace!("Process: '{}' with pid {} read from fd: {}", comm, pid, fd);
-                                        iotrace_log.add_event(IOOperation::Read(fd));
-                                    }
+                                    // TODO: Fully implement the below mentioned I/O ops
+                                    // util::SysCall::Statx(ref filename) => {
+                                    //     trace!(
+                                    //         "Process: '{}' with pid {} stat()ed file: {}",
+                                    //         comm,
+                                    //         pid,
+                                    //         filename,
+                                    //     );
+                                    //     iotrace_log.add_event(IOOperation::Stat(filename.clone()));
+                                    // }
+                                    //
+                                    // util::SysCall::Fstat(fd) => {
+                                    //     trace!("Process: '{}' with pid {} stat()ed fd: {}", comm, pid, fd);
+                                    //     iotrace_log.add_event(IOOperation::Fstat(fd));
+                                    // }
+                                    //
+                                    // util::SysCall::Mmap(addr) => {
+                                    //     trace!(
+                                    //         "Process: '{}' with pid {} mapped addr: {:?}",
+                                    //         comm,
+                                    //         pid,
+                                    //         addr
+                                    //     );
+                                    //     iotrace_log.add_event(IOOperation::Mmap(0));
+                                    // }
+                                    //
+                                    // util::SysCall::Read(fd) => {
+                                    //     trace!("Process: '{}' with pid {} read from fd: {}", comm, pid, fd);
+                                    //     iotrace_log.add_event(IOOperation::Read(fd));
+                                    // }
 
                                     // Only relevant syscalls will be recorded
                                     _ => { /* Ignore other syscalls */ }
@@ -172,8 +177,10 @@ impl FtraceLogger {
 
     /// Add process `event.pid` to the list of traced processes
     pub fn trace_process_io_activity(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
-        let process = Process::new(event.pid);
-        let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
+        let mut comm = String::from("<not available>");
+        if let Ok(process) = Process::new(event.pid) {
+            comm = process.get_comm().unwrap_or(String::from("<not available>"));
+        }
 
         match ACTIVE_TRACERS.lock() {
             Err(e) => {
@@ -198,7 +205,7 @@ impl FtraceLogger {
                     if Self::shall_new_tracelog_be_created(event.pid, globals, manager) {
                         // Begin tracing the process `event.pid`.
                         // Construct the "PerTracerData" and a companion IOTraceLog
-                        let iotrace_log = iotrace::IOTraceLog::new(event.pid);
+                        let iotrace_log = iotrace::IOTraceLog::new(event.pid).unwrap();
                         let tracer_data = util::PerTracerData::new(iotrace_log);
 
                         active_tracers.insert(event.pid, tracer_data);
@@ -220,8 +227,6 @@ impl FtraceLogger {
                             ),
                         }
                     } else {
-                        let process = Process::new(event.pid);
-                        let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
                         info!(
                             "We already have a valid I/O trace log for process '{}' with pid: {}",
                             comm,
@@ -250,19 +255,27 @@ impl FtraceLogger {
                     .downcast_ref::<IOtraceLogManager>()
                     .unwrap();
 
-                let process = Process::new(pid);
+                if let Ok(process) = Process::new(pid) {
+                    if let Ok(exe) = process.get_exe() {
+                        match iotrace_log_manager_plugin.get_trace_log(exe, &globals) {
+                            Err(_e) => true,
+                            Ok(io_trace) => {
+                                let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
 
-                match iotrace_log_manager_plugin.get_trace_log(process.get_exe(), &globals) {
-                    Err(_e) => true,
-                    Ok(io_trace) => {
-                        let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
-
-                        if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) || flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
-                            true
-                        } else {
-                            false
+                                if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) || flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
+                                    true
+                                } else {
+                                    false
+                                }
+                            }
                         }
+                    } else {
+                        // process is not existent anymore?
+                        false
                     }
+                } else {
+                    // process is not existent anymore?
+                    false
                 }
             }
         }
@@ -271,57 +284,62 @@ impl FtraceLogger {
     /// Notify the "ftrace thread" and remove process `event.pid` from the list of traced processes
     pub fn notify_process_exit(&self, event: &procmon::Event, _globals: &mut Globals, _manager: &Manager) {
         let process = Process::new(event.pid);
-        let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
+        match process {
+            Err(e) => warn!("Spurious process exit event for process {}: {}", event.pid, e),
+            Ok(process) => {
+                let comm = process.get_comm().unwrap_or(String::from("<not available>"));
 
-        // NOTE: We have to use `lock()` here instead of `try_lock()`
-        //       because we don't want to miss "exit" events in any case
-        match ACTIVE_TRACERS.lock() {
-            Err(e) => warn!("Could not take a lock on a shared data structure! {}", e),
-            Ok(mut active_tracers) => {
-                // We successfuly acquired the lock
-                if !active_tracers.contains_key(&event.pid) {
-                    // We received an "exit" event for a process that we didn't track (or don't track anymore)
-                    // This may happen if we noticed the demise of a process that was started before our daemon,
-                    // and because of that was not tracked by us
-                    trace!(
-                        "Spurious exit request received! Process '{}' with pid: {} is not, or no longer being tracked by us",
-                        comm,
-                        event.pid
-                    );
-                } else {
-                    // We are currently tracing the process `event.pid`
-                    match active_tracers.entry(event.pid) {
-                        Occupied(mut tracer_data) => {
-                            // Set `process_exited` flag in "PerTracerData" for that specific process
-                            tracer_data.get_mut().process_exited = true;
+                // NOTE: We have to use `lock()` here instead of `try_lock()`
+                //       because we don't want to miss "exit" events in any case
+                match ACTIVE_TRACERS.lock() {
+                    Err(e) => warn!("Could not take a lock on a shared data structure! {}", e),
+                    Ok(mut active_tracers) => {
+                        // We successfuly acquired the lock
+                        if !active_tracers.contains_key(&event.pid) {
+                            // We received an "exit" event for a process that we didn't track (or don't track anymore)
+                            // This may happen if we noticed the demise of a process that was started before our daemon,
+                            // and because of that was not tracked by us
                             trace!(
-                                "Sent notification about termination of process '{}' with pid {} to the ftrace parser thread",
+                                "Spurious exit request received! Process '{}' with pid: {} is not, or no longer being tracked by us",
                                 comm,
                                 event.pid
                             );
-                        }
-                        Vacant(_k) => {
-                            // NOTE: We can only ever get here because of race conditions.
-                            //       This should and can not happen if our threading model is sound
-                            error!("Internal error occured! Currupted data structures detected.");
-                        }
-                    };
+                        } else {
+                            // We are currently tracing the process `event.pid`
+                            match active_tracers.entry(event.pid) {
+                                Occupied(mut tracer_data) => {
+                                    // Set `process_exited` flag in "PerTracerData" for that specific process
+                                    tracer_data.get_mut().process_exited = true;
+                                    trace!(
+                                        "Sent notification about termination of process '{}' with pid {} to the ftrace parser thread",
+                                        comm,
+                                        event.pid
+                                    );
+                                }
+                                Vacant(_k) => {
+                                    // NOTE: We can only ever get here because of race conditions.
+                                    //       This should and can not happen if our threading model is sound
+                                    error!("Internal error occured! Currupted data structures detected.");
+                                }
+                            };
 
-                    // Stop tracing of process `event.pid`
-                    match util::stop_tracing_process_ftrace(event.pid) {
-                        Err(e) => {
-                            error!(
-                                "Could not disable ftrace for process '{}' with pid {}: {}",
-                                comm,
-                                event.pid,
-                                e
-                            )
+                            // Stop tracing of process `event.pid`
+                            match util::stop_tracing_process_ftrace(event.pid) {
+                                Err(e) => {
+                                    error!(
+                                        "Could not disable ftrace for process '{}' with pid {}: {}",
+                                        comm,
+                                        event.pid,
+                                        e
+                                    )
+                                }
+                                Ok(()) => trace!(
+                                    "Disabled ftrace for process '{}' with pid {}",
+                                    comm,
+                                    event.pid
+                                ),
+                            }
                         }
-                        Ok(()) => trace!(
-                            "Disabled ftrace for process '{}' with pid {}",
-                            comm,
-                            event.pid
-                        ),
                     }
                 }
             }
@@ -357,7 +375,8 @@ impl hook::Hook for FtraceLogger {
                     thread::Builder::new()
                         .name(String::from("ftrace"))
                         .spawn(move || {
-                            util::set_realtime_priority();
+                            // util::set_realtime_priority();
+
                             Self::ftrace_trace_log_parser(&mut globals_c);
                         })
                         .unwrap(),

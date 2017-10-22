@@ -79,18 +79,26 @@ impl hook::Hook for ProcessTracker {
         match event.event_type {
             procmon::EventType::Exec => {
                 let process = Process::new(event.pid);
-                // add process to tracking map
-                self.get_tracked_processes().insert(
-                    event.pid,
-                    process.clone(),
-                );
-                info!(
-                    "Now tracking process '{}' pid: {}",
-                    process.get_comm().unwrap_or(String::from("<invalid>")),
-                    process.pid
-                );
+                match process {
+                    Err(e) => {
+                        warn!("Could not track process {}: {}", event.pid, e);
+                    }
 
-                events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
+                    Ok(process) => {
+                        // add process to tracking map
+                        self.get_tracked_processes().insert(
+                            event.pid,
+                            process.clone(),
+                        );
+                        info!(
+                            "Now tracking process '{}' pid: {}",
+                            process.get_comm().unwrap_or(String::from("<not available>")),
+                            process.pid
+                        );
+
+                        events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
+                    }
+                }
             }
 
             procmon::EventType::Exit => {
@@ -99,8 +107,7 @@ impl hook::Hook for ProcessTracker {
                     None => {}
                     Some(process) => {
                         info!(
-                            "Removed tracked process '{}' with pid: {}",
-                            process.get_comm().unwrap_or(String::from("<invalid>")),
+                            "Removed tracked process with pid: {}",
                             process.pid
                         );
                         events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);

@@ -338,8 +338,10 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
 fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData>, iotrace_dir: &String, globals: &mut Globals) {
     for (pid, v) in active_tracers.iter_mut() {
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
-            let process = Process::new(*pid);
-            let comm = process.get_comm().unwrap_or(String::from("<invalid>"));
+            let mut comm = String::from("<not available>");
+            if let Ok(process) = Process::new(*pid) {
+                comm = process.get_comm().unwrap_or(String::from("<not available>"));
+            }
 
             debug!(
                 "Tracing time expired for process '{}' with pid: {}",

@@ -65,7 +65,7 @@ impl ProcessStats {
         ProcessStats {
             path: format!("/Process/{}", pid).into(),
             process: process.clone(),
-            comm: process.get_comm().unwrap_or(String::from("<invalid>")),
+            comm: process.get_comm().unwrap_or(String::from("<not available>")),
             pid: pid,
         }
     }
@@ -190,7 +190,7 @@ impl DBUSInterface {
         // TODO: fix this!
         // populate initial dummy data
         let mut process_stats: Vec<Arc<ProcessStats>> = vec![];
-        process_stats.push(Arc::new(ProcessStats::new(1, Process::new(1))));
+        process_stats.push(Arc::new(ProcessStats::new(1, Process::new(1).unwrap())));
 
         self.process_stats = process_stats;
 
