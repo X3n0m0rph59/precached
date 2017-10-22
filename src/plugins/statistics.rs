@@ -89,25 +89,25 @@ impl Plugin for Statistics {
                 info!("Statistics: Free memory: *Low*-Watermark reached!");
             }
             events::EventType::FreeMemoryHighWatermark => {
-                warn!("Statistics: Free memory: *High*-Watermark reached!");
+                info!("Statistics: Free memory: *High*-Watermark reached!");
             }
             events::EventType::AvailableMemoryLowWatermark => {
                 info!("Statistics: Available memory: *Low*-Watermark reached!");
             }
             events::EventType::AvailableMemoryHighWatermark => {
-                warn!("Statistics: Available memory: *High*-Watermark reached!");
+                info!("Statistics: Available memory: *High*-Watermark reached!");
             }
             events::EventType::SystemIsSwapping => {
-                warn!("Statistics: System is swapping!");
+                info!("Statistics: System is swapping!");
             }
             events::EventType::SystemRecoveredFromSwap => {
-                warn!("Statistics: System recovered from swapping!");
+                info!("Statistics: System recovered from swapping!");
             }
             events::EventType::EnterIdle => {
-                warn!("Statistics: System enters idle state!");
+                info!("Statistics: System enters idle state!");
             }
             events::EventType::LeaveIdle => {
-                warn!("Statistics: System no longer idle!");
+                info!("Statistics: System no longer idle!");
             }
             _ => {
                 // Ignore all other events

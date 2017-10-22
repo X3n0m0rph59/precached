@@ -63,7 +63,7 @@ pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 100;
 pub const PING_INTERVAL_MILLIS: u64 = 2000;
 
 /// Duration that we trace a process' I/O activity
-pub const IO_TRACE_TIME_SECS: u64 = 5;
+pub const IO_TRACE_TIME_SECS: u64 = 10;
 
 /// After how many days an I/O trace is flagged as expired
 pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;

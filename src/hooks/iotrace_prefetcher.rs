@@ -110,7 +110,7 @@ impl IOtracePrefetcher {
                     {
                         match util::cache_file(file, true) {
                             Err(e) => {
-                                error!("Could not prefetch file: '{}': {}", file, e);
+                                warn!("Could not prefetch file: '{}': {}", file, e);
 
                                 // inhibit further prefetching of that file
                                 // already_prefetched.insert(file.clone(), None);

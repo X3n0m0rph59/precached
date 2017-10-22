@@ -571,28 +571,28 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // debug!("{:#?}", l);
 
             // TODO: Implement this!
-            warn!("{:#?}", l);
+            // warn!("{:#?}", l);
 
-            if fields.len() >= 7 {
-                let mut reset_filename = false;
-                match last_filename {
-                    None => error!("Could not get associated file name of the current trace event!"),
-                    Some(ref c) => {
-                        if cb(pid, IOEvent { syscall: SysCall::Statx(c.clone()) }) == false {
-                            break 'LINE_LOOP; // callback returned false, exit requested
-                        }
-
-                        reset_filename = true;
-                    }
-                }
-
-                // reset the filename so that we won't use it multiple times accidentally
-                if reset_filename {
-                    last_filename = None;
-                }
-            } else {
-                error!("Error while parsing current event from trace buffer!");
-            }
+            // if fields.len() >= 7 {
+            //     let mut reset_filename = false;
+            //     match last_filename {
+            //         None => error!("Could not get associated file name of the current trace event!"),
+            //         Some(ref c) => {
+            //             if cb(pid, IOEvent { syscall: SysCall::Statx(c.clone()) }) == false {
+            //                 break 'LINE_LOOP; // callback returned false, exit requested
+            //             }
+            //
+            //             reset_filename = true;
+            //         }
+            //     }
+            //
+            //     // reset the filename so that we won't use it multiple times accidentally
+            //     if reset_filename {
+            //         last_filename = None;
+            //     }
+            // } else {
+            //     error!("Error while parsing current event from trace buffer!");
+            // }
         }
 
         // sys_fstat(at) syscall family
@@ -602,15 +602,15 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // TODO: Implement this!
             // warn!("{:#?}", l);
 
-            if fields.len() >= 7 {
-                // let comm = String::from(fields[0]);
-                let fd = i32::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(-1);
-                if cb(pid, IOEvent { syscall: SysCall::Fstat(fd) }) == false {
-                    break 'LINE_LOOP; // callback returned false, exit requested
-                }
-            } else {
-                error!("Error while parsing current event from trace buffer!");
-            }
+            // if fields.len() >= 7 {
+            //     // let comm = String::from(fields[0]);
+            //     let fd = i32::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(-1);
+            //     if cb(pid, IOEvent { syscall: SysCall::Fstat(fd) }) == false {
+            //         break 'LINE_LOOP; // callback returned false, exit requested
+            //     }
+            // } else {
+            //     error!("Error while parsing current event from trace buffer!");
+            // }
         }
     }
 

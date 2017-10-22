@@ -79,10 +79,7 @@ impl HotApplications {
                 let mut apps: Vec<(&String, &usize)> = self.app_histogram.iter().collect();
                 apps.sort_by(|a, b| b.1.cmp(a.1));
 
-                for t in apps {
-                    let exe_name = t.0;
-                    // let count = t.1;
-
+                for (ref exe_name, ref _count) in apps {
                     debug!("Prefetching files for '{}'", exe_name);
                     iotrace_prefetcher_hook.prefetch_data_for_program(exe_name, globals, manager)
                 }
