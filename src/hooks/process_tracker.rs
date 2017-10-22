@@ -48,9 +48,7 @@ pub struct ProcessTracker {
 
 impl ProcessTracker {
     pub fn new() -> ProcessTracker {
-        ProcessTracker {
-            tracked_processes: HashMap::new(),
-        }
+        ProcessTracker { tracked_processes: HashMap::new() }
     }
 
     pub fn get_tracked_processes(&mut self) -> &mut HashMap<libc::pid_t, Process> {
@@ -92,7 +90,9 @@ impl hook::Hook for ProcessTracker {
                         );
                         info!(
                             "Now tracking process '{}' pid: {}",
-                            process.get_comm().unwrap_or(String::from("<not available>")),
+                            process.get_comm().unwrap_or(
+                                String::from("<not available>"),
+                            ),
                             process.pid
                         );
 
@@ -106,10 +106,7 @@ impl hook::Hook for ProcessTracker {
                 match process {
                     None => {}
                     Some(process) => {
-                        info!(
-                            "Removed tracked process with pid: {}",
-                            process.pid
-                        );
+                        info!("Removed tracked process with pid: {}", process.pid);
                         events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
                     }
                 }

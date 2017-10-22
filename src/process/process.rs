@@ -59,9 +59,7 @@ pub struct Process {
 impl Process {
     pub fn new(pid: libc::pid_t) -> io::Result<Process> {
         let filename = format!("/proc/{}/comm", pid);
-        let comm = &String::from(
-            util::read_uncompressed_text_file(&filename)?
-        );
+        let comm = &String::from(util::read_uncompressed_text_file(&filename)?);
 
         Ok(Process {
             pid: pid,
@@ -128,9 +126,7 @@ impl Process {
     /// NOTE: This may be different than the stored `comm`
     pub fn get_comm(&self) -> io::Result<String> {
         let filename = format!("/proc/{}/comm", self.pid);
-        let result = String::from(
-            util::read_uncompressed_text_file(&filename)?.trim()
-        );
+        let result = String::from(util::read_uncompressed_text_file(&filename)?.trim());
 
         Ok(result)
     }

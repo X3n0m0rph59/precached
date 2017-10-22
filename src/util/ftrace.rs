@@ -340,7 +340,9 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
             let mut comm = String::from("<not available>");
             if let Ok(process) = Process::new(*pid) {
-                comm = process.get_comm().unwrap_or(String::from("<not available>"));
+                comm = process.get_comm().unwrap_or(
+                    String::from("<not available>"),
+                );
             }
 
             debug!(

@@ -82,7 +82,9 @@ impl FtraceLogger {
                 // comm is only used for the syslog output
                 let mut comm = String::from("<not available>");
                 if let Ok(process) = Process::new(pid) {
-                    comm = process.get_comm().unwrap_or(String::from("<not available>"));
+                    comm = process.get_comm().unwrap_or(
+                        String::from("<not available>"),
+                    );
                 }
 
                 // NOTE: We have to use `lock()`` here instead of `try_lock()``
@@ -179,7 +181,9 @@ impl FtraceLogger {
     pub fn trace_process_io_activity(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
         let mut comm = String::from("<not available>");
         if let Ok(process) = Process::new(event.pid) {
-            comm = process.get_comm().unwrap_or(String::from("<not available>"));
+            comm = process.get_comm().unwrap_or(
+                String::from("<not available>"),
+            );
         }
 
         match ACTIVE_TRACERS.lock() {
@@ -285,9 +289,17 @@ impl FtraceLogger {
     pub fn notify_process_exit(&self, event: &procmon::Event, _globals: &mut Globals, _manager: &Manager) {
         let process = Process::new(event.pid);
         match process {
-            Err(e) => warn!("Spurious process exit event for process {}: {}", event.pid, e),
+            Err(e) => {
+                warn!(
+                    "Spurious process exit event for process {}: {}",
+                    event.pid,
+                    e
+                )
+            }
             Ok(process) => {
-                let comm = process.get_comm().unwrap_or(String::from("<not available>"));
+                let comm = process.get_comm().unwrap_or(
+                    String::from("<not available>"),
+                );
 
                 // NOTE: We have to use `lock()` here instead of `try_lock()`
                 //       because we don't want to miss "exit" events in any case

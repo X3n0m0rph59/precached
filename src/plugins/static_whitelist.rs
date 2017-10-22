@@ -135,12 +135,7 @@ impl StaticWhitelist {
                         let f = filename.clone();
                         let f2 = f.clone();
 
-                        if Self::shall_we_map_file(
-                            &filename,
-                            &static_blacklist,
-                            &our_mapped_files,
-                        )
-                        {
+                        if Self::shall_we_map_file(&filename, &static_blacklist, &our_mapped_files) {
                             match util::cache_file(&f, true) {
                                 Err(s) => {
                                     error!("Could not cache file '{}': {}", &f, &s);

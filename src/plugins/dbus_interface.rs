@@ -65,7 +65,9 @@ impl ProcessStats {
         ProcessStats {
             path: format!("/Process/{}", pid).into(),
             process: process.clone(),
-            comm: process.get_comm().unwrap_or(String::from("<not available>")),
+            comm: process.get_comm().unwrap_or(
+                String::from("<not available>"),
+            ),
             pid: pid,
         }
     }

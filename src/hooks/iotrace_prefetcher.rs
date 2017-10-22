@@ -26,11 +26,11 @@ use events;
 use events::EventType;
 use globals::*;
 use hooks::hook;
+use hooks::hot_applications::HotApplications;
 use hooks::process_tracker::ProcessTracker;
 
 use iotrace;
 use manager::*;
-use hooks::hot_applications::HotApplications;
 use plugins::iotrace_log_manager::IOtraceLogManager;
 use plugins::static_blacklist::StaticBlacklist;
 use plugins::static_whitelist::StaticWhitelist;
@@ -287,9 +287,17 @@ impl IOtracePrefetcher {
     pub fn replay_process_io(&mut self, event: &procmon::Event, globals: &Globals, manager: &Manager) {
         let process = Process::new(event.pid);
         match process {
-            Err(e) => warn!("Spurious I/O trace replay requested for process {}: {}", event.pid, e),
+            Err(e) => {
+                warn!(
+                    "Spurious I/O trace replay requested for process {}: {}",
+                    event.pid,
+                    e
+                )
+            }
             Ok(process) => {
-                let process_name = process.get_comm().unwrap_or(String::from("<not available>"));
+                let process_name = process.get_comm().unwrap_or(
+                    String::from("<not available>"),
+                );
                 let exe_name = process.get_exe().unwrap_or(String::from("<not available>"));
 
                 trace!(

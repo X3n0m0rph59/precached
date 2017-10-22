@@ -23,6 +23,7 @@ extern crate serde;
 extern crate serde_json;
 
 use self::serde::Serialize;
+use super::iotrace_prefetcher::IOtracePrefetcher;
 use events;
 use events::EventType;
 use globals::*;
@@ -32,12 +33,11 @@ use process::Process;
 use procmon;
 use std::any::Any;
 use std::collections::HashMap;
-use std::sync::mpsc::channel;
-use std::io::Result;
 use std::io::BufReader;
+use std::io::Result;
 use std::path::Path;
+use std::sync::mpsc::channel;
 use util;
-use super::iotrace_prefetcher::IOtracePrefetcher;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
@@ -57,9 +57,7 @@ pub struct HotApplications {
 
 impl HotApplications {
     pub fn new() -> HotApplications {
-        HotApplications {
-            app_histogram: HashMap::new(),
-        }
+        HotApplications { app_histogram: HashMap::new() }
     }
 
     pub fn is_exe_cached(&self, exe_name: &String) -> bool {
@@ -93,7 +91,7 @@ impl HotApplications {
 
     pub fn application_executed(&mut self, pid: libc::pid_t) {
         match Process::new(pid) {
-            Err(e) => { warn!("Could not update hot applications histogram: {}", e) },
+            Err(e) => warn!("Could not update hot applications histogram: {}", e),
             Ok(process) => {
                 if let Ok(exe) = process.get_exe() {
                     let val = self.app_histogram.entry(exe).or_insert(0);
