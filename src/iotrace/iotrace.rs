@@ -139,6 +139,8 @@ pub struct IOTraceLog {
     pub exe: String,
     /// Command name of the process being traced
     pub comm: String,
+    /// Command line of the process being traced
+    pub cmdline: String,
     /// Date and Time (in UTC) this trace log was created at
     pub created_at: DateTime<Utc>,
     /// Date and Time (in UTC) this trace log was stopped
@@ -155,14 +157,16 @@ pub struct IOTraceLog {
 impl IOTraceLog {
     pub fn new(pid: libc::pid_t) -> Result<IOTraceLog, &'static str> {
         let process = Process::new(pid);
-
         if process.is_ok() {
             let process = process.unwrap();
-            let exe = process.get_exe().unwrap();
-            let comm = process.get_comm().unwrap();
+
+            let exe = try!(process.get_exe());
+            let comm = try!(process.get_comm());
+            let cmdline = try!(process.get_cmdline());
 
             let mut hasher = fnv::FnvHasher::default();
             hasher.write(&exe.clone().into_bytes());
+            hasher.write(&cmdline.clone().into_bytes());
             let hashval = hasher.finish();
 
             // make the I/O trace contain an open and a read of the binary itself
@@ -176,6 +180,7 @@ impl IOTraceLog {
                 hash: String::from(format!("{}", hashval)),
                 exe: exe,
                 comm: comm,
+                cmdline: cmdline,
                 created_at: Utc::now(),
                 trace_stopped_at: Utc::now(),
                 file_map: HashMap::new(),

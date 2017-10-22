@@ -182,8 +182,8 @@ impl StaticWhitelist {
 
                 let program_whitelist = self.program_whitelist.clone();
 
-                for exe in program_whitelist.iter() {
-                    iotrace_prefetcher_hook.prefetch_data_for_program(exe, globals, manager);
+                for hashval in program_whitelist.iter() {
+                    iotrace_prefetcher_hook.prefetch_data_by_hash(hashval, globals, manager);
                 }
 
                 info!("Finished prefetching of statically whitelisted programs");

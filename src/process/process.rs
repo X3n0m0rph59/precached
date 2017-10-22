@@ -124,11 +124,25 @@ impl Process {
 
     /// Returns the current comm of the process
     /// NOTE: This may be different than the stored `comm`
-    pub fn get_comm(&self) -> io::Result<String> {
+    pub fn get_comm(&self) -> Result<String, &'static str> {
         let filename = format!("/proc/{}/comm", self.pid);
-        let result = String::from(util::read_uncompressed_text_file(&filename)?.trim());
+        let result = util::read_uncompressed_text_file(&filename);
 
-        Ok(result)
+        match result {
+            Err(_e) => Err("Could not get comm of process!"),
+            Ok(r) => Ok(String::from(r.trim())),
+        }
+    }
+
+    /// Returns the commandline of the process
+    pub fn get_cmdline(&self) -> Result<String, &'static str> {
+        let filename = format!("/proc/{}/cmdline", self.pid);
+        let result = util::read_uncompressed_text_file(&filename);
+
+        match result {
+            Err(_e) => Err("Could not get commandline of process!"),
+            Ok(r) => Ok(String::from(r.trim())),
+        }
     }
 }
 

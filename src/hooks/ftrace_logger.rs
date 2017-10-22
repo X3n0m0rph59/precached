@@ -179,8 +179,13 @@ impl FtraceLogger {
 
     /// Add process `event.pid` to the list of traced processes
     pub fn trace_process_io_activity(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
+        // let mut cmdline = String::from("");
         let mut comm = String::from("<not available>");
         if let Ok(process) = Process::new(event.pid) {
+            // cmdline = process.get_cmdline().unwrap_or(
+            //     String::from(""),
+            // );
+
             comm = process.get_comm().unwrap_or(
                 String::from("<not available>"),
             );
@@ -209,26 +214,33 @@ impl FtraceLogger {
                     if Self::shall_new_tracelog_be_created(event.pid, globals, manager) {
                         // Begin tracing the process `event.pid`.
                         // Construct the "PerTracerData" and a companion IOTraceLog
-                        let iotrace_log = iotrace::IOTraceLog::new(event.pid).unwrap();
-                        let tracer_data = util::PerTracerData::new(iotrace_log);
+                        match iotrace::IOTraceLog::new(event.pid) {
+                             Err(e) => {
+                                 error!("Process went away during tracing! {}", e);
+                             }
 
-                        active_tracers.insert(event.pid, tracer_data);
+                             Ok(iotrace_log) => {
+                                let tracer_data = util::PerTracerData::new(iotrace_log);
 
-                        // Tell ftrace to deliver events for process `event.pid`, from now on
-                        match util::trace_process_io_ftrace(event.pid) {
-                            Err(e) => {
-                                error!(
-                                    "Could not enable ftrace for process '{}' with pid {}: {}",
-                                    comm,
-                                    event.pid,
-                                    e
-                                )
+                                active_tracers.insert(event.pid, tracer_data);
+
+                                // Tell ftrace to deliver events for process `event.pid`, from now on
+                                match util::trace_process_io_ftrace(event.pid) {
+                                    Err(e) => {
+                                        error!(
+                                            "Could not enable ftrace for process '{}' with pid {}: {}",
+                                            comm,
+                                            event.pid,
+                                            e
+                                        )
+                                    }
+                                    Ok(()) => trace!(
+                                        "Enabled ftrace for process '{}' with pid {}",
+                                        comm,
+                                        event.pid
+                                    ),
+                                }
                             }
-                            Ok(()) => trace!(
-                                "Enabled ftrace for process '{}' with pid {}",
-                                comm,
-                                event.pid
-                            ),
                         }
                     } else {
                         info!(
@@ -261,17 +273,23 @@ impl FtraceLogger {
 
                 if let Ok(process) = Process::new(pid) {
                     if let Ok(exe) = process.get_exe() {
-                        match iotrace_log_manager_plugin.get_trace_log(exe, &globals) {
-                            Err(_e) => true,
-                            Ok(io_trace) => {
-                                let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
+                        if let Ok(cmdline) = process.get_cmdline() {
+                            match iotrace_log_manager_plugin.get_trace_log(exe, cmdline, &globals) {
+                                Err(_e) => true,
+                                Ok(io_trace) => {
+                                    let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
 
-                                if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) || flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
-                                    true
-                                } else {
-                                    false
+                                    if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) ||
+                                              flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
+                                        true
+                                    } else {
+                                        false
+                                    }
                                 }
                             }
+                        } else {
+                            // process is not existent anymore?
+                            false
                         }
                     } else {
                         // process is not existent anymore?
@@ -290,7 +308,7 @@ impl FtraceLogger {
         let process = Process::new(event.pid);
         match process {
             Err(e) => {
-                warn!(
+                debug!(
                     "Spurious process exit event for process {}: {}",
                     event.pid,
                     e

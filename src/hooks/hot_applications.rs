@@ -19,6 +19,7 @@
 */
 
 extern crate libc;
+extern crate fnv;
 extern crate serde;
 extern crate serde_json;
 
@@ -33,6 +34,7 @@ use process::Process;
 use procmon;
 use std::any::Any;
 use std::collections::HashMap;
+use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
@@ -60,8 +62,11 @@ impl HotApplications {
         HotApplications { app_histogram: HashMap::new() }
     }
 
-    pub fn is_exe_cached(&self, exe_name: &String) -> bool {
-        self.app_histogram.contains_key(exe_name)
+    pub fn is_exe_cached(&self, _exe_name: &String, _cmdline: &String) -> bool {
+        // TODO: Implement this!
+        // self.app_histogram.contains_key(exe_name)
+
+        false
     }
 
     pub fn prefetch_data(&mut self, globals: &mut Globals, manager: &Manager) {
@@ -81,9 +86,9 @@ impl HotApplications {
                 let mut apps: Vec<(&String, &usize)> = self.app_histogram.iter().collect();
                 apps.sort_by(|a, b| b.1.cmp(a.1));
 
-                for (ref exe_name, ref _count) in apps {
-                    debug!("Prefetching files for '{}'", exe_name);
-                    iotrace_prefetcher_hook.prefetch_data_for_program(exe_name, globals, manager)
+                for (ref hash, ref _count) in apps {
+                    debug!("Prefetching files for '{}'", hash);
+                    iotrace_prefetcher_hook.prefetch_data_by_hash(hash, globals, manager)
                 }
             }
         };
@@ -91,13 +96,22 @@ impl HotApplications {
 
     pub fn application_executed(&mut self, pid: libc::pid_t) {
         match Process::new(pid) {
-            Err(e) => warn!("Could not update hot applications histogram: {}", e),
+            Err(e) => debug!("Could not update hot applications histogram for process with pid {}: {}", pid, e),
             Ok(process) => {
                 if let Ok(exe) = process.get_exe() {
-                    let val = self.app_histogram.entry(exe).or_insert(0);
-                    *val += 1;
+                    if let Ok(cmdline) = process.get_cmdline() {
+                        let mut hasher = fnv::FnvHasher::default();
+                        hasher.write(&exe.clone().into_bytes());
+                        hasher.write(&cmdline.clone().into_bytes());
+                        let hashval = hasher.finish();
+
+                        let val = self.app_histogram.entry(format!("{}", hashval)).or_insert(0);
+                        *val += 1;
+                    } else {
+                        warn!("Could not update hot applications histogram: could not get process commandline");
+                    }
                 } else {
-                    warn!("Could not update hot applications histogram!");
+                    warn!("Could not update hot applications histogram: could not get process executable name");
                 }
             }
         }

@@ -58,12 +58,31 @@ impl IOtraceLogManager {
         IOtraceLogManager {}
     }
 
+    // Returns the most recent I/O trace log for `hashval`.
+    pub fn get_trace_log_by_hash(&self, hashval: String, globals: &Globals) -> Result<iotrace::IOTraceLog> {
+        let config = globals.config.config_file.clone().unwrap();
+
+        let iotrace_dir = config.state_dir.unwrap_or(
+            String::from(constants::STATE_DIR),
+        );
+
+        let path = Path::new(&iotrace_dir)
+            .join(Path::new(&constants::IOTRACE_DIR))
+            .join(Path::new(&format!("{}.trace", hashval)));
+
+        let filename = path.to_string_lossy();
+        let result = iotrace::IOTraceLog::from_file(&String::from(filename))?;
+
+        Ok(result)
+    }
+
     // Returns the most recent I/O trace log for the executable `exe_name`.
-    pub fn get_trace_log(&self, exe_name: String, globals: &Globals) -> Result<iotrace::IOTraceLog> {
+    pub fn get_trace_log(&self, exe_name: String, cmdline: String, globals: &Globals) -> Result<iotrace::IOTraceLog> {
         let config = globals.config.config_file.clone().unwrap();
 
         let mut hasher = fnv::FnvHasher::default();
         hasher.write(&exe_name.into_bytes());
+        hasher.write(&cmdline.into_bytes());
         let hashval = hasher.finish();
 
         let iotrace_dir = config.state_dir.unwrap_or(

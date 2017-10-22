@@ -440,11 +440,12 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
     if matches.is_present("full") {
         // Print in "full" format
         println!(
-            "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\n\
+            "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\n\
              Compression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
             filename,
             io_trace.exe,
             io_trace.comm,
+            io_trace.cmdline,
             io_trace.hash,
             io_trace
                 .created_at
@@ -704,12 +705,13 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
                     // TODO: Support other formats here
                     // Print in "full" format
                     println!(
-                        "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                        "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                          Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
                          Optimized:\t{}\nFlags:\t\t{:?}\n\n",
                         filename,
                         io_trace.exe,
                         io_trace.comm,
+                        io_trace.cmdline,
                         io_trace.hash,
                         io_trace
                             .created_at
@@ -786,12 +788,13 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
             // Print in "full" format
             println!(
-                "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
                  Optimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
                 io_trace.exe,
                 io_trace.comm,
+                io_trace.cmdline,
                 io_trace.hash,
                 io_trace
                     .created_at
@@ -915,12 +918,13 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
             // Print in "full" format
             println!(
-                "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
                  Optimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
                 io_trace.exe,
                 io_trace.comm,
+                io_trace.cmdline,
                 io_trace.hash,
                 io_trace
                     .created_at

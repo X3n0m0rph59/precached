@@ -191,9 +191,7 @@ impl IOtracePrefetcher {
     }
 
     /// Replay the I/O trace of the program `exe_name` and cache all files into memory
-    pub fn prefetch_data_for_program(&mut self, exe_name: &String, globals: &Globals, manager: &Manager) {
-        trace!("Prefetching data for program '{}'", exe_name);
-
+    pub fn prefetch_data_by_hash(&mut self, hashval: &String, globals: &Globals, manager: &Manager) {
         let pm = manager.plugin_manager.borrow();
 
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
@@ -207,14 +205,9 @@ impl IOtracePrefetcher {
                     .downcast_ref::<IOtraceLogManager>()
                     .unwrap();
 
-                match iotrace_log_manager_plugin.get_trace_log(exe_name.clone(), &globals) {
-                    Err(e) => trace!("No I/O trace available: {}", e),
+                match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval.clone(), &globals) {
+                    Err(e) => trace!("I/O trace '{}' not available: {}", hashval, e),
                     Ok(io_trace) => {
-                        info!(
-                            "Found valid I/O trace log for program '{}'. Prefetching now...",
-                            exe_name
-                        );
-
                         // use an empty static whitelist here, because of a circular
                         // borrowing dependency with the `static_whitelist` plugin
                         let static_whitelist = HashMap::new();
@@ -288,21 +281,24 @@ impl IOtracePrefetcher {
         let process = Process::new(event.pid);
         match process {
             Err(e) => {
-                warn!(
+                debug!(
                     "Spurious I/O trace replay requested for process {}: {}",
                     event.pid,
                     e
                 )
             }
             Ok(process) => {
-                let process_name = process.get_comm().unwrap_or(
+                let process_cmdline = process.get_cmdline().unwrap_or(
+                    String::from(""),
+                );
+                let process_comm = process.get_comm().unwrap_or(
                     String::from("<not available>"),
                 );
                 let exe_name = process.get_exe().unwrap_or(String::from("<not available>"));
 
                 trace!(
                     "Prefetching data for process '{}' with pid: {}",
-                    process_name,
+                    process_comm,
                     event.pid
                 );
 
@@ -319,12 +315,12 @@ impl IOtracePrefetcher {
                             .downcast_ref::<IOtraceLogManager>()
                             .unwrap();
 
-                        match iotrace_log_manager_plugin.get_trace_log(exe_name.clone(), &globals) {
+                        match iotrace_log_manager_plugin.get_trace_log(exe_name.clone(), process_cmdline.clone(), &globals) {
                             Err(e) => trace!("No I/O trace available: {}", e),
                             Ok(io_trace) => {
                                 info!(
                                     "Found valid I/O trace log for process '{}' with pid: {}. Prefetching now...",
-                                    process_name,
+                                    process_comm,
                                     event.pid
                                 );
 
@@ -340,7 +336,7 @@ impl IOtracePrefetcher {
                                         let hook_b = h.borrow();
                                         let hot_applications_hook = hook_b.as_any().downcast_ref::<HotApplications>().unwrap();
 
-                                        do_perform_prefetching = !hot_applications_hook.is_exe_cached(&exe_name);
+                                        do_perform_prefetching = !hot_applications_hook.is_exe_cached(&exe_name, &process_cmdline);
                                     }
                                 };
 

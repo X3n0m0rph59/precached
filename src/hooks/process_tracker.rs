@@ -79,7 +79,7 @@ impl hook::Hook for ProcessTracker {
                 let process = Process::new(event.pid);
                 match process {
                     Err(e) => {
-                        warn!("Could not track process {}: {}", event.pid, e);
+                        debug!("Could not track process {}: {}", event.pid, e);
                     }
 
                     Ok(process) => {
