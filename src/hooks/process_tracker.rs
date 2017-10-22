@@ -44,36 +44,17 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug, Clone)]
 pub struct ProcessTracker {
     pub tracked_processes: HashMap<libc::pid_t, Process>,
-    pub mapped_files_histogram: HashMap<String, usize>,
 }
 
 impl ProcessTracker {
     pub fn new() -> ProcessTracker {
         ProcessTracker {
             tracked_processes: HashMap::new(),
-            mapped_files_histogram: HashMap::new(),
         }
     }
 
     pub fn get_tracked_processes(&mut self) -> &mut HashMap<libc::pid_t, Process> {
         &mut self.tracked_processes
-    }
-
-    pub fn get_mapped_files_histogram(&self) -> &HashMap<String, usize> {
-        &self.mapped_files_histogram
-    }
-
-    pub fn get_mapped_files_histogram_mut(&mut self) -> &mut HashMap<String, usize> {
-        &mut self.mapped_files_histogram
-    }
-
-    pub fn update_mapped_files_histogram(&mut self, files: &Vec<String>) {
-        for f in files {
-            let counter = self.mapped_files_histogram.entry(f.to_string()).or_insert(
-                0,
-            );
-            *counter += 1;
-        }
     }
 }
 
@@ -98,40 +79,18 @@ impl hook::Hook for ProcessTracker {
         match event.event_type {
             procmon::EventType::Exec => {
                 let process = Process::new(event.pid);
+                // add process to tracking map
+                self.get_tracked_processes().insert(
+                    event.pid,
+                    process.clone(),
+                );
+                info!(
+                    "Now tracking process '{}' pid: {}",
+                    process.get_comm().unwrap_or(String::from("<invalid>")),
+                    process.pid
+                );
 
-                // update our histogram of mapped files
-                match process.get_mapped_files() {
-                    Err(_) => {
-                        debug!(
-                            "Error while reading mapped files of process '{}' with pid: {}. Process disappeared early",
-                            process.get_comm().unwrap_or(String::from("<invalid>")),
-                            process.pid
-                        );
-                    }
-
-                    Ok(v) => {
-                        self.update_mapped_files_histogram(&v);
-
-                        // add process to tracking map
-                        self.get_tracked_processes().insert(
-                            event.pid,
-                            process.clone(),
-                        );
-                        info!(
-                            "Now tracking process '{}' pid: {}",
-                            process.get_comm().unwrap_or(String::from("<invalid>")),
-                            process.pid
-                        );
-
-                        //  trace!("{:?}", process.get_mapped_files());
-                        //
-                        //  for (k,v) in self.get_mapped_files_histogram() {
-                        //      trace!("File '{}' mapped: {}", k, v);
-                        //  }
-
-                        events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
-                    }
-                }
+                events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
             }
 
             procmon::EventType::Exit => {

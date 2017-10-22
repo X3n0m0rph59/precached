@@ -29,7 +29,6 @@ pub mod system_agent;
 pub mod vfs_stat_cache;
 pub mod static_blacklist;
 pub mod static_whitelist;
-pub mod dynamic_whitelist;
 pub mod iotrace_log_manager;
 pub mod markov_log_manager;
 pub mod statistics;
@@ -44,8 +43,7 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     vfs_stat_cache::register_plugin(globals, manager);
     static_blacklist::register_plugin(globals, manager);
     static_whitelist::register_plugin(globals, manager);
-    iotrace_log_manager::register_plugin(globals, manager);
-    dynamic_whitelist::register_plugin(globals, manager);
+    iotrace_log_manager::register_plugin(globals, manager);    
     markov_log_manager::register_plugin(globals, manager);
     statistics::register_plugin(globals, manager);
     metrics::register_plugin(globals, manager);

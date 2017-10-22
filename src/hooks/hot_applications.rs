@@ -87,7 +87,7 @@ impl HotApplications {
         };
     }
 
-    fn application_executed(&mut self, pid: libc::pid_t) {
+    pub fn application_executed(&mut self, pid: libc::pid_t) {
         let process = Process::new(pid);
         let exe = process.get_exe();
 
@@ -95,10 +95,10 @@ impl HotApplications {
         *val += 1;
     }
 
-    fn load_state(&mut self, globals: &mut Globals, _manager: &Manager) {
+    pub fn load_state(&mut self, globals: &mut Globals, _manager: &Manager) {
         match Self::deserialize(globals) {
             Err(e) => {
-                debug!("Histogram of hot applications could not be loaded! {}", e);
+                warn!("Histogram of hot applications could not be loaded! {}", e);
             }
             Ok(app_histogram) => {
                 self.app_histogram = app_histogram;
@@ -106,7 +106,7 @@ impl HotApplications {
         }
     }
 
-    fn save_state(&mut self, globals: &mut Globals, _manager: &Manager) {
+    pub fn save_state(&mut self, globals: &mut Globals, _manager: &Manager) {
         Self::serialize(&self.app_histogram, globals);
     }
 

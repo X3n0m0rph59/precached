@@ -18,7 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//!
 //! # NOTE:
 //! The ptrace() based I/O trace logger shall only be considered a `proof-of-concept`
 //! implementation, since it incurs a very high performance penalty that won't get fixed.

@@ -21,7 +21,6 @@
 use events;
 use globals::*;
 use manager::*;
-use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::static_blacklist::StaticBlacklist;
@@ -52,7 +51,7 @@ impl VFSStatCache {
         VFSStatCache {}
     }
 
-    /// Walk all files and directories from all whitelists, the static and dynamic ones
+    /// Walk all files and directories from all whitelists
     /// and call stat() on them, to prime the kernel's dentry caches
     pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
         trace!("Started reading of statx() metadata...");
@@ -128,26 +127,6 @@ impl VFSStatCache {
                 let static_whitelist = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
                 result.append(&mut static_whitelist.get_whitelist().clone());
-            }
-        };
-
-        match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
-            None => {
-                trace!("Plugin not loaded: 'dynamic_whitelist', skipped");
-            }
-            Some(p) => {
-                let plugin_b = p.borrow();
-                let dynamic_whitelist = plugin_b
-                    .as_any()
-                    .downcast_ref::<DynamicWhitelist>()
-                    .unwrap();
-
-                let mut mapped_files = dynamic_whitelist
-                    .get_mapped_files()
-                    .keys()
-                    .map(|k| k.clone())
-                    .collect();
-                result.append(&mut mapped_files);
             }
         };
 

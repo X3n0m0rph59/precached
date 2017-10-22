@@ -23,7 +23,6 @@ use globals::*;
 // use hooks::process_tracker::ProcessTracker;
 use hooks::iotrace_prefetcher::IOtracePrefetcher;
 use manager::*;
-use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::static_blacklist::StaticBlacklist;
@@ -99,22 +98,6 @@ impl StaticWhitelist {
 
         let pm = manager.plugin_manager.borrow();
 
-        let mut dynamic_whitelist = HashMap::new();
-        match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
-            None => {
-                trace!("Plugin not loaded: 'dynamic_whitelist', skipped");
-            }
-            Some(p) => {
-                let plugin_b = p.borrow();
-                let dynamic_whitelist_plugin = plugin_b
-                    .as_any()
-                    .downcast_ref::<DynamicWhitelist>()
-                    .unwrap();
-
-                dynamic_whitelist = dynamic_whitelist_plugin.get_mapped_files().clone();
-            }
-        };
-
         let mut static_blacklist = Vec::<String>::new();
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
             None => {
@@ -156,7 +139,6 @@ impl StaticWhitelist {
                             &filename,
                             &static_blacklist,
                             &our_mapped_files,
-                            &dynamic_whitelist,
                         )
                         {
                             match util::cache_file(&f, true) {
@@ -214,7 +196,7 @@ impl StaticWhitelist {
         };
     }
 
-    fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>, our_mapped_files: &HashMap<String, util::MemoryMapping>, dynamic_whitelist: &HashMap<String, util::MemoryMapping>) -> bool {
+    fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>, our_mapped_files: &HashMap<String, util::MemoryMapping>) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
             return false;
@@ -227,11 +209,6 @@ impl StaticWhitelist {
 
         // Have we already mapped this file?
         if our_mapped_files.contains_key(filename) {
-            return false;
-        }
-
-        // Have others already mapped this file?
-        if dynamic_whitelist.contains_key(filename) {
             return false;
         }
 

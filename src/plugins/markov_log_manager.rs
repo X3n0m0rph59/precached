@@ -21,10 +21,8 @@
 use events;
 use globals::*;
 use manager::*;
-use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
-// use hooks::process_tracker::ProcessTracker;
 use plugins::static_blacklist::StaticBlacklist;
 use procmon;
 use std::any::Any;

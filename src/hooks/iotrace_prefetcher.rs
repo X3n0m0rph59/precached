@@ -30,7 +30,6 @@ use hooks::process_tracker::ProcessTracker;
 
 use iotrace;
 use manager::*;
-use plugins::dynamic_whitelist::DynamicWhitelist;
 use plugins::iotrace_log_manager::IOtraceLogManager;
 use plugins::static_blacklist::StaticBlacklist;
 use plugins::static_whitelist::StaticWhitelist;
@@ -84,7 +83,6 @@ impl IOtracePrefetcher {
         // system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_blacklist: &Vec<String>,
         static_whitelist: &HashMap<String, util::MemoryMapping>,
-        dynamic_whitelist: &HashMap<String, util::MemoryMapping>,
     ) -> HashMap<String, util::MemoryMapping> {
         let mut already_prefetched = HashMap::new();
         already_prefetched.reserve(io_trace.len());
@@ -105,7 +103,6 @@ impl IOtracePrefetcher {
                         &prefetched_programs,
                         // &system_mapped_files,
                         &static_whitelist,
-                        &dynamic_whitelist,
                     )
                     {
                         match util::cache_file(file, true) {
@@ -158,7 +155,6 @@ impl IOtracePrefetcher {
         prefetched_programs: &Vec<String>,
         //  system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_whitelist: &HashMap<String, util::MemoryMapping>,
-        dynamic_whitelist: &HashMap<String, util::MemoryMapping>,
     ) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
@@ -186,10 +182,6 @@ impl IOtracePrefetcher {
 
         // Have others already mapped this file?
         if static_whitelist.contains_key(filename) {
-            return false;
-        }
-
-        if dynamic_whitelist.contains_key(filename) {
             return false;
         }
 
@@ -225,22 +217,6 @@ impl IOtracePrefetcher {
                         // use an empty static whitelist here, because of a circular
                         // borrowing dependency with the `static_whitelist` plugin
                         let static_whitelist = HashMap::new();
-
-                        let mut dynamic_whitelist = HashMap::new();
-                        match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
-                            None => {
-                                trace!("Plugin not loaded: 'dynamic_whitelist', skipped");
-                            }
-                            Some(p) => {
-                                let plugin_b = p.borrow();
-                                let dynamic_whitelist_plugin = plugin_b
-                                    .as_any()
-                                    .downcast_ref::<DynamicWhitelist>()
-                                    .unwrap();
-
-                                dynamic_whitelist = dynamic_whitelist_plugin.get_mapped_files().clone();
-                            }
-                        };
 
                         let mut static_blacklist = Vec::<String>::new();
                         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
@@ -278,7 +254,6 @@ impl IOtracePrefetcher {
                             // let system_mapped_files_c = system_mapped_files_histogram.clone();
                             let static_blacklist_c = static_blacklist.clone();
                             let static_whitelist_c = static_whitelist.clone();
-                            let dynamic_whitelist_c = dynamic_whitelist.clone();
 
                             self.prefetch_pool.execute(move || {
                                 // submit prefetching work to an idle thread
@@ -289,7 +264,6 @@ impl IOtracePrefetcher {
                                     // &system_mapped_files_c,
                                     &static_blacklist_c,
                                     &static_whitelist_c,
-                                    &dynamic_whitelist_c,
                                 );
 
                                 sc.lock().unwrap().send(mapped_files).unwrap();
@@ -370,22 +344,6 @@ impl IOtracePrefetcher {
                             }
                         };
 
-                        let mut dynamic_whitelist = HashMap::new();
-                        match pm.get_plugin_by_name(&String::from("dynamic_whitelist")) {
-                            None => {
-                                trace!("Plugin not loaded: 'dynamic_whitelist', skipped");
-                            }
-                            Some(p) => {
-                                let plugin_b = p.borrow();
-                                let dynamic_whitelist_plugin = plugin_b
-                                    .as_any()
-                                    .downcast_ref::<DynamicWhitelist>()
-                                    .unwrap();
-
-                                dynamic_whitelist = dynamic_whitelist_plugin.get_mapped_files().clone();
-                            }
-                        };
-
                         let mut static_blacklist = Vec::<String>::new();
                         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
                             None => {
@@ -422,7 +380,6 @@ impl IOtracePrefetcher {
                             let prefetched_programs_c = prefetched_programs.clone();
                             let static_blacklist_c = static_blacklist.clone();
                             let static_whitelist_c = static_whitelist.clone();
-                            let dynamic_whitelist_c = dynamic_whitelist.clone();
 
                             // submit prefetching work to an idle thread
                             self.prefetch_pool.execute(move || {
@@ -433,7 +390,6 @@ impl IOtracePrefetcher {
                                     // &system_mapped_files_c,
                                     &static_blacklist_c,
                                     &static_whitelist_c,
-                                    &dynamic_whitelist_c,
                                 );
 
                                 sc.lock().unwrap().send(mapped_files).unwrap();
