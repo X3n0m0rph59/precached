@@ -140,7 +140,7 @@ mod tests {
     #[test]
     fn test_get_process_comm() {
         let pid = unsafe { libc::getpid() };
-        let process = Process::new(pid);
+        let process = Process::new(pid).unwrap();
 
         let comm = process.get_comm().unwrap();
         info!("Comm: {}", &comm);
