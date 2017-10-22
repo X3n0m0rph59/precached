@@ -288,9 +288,7 @@ impl IOtracePrefetcher {
                 )
             }
             Ok(process) => {
-                let process_cmdline = process.get_cmdline().unwrap_or(
-                    String::from(""),
-                );
+                let process_cmdline = process.get_cmdline().unwrap_or(String::from(""));
                 let process_comm = process.get_comm().unwrap_or(
                     String::from("<not available>"),
                 );

@@ -96,7 +96,13 @@ impl HotApplications {
 
     pub fn application_executed(&mut self, pid: libc::pid_t) {
         match Process::new(pid) {
-            Err(e) => debug!("Could not update hot applications histogram for process with pid {}: {}", pid, e),
+            Err(e) => {
+                debug!(
+                    "Could not update hot applications histogram for process with pid {}: {}",
+                    pid,
+                    e
+                )
+            }
             Ok(process) => {
                 if let Ok(exe) = process.get_exe() {
                     if let Ok(cmdline) = process.get_cmdline() {
@@ -105,7 +111,9 @@ impl HotApplications {
                         hasher.write(&cmdline.clone().into_bytes());
                         let hashval = hasher.finish();
 
-                        let val = self.app_histogram.entry(format!("{}", hashval)).or_insert(0);
+                        let val = self.app_histogram.entry(format!("{}", hashval)).or_insert(
+                            0,
+                        );
                         *val += 1;
                     } else {
                         warn!("Could not update hot applications histogram: could not get process commandline");

@@ -215,11 +215,11 @@ impl FtraceLogger {
                         // Begin tracing the process `event.pid`.
                         // Construct the "PerTracerData" and a companion IOTraceLog
                         match iotrace::IOTraceLog::new(event.pid) {
-                             Err(e) => {
-                                 error!("Process went away during tracing! {}", e);
-                             }
+                            Err(e) => {
+                                error!("Process went away during tracing! {}", e);
+                            }
 
-                             Ok(iotrace_log) => {
+                            Ok(iotrace_log) => {
                                 let tracer_data = util::PerTracerData::new(iotrace_log);
 
                                 active_tracers.insert(event.pid, tracer_data);
@@ -279,8 +279,7 @@ impl FtraceLogger {
                                 Ok(io_trace) => {
                                     let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
 
-                                    if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) ||
-                                              flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
+                                    if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) || flags.contains(&iotrace::IOTraceLogFlag::Outdated) {
                                         true
                                     } else {
                                         false
