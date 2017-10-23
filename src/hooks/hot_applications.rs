@@ -25,12 +25,13 @@ extern crate serde_json;
 
 use self::serde::Serialize;
 use super::iotrace_prefetcher::IOtracePrefetcher;
+use constants;
 use events;
 use events::EventType;
 use globals::*;
 use hooks::hook;
-use plugins::metrics::Metrics;
 use manager::*;
+use plugins::metrics::Metrics;
 use process::Process;
 use procmon;
 use std::any::Any;
@@ -39,11 +40,10 @@ use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
-use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::mpsc::channel;
 use util;
-use constants;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
@@ -114,12 +114,12 @@ impl HotApplications {
             }
             Some(p) => {
                 let mut plugin_b = p.borrow();
-                let mut metrics_plugin = plugin_b
-                    .as_any()
-                    .downcast_ref::<Metrics>()
-                    .unwrap();
+                let mut metrics_plugin = plugin_b.as_any().downcast_ref::<Metrics>().unwrap();
 
-                debug!("Available memory: {}%", metrics_plugin.get_available_mem_percentage());
+                debug!(
+                    "Available memory: {}%",
+                    metrics_plugin.get_available_mem_percentage()
+                );
                 if metrics_plugin.get_available_mem_percentage() <= constants::AVAILABLE_MEMORY_UPPER_THRESHOLD {
                     result = false;
                 }

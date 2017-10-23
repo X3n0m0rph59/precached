@@ -23,6 +23,7 @@ extern crate systemstat;
 
 use self::sys_info::MemInfo;
 use self::systemstat::{System, Platform};
+use constants;
 use events;
 use events::EventType;
 use globals::*;
@@ -33,7 +34,6 @@ use plugins::plugin::PluginDescription;
 use std::any::Any;
 use std::time::{Duration, Instant};
 use storage;
-use constants;
 
 static NAME: &str = "metrics";
 static DESCRIPTION: &str = "Gather global performance metrics and make them available to other plugins";
