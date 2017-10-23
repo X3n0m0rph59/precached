@@ -29,6 +29,7 @@ use events;
 use events::EventType;
 use globals::*;
 use hooks::hook;
+use plugins::metrics::Metrics;
 use manager::*;
 use process::Process;
 use procmon;
@@ -39,7 +40,10 @@ use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
 use std::sync::mpsc::channel;
+use std::sync::Arc;
+use std::sync::Mutex;
 use util;
+use constants;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
@@ -87,11 +91,42 @@ impl HotApplications {
                 apps.sort_by(|a, b| b.1.cmp(a.1));
 
                 for (ref hash, ref _count) in apps {
+                    if Self::check_available_memory(globals, manager) == false {
+                        info!("Available memory exhausted, stopping prefetching!");
+                        break;
+                    }
+
                     debug!("Prefetching files for '{}'", hash);
                     iotrace_prefetcher_hook.prefetch_data_by_hash(hash, globals, manager)
                 }
             }
         };
+    }
+
+    fn check_available_memory(_globals: &mut Globals, manager: &Manager) -> bool {
+        let mut result = true;
+
+        let pm = manager.plugin_manager.borrow();
+
+        match pm.get_plugin_by_name(&String::from("metrics")) {
+            None => {
+                warn!("Plugin not loaded: 'metrics', skipped");
+            }
+            Some(p) => {
+                let mut plugin_b = p.borrow();
+                let mut metrics_plugin = plugin_b
+                    .as_any()
+                    .downcast_ref::<Metrics>()
+                    .unwrap();
+
+                debug!("Available memory: {}%", metrics_plugin.get_available_mem_percentage());
+                if metrics_plugin.get_available_mem_percentage() <= constants::AVAILABLE_MEMORY_UPPER_THRESHOLD {
+                    result = false;
+                }
+            }
+        }
+
+        result
     }
 
     pub fn application_executed(&mut self, pid: libc::pid_t) {

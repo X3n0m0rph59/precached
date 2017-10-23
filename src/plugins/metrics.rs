@@ -33,6 +33,7 @@ use plugins::plugin::PluginDescription;
 use std::any::Any;
 use std::time::{Duration, Instant};
 use storage;
+use constants;
 
 static NAME: &str = "metrics";
 static DESCRIPTION: &str = "Gather global performance metrics and make them available to other plugins";
@@ -72,8 +73,8 @@ impl Metrics {
             mem_info_15: None,
 
             // event flags
-            free_mem_low_watermark_event_sent: true,
-            available_mem_low_watermark_event_sent: true,
+            free_mem_low_watermark_event_sent: false,
+            available_mem_low_watermark_event_sent: false,
             free_mem_high_watermark_event_sent: true,
             available_mem_high_watermark_event_sent: true,
             recovered_from_swap_event_sent: true,
@@ -83,20 +84,27 @@ impl Metrics {
         }
     }
 
+    pub fn get_available_mem_percentage(&self) -> u64 {
+        let mem_info = sys_info::mem_info().unwrap();
+        let avail_percentage = mem_info.avail * 100 / mem_info.total;
+
+        avail_percentage
+    }
+
     pub fn gather_metrics(&mut self, globals: &mut Globals, _manager: &Manager) {
         trace!("Gathering global performance metrics...");
 
         let mem_info = sys_info::mem_info().unwrap();
-        trace!("{:?}", mem_info);
+        debug!("{:?}", mem_info);
 
         // *free* memory events
         let free_percentage = mem_info.free * 100 / mem_info.total;
-        if free_percentage < 20 {
+        if free_percentage < constants::FREE_MEMORY_UPPER_THRESHOLD {
             if self.free_mem_high_watermark_event_sent == false {
                 events::queue_internal_event(EventType::FreeMemoryHighWatermark, globals);
                 self.free_mem_high_watermark_event_sent = true;
             }
-        } else if free_percentage > 80 {
+        } else if free_percentage > constants::FREE_MEMORY_LOWER_THRESHOLD {
             if self.free_mem_low_watermark_event_sent == false {
                 events::queue_internal_event(EventType::FreeMemoryLowWatermark, globals);
                 self.free_mem_low_watermark_event_sent = true;
@@ -109,12 +117,12 @@ impl Metrics {
 
         // *available* memory events
         let avail_percentage = mem_info.avail * 100 / mem_info.total;
-        if avail_percentage < 20 {
+        if avail_percentage <= constants::AVAILABLE_MEMORY_UPPER_THRESHOLD {
             if self.available_mem_high_watermark_event_sent == false {
                 events::queue_internal_event(EventType::AvailableMemoryHighWatermark, globals);
                 self.available_mem_high_watermark_event_sent = true;
             }
-        } else if avail_percentage > 80 {
+        } else if avail_percentage >= constants::AVAILABLE_MEMORY_LOWER_THRESHOLD {
             if self.available_mem_low_watermark_event_sent == false {
                 events::queue_internal_event(EventType::AvailableMemoryLowWatermark, globals);
                 self.available_mem_low_watermark_event_sent = true;
@@ -141,7 +149,7 @@ impl Metrics {
         } else {
             let duration_without_swapping = Instant::now() - self.last_swapped_time;
 
-            if duration_without_swapping > Duration::from_secs(5) {
+            if duration_without_swapping >= Duration::from_secs(constants::SWAP_RECOVERY_WINDOW) {
                 if self.recovered_from_swap_event_sent == false {
                     events::queue_internal_event(EventType::SystemRecoveredFromSwap, globals);
                     self.recovered_from_swap_event_sent = true;
