@@ -35,12 +35,13 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(ForkBombMitigation::new());
 
-        let m = manager.plugin_manager.borrow();
+        let m = manager.plugin_manager.read().unwrap();
+
         m.register_plugin(plugin);
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ForkBombMitigation {}
 
 impl ForkBombMitigation {

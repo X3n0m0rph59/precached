@@ -23,32 +23,32 @@ use events;
 use globals::*;
 use manager::*;
 use procmon;
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 
+#[derive(Clone)]
 pub struct HookManager {
-    hooks: RefCell<HashMap<String, Rc<RefCell<Box<Hook>>>>>,
+    hooks: Arc<RwLock<HashMap<String, Arc<RwLock<Box<Hook + Sync + Send>>>>>>,
 }
 
 impl HookManager {
     pub fn new() -> HookManager {
-        HookManager { hooks: RefCell::new(HashMap::new()) }
+        HookManager { hooks: Arc::new(RwLock::new(HashMap::new())) }
     }
 
-    pub fn register_hook(&self, mut hook: Box<Hook>) {
+    pub fn register_hook(&self, mut hook: Box<Hook + Sync + Send>) {
         hook.register();
-        self.hooks.borrow_mut().insert(
+        self.hooks.write().unwrap().insert(
             String::from(hook.get_name()),
-            Rc::new(RefCell::new(hook)),
+            Arc::new(RwLock::new(hook)),
         );
     }
 
     pub fn unregister_hook(&self, name: &String) {
         match self.get_hook_by_name(name) {
             Some(h) => {
-                h.borrow_mut().unregister();
+                h.write().unwrap().unregister();
             }
             None => {
                 error!("No hook with name '{}' found!", name);
@@ -57,25 +57,25 @@ impl HookManager {
     }
 
     pub fn unregister_all_hooks(&self) {
-        for (_, h) in self.hooks.borrow().iter() {
-            h.borrow_mut().unregister();
+        for (_, h) in self.hooks.read().unwrap().iter() {
+            h.write().unwrap().unregister();
         }
     }
 
 
-    pub fn get_hook_by_name(&self, name: &String) -> Option<Rc<RefCell<Box<Hook>>>> {
-        self.hooks.borrow().get(name).map(|x| x.clone())
+    pub fn get_hook_by_name(&self, name: &String) -> Option<Arc<RwLock<Box<Hook + Sync + Send>>>> {
+        self.hooks.read().unwrap().get(name).map(|x| x.clone())
     }
 
     pub fn dispatch_event(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
-        for (_, h) in self.hooks.borrow().iter() {
-            h.borrow_mut().process_event(event, globals, manager);
+        for (_, h) in self.hooks.read().unwrap().iter() {
+            h.write().unwrap().process_event(event, globals, manager);
         }
     }
 
     pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
-        for (_, h) in self.hooks.borrow().iter() {
-            h.borrow_mut().internal_event(event, globals, manager);
+        for (_, h) in self.hooks.read().unwrap().iter() {
+            h.write().unwrap().internal_event(event, globals, manager);
         }
     }
 }

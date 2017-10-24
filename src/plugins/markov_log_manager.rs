@@ -27,7 +27,6 @@ use plugins::static_blacklist::StaticBlacklist;
 use procmon;
 use std::any::Any;
 use std::collections::HashMap;
-use std::sync::Mutex;
 use std::sync::mpsc::{channel, Sender};
 use storage;
 use util;
@@ -40,12 +39,13 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(MarkovLogManager::new(globals));
 
-        let m = manager.plugin_manager.borrow();
+        let m = manager.plugin_manager.read().unwrap();
+
         m.register_plugin(plugin);
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MarkovLogManager {}
 
 impl MarkovLogManager {

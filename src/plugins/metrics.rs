@@ -43,12 +43,13 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Metrics::new());
 
-        let m = manager.plugin_manager.borrow();
+        let m = manager.plugin_manager.read().unwrap();
+
         m.register_plugin(plugin);
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Metrics {
     mem_info_last: Option<MemInfo>,
     mem_info_5: Option<MemInfo>,
@@ -84,9 +85,9 @@ impl Metrics {
         }
     }
 
-    pub fn get_available_mem_percentage(&self) -> u64 {
+    pub fn get_available_mem_percentage(&self) -> u8 {
         let mem_info = sys_info::mem_info().unwrap();
-        let avail_percentage = mem_info.avail * 100 / mem_info.total;
+        let avail_percentage = (mem_info.avail * 100 / mem_info.total) as u8;
 
         avail_percentage
     }
@@ -98,13 +99,13 @@ impl Metrics {
         debug!("{:?}", mem_info);
 
         // *free* memory events
-        let free_percentage = mem_info.free * 100 / mem_info.total;
-        if free_percentage < constants::FREE_MEMORY_UPPER_THRESHOLD {
+        let free_percentage = (mem_info.free * 100 / mem_info.total) as u8;
+        if free_percentage <= constants::FREE_MEMORY_UPPER_THRESHOLD {
             if self.free_mem_high_watermark_event_sent == false {
                 events::queue_internal_event(EventType::FreeMemoryHighWatermark, globals);
                 self.free_mem_high_watermark_event_sent = true;
             }
-        } else if free_percentage > constants::FREE_MEMORY_LOWER_THRESHOLD {
+        } else if free_percentage >= constants::FREE_MEMORY_LOWER_THRESHOLD {
             if self.free_mem_low_watermark_event_sent == false {
                 events::queue_internal_event(EventType::FreeMemoryLowWatermark, globals);
                 self.free_mem_low_watermark_event_sent = true;
@@ -116,7 +117,7 @@ impl Metrics {
         }
 
         // *available* memory events
-        let avail_percentage = mem_info.avail * 100 / mem_info.total;
+        let avail_percentage = (mem_info.avail * 100 / mem_info.total) as u8;
         if avail_percentage <= constants::AVAILABLE_MEMORY_UPPER_THRESHOLD {
             if self.available_mem_high_watermark_event_sent == false {
                 events::queue_internal_event(EventType::AvailableMemoryHighWatermark, globals);

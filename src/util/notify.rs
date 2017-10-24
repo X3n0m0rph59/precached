@@ -26,15 +26,15 @@ use plugins::notifications::Notifications;
 /// Send a notification to the primary user's desktop, and output it's text to the daemon log also.
 /// For the desktop notification to work, we need access to the session's DBUS bus.
 pub fn notify(message: &String, manager: &Manager) {
-    let pm = manager.plugin_manager.borrow();
+    let pm = manager.plugin_manager.read().unwrap();
 
     match pm.get_plugin_by_name(&String::from("notifications")) {
         None => {
             trace!("Plugin not loaded: 'notifications', skipped sending desktop notification!");
         }
         Some(p) => {
-            let plugin_b = p.borrow();
-            let notifications_plugin = plugin_b.as_any().downcast_ref::<Notifications>().unwrap();
+            let p = p.read().unwrap();
+            let notifications_plugin = p.as_any().downcast_ref::<Notifications>().unwrap();
 
             notifications_plugin.notify(message);
         }

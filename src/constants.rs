@@ -70,18 +70,21 @@ pub const IO_TRACE_TIME_SECS: u64 = 10;
 /// After how many days an I/O trace is flagged as expired
 pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
 
+/// The minimum length an I/O trace log must have for it to be saved/kept
+pub const MIN_TRACE_LOG_LENGTH: usize = 25;
+
 
 /// Upper threshold for free memory (percentage free)
-pub const FREE_MEMORY_UPPER_THRESHOLD: u64 = 20;
+pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 20;
 
 /// Lower threshold for free memory (percentage free)
-pub const FREE_MEMORY_LOWER_THRESHOLD: u64 = 80;
+pub const FREE_MEMORY_LOWER_THRESHOLD: u8 = 80;
 
 /// Available memory threshold (percentage available)
-pub const AVAILABLE_MEMORY_UPPER_THRESHOLD: u64 = 20;
+pub const AVAILABLE_MEMORY_UPPER_THRESHOLD: u8 = 20;
 
 /// Available memory threshold (percentage available)
-pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u64 = 80;
+pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u8 = 80;
 
 /// Time in seconds that has to elapse before we signal "recovery from swap"
 pub const SWAP_RECOVERY_WINDOW: u64 = 5;

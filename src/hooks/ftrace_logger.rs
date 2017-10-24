@@ -29,6 +29,7 @@ use iotrace;
 use iotrace::*;
 use manager::*;
 use plugins::iotrace_log_manager::IOtraceLogManager;
+use plugins::static_blacklist::StaticBlacklist;
 use process::Process;
 use procmon;
 use std::any::Any;
@@ -56,7 +57,8 @@ lazy_static! {
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
     let hook = Box::new(FtraceLogger::new());
 
-    let m = manager.hook_manager.borrow();
+    let m = manager.hook_manager.read().unwrap();
+
     m.register_hook(hook);
 }
 
@@ -72,7 +74,10 @@ impl FtraceLogger {
     }
 
     /// Thread entrypoint/main function of the "ftrace thread"
-    fn ftrace_trace_log_parser(globals: &mut Globals /*, _manager: &Manager*/) {
+    fn ftrace_trace_log_parser(globals: &mut Globals, manager: &Manager) {
+        let mut globals_c = globals.clone();
+        let manager_c = manager.clone();
+
         util::get_ftrace_events_from_pipe(
             &mut |pid, event| {
                 // NOTE: we get called for each event in the trace buffer
@@ -114,7 +119,10 @@ impl FtraceLogger {
                                             filename,
                                             fd
                                         );
-                                        iotrace_log.add_event(IOOperation::Open(filename.clone(), fd));
+
+                                        if !Self::is_file_blacklisted(filename.clone(), &mut globals_c, &manager_c) {
+                                            iotrace_log.add_event(IOOperation::Open(filename.clone(), fd));
+                                        }
                                     }
 
                                     // TODO: Fully implement the below mentioned I/O ops
@@ -175,6 +183,26 @@ impl FtraceLogger {
         // If we got here we returned false from the above "event handler" closure and the
         // underlying read loop terminated. So we will terminate the "ftrace thread" now.
         debug!("Ftrace parser thread terminating now!");
+    }
+
+    fn is_file_blacklisted(filename: String, _globals: &mut Globals, manager: &Manager) -> bool {
+        let mut result = false;
+
+        let pm = manager.plugin_manager.read().unwrap();
+        
+        match pm.get_plugin_by_name(&String::from("static_blacklist")) {
+            None => {
+                warn!("Plugin not loaded: 'static_blacklist', skipped");
+            }
+            Some(p) => {
+                let p = p.read().unwrap();
+                let mut static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+
+                result = static_blacklist_plugin.is_file_blacklisted(&filename);
+            }
+        }
+
+        result
     }
 
     /// Add process `event.pid` to the list of traced processes
@@ -257,7 +285,7 @@ impl FtraceLogger {
     /// Returns `true` if we need to re-trace a program, e.g.
     /// because of the binary being newer than the trace, or the trace being older than n days
     fn shall_new_tracelog_be_created(pid: libc::pid_t, globals: &mut Globals, manager: &Manager) -> bool {
-        let pm = manager.plugin_manager.borrow();
+        let pm = manager.plugin_manager.read().unwrap();
 
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
             None => {
@@ -265,8 +293,8 @@ impl FtraceLogger {
                 false
             }
             Some(p) => {
-                let plugin_b = p.borrow();
-                let iotrace_log_manager_plugin = plugin_b
+                let p = p.read().unwrap();
+                let iotrace_log_manager_plugin = p
                     .as_any()
                     .downcast_ref::<IOtraceLogManager>()
                     .unwrap();
@@ -389,7 +417,7 @@ impl hook::Hook for FtraceLogger {
         NAME
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, _manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::Startup => {
                 // Set up the system to use ftrace
@@ -400,13 +428,15 @@ impl hook::Hook for FtraceLogger {
 
                 // Start the thread that reads events from the Linux ftrace ringbuffer
                 let mut globals_c = globals.clone();
+                let mut manager_c = manager.clone();
+
                 self.tracer_thread = Some(
                     thread::Builder::new()
                         .name(String::from("ftrace"))
                         .spawn(move || {
                             // util::set_realtime_priority();
 
-                            Self::ftrace_trace_log_parser(&mut globals_c);
+                            Self::ftrace_trace_log_parser(&mut globals_c, &manager_c);
                         })
                         .unwrap(),
                 );

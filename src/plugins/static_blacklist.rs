@@ -18,6 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate globset;
+
+use self::globset::{Glob, GlobSetBuilder};
+use std::sync::{Arc, Mutex};
 use events;
 use globals::*;
 use manager::*;
@@ -27,20 +31,26 @@ use std::any::Any;
 use storage;
 use util;
 
+
 static NAME: &str = "static_blacklist";
 static DESCRIPTION: &str = "Statically blacklist files that shall not be cached";
+
+lazy_static! {
+    pub static ref GLOB_SET: Arc<Mutex<Option<globset::GlobSet>>> = { Arc::new(Mutex::new(None)) };
+}
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(StaticBlacklist::new(globals));
 
-        let m = manager.plugin_manager.borrow();
+        let m = manager.plugin_manager.read().unwrap();
+
         m.register_plugin(plugin);
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StaticBlacklist {
     blacklist: Box<Vec<String>>,
 }
@@ -67,6 +77,37 @@ impl StaticBlacklist {
 
     pub fn get_blacklist(&self) -> &Vec<String> {
         &self.blacklist
+    }
+
+    pub fn is_file_blacklisted(&self, filename: &String) -> bool {
+        match GLOB_SET.lock() {
+            Err(e) => {
+                error!("Could not lock a shared data structure! {}", e);
+                false
+            }
+            Ok(mut gs_opt) => {
+                if gs_opt.is_none() {
+                    // construct a glob set at the first iteration
+                    let mut builder = GlobSetBuilder::new();
+                    for p in self.get_blacklist().iter() {
+                        builder.add(Glob::new(p).unwrap());
+                    }
+                    let set = builder.build().unwrap();
+
+                    *gs_opt = Some(set.clone());
+
+                    // glob_set already available
+                    let matches = set.matches(&filename);
+
+                    matches.len() > 0
+                } else {
+                    // glob_set already available
+                    let matches = gs_opt.clone().unwrap().matches(&filename);
+
+                    matches.len() > 0
+                }
+            }
+        }
     }
 }
 

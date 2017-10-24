@@ -213,15 +213,14 @@ impl IOTraceLog {
 
     /// Write the I/O trace log to disk
     pub fn save(&self, filename: &String, allow_truncate: bool) -> io::Result<()> {
-
-        if self.trace_log.len() > 0 || allow_truncate {
+        if self.trace_log.len() > constants::MIN_TRACE_LOG_LENGTH || allow_truncate {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
             util::write_text_file(&filename, serialized)?;
 
             Ok(())
         } else {
             info!(
-                "The I/O trace log for process '{}' is empty! Nothing will be saved.",
+                "The I/O trace log for process '{}' does not meet the minimum length criteria! Nothing will be saved.",
                 self.comm
             );
 

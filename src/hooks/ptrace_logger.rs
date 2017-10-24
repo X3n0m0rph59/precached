@@ -52,7 +52,8 @@ static DESCRIPTION: &str = "ptrace() processes and log their filesystem activity
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
     let hook = Box::new(PtraceLogger::new());
 
-    let m = manager.hook_manager.borrow();
+    let m = manager.hook_manager.read().unwrap();
+
     m.register_hook(hook);
 }
 

@@ -26,13 +26,13 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 #[derive(Debug)]
-pub struct ThreadPool {
+pub struct WorkerThreadPool {
     pool: threadpool::ThreadPool,
 }
 
-impl ThreadPool {
-    pub fn new() -> ThreadPool {
-        ThreadPool {
+impl WorkerThreadPool {
+    pub fn new() -> WorkerThreadPool {
+        WorkerThreadPool {
             pool: threadpool::Builder::new()
                 .num_threads(4)
                 .thread_name(String::from("worker"))
@@ -51,6 +51,42 @@ impl ThreadPool {
     }
 }
 
+#[derive(Debug)]
+pub struct PrefetchThreadPool {
+    pool: threadpool::ThreadPool,
+}
+
+impl PrefetchThreadPool {
+    pub fn new() -> PrefetchThreadPool {
+        PrefetchThreadPool {
+            pool: threadpool::Builder::new()
+                // .num_threads(4)
+                .thread_name(String::from("prefetch"))
+                // .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
+                .build(),
+        }
+    }
+
+    pub fn max_count(&self) -> usize {
+        self.pool.max_count()
+    }
+
+    pub fn execute<F>(&self, job: F)
+    where
+        F: FnOnce() + Send + 'static,
+    {
+        self.pool.execute(job);
+    }
+
+    pub fn submit_work<F>(&self, job: F)
+    where
+        F: FnOnce() + Send + 'static,
+    {
+        self.pool.execute(job);
+    }
+}
+
 lazy_static! {
-    pub static ref POOL: Arc<Mutex<ThreadPool>> = { Arc::new(Mutex::new(ThreadPool::new())) };
+    pub static ref POOL: Arc<Mutex<WorkerThreadPool>> = { Arc::new(Mutex::new(WorkerThreadPool::new())) };
+    pub static ref PREFETCH_POOL: Arc<Mutex<PrefetchThreadPool>> = { Arc::new(Mutex::new(PrefetchThreadPool::new())) };
 }

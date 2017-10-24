@@ -42,12 +42,13 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(StaticWhitelist::new(globals));
 
-        let m = manager.plugin_manager.borrow();
+        let m = manager.plugin_manager.read().unwrap();
+
         m.register_plugin(plugin);
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StaticWhitelist {
     mapped_files: HashMap<String, util::MemoryMapping>,
     whitelist: Box<Vec<String>>,
@@ -96,16 +97,16 @@ impl StaticWhitelist {
     pub fn cache_whitelisted_files(&mut self, _globals: &Globals, manager: &Manager) {
         info!("Started caching of statically whitelisted files...");
 
-        let pm = manager.plugin_manager.borrow();
-
+        let pm = manager.plugin_manager.read().unwrap();
+        
         let mut static_blacklist = Vec::<String>::new();
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
             None => {
                 trace!("Plugin not loaded: 'static_blacklist', skipped");
             }
             Some(p) => {
-                let plugin_b = p.borrow();
-                let static_blacklist_plugin = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+                let p = p.read().unwrap();
+                let static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
                 static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
             }
@@ -167,15 +168,15 @@ impl StaticWhitelist {
     pub fn prefetch_whitelisted_programs(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started prefetching of statically whitelisted programs...");
 
-        let hm = manager.hook_manager.borrow();
+        let hm = manager.hook_manager.read().unwrap();
 
         match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
             None => {
                 trace!("Plugin not loaded: 'iotrace_prefetcher', skipped");
             }
-            Some(p) => {
-                let mut hook_b = p.borrow_mut();
-                let iotrace_prefetcher_hook = hook_b
+            Some(h) => {
+                let mut h = h.write().unwrap();
+                let iotrace_prefetcher_hook = h
                     .as_any_mut()
                     .downcast_mut::<IOtracePrefetcher>()
                     .unwrap();

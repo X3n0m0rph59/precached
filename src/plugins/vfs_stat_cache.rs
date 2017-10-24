@@ -38,12 +38,13 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(VFSStatCache::new());
 
-        let m = manager.plugin_manager.borrow();
+        let m = manager.plugin_manager.read().unwrap();
+
         m.register_plugin(plugin);
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VFSStatCache {}
 
 impl VFSStatCache {
@@ -92,14 +93,15 @@ impl VFSStatCache {
         }
 
         // Check if filename matches a blacklist rule
-        let pm = manager.plugin_manager.borrow();
+        let pm = manager.plugin_manager.read().unwrap();
+
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
             None => {
                 warn!("Plugin not loaded: 'static_blacklist', skipped");
             }
             Some(p) => {
-                let plugin_b = p.borrow();
-                let static_blacklist = plugin_b.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+                let p = p.read().unwrap();
+                let static_blacklist = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
                 if util::is_file_blacklisted(&filename, &static_blacklist.get_blacklist()) {
                     return false;
@@ -117,14 +119,15 @@ impl VFSStatCache {
     fn get_globally_tracked_entries(&self, _globals: &Globals, manager: &Manager) -> Vec<String> {
         let mut result = Vec::<String>::new();
 
-        let pm = manager.plugin_manager.borrow();
+        let pm = manager.plugin_manager.read().unwrap();
+
         match pm.get_plugin_by_name(&String::from("static_whitelist")) {
             None => {
                 trace!("Plugin not loaded: 'static_whitelist', skipped");
             }
             Some(p) => {
-                let plugin_b = p.borrow();
-                let static_whitelist = plugin_b.as_any().downcast_ref::<StaticWhitelist>().unwrap();
+                let p = p.read().unwrap();
+                let static_whitelist = p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
                 result.append(&mut static_whitelist.get_whitelist().clone());
             }

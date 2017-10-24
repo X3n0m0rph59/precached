@@ -38,7 +38,8 @@ static DESCRIPTION: &str = "Prefetches files based on a dynamically built Markov
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
     let hook = Box::new(MarkovPrefetcher::new());
 
-    let m = manager.hook_manager.borrow();
+    let m = manager.hook_manager.read().unwrap();
+    
     m.register_hook(hook);
 }
 

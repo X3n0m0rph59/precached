@@ -213,13 +213,13 @@ fn process_internal_events(globals: &mut Globals, manager: &Manager) {
     while let Some(internal_event) = globals.event_queue.pop_front() {
         {
             // dispatch daemon internal events to plugins
-            let plugin_manager = manager.plugin_manager.borrow();
+            let plugin_manager = manager.plugin_manager.read().unwrap();            
             plugin_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
 
         {
             // dispatch daemon internal events to hooks
-            let hook_manager = manager.hook_manager.borrow();
+            let hook_manager = manager.hook_manager.read().unwrap();
             hook_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
     }
@@ -230,7 +230,8 @@ fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager:
     trace!("Processing procmon event...");
 
     // dispatch the procmon event to all registered hooks
-    let m = manager.hook_manager.borrow();
+    let m = manager.hook_manager.read().unwrap();
+
     m.dispatch_event(&event, globals, manager);
 }
 

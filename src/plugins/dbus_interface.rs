@@ -46,7 +46,8 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(DBUSInterface::new());
 
-        let m = manager.plugin_manager.borrow();
+        let m = manager.plugin_manager.read().unwrap();
+    
         m.register_plugin(plugin);
     }
 }
@@ -213,7 +214,7 @@ impl DBUSInterface {
     }
 
     pub fn populate_process_statistics(&mut self, _e: &procmon::Event, _globals: &Globals, manager: &Manager) {
-        let hm = manager.hook_manager.borrow();
+        let hm = manager.hook_manager.lock().unwrap().borrow();
 
         let mut process_stats: Vec<Arc<ProcessStats>> = vec![];
         match hm.get_hook_by_name(&String::from("process_tracker")) {

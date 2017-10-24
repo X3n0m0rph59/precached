@@ -45,12 +45,13 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(IOtraceLogManager::new());
 
-        let m = manager.plugin_manager.borrow();
+        let m = manager.plugin_manager.read().unwrap();
+    
         m.register_plugin(plugin);
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IOtraceLogManager {}
 
 impl IOtraceLogManager {
@@ -99,28 +100,24 @@ impl IOtraceLogManager {
         Ok(result)
     }
 
-    fn shall_io_trace_be_pruned(_io_trace: &iotrace::IOTraceLog) -> bool {
-        // TODO:
-        // test if the trace is valid at all
-        // test if the trace is older than the binary (out-of-date)
-        // test that the binary does exist (bin-does-not-exist)
-        // test if the trace is from last run of binary!? (current or not-current)
+    fn shall_io_trace_be_pruned(io_trace: &iotrace::IOTraceLog) -> bool {
+        let mut result = false;
 
-        // let result = util::
+        // prune short traces
+        if io_trace.trace_log.len() < constants::MIN_TRACE_LOG_LENGTH {
+            result = true;
+        }
 
-        // let (flags, err, _) = util::get_io_trace_log_flags_and_err(&io_trace);
-        //
-        // if flags.contains()
+        // prune invalid traces (error condition set)
+        let (_flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
+        if err {
+            result = true;
+        }
 
-        false
+        result
     }
 
-    /// Prunes I/O trace logs that have expired or are invalid
-    /// Prune I/O trace logs if:
-    ///  * They are corrupt
-    ///  * The corresponding executable has vanished from the filesystem
-    ///  * They are too old (older than n days)
-    ///  * The ctime of the binary is newer than the ctime of the trace file (obsolete)
+    /// Prunes invalid I/O trace logs
     pub fn prune_expired_trace_logs(state_dir: String) {
         debug!("Pruning stale I/O trace logs...");
 

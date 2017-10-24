@@ -34,7 +34,7 @@ pub mod markov_log_manager;
 pub mod statistics;
 pub mod metrics;
 pub mod notifications;
-pub mod dbus_interface;
+// pub mod dbus_interface;
 pub mod forkbomb_mitigation;
 pub mod rule_plugin;
 
@@ -48,12 +48,13 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     statistics::register_plugin(globals, manager);
     metrics::register_plugin(globals, manager);
     notifications::register_plugin(globals, manager);
-    dbus_interface::register_plugin(globals, manager);
+    // dbus_interface::register_plugin(globals, manager);
     forkbomb_mitigation::register_plugin(globals, manager);
     rule_plugin::register_plugin(globals, manager);
 }
 
 pub fn unregister_plugins(_globals: &mut Globals, manager: &mut Manager) {
-    let m = manager.plugin_manager.borrow();
+    let m = manager.plugin_manager.read().unwrap();
+    
     m.unregister_all_plugins();
 }

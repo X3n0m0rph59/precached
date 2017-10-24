@@ -26,6 +26,7 @@ extern crate serde_json;
 use self::serde::Serialize;
 use super::iotrace_prefetcher::IOtracePrefetcher;
 use constants;
+use globals;
 use events;
 use events::EventType;
 use globals::*;
@@ -41,7 +42,6 @@ use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
 use std::sync::Arc;
-use std::sync::Mutex;
 use std::sync::mpsc::channel;
 use util;
 
@@ -52,7 +52,8 @@ static DESCRIPTION: &str = "Prefetches files based on a dynamically built histog
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
     let hook = Box::new(HotApplications::new());
 
-    let m = manager.hook_manager.borrow();
+    let m = manager.hook_manager.read().unwrap();
+
     m.register_hook(hook);
 }
 
@@ -74,15 +75,15 @@ impl HotApplications {
     }
 
     pub fn prefetch_data(&mut self, globals: &mut Globals, manager: &Manager) {
-        let hm = manager.hook_manager.borrow();
+        let hm = manager.hook_manager.read().unwrap();
 
         match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
             None => {
                 warn!("Hook not loaded: 'iotrace_prefetcher', skipped");
             }
             Some(h) => {
-                let mut hook_b = h.borrow_mut();
-                let mut iotrace_prefetcher_hook = hook_b
+                let mut h = h.write().unwrap();
+                let iotrace_prefetcher_hook = h
                     .as_any_mut()
                     .downcast_mut::<IOtracePrefetcher>()
                     .unwrap();
@@ -103,24 +104,27 @@ impl HotApplications {
         };
     }
 
-    fn check_available_memory(_globals: &mut Globals, manager: &Manager) -> bool {
+    fn check_available_memory(globals: &mut Globals, manager: &Manager) -> bool {
         let mut result = true;
 
-        let pm = manager.plugin_manager.borrow();
+        let available_mem_upper_threshold = globals.config.clone().config_file.unwrap_or_default()
+                                                        .available_mem_upper_threshold.unwrap();
+
+        let pm = manager.plugin_manager.read().unwrap();
 
         match pm.get_plugin_by_name(&String::from("metrics")) {
             None => {
                 warn!("Plugin not loaded: 'metrics', skipped");
             }
             Some(p) => {
-                let mut plugin_b = p.borrow();
-                let mut metrics_plugin = plugin_b.as_any().downcast_ref::<Metrics>().unwrap();
+                let p = p.read().unwrap();
+                let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 debug!(
                     "Available memory: {}%",
                     metrics_plugin.get_available_mem_percentage()
                 );
-                if metrics_plugin.get_available_mem_percentage() <= constants::AVAILABLE_MEMORY_UPPER_THRESHOLD {
+                if metrics_plugin.get_available_mem_percentage() <= available_mem_upper_threshold {
                     result = false;
                 }
             }

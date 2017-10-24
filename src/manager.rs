@@ -21,20 +21,22 @@
 use hooks::HookManager;
 use plugins::PluginManager;
 use std::cell::RefCell;
+use std::sync::{Arc, RwLock};
 
 /// Global `manager` data structure.
 /// Holds state for managers like the `PluginManager`
 /// or the `HookManager`
+#[derive(Clone)]
 pub struct Manager {
-    pub plugin_manager: RefCell<PluginManager>,
-    pub hook_manager: RefCell<HookManager>,
+    pub plugin_manager: Arc<RwLock<PluginManager>>,
+    pub hook_manager: Arc<RwLock<HookManager>>,
 }
 
 impl Manager {
     pub fn new() -> Manager {
         Manager {
-            plugin_manager: RefCell::new(PluginManager::new()),
-            hook_manager: RefCell::new(HookManager::new()),
+            plugin_manager: Arc::new(RwLock::new(PluginManager::new())),
+            hook_manager: Arc::new(RwLock::new(HookManager::new())),
         }
     }
 

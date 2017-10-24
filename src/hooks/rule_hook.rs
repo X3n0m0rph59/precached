@@ -38,7 +38,8 @@ static DESCRIPTION: &str = "Custom rules actions for precached";
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
     let hook = Box::new(RuleHook::new());
 
-    let m = manager.hook_manager.borrow();
+    let m = manager.hook_manager.read().unwrap();
+
     m.register_hook(hook);
 }
 

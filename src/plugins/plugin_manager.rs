@@ -25,29 +25,30 @@ use manager::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
-use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 
+#[derive(Clone)]
 pub struct PluginManager {
-    pub plugins: RefCell<HashMap<String, Rc<RefCell<Box<Plugin>>>>>,
+    pub plugins: Arc<RwLock<HashMap<String, Arc<RwLock<Box<Plugin + Sync + Send>>>>>>,
 }
 
 impl PluginManager {
     pub fn new() -> PluginManager {
-        PluginManager { plugins: RefCell::new(HashMap::new()) }
+        PluginManager { plugins: Arc::new(RwLock::new(HashMap::new())) }
     }
 
-    pub fn register_plugin(&self, mut plugin: Box<Plugin>) {
+    pub fn register_plugin(&self, mut plugin: Box<Plugin + Sync + Send>) {
         plugin.register();
-        self.plugins.borrow_mut().insert(
+        self.plugins.write().unwrap().insert(
             String::from(plugin.get_name()),
-            Rc::new(RefCell::new(plugin)),
+            Arc::new(RwLock::new(plugin)),
         );
     }
 
     pub fn unregister_plugin(&self, name: &String) {
         match self.get_plugin_by_name(name) {
             Some(p) => {
-                p.borrow_mut().unregister();
+                p.write().unwrap().unregister();
             }
             None => {
                 error!("No plugin with name '{}' found!", name);
@@ -56,29 +57,30 @@ impl PluginManager {
     }
 
     pub fn unregister_all_plugins(&self) {
-        for (_, p) in self.plugins.borrow().iter() {
-            p.borrow_mut().unregister();
+        for (_, p) in self.plugins.read().unwrap().iter() {
+            p.write().unwrap().unregister();
         }
     }
 
-    pub fn get_plugin_by_name(&self, name: &String) -> Option<Rc<RefCell<Box<Plugin>>>> {
-        self.plugins.borrow().get(name).map(|x| x.clone())
+    pub fn get_plugin_by_name(&self, name: &String) -> Option<Arc<RwLock<Box<Plugin + Sync + Send>>>> {
+        self.plugins.read().unwrap().get(name).map(|x| x.clone())
     }
 
     pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
-        for (_, p) in self.plugins.borrow().iter() {
-            p.borrow_mut().internal_event(event, globals, manager);
+        for (_, p) in self.plugins.read().unwrap().iter() {
+            p.write().unwrap().internal_event(event, globals, manager);
         }
     }
 
     pub fn call_main_loop_hooks(&self, globals: &mut Globals) {
-        for (_, p) in self.plugins.borrow().iter() {
-            p.borrow_mut().main_loop_hook(globals);
+        for (_, p) in self.plugins.read().unwrap().iter() {
+            p.write().unwrap().main_loop_hook(globals);
         }
     }
 }
 
 pub fn call_main_loop_hook(globals: &mut Globals, manager: &mut Manager) {
-    let m = manager.plugin_manager.borrow();
+    let m = manager.plugin_manager.read().unwrap();
+    
     m.call_main_loop_hooks(globals);
 }
