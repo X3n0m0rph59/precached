@@ -249,6 +249,7 @@ impl FtraceLogger {
 
                             Ok(iotrace_log) => {
                                 let tracer_data = util::PerTracerData::new(iotrace_log);
+                                let comm = tracer_data.trace_log.comm.clone();
 
                                 active_tracers.insert(event.pid, tracer_data);
 
@@ -272,8 +273,7 @@ impl FtraceLogger {
                         }
                     } else {
                         info!(
-                            "We already have a valid I/O trace log for process '{}' with pid: {}",
-                            comm,
+                            "We already have a valid I/O trace log for process with pid: {}",
                             event.pid
                         );
                     }

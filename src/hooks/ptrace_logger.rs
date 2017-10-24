@@ -126,7 +126,7 @@ impl PtraceLogger {
 
             match trace_log.save(&iotrace_dir) {
                 Err(e) => { error!("Error while saving the I/O trace log for process '{}' with pid: {}. {}", comm, pid, e) },
-                Ok(()) => { info!("Sucessfuly saved I/O trace log for process '{}' with pid: {}", comm, pid) }
+                Ok(()) => { info!("Successfuly saved I/O trace log for process '{}' with pid: {}", comm, pid) }
             }
         }).unwrap();
     }

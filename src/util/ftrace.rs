@@ -338,12 +338,13 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
 fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData>, iotrace_dir: &String, globals: &mut Globals) {
     for (pid, v) in active_tracers.iter_mut() {
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
-            let mut comm = String::from("<not available>");
-            if let Ok(process) = Process::new(*pid) {
-                comm = process.get_comm().unwrap_or(
-                    String::from("<not available>"),
-                );
-            }
+            let mut comm = &v.trace_log.comm;
+
+            // if let Ok(process) = Process::new(*pid) {
+            //     comm = process.get_comm().unwrap_or(
+            //         String::from("<not available>"),
+            //     );
+            // }
 
             debug!(
                 "Tracing time expired for process '{}' with pid: {}",
@@ -371,7 +372,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
                 }
 
                 Ok(()) => {
-                    info!("Sucessfuly saved I/O trace log for process '{}' with pid: {}", comm, pid );
+                    info!("Successfuly saved I/O trace log for process '{}' with pid: {}", comm, pid );
 
                     // schedule an optimization pass for the newly saved trace log
                     debug!("Queued an optimization request for '{}'", filename);
@@ -446,12 +447,12 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         // check validity of parsed data
-        let fields: Vec<&str> = l.split_whitespace().collect();
+        let fields: Vec<&str> = l.split("  ").collect();
 
-        if fields.len() >= 5 {
-            if !fields[4].contains("sys_open") && !fields[4].contains("sys_openat") && !fields[4].contains("sys_open_by_handle_at") && !fields[4].contains("sys_read") && !fields[4].contains("sys_readv") &&
-                !fields[4].contains("sys_preadv2") && !fields[4].contains("sys_pread64") && !fields[4].contains("sys_mmap") && !fields[4].contains("sys_statx") && !fields[4].contains("sys_newstat") &&
-                !fields[4].contains("sys_newfstat") && !fields[4].contains("sys_newfstatat") && !fields[4].contains("getnameprobe")
+        if fields.len() >= 3 {
+            if !fields[2].contains("sys_open") && !fields[2].contains("sys_openat") && !fields[2].contains("sys_open_by_handle_at") && !fields[2].contains("sys_read") && !fields[2].contains("sys_readv") &&
+                !fields[2].contains("sys_preadv2") && !fields[2].contains("sys_pread62") && !fields[2].contains("sys_mmap") && !fields[2].contains("sys_statx") && !fields[2].contains("sys_newstat") &&
+                !fields[2].contains("sys_newfstat") && !fields[2].contains("sys_newfstatat") && !fields[2].contains("getnameprobe")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
@@ -490,7 +491,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             match REGEX_FILENAME.captures(l) {
                 None => {
                     error!(
-                        "Could not get associated file name of the current trace event! Event was: '{}'",
+                        "Could not get associated file name of the current trace event! Event: '{}'",
                         l
                     )
                 }
@@ -502,7 +503,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
         // sys_open syscall
         if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at")) && !l.contains("getnameprobe") {
-            if fields.len() >= 6 {
+            if fields.len() >= 2 {
                 // debug!("{:#?}", l);
 
                 // let comm = String::from(fields[0]);
@@ -536,7 +537,10 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     last_filename = None;
                 }
             } else {
-                error!("Error while parsing current event from trace buffer!");
+                error!(
+                    "Error while parsing current event from trace buffer! Event: '{}'",
+                    l
+                );
             }
         }
 
@@ -544,14 +548,20 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         if l.contains("sys_read") || l.contains("sys_readv") || l.contains("sys_preadv2") || l.contains("sys_pread64") {
             // debug!("{:#?}", l);
 
-            if fields.len() >= 7 {
-                // let comm = String::from(fields[0]);
-                let fd = i32::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(-1);
+            if fields.len() >= 2 {
+                // get last part of trace buffer line
+                let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
+                let tmp = tmp[tmp.len() - 1];
+
+                let fd = i32::from_str_radix(&tmp, 16).unwrap_or(-1);
                 if cb(pid, IOEvent { syscall: SysCall::Read(fd) }) == false {
                     break 'LINE_LOOP; // callback returned false, exit requested
                 }
             } else {
-                error!("Error while parsing current event from trace buffer!");
+                error!(
+                    "Error while parsing current event from trace buffer! Event: '{}'",
+                    l
+                );
             }
         }
 
@@ -559,14 +569,20 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         if l.contains("sys_mmap") {
             // debug!("{:#?}", l);
 
-            if fields.len() >= 7 {
-                // let comm = String::from(fields[0]);
-                let addr = usize::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(0);
+            if fields.len() >= 2 {
+                // get last part of trace buffer line
+                let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
+                let tmp = tmp[tmp.len() - 1];
+
+                let addr = usize::from_str_radix(&tmp, 16).unwrap_or(0);
                 if cb(pid, IOEvent { syscall: SysCall::Mmap(addr) }) == false {
                     break 'LINE_LOOP; // callback returned false, exit requested
                 }
             } else {
-                error!("Error while parsing current event from trace buffer!");
+                error!(
+                    "Error while parsing current event from trace buffer! Event: '{}'",
+                    l
+                );
             }
         }
 
@@ -576,27 +592,6 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
             // TODO: Implement this!
             // warn!("{:#?}", l);
-
-            // if fields.len() >= 7 {
-            //     let mut reset_filename = false;
-            //     match last_filename {
-            //         None => error!("Could not get associated file name of the current trace event!"),
-            //         Some(ref c) => {
-            //             if cb(pid, IOEvent { syscall: SysCall::Statx(c.clone()) }) == false {
-            //                 break 'LINE_LOOP; // callback returned false, exit requested
-            //             }
-            //
-            //             reset_filename = true;
-            //         }
-            //     }
-            //
-            //     // reset the filename so that we won't use it multiple times accidentally
-            //     if reset_filename {
-            //         last_filename = None;
-            //     }
-            // } else {
-            //     error!("Error while parsing current event from trace buffer!");
-            // }
         }
 
         // sys_fstat(at) syscall family
@@ -605,16 +600,6 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
             // TODO: Implement this!
             // warn!("{:#?}", l);
-
-            // if fields.len() >= 7 {
-            //     // let comm = String::from(fields[0]);
-            //     let fd = i32::from_str_radix(&fields[fields.len() - 1], 16).unwrap_or(-1);
-            //     if cb(pid, IOEvent { syscall: SysCall::Fstat(fd) }) == false {
-            //         break 'LINE_LOOP; // callback returned false, exit requested
-            //     }
-            // } else {
-            //     error!("Error while parsing current event from trace buffer!");
-            // }
         }
     }
 

@@ -90,6 +90,10 @@ pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u8 = 80;
 pub const SWAP_RECOVERY_WINDOW: u64 = 5;
 
 
+/// Maximum allowed size of a file we prefetch
+pub const MAX_ALLOWED_PREFETCH_SIZE: usize = 128 * 1024 * 1024;
+
+
 /// Initial gap width of console log output
 pub const INITIAL_MODULE_WIDTH: usize = 40;
 

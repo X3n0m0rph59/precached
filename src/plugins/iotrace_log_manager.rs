@@ -141,7 +141,7 @@ impl IOtraceLogManager {
                 Ok(io_trace) => {
                     if Self::shall_io_trace_be_pruned(&io_trace) {
                         debug!("Pruning I/O trace log: '{}'", &filename);
-                                                
+
                         util::remove_file(&filename, false);
 
                         pruned += 1;

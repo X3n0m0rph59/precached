@@ -20,7 +20,6 @@
 
 extern crate libc;
 extern crate threadpool;
-extern crate num_cpus;
 
 use events;
 use events::EventType;
@@ -62,8 +61,6 @@ pub struct IOtracePrefetcher {
 
 impl IOtracePrefetcher {
     pub fn new() -> IOtracePrefetcher {
-        let num_cpus = num_cpus::get();
-
         IOtracePrefetcher {
             mapped_files: HashMap::new(),
             prefetched_programs: vec![],
@@ -147,7 +144,7 @@ impl IOtracePrefetcher {
         static_blacklist: &Vec<String>,
         our_mapped_files: &HashMap<String, util::MemoryMapping>,
         prefetched_programs: &Vec<String>,
-        //  system_mapped_files: &HashMap<String, util::MemoryMapping>,
+        // system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_whitelist: &HashMap<String, util::MemoryMapping>,
     ) -> bool {
         // Check if filename is valid
@@ -169,10 +166,6 @@ impl IOtracePrefetcher {
         if prefetched_programs.contains(filename) {
             return false;
         }
-
-        // if system_mapped_files.contains_key(filename) {
-        //     return false;
-        // }
 
         // Have others already mapped this file?
         if static_whitelist.contains_key(filename) {
