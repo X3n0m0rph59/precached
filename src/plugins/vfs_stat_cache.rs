@@ -25,7 +25,11 @@ use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::static_blacklist::StaticBlacklist;
 use plugins::static_whitelist::StaticWhitelist;
+use plugins::metrics::Metrics;
+use hooks::iotrace_prefetcher::IOtracePrefetcher;
+use hooks::hot_applications::HotApplications;
 use std::any::Any;
+use std::path::Path;
 use storage;
 use util;
 use util::Contains;
@@ -55,7 +59,7 @@ impl VFSStatCache {
     /// Walk all files and directories from all whitelists
     /// and call stat() on them, to prime the kernel's dentry caches
     pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
-        trace!("Started reading of statx() metadata...");
+        trace!("Started reading of statx() metadata for whitelisted files...");
 
         let tracked_entries = self.get_globally_tracked_entries(globals, manager);
 
@@ -78,7 +82,7 @@ impl VFSStatCache {
                     });
                 });
 
-                info!("Finished reading of statx() metadata");
+                info!("Finished reading of statx() metadata for whitelisted files");
             }
         }
     }
@@ -135,6 +139,68 @@ impl VFSStatCache {
 
         result
     }
+
+    fn prime_statx_cache_for_top_iotraces(&mut self, globals: &mut Globals, manager: &Manager) {
+        let hm = manager.hook_manager.read().unwrap();
+
+        match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
+            None => {
+                warn!("Hook not loaded: 'iotrace_prefetcher', skipped");
+            }
+            Some(h) => {
+                let mut h = h.write().unwrap();
+                let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
+
+                let hm = manager.hook_manager.read().unwrap();
+
+                match hm.get_hook_by_name(&String::from("hot_applications")) {
+                    None => {
+                        trace!("Hook not loaded: 'hot_applications', skipped");
+                    }
+                    Some(h) => {
+                        let h = h.read().unwrap();
+                        let hot_applications = h.as_any().downcast_ref::<HotApplications>().unwrap();
+
+                        let app_histogram = hot_applications.get_app_vec_ordered();
+
+                        for (hash, count) in app_histogram {
+                            if Self::check_available_memory(globals, manager) == false {
+                                info!("Available memory exhausted, stopping statx() caching!");
+                                break;
+                            }
+
+                            trace!("Prefetching metadata for '{}'", hash);
+                            iotrace_prefetcher_hook.prefetch_statx_metadata_by_hash(&hash, globals, manager)
+                        }
+                    }
+                };
+            }
+        };
+
+        info!("Finished reading of statx() metadata for most used applications");
+    }
+
+    fn check_available_memory(globals: &mut Globals, manager: &Manager) -> bool {
+        let mut result = true;
+
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("metrics")) {
+            None => {
+                warn!("Plugin not loaded: 'metrics', skipped");
+            }
+            Some(p) => {
+                let p = p.read().unwrap();
+                let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
+
+                if metrics_plugin.get_available_mem_percentage() <= 1 {
+                    result = false;
+                }
+            }
+        }
+
+        result
+    }
 }
 
 impl Plugin for VFSStatCache {
@@ -165,6 +231,7 @@ impl Plugin for VFSStatCache {
         match event.event_type {
             events::EventType::PrimeCaches => {
                 self.prime_statx_cache(globals, manager);
+                self.prime_statx_cache_for_top_iotraces(globals, manager);
             }
             _ => {
                 // Ignore all other events

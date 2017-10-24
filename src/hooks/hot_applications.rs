@@ -40,9 +40,9 @@ use std::collections::HashMap;
 use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
-use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
+use std::path::Path;
 use util;
 
 static NAME: &str = "hot_applications";
@@ -72,6 +72,13 @@ impl HotApplications {
         // self.app_histogram.contains_key(exe_name)
 
         false
+    }
+
+    pub fn get_app_vec_ordered(&self) -> Vec<(&String, &usize)> {
+        let mut apps: Vec<(&String, &usize)> = self.app_histogram.iter().collect();
+        apps.sort_by(|a, b| b.1.cmp(a.1));
+
+        apps
     }
 
     pub fn prefetch_data(&mut self, globals: &mut Globals, manager: &Manager) {
@@ -122,10 +129,6 @@ impl HotApplications {
                 let p = p.read().unwrap();
                 let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
-                debug!(
-                    "Available memory: {}%",
-                    metrics_plugin.get_available_mem_percentage()
-                );
                 if metrics_plugin.get_available_mem_percentage() <= available_mem_upper_threshold {
                     result = false;
                 }

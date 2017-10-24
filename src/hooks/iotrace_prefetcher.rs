@@ -39,6 +39,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use std::sync::mpsc::{channel, Sender};
+use std::path::Path;
 use util;
 
 static NAME: &str = "iotrace_prefetcher";
@@ -135,6 +136,31 @@ impl IOtracePrefetcher {
         already_prefetched
     }
 
+    fn prefetch_statx_metadata(io_trace: &Vec<iotrace::TraceLogEntry>, static_blacklist: &Vec<String>) {
+        for entry in io_trace {
+            match entry.operation {
+                iotrace::IOOperation::Open(ref file, ref _fd) => {
+                    trace!("Prefetching metadata for: {}", file);
+
+                    // Check if filename is valid
+                    if !util::is_filename_valid(file) {
+                        continue;
+                    }
+
+                    // Check if filename matches a blacklist rule
+                    if util::is_file_blacklisted(file, &static_blacklist) {
+                        continue
+                    }
+
+                    let path = Path::new(file);
+                    let _metadata = path.metadata();
+                }
+
+                _ => { /* Do nothing */ }
+            }
+        }
+    }
+
     /// Helper function, that decides if we should subsequently mmap() and mlock() the
     /// file `filename`. Verifies the validity of `filename`, and check if `filename`
     /// is not blacklisted. Finally checks if `filename` is mapped already by us or
@@ -176,7 +202,7 @@ impl IOtracePrefetcher {
         true
     }
 
-    /// Replay the I/O trace of the program `exe_name` and cache all files into memory
+    /// Replay the I/O trace of the I/O trace for `hashval` and cache all files into memory
     /// This is used for offline prefetching, when the system is idle
     pub fn prefetch_data_by_hash(&mut self, hashval: &String, globals: &Globals, manager: &Manager) {
         let pm = manager.plugin_manager.read().unwrap();
@@ -255,6 +281,67 @@ impl IOtracePrefetcher {
                             for (k, v) in mapped_files {
                                 self.mapped_files.insert(k, v);
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Prime the kernel's dentry caches by calling statx on all files in the
+    /// I/O trace specified by the parameter `hashval`
+    /// This is used for offline prefetching, when the system is idle
+    pub fn prefetch_statx_metadata_by_hash(&mut self, hashval: &String, globals: &Globals, manager: &Manager) {
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
+            None => {
+                trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
+            }
+            Some(p) => {
+                let p = p.write().unwrap();
+                let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
+
+                match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval.clone(), &globals) {
+                    Err(e) => trace!("I/O trace '{}' not available: {}", hashval, e),
+                    Ok(io_trace) => {
+                        let mut static_blacklist = Vec::<String>::new();
+                        match pm.get_plugin_by_name(&String::from("static_blacklist")) {
+                            None => {
+                                trace!("Plugin not loaded: 'static_blacklist', skipped");
+                            }
+                            Some(p) => {
+                                let p = p.read().unwrap();
+                                let static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+
+                                static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
+                            }
+                        };
+
+                        let our_mapped_files = self.mapped_files.clone();
+                        let prefetched_programs = self.prefetched_programs.clone();
+
+                        // distribute prefetching work evenly across the prefetcher threads
+                        let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
+                        let max = prefetch_pool.max_count();
+                        let count_total = io_trace.trace_log.len();
+
+                        for n in 0..max {
+                            // calculate slice bounds for each thread
+                            let low = (count_total / max) * n;
+                            let high = (count_total / max) * n + (count_total / max);
+
+                            let trace_log = io_trace.trace_log[low..high].to_vec();
+
+                            let static_blacklist_c = static_blacklist.clone();
+
+                            prefetch_pool.execute(move || {
+                                // submit prefetching work to an idle thread
+                                let mapped_files = Self::prefetch_statx_metadata(
+                                    &trace_log,
+                                    &static_blacklist_c,
+                                );
+                            })
                         }
                     }
                 }
