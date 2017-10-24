@@ -68,7 +68,7 @@ impl IOtracePrefetcher {
     }
 
     fn prefetch_data(
-        io_trace: &[iotrace::TraceLogEntry],
+        io_trace: &Vec<iotrace::TraceLogEntry>,
         our_mapped_files: &HashMap<String, util::MemoryMapping>,
         prefetched_programs: &Vec<String>,
         // system_mapped_files: &HashMap<String, util::MemoryMapping>,
@@ -177,6 +177,7 @@ impl IOtracePrefetcher {
     }
 
     /// Replay the I/O trace of the program `exe_name` and cache all files into memory
+    /// This is used for offline prefetching, when the system is idle
     pub fn prefetch_data_by_hash(&mut self, hashval: &String, globals: &Globals, manager: &Manager) {
         let pm = manager.plugin_manager.read().unwrap();
 
@@ -225,7 +226,7 @@ impl IOtracePrefetcher {
                             let low = (count_total / max) * n;
                             let high = (count_total / max) * n + (count_total / max);
 
-                            let trace_log = io_trace.trace_log.clone();
+                            let trace_log = io_trace.trace_log[low..high].to_vec();
 
                             let our_mapped_files_c = our_mapped_files.clone();
                             let prefetched_programs_c = prefetched_programs.clone();
@@ -236,7 +237,7 @@ impl IOtracePrefetcher {
                             prefetch_pool.execute(move || {
                                 // submit prefetching work to an idle thread
                                 let mapped_files = Self::prefetch_data(
-                                    &trace_log[low..high],
+                                    &trace_log,
                                     &our_mapped_files_c,
                                     &prefetched_programs_c,
                                     // &system_mapped_files_c,
@@ -261,6 +262,8 @@ impl IOtracePrefetcher {
         }
     }
 
+    /// Replay the I/O trace of the program identified by `event.pid` and cache all files into memory
+    /// This is used for online prefetching during program startup
     pub fn replay_process_io(&mut self, event: &procmon::Event, globals: &Globals, manager: &Manager) {
         let process = Process::new(event.pid);
         match process {
@@ -364,7 +367,7 @@ impl IOtracePrefetcher {
                                         let low = (count_total / max) * n;
                                         let high = (count_total / max) * n + (count_total / max);
 
-                                        let trace_log = io_trace.trace_log.clone();
+                                        let trace_log = io_trace.trace_log[low..high].to_vec();
 
                                         let our_mapped_files_c = our_mapped_files.clone();
                                         // let system_mapped_files_c = system_mapped_files_histogram.clone();
@@ -375,7 +378,7 @@ impl IOtracePrefetcher {
                                         // submit prefetching work to an idle thread
                                         prefetch_pool.execute(move || {
                                             let mapped_files = Self::prefetch_data(
-                                                &trace_log[low..high],
+                                                &trace_log,
                                                 &our_mapped_files_c,
                                                 &prefetched_programs_c,
                                                 // &system_mapped_files_c,

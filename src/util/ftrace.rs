@@ -496,6 +496,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     )
                 }
                 Some(c) => {
+                    trace!("'{}'", l);
                     last_filename = Some(String::from(&c["filename"]));
                 }
             }
@@ -522,7 +523,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
                 let mut reset_filename = false;
                 match last_filename {
-                    None => error!("Could not get associated file name of the current trace event!"),
+                    // Error may happen if the previous open* syscall failed
+                    None => trace!("Could not get associated file name of the current trace event! '{}'", l),
                     Some(ref c) => {
                         if cb(pid, IOEvent { syscall: SysCall::Open(c.clone(), 0) }) == false {
                             break 'LINE_LOOP; // callback returned false, exit requested

@@ -45,6 +45,12 @@ impl MemoryMapping {
     }
 }
 
+#[cfg(target_pointer_width = "64")]
+type StatSize = i64;
+
+#[cfg(target_pointer_width = "32")]
+type StatSize = i32;
+
 pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
     trace!("Caching file: '{}'", filename);
 
@@ -57,7 +63,7 @@ pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
         libc::fstat(fd, &mut stat);
     };
 
-    if stat.st_size > constants::MAX_ALLOWED_PREFETCH_SIZE as i64 {
+    if stat.st_size > constants::MAX_ALLOWED_PREFETCH_SIZE as StatSize {
         // Try to close the file descriptor
         unsafe { libc::close(fd) };
 
