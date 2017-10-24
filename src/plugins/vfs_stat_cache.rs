@@ -20,14 +20,14 @@
 
 use events;
 use globals::*;
+use hooks::hot_applications::HotApplications;
+use hooks::iotrace_prefetcher::IOtracePrefetcher;
 use manager::*;
+use plugins::metrics::Metrics;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::static_blacklist::StaticBlacklist;
 use plugins::static_whitelist::StaticWhitelist;
-use plugins::metrics::Metrics;
-use hooks::iotrace_prefetcher::IOtracePrefetcher;
-use hooks::hot_applications::HotApplications;
 use std::any::Any;
 use std::path::Path;
 use storage;

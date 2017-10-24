@@ -37,9 +37,9 @@ use process::Process;
 use procmon;
 use std::any::Any;
 use std::collections::HashMap;
+use std::path::Path;
 use std::sync::Mutex;
 use std::sync::mpsc::{channel, Sender};
-use std::path::Path;
 use util;
 
 static NAME: &str = "iotrace_prefetcher";
@@ -149,7 +149,7 @@ impl IOtracePrefetcher {
 
                     // Check if filename matches a blacklist rule
                     if util::is_file_blacklisted(file, &static_blacklist) {
-                        continue
+                        continue;
                     }
 
                     let path = Path::new(file);
@@ -337,10 +337,7 @@ impl IOtracePrefetcher {
 
                             prefetch_pool.execute(move || {
                                 // submit prefetching work to an idle thread
-                                let mapped_files = Self::prefetch_statx_metadata(
-                                    &trace_log,
-                                    &static_blacklist_c,
-                                );
+                                let mapped_files = Self::prefetch_statx_metadata(&trace_log, &static_blacklist_c);
                             })
                         }
                     }

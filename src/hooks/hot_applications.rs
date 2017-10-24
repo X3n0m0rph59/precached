@@ -40,9 +40,9 @@ use std::collections::HashMap;
 use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
+use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
-use std::path::Path;
 use util;
 
 static NAME: &str = "hot_applications";
