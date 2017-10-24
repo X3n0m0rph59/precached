@@ -81,6 +81,6 @@ impl PluginManager {
 
 pub fn call_main_loop_hook(globals: &mut Globals, manager: &mut Manager) {
     let m = manager.plugin_manager.read().unwrap();
-    
+
     m.call_main_loop_hooks(globals);
 }

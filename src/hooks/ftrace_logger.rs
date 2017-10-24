@@ -189,7 +189,7 @@ impl FtraceLogger {
         let mut result = false;
 
         let pm = manager.plugin_manager.read().unwrap();
-        
+
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
             None => {
                 warn!("Plugin not loaded: 'static_blacklist', skipped");
@@ -294,10 +294,7 @@ impl FtraceLogger {
             }
             Some(p) => {
                 let p = p.read().unwrap();
-                let iotrace_log_manager_plugin = p
-                    .as_any()
-                    .downcast_ref::<IOtraceLogManager>()
-                    .unwrap();
+                let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 if let Ok(process) = Process::new(pid) {
                     if let Ok(exe) = process.get_exe() {

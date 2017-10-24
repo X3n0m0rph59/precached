@@ -21,13 +21,13 @@
 extern crate globset;
 
 use self::globset::{Glob, GlobSetBuilder};
-use std::sync::{Arc, Mutex};
 use events;
 use globals::*;
 use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use std::any::Any;
+use std::sync::{Arc, Mutex};
 use storage;
 use util;
 

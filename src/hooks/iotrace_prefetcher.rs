@@ -186,17 +186,14 @@ impl IOtracePrefetcher {
     /// Replay the I/O trace of the program `exe_name` and cache all files into memory
     pub fn prefetch_data_by_hash(&mut self, hashval: &String, globals: &Globals, manager: &Manager) {
         let pm = manager.plugin_manager.read().unwrap();
-        
+
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
             None => {
                 trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
             }
             Some(p) => {
                 let p = p.write().unwrap();
-                let iotrace_log_manager_plugin = p
-                    .as_any()
-                    .downcast_ref::<IOtraceLogManager>()
-                    .unwrap();
+                let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval.clone(), &globals) {
                     Err(e) => trace!("I/O trace '{}' not available: {}", hashval, e),
@@ -302,10 +299,7 @@ impl IOtracePrefetcher {
                     }
                     Some(p) => {
                         let p = p.write().unwrap();
-                        let iotrace_log_manager_plugin = p
-                            .as_any()
-                            .downcast_ref::<IOtraceLogManager>()
-                            .unwrap();
+                        let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                         match iotrace_log_manager_plugin.get_trace_log(exe_name.clone(), process_cmdline.clone(), &globals) {
                             Err(e) => trace!("No I/O trace available: {}", e),

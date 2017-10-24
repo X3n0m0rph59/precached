@@ -46,7 +46,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
         let plugin = Box::new(IOtraceLogManager::new());
 
         let m = manager.plugin_manager.read().unwrap();
-    
+
         m.register_plugin(plugin);
     }
 }

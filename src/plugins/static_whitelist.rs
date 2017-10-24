@@ -98,7 +98,7 @@ impl StaticWhitelist {
         info!("Started caching of statically whitelisted files...");
 
         let pm = manager.plugin_manager.read().unwrap();
-        
+
         let mut static_blacklist = Vec::<String>::new();
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
             None => {
@@ -176,10 +176,7 @@ impl StaticWhitelist {
             }
             Some(h) => {
                 let mut h = h.write().unwrap();
-                let iotrace_prefetcher_hook = h
-                    .as_any_mut()
-                    .downcast_mut::<IOtracePrefetcher>()
-                    .unwrap();
+                let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
 
                 let program_whitelist = self.program_whitelist.clone();
 

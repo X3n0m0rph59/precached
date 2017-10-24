@@ -47,6 +47,6 @@ pub fn register_default_hooks(globals: &mut Globals, manager: &mut Manager) {
 
 pub fn unregister_hooks(_globals: &mut Globals, manager: &mut Manager) {
     let m = manager.hook_manager.read().unwrap();
-    
+
     m.unregister_all_hooks();
 }

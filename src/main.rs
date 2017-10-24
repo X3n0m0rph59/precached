@@ -213,7 +213,7 @@ fn process_internal_events(globals: &mut Globals, manager: &Manager) {
     while let Some(internal_event) = globals.event_queue.pop_front() {
         {
             // dispatch daemon internal events to plugins
-            let plugin_manager = manager.plugin_manager.read().unwrap();            
+            let plugin_manager = manager.plugin_manager.read().unwrap();
             plugin_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
 

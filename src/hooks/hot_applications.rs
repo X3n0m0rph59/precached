@@ -26,9 +26,9 @@ extern crate serde_json;
 use self::serde::Serialize;
 use super::iotrace_prefetcher::IOtracePrefetcher;
 use constants;
-use globals;
 use events;
 use events::EventType;
+use globals;
 use globals::*;
 use hooks::hook;
 use manager::*;
@@ -83,10 +83,7 @@ impl HotApplications {
             }
             Some(h) => {
                 let mut h = h.write().unwrap();
-                let iotrace_prefetcher_hook = h
-                    .as_any_mut()
-                    .downcast_mut::<IOtracePrefetcher>()
-                    .unwrap();
+                let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
 
                 let mut apps: Vec<(&String, &usize)> = self.app_histogram.iter().collect();
                 apps.sort_by(|a, b| b.1.cmp(a.1));
@@ -107,8 +104,13 @@ impl HotApplications {
     fn check_available_memory(globals: &mut Globals, manager: &Manager) -> bool {
         let mut result = true;
 
-        let available_mem_upper_threshold = globals.config.clone().config_file.unwrap_or_default()
-                                                        .available_mem_upper_threshold.unwrap();
+        let available_mem_upper_threshold = globals
+            .config
+            .clone()
+            .config_file
+            .unwrap_or_default()
+            .available_mem_upper_threshold
+            .unwrap();
 
         let pm = manager.plugin_manager.read().unwrap();
 
