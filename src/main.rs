@@ -424,7 +424,7 @@ fn main() {
 
     let mut last = Instant::now();
     events::queue_internal_event(EventType::Startup, &mut globals);
-    events::queue_internal_event(EventType::PrimeCaches, &mut globals);
+    // events::queue_internal_event(EventType::PrimeCaches, &mut globals);
 
     // spawn the event loop thread
     let handle = thread::Builder::new()

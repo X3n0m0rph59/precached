@@ -448,11 +448,12 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
         // check validity of parsed data
         let fields: Vec<&str> = l.split("  ").collect();
+        let idx = fields.len() - 1;
 
         if fields.len() >= 3 {
-            if !fields[2].contains("sys_open") && !fields[2].contains("sys_openat") && !fields[2].contains("sys_open_by_handle_at") && !fields[2].contains("sys_read") && !fields[2].contains("sys_readv") &&
-                !fields[2].contains("sys_preadv2") && !fields[2].contains("sys_pread62") && !fields[2].contains("sys_mmap") && !fields[2].contains("sys_statx") && !fields[2].contains("sys_newstat") &&
-                !fields[2].contains("sys_newfstat") && !fields[2].contains("sys_newfstatat") && !fields[2].contains("getnameprobe")
+            if !fields[idx].contains("sys_open") && !fields[idx].contains("sys_openat") && !fields[idx].contains("sys_open_by_handle_at") && !fields[idx].contains("sys_read") && !fields[idx].contains("sys_readv") &&
+               !fields[idx].contains("sys_preadv2") && !fields[idx].contains("sys_pread64") && !fields[idx].contains("sys_mmap") && !fields[idx].contains("sys_statx") && !fields[idx].contains("sys_newstat") &&
+               !fields[idx].contains("sys_newfstat") && !fields[idx].contains("sys_newfstatat") && !fields[idx].contains("getnameprobe")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }

@@ -25,8 +25,10 @@ use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use std::any::Any;
+use std::time::{Instant, Duration};
 use storage;
 use util;
+use constants;
 
 static NAME: &str = "statistics";
 static DESCRIPTION: &str = "Gather global system statistics and make them available to other plugins";
@@ -43,11 +45,17 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug, Clone)]
-pub struct Statistics {}
+pub struct Statistics {
+    last_sys_activity: Instant,
+    sys_left_idle_period: bool,
+}
 
 impl Statistics {
     pub fn new() -> Statistics {
-        Statistics {}
+        Statistics {
+            last_sys_activity: Instant::now(),
+            sys_left_idle_period: true,
+        }
     }
 
     pub fn produce_report(&mut self, _globals: &mut Globals, _manager: &Manager) {
@@ -85,30 +93,44 @@ impl Plugin for Statistics {
         match event.event_type {
             events::EventType::Ping => {
                 self.produce_report(globals, manager);
+
+                if Instant::now() - self.last_sys_activity >= Duration::from_secs(constants::IDLE_PERIOD_WINDOW) {
+                    events::queue_internal_event(events::EventType::IdlePeriod, globals)
+                }
             }
             events::EventType::FreeMemoryLowWatermark => {
-                info!("Statistics: Free memory: *Low*-Watermark reached!");
+                info!("Statistics: Free memory: *Low*-Watermark reached");
             }
             events::EventType::FreeMemoryHighWatermark => {
-                info!("Statistics: Free memory: *High*-Watermark reached!");
+                info!("Statistics: Free memory: *High*-Watermark reached");
             }
             events::EventType::AvailableMemoryLowWatermark => {
-                info!("Statistics: Available memory: *Low*-Watermark reached!");
+                info!("Statistics: Available memory: *Low*-Watermark reached");
             }
             events::EventType::AvailableMemoryHighWatermark => {
-                info!("Statistics: Available memory: *High*-Watermark reached!");
+                info!("Statistics: Available memory: *High*-Watermark reached");
             }
             events::EventType::SystemIsSwapping => {
                 info!("Statistics: System is swapping!");
             }
             events::EventType::SystemRecoveredFromSwap => {
-                info!("Statistics: System recovered from swapping!");
+                info!("Statistics: System recovered from swapping");
             }
             events::EventType::EnterIdle => {
-                info!("Statistics: System enters idle state!");
+                info!("Statistics: System enters idle state");
+            }
+            events::EventType::IdlePeriod => {
+                if self.sys_left_idle_period {
+                    info!("Statistics: System enters idle period. Priming stale caches now...");
+                    events::queue_internal_event(events::EventType::PrimeCaches, globals);
+                    self.sys_left_idle_period = false;
+                }
             }
             events::EventType::LeaveIdle => {
-                info!("Statistics: System no longer idle!");
+                info!("Statistics: System busy");
+
+                self.last_sys_activity = Instant::now();
+                self.sys_left_idle_period = true;
             }
             _ => {
                 // Ignore all other events

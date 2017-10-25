@@ -34,6 +34,7 @@ use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
+use std::time::{Instant, Duration};
 use storage;
 use util;
 
@@ -52,11 +53,15 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug, Clone)]
-pub struct IOtraceLogManager {}
+pub struct IOtraceLogManager {
+    last_housekeeping_performed: Instant,
+}
 
 impl IOtraceLogManager {
     pub fn new() -> IOtraceLogManager {
-        IOtraceLogManager {}
+        IOtraceLogManager {
+            last_housekeeping_performed: Instant::now(),
+        }
     }
 
     // Returns the most recent I/O trace log for `hashval`.
@@ -303,22 +308,26 @@ impl Plugin for IOtraceLogManager {
                 }
             }
 
-            EventType::EnterIdle |
+            EventType::IdlePeriod |
             EventType::DoHousekeeping => {
-                match util::SCHEDULER.lock() {
-                    Err(e) => {
-                        error!("Could not lock the global task scheduler! {}", e);
-                    }
-                    Ok(mut scheduler) => {
-                        let config = globals.config.config_file.clone().unwrap();
-                        let state_dir = config.state_dir.unwrap_or(
-                            String::from(constants::STATE_DIR),
-                        );
+                if Instant::now() - self.last_housekeeping_performed > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS) {
+                    match util::SCHEDULER.lock() {
+                        Err(e) => {
+                            error!("Could not lock the global task scheduler! {}", e);
+                        }
+                        Ok(mut scheduler) => {
+                            let config = globals.config.config_file.clone().unwrap();
+                            let state_dir = config.state_dir.unwrap_or(
+                                String::from(constants::STATE_DIR),
+                            );
 
-                        (*scheduler).schedule_job(move || {
-                            Self::prune_expired_trace_logs(state_dir.clone());
-                            Self::optimize_all_trace_logs(state_dir.clone());
-                        });
+                            (*scheduler).schedule_job(move || {
+                                Self::prune_expired_trace_logs(state_dir.clone());
+                                Self::optimize_all_trace_logs(state_dir.clone());
+                            });
+
+                            self.last_housekeeping_performed = Instant::now();
+                        }
                     }
                 }
             }

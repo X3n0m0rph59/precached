@@ -61,9 +61,14 @@ pub struct Metrics {
     free_mem_high_watermark_event_sent: bool,
     available_mem_high_watermark_event_sent: bool,
     recovered_from_swap_event_sent: bool,
+
     enter_idle_event_sent: bool,
+    system_was_idle_at_least_once: bool,
+
+    mem_freed_event_sent: bool,
 
     last_swapped_time: Instant,
+    last_mem_freed_time: Instant,
 }
 
 impl Metrics {
@@ -78,10 +83,16 @@ impl Metrics {
             available_mem_low_watermark_event_sent: false,
             free_mem_high_watermark_event_sent: true,
             available_mem_high_watermark_event_sent: true,
-            recovered_from_swap_event_sent: true,
-            enter_idle_event_sent: false,
 
+            recovered_from_swap_event_sent: true,
             last_swapped_time: Instant::now(),
+
+            mem_freed_event_sent: false,
+            last_mem_freed_time: Instant::now(),
+
+            enter_idle_event_sent: true,
+            system_was_idle_at_least_once: false,
+
         }
     }
 
@@ -106,7 +117,7 @@ impl Metrics {
                 self.free_mem_high_watermark_event_sent = true;
             }
         } else if free_percentage >= constants::FREE_MEMORY_LOWER_THRESHOLD {
-            if self.free_mem_low_watermark_event_sent == false {
+            if self.free_mem_low_watermark_event_sent == false && self.system_was_idle_at_least_once {
                 events::queue_internal_event(EventType::FreeMemoryLowWatermark, globals);
                 self.free_mem_low_watermark_event_sent = true;
             }
@@ -124,7 +135,7 @@ impl Metrics {
                 self.available_mem_high_watermark_event_sent = true;
             }
         } else if avail_percentage >= constants::AVAILABLE_MEMORY_LOWER_THRESHOLD {
-            if self.available_mem_low_watermark_event_sent == false {
+            if self.available_mem_low_watermark_event_sent == false && self.system_was_idle_at_least_once {
                 events::queue_internal_event(EventType::AvailableMemoryLowWatermark, globals);
                 self.available_mem_low_watermark_event_sent = true;
             }
@@ -142,7 +153,7 @@ impl Metrics {
 
         let mem_info_last = self.mem_info_last.unwrap();
 
-        if mem_info_last.swap_free - mem_info.swap_free > 0 {
+        if (mem_info_last.swap_free as isize - mem_info.swap_free as isize) > 0 {
             self.recovered_from_swap_event_sent = false;
 
             self.last_swapped_time = Instant::now();
@@ -158,23 +169,36 @@ impl Metrics {
             }
         }
 
+        // check if we gained some free memory
+        if (mem_info_last.free as isize - mem_info.free as isize) < -constants::MEM_FREED_THRESHOLD {
+            self.mem_freed_event_sent = false;
+
+            self.last_mem_freed_time = Instant::now();
+        } else {
+            let duration_without_mem_freed = Instant::now() - self.last_mem_freed_time;
+
+            if duration_without_mem_freed >= Duration::from_secs(constants::MEM_FREED_RECOVERY_WINDOW) {
+                if self.mem_freed_event_sent == false {
+                    events::queue_internal_event(EventType::MemoryFreed, globals);
+                    self.mem_freed_event_sent = true;
+                }
+            }
+        }
+
         self.mem_info_last = Some(mem_info);
 
         // Idle time tracking
         let sys = System::new();
-        if sys.load_average().unwrap().five <= 2.0 {
+        if sys.load_average().unwrap().one <= 1.0 {
             if self.enter_idle_event_sent == false {
                 events::queue_internal_event(EventType::EnterIdle, globals);
                 self.enter_idle_event_sent = true;
+                self.system_was_idle_at_least_once = true;
             }
         } else {
             // rearm event
             self.enter_idle_event_sent = false;
-        }
 
-        if sys.load_average().unwrap().one >= 2.0 {
-            // rearm event
-            self.enter_idle_event_sent = false;
             events::queue_internal_event(EventType::LeaveIdle, globals);
         }
     }

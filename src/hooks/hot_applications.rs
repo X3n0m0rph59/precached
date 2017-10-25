@@ -60,11 +60,12 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug, Clone)]
 pub struct HotApplications {
     app_histogram: HashMap<String, usize>,
+    cached_apps: Vec<String>,
 }
 
 impl HotApplications {
     pub fn new() -> HotApplications {
-        HotApplications { app_histogram: HashMap::new() }
+        HotApplications { app_histogram: HashMap::new(), cached_apps: vec![] }
     }
 
     pub fn is_exe_cached(&self, _exe_name: &String, _cmdline: &String) -> bool {
@@ -101,8 +102,16 @@ impl HotApplications {
                         break;
                     }
 
-                    debug!("Prefetching files for '{}'", hash);
-                    iotrace_prefetcher_hook.prefetch_data_by_hash(hash, globals, manager)
+                    if !self.cached_apps.contains(hash) {
+                        let hash_c = (*hash).clone();
+
+                        debug!("Prefetching files for '{}'", hash);
+                        iotrace_prefetcher_hook.prefetch_data_by_hash(hash, globals, manager);
+
+                        self.cached_apps.push(hash_c);
+                    } else {
+                        // trace!("Files for '{}' are already cached", hash);
+                    }
                 }
             }
         };

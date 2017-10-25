@@ -56,12 +56,16 @@ pub enum EventType {
     AvailableMemoryLowWatermark,
     /// sent when we reach the high threshold of *available* memory watermark
     AvailableMemoryHighWatermark,
+    /// sent when the system freed up some memory, e.g. memory hog process exited
+    MemoryFreed,
     /// sent when the system is swapping out data
     SystemIsSwapping,
     /// sent when the system is no longer swapping out data
     SystemRecoveredFromSwap,
-    /// sent when the system is idle for n seconds
+    /// sent as soon as the system load falls below a certain threshold
     EnterIdle,
+    /// sent when the system is idle for n seconds
+    IdlePeriod,
     /// sent when the system is no longer idle for n seconds
     LeaveIdle,
 }

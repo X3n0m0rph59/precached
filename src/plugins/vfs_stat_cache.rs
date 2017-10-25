@@ -49,11 +49,15 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug, Clone)]
-pub struct VFSStatCache {}
+pub struct VFSStatCache {
+    memory_freed: bool,
+}
 
 impl VFSStatCache {
     pub fn new() -> VFSStatCache {
-        VFSStatCache {}
+        VFSStatCache {
+            memory_freed: true,
+        }
     }
 
     /// Walk all files and directories from all whitelists
@@ -230,9 +234,18 @@ impl Plugin for VFSStatCache {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::PrimeCaches => {
-                self.prime_statx_cache(globals, manager);
-                self.prime_statx_cache_for_top_iotraces(globals, manager);
+                if self.memory_freed {
+                    self.prime_statx_cache(globals, manager);
+                    self.prime_statx_cache_for_top_iotraces(globals, manager);
+
+                    self.memory_freed = false;
+                }
             }
+
+            events::EventType::MemoryFreed => {
+                self.memory_freed = true;
+            }
+
             _ => {
                 // Ignore all other events
             }

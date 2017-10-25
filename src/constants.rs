@@ -61,8 +61,12 @@ pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 1000;
 pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 100;
 
 
+/// Time that has to elapse before we may perform housekeeping again
+pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 10 * 60;
+
+
 /// `Ping` event timer timeout
-pub const PING_INTERVAL_MILLIS: u64 = 2000;
+pub const PING_INTERVAL_MILLIS: u64 = 1000;
 
 /// Duration that we trace a process' I/O activity
 pub const IO_TRACE_TIME_SECS: u64 = 10;
@@ -71,7 +75,7 @@ pub const IO_TRACE_TIME_SECS: u64 = 10;
 pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
 
 /// The minimum length an I/O trace log must have for it to be saved/kept
-pub const MIN_TRACE_LOG_LENGTH: usize = 25;
+pub const MIN_TRACE_LOG_LENGTH: usize = 1;
 
 
 /// Upper threshold for free memory (percentage free)
@@ -88,6 +92,16 @@ pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u8 = 80;
 
 /// Time in seconds that has to elapse before we signal "recovery from swap"
 pub const SWAP_RECOVERY_WINDOW: u64 = 5;
+
+/// Time in seconds that has to elapse before we signal "system memory freed"
+pub const MEM_FREED_RECOVERY_WINDOW: u64 = 5;
+
+/// Amount of memory that has to be freed for the signal "MemoryFreed" to be sent
+pub const MEM_FREED_THRESHOLD: isize = 256 * 1024 * 1024;
+
+
+/// Time in seconds that has to elapse before we signal "system enters idle period"
+pub const IDLE_PERIOD_WINDOW: u64 = 8;
 
 
 /// Maximum allowed size of a file we prefetch

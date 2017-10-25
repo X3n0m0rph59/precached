@@ -275,10 +275,8 @@ impl Plugin for StaticWhitelist {
                 self.prefetch_whitelisted_programs(globals, manager);
             }
             events::EventType::PrimeCaches => {
-                // Ignore PrimeCaches event here since we don't manage a dynamic cache
-                // Only re-prime the cache when the static whitelist has been modified
-
                 // self.cache_whitelisted_files(globals, manager);
+                // self.prefetch_whitelisted_programs(globals, manager);
             }
             _ => {
                 // Ignore all other events
