@@ -59,9 +59,7 @@ pub struct IOtraceLogManager {
 
 impl IOtraceLogManager {
     pub fn new() -> IOtraceLogManager {
-        IOtraceLogManager {
-            last_housekeeping_performed: Instant::now(),
-        }
+        IOtraceLogManager { last_housekeeping_performed: Instant::now() }
     }
 
     // Returns the most recent I/O trace log for `hashval`.

@@ -92,7 +92,6 @@ impl Metrics {
 
             enter_idle_event_sent: true,
             system_was_idle_at_least_once: false,
-
         }
     }
 

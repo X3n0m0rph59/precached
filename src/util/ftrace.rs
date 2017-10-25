@@ -452,8 +452,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
         if fields.len() >= 3 {
             if !fields[idx].contains("sys_open") && !fields[idx].contains("sys_openat") && !fields[idx].contains("sys_open_by_handle_at") && !fields[idx].contains("sys_read") && !fields[idx].contains("sys_readv") &&
-               !fields[idx].contains("sys_preadv2") && !fields[idx].contains("sys_pread64") && !fields[idx].contains("sys_mmap") && !fields[idx].contains("sys_statx") && !fields[idx].contains("sys_newstat") &&
-               !fields[idx].contains("sys_newfstat") && !fields[idx].contains("sys_newfstatat") && !fields[idx].contains("getnameprobe")
+                !fields[idx].contains("sys_preadv2") && !fields[idx].contains("sys_pread64") && !fields[idx].contains("sys_mmap") && !fields[idx].contains("sys_statx") && !fields[idx].contains("sys_newstat") &&
+                !fields[idx].contains("sys_newfstat") && !fields[idx].contains("sys_newfstatat") && !fields[idx].contains("getnameprobe")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }

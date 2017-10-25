@@ -65,7 +65,10 @@ pub struct HotApplications {
 
 impl HotApplications {
     pub fn new() -> HotApplications {
-        HotApplications { app_histogram: HashMap::new(), cached_apps: vec![] }
+        HotApplications {
+            app_histogram: HashMap::new(),
+            cached_apps: vec![],
+        }
     }
 
     pub fn is_exe_cached(&self, _exe_name: &String, _cmdline: &String) -> bool {

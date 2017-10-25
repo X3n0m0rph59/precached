@@ -55,9 +55,7 @@ pub struct VFSStatCache {
 
 impl VFSStatCache {
     pub fn new() -> VFSStatCache {
-        VFSStatCache {
-            memory_freed: true,
-        }
+        VFSStatCache { memory_freed: true }
     }
 
     /// Walk all files and directories from all whitelists
