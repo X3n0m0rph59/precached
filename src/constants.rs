@@ -78,17 +78,18 @@ pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
 pub const MIN_TRACE_LOG_LENGTH: usize = 1;
 
 
-/// Upper threshold for free memory (percentage free)
-pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 20;
+/// Upper threshold for free memory
+pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 100;
 
-/// Lower threshold for free memory (percentage free)
-pub const FREE_MEMORY_LOWER_THRESHOLD: u8 = 80;
+/// Lower threshold for free memory
+pub const FREE_MEMORY_LOWER_THRESHOLD: u8 = 30;
+
+/// Available memory threshold
+pub const AVAILABLE_MEMORY_UPPER_THRESHOLD: u8 = 85;
 
 /// Available memory threshold (percentage available)
-pub const AVAILABLE_MEMORY_UPPER_THRESHOLD: u8 = 20;
+pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u8 = 30;
 
-/// Available memory threshold (percentage available)
-pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u8 = 80;
 
 /// Time in seconds that has to elapse before we signal "recovery from swap"
 pub const SWAP_RECOVERY_WINDOW: u64 = 5;

@@ -141,7 +141,7 @@ impl HotApplications {
                 let p = p.read().unwrap();
                 let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
-                if metrics_plugin.get_available_mem_percentage() <= available_mem_upper_threshold {
+                if metrics_plugin.get_available_mem_percentage() <= 100 - available_mem_upper_threshold {
                     result = false;
                 }
             }
