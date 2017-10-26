@@ -103,6 +103,12 @@ impl<'a, 'b> Config<'a, 'b> {
                     .about("Instruct precached to commence housekeeping tasks"),
             )
             .subcommand(
+                SubCommand::with_name("prime-caches")
+                    .setting(AppSettings::DeriveDisplayOrder)
+                    .alias("prime-caches-now")
+                    .about("Instruct precached to commence priming all caches now"),
+            )
+            .subcommand(
                 SubCommand::with_name("help")
                     .setting(AppSettings::DeriveDisplayOrder)
                     .about("Display this short help text"),
@@ -253,6 +259,24 @@ fn do_housekeeping(_config: &Config, _daemon_config: util::ConfigFile) {
     };
 }
 
+/// Instruct precached to commence housekeeping tasks
+fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
+    match read_daemon_pid() {
+        Err(_e) => {
+            println!("precached is NOT running, did not send signal");
+        }
+        Ok(pid_str) => {
+            let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
+            match kill(pid, SIGUSR2) {
+                Err(e) => {
+                    println!("Could not send signal! {}", e);
+                }
+                Ok(()) => { println!("Success"); }
+            }
+        }
+    };
+}
+
 /// Print help message on how to use this command
 fn print_help(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
@@ -301,6 +325,10 @@ fn main() {
             "housekeeping" |
             "do-housekeeping" => {
                 do_housekeeping(&config, daemon_config);
+            }
+            "prime-caches" |
+            "prime-caches-now" => {
+                do_prime_caches(&config, daemon_config);
             }
             "help" => {
                 print_help(&mut config_c);

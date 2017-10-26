@@ -498,10 +498,10 @@ fn main() {
         // Check if we received a SIGUSR2 signal
         if SIG_USR2.load(Ordering::Relaxed) {
             SIG_USR2.store(false, Ordering::Relaxed);
-            warn!("Received SIGUSR2: This signal is currently not mapped to a function! Ignoring...");
+            warn!("Received SIGUSR2: Priming all caches now...");
 
             // Queue event
-            // events::queue_internal_event(EventType::DoHousekeeping, &mut globals);
+            events::queue_internal_event(EventType::PrimeCaches, &mut globals);
         }
 
         // NOTE: This is currently unused

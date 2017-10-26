@@ -1,0 +1,14 @@
+[Unit]
+Description=Precached - Tell the daemon to prime all caches now
+Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precached.conf(5)
+Requisite=precached.service
+After=gdm.service
+
+[Service]
+Environment=LOG_LEVEL=warn
+ExecStart=/usr/sbin/precachedctl prime-caches-now
+Type=oneshot
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
