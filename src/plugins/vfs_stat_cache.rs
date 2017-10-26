@@ -122,7 +122,7 @@ impl VFSStatCache {
     /// Get all files and directories that are currently contained in a whitelist,
     /// either a statc whitelist or a dynamic whitelist. Returns a `Vec<String>`
     /// filled with the globally whitelisted files
-    fn get_globally_tracked_entries(&self, _globals: &Globals, manager: &Manager) -> Vec<String> {
+    fn get_globally_tracked_entries(&self, globals: &Globals, manager: &Manager) -> Vec<String> {
         let mut result = Vec::<String>::new();
 
         let pm = manager.plugin_manager.read().unwrap();
@@ -135,7 +135,9 @@ impl VFSStatCache {
                 let p = p.read().unwrap();
                 let static_whitelist = p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
-                result.append(&mut static_whitelist.get_whitelist().clone());
+                result.append(&mut static_whitelist
+                    .get_metadata_whitelist(globals)
+                    .clone());
             }
         };
 

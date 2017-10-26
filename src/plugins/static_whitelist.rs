@@ -74,8 +74,23 @@ impl StaticWhitelist {
             .unwrap()
             .whitelist
             .unwrap();
-        result.append(&mut whitelist);
 
+        result.append(&mut whitelist);
+        result
+    }
+
+    pub fn get_metadata_whitelist(&self, globals: &Globals) -> Vec<String> {
+        let mut result = Vec::new();
+
+        let mut whitelist = globals
+            .config
+            .config_file
+            .clone()
+            .unwrap()
+            .metadata_whitelist
+            .unwrap();
+
+        result.append(&mut whitelist);
         result
     }
 
@@ -89,8 +104,8 @@ impl StaticWhitelist {
             .unwrap()
             .program_whitelist
             .unwrap();
-        result.append(&mut program_whitelist);
 
+        result.append(&mut program_whitelist);
         result
     }
 
