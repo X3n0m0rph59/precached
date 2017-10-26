@@ -152,19 +152,15 @@ pub fn is_filename_valid(filename: &String) -> bool {
         return false;
     }
 
-    // blacklist linux special mappings
-    let blacklist = vec![
-        String::from("[mpx]"),
-        String::from("[vvar]"),
-        String::from("[vdso]"),
-        String::from("[heap]"),
-        String::from("[stack]"),
-        String::from("[vsyscall]"),
-        String::from("/memfd:"),
-        String::from("(deleted)"),
-    ];
+    return true;
+}
 
-    if blacklist.iter().any(|bi| f.contains(bi)) {
+pub fn is_file_valid(filename: &String) -> bool {
+    if !Path::new(filename).is_absolute() {
+        return false;
+    }
+
+    if is_directory(filename) {
         return false;
     }
 

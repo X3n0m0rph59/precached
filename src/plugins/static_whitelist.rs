@@ -210,6 +210,11 @@ impl StaticWhitelist {
             return false;
         }
 
+        // Check if file is valid
+        if !util::is_file_valid(&filename) {
+            return false;
+        }
+
         // Check if filename matches a blacklist rule
         if util::is_file_blacklisted(&filename, &static_blacklist) {
             return false;
