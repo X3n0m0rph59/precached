@@ -71,11 +71,13 @@ impl HotApplications {
         }
     }
 
-    pub fn is_exe_cached(&self, _exe_name: &String, _cmdline: &String) -> bool {
-        // TODO: Implement this!
-        // self.app_histogram.contains_key(exe_name)
+    pub fn is_exe_cached(&self, exe_name: &String, cmdline: &String) -> bool {
+        let mut hasher = fnv::FnvHasher::default();
+        hasher.write(&exe_name.clone().into_bytes());
+        hasher.write(&cmdline.clone().into_bytes());
+        let hashval = hasher.finish();
 
-        false
+        self.cached_apps.contains(&format!("{}", hashval))
     }
 
     pub fn get_app_vec_ordered(&self) -> Vec<(&String, &usize)> {
