@@ -59,7 +59,9 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct HotApplications {
+    /// Histogram of a hash of the corresponding I/O trace and a counter value
     app_histogram: HashMap<String, usize>,
+    /// Vector of currently cached apps
     cached_apps: Vec<String>,
 }
 
@@ -71,6 +73,7 @@ impl HotApplications {
         }
     }
 
+    /// Query whether we already do have cached the executable file `exe_name`
     pub fn is_exe_cached(&self, exe_name: &String, cmdline: &String) -> bool {
         let mut hasher = fnv::FnvHasher::default();
         hasher.write(&exe_name.clone().into_bytes());
@@ -80,6 +83,7 @@ impl HotApplications {
         self.cached_apps.contains(&format!("{}", hashval))
     }
 
+    /// Returns an ordered Vector of (hash,count) tuples in descending order of importance
     pub fn get_app_vec_ordered(&self) -> Vec<(&String, &usize)> {
         let mut apps: Vec<(&String, &usize)> = self.app_histogram.iter().collect();
         apps.sort_by(|a, b| b.1.cmp(a.1));
@@ -87,6 +91,7 @@ impl HotApplications {
         apps
     }
 
+    /// Prefetch the I/O traces of the most often used programs on the system
     pub fn prefetch_data(&mut self, globals: &mut Globals, manager: &Manager) {
         let hm = manager.hook_manager.read().unwrap();
 
@@ -122,6 +127,7 @@ impl HotApplications {
         };
     }
 
+    /// Check if we have enough available memory to perform prefetching
     fn check_available_memory(globals: &mut Globals, manager: &Manager) -> bool {
         let mut result = true;
 
@@ -152,6 +158,7 @@ impl HotApplications {
         result
     }
 
+    /// Increments the execution counter of an application
     pub fn application_executed(&mut self, pid: libc::pid_t) {
         match Process::new(pid) {
             Err(e) => {
@@ -183,6 +190,7 @@ impl HotApplications {
         }
     }
 
+    /// Load the previously saved internal state of our plugin
     pub fn load_state(&mut self, globals: &mut Globals, _manager: &Manager) {
         match Self::deserialize(globals) {
             Err(e) => {
@@ -194,6 +202,7 @@ impl HotApplications {
         }
     }
 
+    /// Save the internal state of our plugin
     pub fn save_state(&mut self, globals: &mut Globals, _manager: &Manager) {
         Self::serialize(&self.app_histogram, globals);
     }
