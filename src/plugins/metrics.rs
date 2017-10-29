@@ -162,7 +162,7 @@ impl Metrics {
 
         // *available* memory events
         let avail_percentage = (mem_info.avail * 100 / mem_info.total) as u8;
-        if avail_percentage <= available_mem_upper_threshold {
+        if avail_percentage <= 100 - available_mem_upper_threshold {
             if self.available_mem_high_watermark_event_sent == false {
                 events::queue_internal_event(EventType::AvailableMemoryHighWatermark, globals);
                 self.available_mem_high_watermark_event_sent = true;
@@ -173,7 +173,7 @@ impl Metrics {
             }
 
             // in addition, check if we have exhausted available memory and notify if applicable
-            if avail_percentage <= available_mem_critical_threshold {
+            if avail_percentage <= 100 - available_mem_critical_threshold {
                 if self.available_mem_critical_event_sent == false {
                     events::queue_internal_event(EventType::AvailableMemoryCritical, globals);
                     self.available_mem_critical_event_sent = true;
@@ -185,7 +185,7 @@ impl Metrics {
             } else {
                 self.available_mem_critical_event_sent = false;
             }
-        } else if avail_percentage >= available_mem_lower_threshold {
+        } else if avail_percentage >= 100 - available_mem_lower_threshold {
             if self.available_mem_low_watermark_event_sent == false && self.system_was_idle_at_least_once {
                 events::queue_internal_event(EventType::AvailableMemoryLowWatermark, globals);
                 self.available_mem_low_watermark_event_sent = true;
@@ -194,13 +194,11 @@ impl Metrics {
                 self.available_mem_high_watermark_event_sent = false;
                 self.available_mem_critical_event_sent = false;
             }
-
+        } else {
             // rearm events
-            // self.available_mem_low_watermark_event_sent = false;
+            self.available_mem_low_watermark_event_sent = false;
             self.available_mem_high_watermark_event_sent = false;
             self.available_mem_critical_event_sent = false;
-        } else {
-            self.available_mem_low_watermark_event_sent = false;
         }
 
         // *swap* events
