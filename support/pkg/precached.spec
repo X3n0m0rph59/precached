@@ -22,9 +22,10 @@ Requires: dbus
 %description
 Precached is written in Rust and utilises the Linux netlink connector interface
 to monitor the system for process events. It can act upon such events via
-multiple means. E.g. in the future it will be able to pre-fault pages into
-memory to speed up loading of programs and increase the perceived overall
-'snappiness' of the system.
+multiple means. E.g. it is able to pre-fault pages into memory, to speed up
+loading of programs and increase the perceived overall 'snappiness' of the
+system. Additionally it supports offline prefetching of the most often used
+programs while the system is idle.
 
 %prep
 %autosetup -n %{name}-%{version}

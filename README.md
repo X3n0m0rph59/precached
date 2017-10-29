@@ -3,9 +3,10 @@
 
 Precached is written in Rust and utilises the Linux netlink connector interface
 to monitor the system for process events. It can act upon such events via
-multiple means. E.g. in the future it will be able to pre-fault pages into
-memory to speed up loading of programs and increase the perceived overall
-'snappiness' of the system.
+multiple means. E.g. it is able to pre-fault pages into memory, to speed up
+loading of programs and increase the perceived overall 'snappiness' of the
+system. Additionally it supports offline prefetching of the most often used
+programs while the system is idle.
 
 ### Quick Install Guide
 
@@ -14,7 +15,8 @@ memory to speed up loading of programs and increase the perceived overall
 ```
     $ sudo dnf copr enable x3n0m0rph59/precached
     $ sudo dnf install precached
-    $ sudo systemctl enable --now precached
+    $ sudo systemctl enable --now precached.service
+    $ sudo systemctl enable --now precached-prime-caches.service
 ```
 
 #### Install from Source
@@ -65,23 +67,12 @@ noticeable improvement out of using precached.
 
 ### Current State
 
-#### What is working right now
-
-* mlock() of mapped files
-* Static Whitelisting
-* VFS statx() caching (pre-read file metadata)
-
 #### What remains to be done
 
-* Implement ceiling on mlocked() memory
 * Possibly implement fork-bomb mitigation
-* Implement a persistence layer
-* Daemonization support
-* Prime caches on daemon startup
 * Markov-chain based prefetching
 * Implement a DBUS interface
-* Write a nice CLI tool to control the daemon
-* And write a precached GUI in GTK+
+* Write a precached GUI in GTK+
 * Create and publish benchmarks
 * ...
 
