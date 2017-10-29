@@ -2,7 +2,7 @@
 Description=Precached - Tell the daemon to prime all caches now
 Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precached.conf(5)
 Requisite=precached.service
-After=gdm.service
+After=graphical.target
 
 [Service]
 Environment=LOG_LEVEL=warn
@@ -11,4 +11,4 @@ Type=oneshot
 StandardOutput=journal
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target
