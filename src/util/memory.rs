@@ -189,6 +189,12 @@ pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
     }
 }
 
+pub fn free_mapping(mapping: &MemoryMapping) -> bool {
+    let result = unsafe { libc::munmap(mapping.addr as *mut libc::c_void, mapping.len) };
+
+    result == 0
+}
+
 pub fn prime_metadata_cache(filename: &str) -> Result<()> {
     trace!("Caching metadata of file : '{}'", filename);
 

@@ -110,6 +110,12 @@ impl Plugin for Statistics {
             events::EventType::AvailableMemoryHighWatermark => {
                 info!("Statistics: Available memory: *High*-Watermark reached");
             }
+            events::EventType::MemoryFreed => {
+                info!("Statistics: Available memory: Memory freed");
+            }
+            events::EventType::AvailableMemoryCritical => {
+                info!("Statistics: Available memory: Memory exhausted!");
+            }
             events::EventType::SystemIsSwapping => {
                 info!("Statistics: System is swapping!");
             }

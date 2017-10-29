@@ -39,18 +39,18 @@ pub mod forkbomb_mitigation;
 pub mod rule_plugin;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
+    statistics::register_plugin(globals, manager);
+    metrics::register_plugin(globals, manager);
     system_agent::register_plugin(globals, manager);
     vfs_stat_cache::register_plugin(globals, manager);
     static_blacklist::register_plugin(globals, manager);
     static_whitelist::register_plugin(globals, manager);
     iotrace_log_manager::register_plugin(globals, manager);
     markov_log_manager::register_plugin(globals, manager);
-    statistics::register_plugin(globals, manager);
-    metrics::register_plugin(globals, manager);
-    notifications::register_plugin(globals, manager);
     // dbus_interface::register_plugin(globals, manager);
-    forkbomb_mitigation::register_plugin(globals, manager);
     rule_plugin::register_plugin(globals, manager);
+    forkbomb_mitigation::register_plugin(globals, manager);
+    notifications::register_plugin(globals, manager);
 }
 
 pub fn unregister_plugins(_globals: &mut Globals, manager: &mut Manager) {

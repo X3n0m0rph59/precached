@@ -83,10 +83,21 @@ impl HotApplications {
         self.cached_apps.contains(&format!("{}", hashval))
     }
 
-    /// Returns an ordered Vector of (hash,count) tuples in descending order of importance
+    /// Returns an ordered Vector of (&hash,&count) tuples in descending order of importance
     pub fn get_app_vec_ordered(&self) -> Vec<(&String, &usize)> {
         let mut apps: Vec<(&String, &usize)> = self.app_histogram.iter().collect();
         apps.sort_by(|a, b| b.1.cmp(a.1));
+
+        apps
+    }
+
+    /// Returns an ordered Vector of (hash,count) tuples in ascending order of importance
+    pub fn get_app_vec_ordered_reverse(&self) -> Vec<(String, usize)> {
+        let mut apps: Vec<(String, usize)> = self.app_histogram.iter().map(|(ref k, ref v)| {
+            ((*k).clone(), (*v).clone())
+        }).collect();
+        apps.sort_by(|a, b| b.1.cmp(&a.1));
+        apps.reverse();
 
         apps
     }
@@ -127,8 +138,35 @@ impl HotApplications {
         };
     }
 
+    pub fn free_memory(&mut self, _emergency: bool, globals: &Globals, manager: &Manager) {
+        warn!("Available memory critical threshold reached, freeing memory now!");
+
+        let hm = manager.hook_manager.read().unwrap();
+
+        match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
+            None => {
+                warn!("Hook not loaded: 'iotrace_prefetcher', skipped");
+            }
+            Some(h) => {
+                let mut h = h.write().unwrap();
+                let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
+
+                let reverse_app_vec = self.get_app_vec_ordered_reverse();
+                for (hashval, count) in reverse_app_vec {
+                    if self.cached_apps.contains(&hashval) {
+                        debug!("Unmapping files for '{}'", hashval);
+                        iotrace_prefetcher_hook.free_memory_by_hash(&hashval, globals, manager);
+
+                        // remove hashval from cached_apps vec
+                        self.cached_apps.retain(|ref val| { *val != &hashval });
+                    }
+                }
+            }
+        };
+    }
+
     /// Check if we have enough available memory to perform prefetching
-    fn check_available_memory(globals: &mut Globals, manager: &Manager) -> bool {
+    fn check_available_memory(globals: &Globals, manager: &Manager) -> bool {
         let mut result = true;
 
         let available_mem_upper_threshold = globals
@@ -267,6 +305,14 @@ impl hook::Hook for HotApplications {
             events::EventType::PrimeCaches |
             events::EventType::AvailableMemoryLowWatermark => {
                 self.prefetch_data(globals, manager);
+            }
+
+            events::EventType::AvailableMemoryCritical => {
+                self.free_memory(false, globals, manager);
+            }
+
+            events::EventType::SystemIsSwapping => {
+                self.free_memory(true, globals, manager);
             }
 
             _ => { /* Do nothing */ }

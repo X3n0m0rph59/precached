@@ -20,6 +20,7 @@
 
 extern crate sys_info;
 extern crate systemstat;
+extern crate num_cpus;
 
 use self::sys_info::MemInfo;
 use self::systemstat::{System, Platform};
@@ -60,6 +61,7 @@ pub struct Metrics {
     available_mem_low_watermark_event_sent: bool,
     free_mem_high_watermark_event_sent: bool,
     available_mem_high_watermark_event_sent: bool,
+    available_mem_critical_event_sent: bool,
     recovered_from_swap_event_sent: bool,
 
     enter_idle_event_sent: bool,
@@ -81,8 +83,9 @@ impl Metrics {
             // event flags
             free_mem_low_watermark_event_sent: false,
             available_mem_low_watermark_event_sent: false,
-            free_mem_high_watermark_event_sent: true,
-            available_mem_high_watermark_event_sent: true,
+            free_mem_high_watermark_event_sent: false,
+            available_mem_high_watermark_event_sent: false,
+            available_mem_critical_event_sent: false,
 
             recovered_from_swap_event_sent: true,
             last_swapped_time: Instant::now(),
@@ -90,7 +93,7 @@ impl Metrics {
             mem_freed_event_sent: false,
             last_mem_freed_time: Instant::now(),
 
-            enter_idle_event_sent: true,
+            enter_idle_event_sent: false,
             system_was_idle_at_least_once: false,
         }
     }
@@ -102,11 +105,42 @@ impl Metrics {
         avail_percentage
     }
 
+    pub fn get_free_mem_percentage(&self) -> u8 {
+        let mem_info = sys_info::mem_info().unwrap();
+        let free_percentage = (mem_info.free * 100 / mem_info.total) as u8;
+
+        free_percentage
+    }
+
     pub fn gather_metrics(&mut self, globals: &mut Globals, _manager: &Manager) {
         trace!("Gathering global performance metrics...");
 
         let mem_info = sys_info::mem_info().unwrap();
         debug!("{:?}", mem_info);
+
+        let available_mem_critical_threshold = globals
+            .config
+            .clone()
+            .config_file
+            .unwrap_or_default()
+            .available_mem_critical_threshold
+            .unwrap();
+
+        let available_mem_upper_threshold = globals
+            .config
+            .clone()
+            .config_file
+            .unwrap_or_default()
+            .available_mem_upper_threshold
+            .unwrap();
+
+        let available_mem_lower_threshold = globals
+            .config
+            .clone()
+            .config_file
+            .unwrap_or_default()
+            .available_mem_lower_threshold
+            .unwrap();
 
         // *free* memory events
         let free_percentage = (mem_info.free * 100 / mem_info.total) as u8;
@@ -128,20 +162,45 @@ impl Metrics {
 
         // *available* memory events
         let avail_percentage = (mem_info.avail * 100 / mem_info.total) as u8;
-        if avail_percentage <= constants::AVAILABLE_MEMORY_UPPER_THRESHOLD {
+        if avail_percentage <= available_mem_upper_threshold {
             if self.available_mem_high_watermark_event_sent == false {
                 events::queue_internal_event(EventType::AvailableMemoryHighWatermark, globals);
                 self.available_mem_high_watermark_event_sent = true;
+
+                self.available_mem_low_watermark_event_sent = false;
+                // self.available_mem_high_watermark_event_sent = false;
+                self.available_mem_critical_event_sent = false;
             }
-        } else if avail_percentage >= constants::AVAILABLE_MEMORY_LOWER_THRESHOLD {
+
+            // in addition, check if we have exhausted available memory and notify if applicable
+            if avail_percentage <= available_mem_critical_threshold {
+                if self.available_mem_critical_event_sent == false {
+                    events::queue_internal_event(EventType::AvailableMemoryCritical, globals);
+                    self.available_mem_critical_event_sent = true;
+
+                    self.available_mem_low_watermark_event_sent = false;
+                    self.available_mem_high_watermark_event_sent = false;
+                    self.available_mem_critical_event_sent = false;
+                }
+            } else {
+                self.available_mem_critical_event_sent = false;
+            }
+        } else if avail_percentage >= available_mem_lower_threshold {
             if self.available_mem_low_watermark_event_sent == false && self.system_was_idle_at_least_once {
                 events::queue_internal_event(EventType::AvailableMemoryLowWatermark, globals);
                 self.available_mem_low_watermark_event_sent = true;
+
+                // self.available_mem_low_watermark_event_sent = false;
+                self.available_mem_high_watermark_event_sent = false;
+                self.available_mem_critical_event_sent = false;
             }
-        } else {
+
             // rearm events
-            self.available_mem_low_watermark_event_sent = false;
+            // self.available_mem_low_watermark_event_sent = false;
             self.available_mem_high_watermark_event_sent = false;
+            self.available_mem_critical_event_sent = false;
+        } else {
+            self.available_mem_low_watermark_event_sent = false;
         }
 
         // *swap* events
@@ -186,9 +245,11 @@ impl Metrics {
 
         self.mem_info_last = Some(mem_info);
 
+        let num_cpus = num_cpus::get();
+
         // Idle time tracking
         let sys = System::new();
-        if sys.load_average().unwrap().one <= 1.0 {
+        if sys.load_average().unwrap().one <= num_cpus as f32 {
             if self.enter_idle_event_sent == false {
                 events::queue_internal_event(EventType::EnterIdle, globals);
                 self.enter_idle_event_sent = true;

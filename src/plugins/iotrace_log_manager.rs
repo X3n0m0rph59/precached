@@ -121,8 +121,8 @@ impl IOtraceLogManager {
     }
 
     /// Prunes invalid I/O trace logs
-    pub fn prune_expired_trace_logs(state_dir: String) {
-        debug!("Pruning stale I/O trace logs...");
+    pub fn prune_invalid_trace_logs(state_dir: String) {
+        debug!("Pruning invalid I/O trace logs...");
 
         let traces_path = String::from(
             Path::new(&state_dir)
@@ -320,7 +320,7 @@ impl Plugin for IOtraceLogManager {
                             );
 
                             (*scheduler).schedule_job(move || {
-                                Self::prune_expired_trace_logs(state_dir.clone());
+                                Self::prune_invalid_trace_logs(state_dir.clone());
                                 Self::optimize_all_trace_logs(state_dir.clone());
                             });
 

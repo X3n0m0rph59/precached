@@ -213,8 +213,8 @@ pub fn is_directory(filename: &String) -> bool {
 pub fn ellipsize_filename(filename: &String) -> String {
     let mut result = String::from("");
 
-    const MAX_LEN: usize = 55;
-    const CUTOFF: usize = 20;
+    const MAX_LEN: usize = 50;
+    const CUTOFF: usize = 10;
 
     if filename.len() > MAX_LEN {
         result.push_str(&filename[0..MAX_LEN / 2 - CUTOFF]);

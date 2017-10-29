@@ -56,6 +56,8 @@ pub enum EventType {
     AvailableMemoryLowWatermark,
     /// sent when we reach the high threshold of *available* memory watermark
     AvailableMemoryHighWatermark,
+    /// sent when we reach the critical threshold of *available* memory
+    AvailableMemoryCritical,
     /// sent when the system freed up some memory, e.g. memory hog process exited
     MemoryFreed,
     /// sent when the system is swapping out data

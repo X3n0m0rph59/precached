@@ -84,6 +84,9 @@ pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 100;
 /// Lower threshold for free memory
 pub const FREE_MEMORY_LOWER_THRESHOLD: u8 = 30;
 
+/// Available memory critical threshold
+pub const AVAILABLE_MEMORY_CRITICAL_THRESHOLD: u8 = 90;
+
 /// Available memory threshold
 pub const AVAILABLE_MEMORY_UPPER_THRESHOLD: u8 = 85;
 

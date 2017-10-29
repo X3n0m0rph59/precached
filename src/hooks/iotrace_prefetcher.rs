@@ -37,6 +37,7 @@ use process::Process;
 use procmon;
 use std::any::Any;
 use std::collections::HashMap;
+use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::path::Path;
 use std::sync::Mutex;
 use std::sync::mpsc::{channel, Sender};
@@ -134,6 +135,39 @@ impl IOtracePrefetcher {
         }
 
         already_prefetched
+    }
+
+    fn unmap_files(
+        io_trace: &Vec<iotrace::TraceLogEntry>,
+        our_mapped_files: &HashMap<String, util::MemoryMapping>,
+    ) -> Vec<String> {
+        let mut result = vec![];
+
+        for entry in io_trace {
+            match entry.operation {
+                // TODO: Fix this when using a finer granularity for Prefetching
+                iotrace::IOOperation::Open(ref file, ref _fd) => {
+                    trace!("Unmapping: {}", file);
+
+                    if let Some(mapping) = our_mapped_files.get(file) {
+                        let mapping_c = mapping.clone();
+                        if util::free_mapping(mapping) {
+                            info!("Successfuly unmapped file: '{}'", file);
+                            result.push(mapping_c.filename);
+                        } else {
+                            error!("Could not unmap file: '{}'", file);
+                        }
+                    } else {
+                        // This need not be corruption of data structures but simply a missing file,
+                        // so just do nothing here
+                    }
+                }
+
+                _ => { /* Do nothing */ }
+            }
+        }
+
+        result
     }
 
     fn prefetch_statx_metadata(io_trace: &Vec<iotrace::TraceLogEntry>, static_blacklist: &Vec<String>) {
@@ -285,6 +319,65 @@ impl IOtracePrefetcher {
                             let mapped_files = receiver.recv().unwrap();
                             for (k, v) in mapped_files {
                                 self.mapped_files.insert(k, v);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Free memory of a previously replayed I/O trace `hashval` and remove all cached files from memory
+    pub fn free_memory_by_hash(&mut self, hashval: &String, globals: &Globals, manager: &Manager) {
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
+            None => {
+                trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
+            }
+            Some(p) => {
+                let p = p.write().unwrap();
+                let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
+
+                match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval.clone(), &globals) {
+                    Err(e) => trace!("I/O trace '{}' not available: {}", hashval, e),
+                    Ok(io_trace) => {
+                        let our_mapped_files = self.mapped_files.clone();
+
+                        // distribute prefetching work evenly across the prefetcher threads
+                        let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
+                        let max = prefetch_pool.max_count();
+                        let count_total = io_trace.trace_log.len();
+
+                        let (sender, receiver): (Sender<Vec<String>>, _) = channel();
+
+                        for n in 0..max {
+                            let sc = Mutex::new(sender.clone());
+
+                            // calculate slice bounds for each thread
+                            let low = (count_total / max) * n;
+                            let high = (count_total / max) * n + (count_total / max);
+
+                            let trace_log = io_trace.trace_log[low..high].to_vec();
+
+                            let our_mapped_files_c = our_mapped_files.clone();
+
+                            prefetch_pool.execute(move || {
+                                // submit memory freeing work to an idle thread
+                                let unmapped_files = Self::unmap_files(
+                                    &trace_log,
+                                    &our_mapped_files_c,
+                                );
+
+                                sc.lock().unwrap().send(unmapped_files).unwrap();
+                            })
+                        }
+
+                        for _ in 0..max {
+                            // blocking call; wait for worker thread(s)
+                            let unmapped_files = receiver.recv().unwrap();
+                            for k in unmapped_files {
+                                self.mapped_files.remove(&k);
                             }
                         }
                     }

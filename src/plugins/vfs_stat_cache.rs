@@ -73,8 +73,16 @@ impl VFSStatCache {
                 )
             }
             Ok(thread_pool) => {
+                let globals_c = globals.clone();
+                let manager_c = manager.clone();
+
                 thread_pool.submit_work(move || {
                     util::walk_directories(&tracked_entries, &mut |ref path| {
+                        if Self::check_available_memory(&globals_c, &manager_c) == false {
+                            info!("Available memory exhausted, stopping statx() caching!");
+                            return;
+                        }
+
                         let _metadata = path.metadata();
                     }).unwrap_or_else(|e| {
                         error!(
@@ -184,7 +192,7 @@ impl VFSStatCache {
         info!("Finished reading of statx() metadata for most used applications");
     }
 
-    fn check_available_memory(globals: &mut Globals, manager: &Manager) -> bool {
+    fn check_available_memory(globals: &Globals, manager: &Manager) -> bool {
         let mut result = true;
 
         let pm = manager.plugin_manager.read().unwrap();

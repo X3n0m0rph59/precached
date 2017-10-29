@@ -26,6 +26,7 @@ use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::static_blacklist::StaticBlacklist;
+use plugins::metrics::Metrics;
 use std::any::Any;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -109,7 +110,7 @@ impl StaticWhitelist {
         result
     }
 
-    pub fn cache_whitelisted_files(&mut self, _globals: &Globals, manager: &Manager) {
+    pub fn cache_whitelisted_files(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started caching of statically whitelisted files...");
 
         let pm = manager.plugin_manager.read().unwrap();
@@ -141,10 +142,18 @@ impl StaticWhitelist {
                 )
             }
             Ok(thread_pool) => {
+                let globals_c = globals.clone();
+                let manager_c = manager.clone();
+
                 thread_pool.submit_work(move || {
                     let mut mapped_files = HashMap::new();
 
                     util::walk_directories(&whitelist, &mut |ref path| {
+                        if Self::check_available_memory(&globals_c, &manager_c) == false {
+                            info!("Available memory exhausted, stopping prefetching!");
+                            return;
+                        }
+
                         // mmap and mlock file, if it is not contained in the blacklist
                         // and if it was not already mapped by some of the plugins
                         let filename = String::from(path.to_string_lossy());
@@ -180,6 +189,7 @@ impl StaticWhitelist {
         }
     }
 
+    /// Performs offline prefetching of whitelisted programs
     pub fn prefetch_whitelisted_programs(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started prefetching of statically whitelisted programs...");
 
@@ -196,6 +206,11 @@ impl StaticWhitelist {
                 let program_whitelist = self.program_whitelist.clone();
 
                 for hashval in program_whitelist.iter() {
+                    if Self::check_available_memory(globals, manager) == false {
+                        info!("Available memory exhausted, stopping prefetching!");
+                        break;
+                    }
+
                     iotrace_prefetcher_hook.prefetch_data_by_hash(hashval, globals, manager);
                 }
 
@@ -227,6 +242,37 @@ impl StaticWhitelist {
 
         // If we got here, everything seems to be allright
         true
+    }
+
+    /// Check if we have enough available memory to perform prefetching
+    fn check_available_memory(globals: &Globals, manager: &Manager) -> bool {
+        let mut result = true;
+
+        let available_mem_upper_threshold = globals
+            .config
+            .clone()
+            .config_file
+            .unwrap_or_default()
+            .available_mem_upper_threshold
+            .unwrap();
+
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("metrics")) {
+            None => {
+                warn!("Plugin not loaded: 'metrics', skipped");
+            }
+            Some(p) => {
+                let p = p.read().unwrap();
+                let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
+
+                if metrics_plugin.get_available_mem_percentage() <= 100 - available_mem_upper_threshold {
+                    result = false;
+                }
+            }
+        }
+
+        result
     }
 
     pub fn get_mapped_files(&self) -> &HashMap<String, util::MemoryMapping> {
