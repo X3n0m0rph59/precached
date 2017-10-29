@@ -46,6 +46,7 @@ package() {
 
   install -m 644 "support/config/precached.conf" "$pkgdir/etc/precached/"
   install -m 644 "support/systemd/precached.service" "$pkgdir/usr/lib/systemd/system/"
+  install -m 644 "support/systemd/precached-prime-caches.service" "$pkgdir/usr/lib/systemd/system/"
   install -m 644 "support/dbus/org.precached.precached1.conf" "$pkgdir/etc/dbus-1/"
 
   install -m 644 "support/man/precached.8" "$pkgdir/usr/share/man/man8/"
