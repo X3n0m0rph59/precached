@@ -25,7 +25,7 @@ use events;
 use events::EventType;
 use globals::*;
 use hooks::hook;
-use hooks::hot_applications::HotApplications;
+use plugins::hot_applications::HotApplications;
 use hooks::process_tracker::ProcessTracker;
 
 use iotrace;
@@ -484,18 +484,16 @@ impl IOtracePrefetcher {
 
                                 let mut do_perform_prefetching = true;
 
-                                let hm = manager.hook_manager.read().unwrap();
-
-                                match hm.get_hook_by_name(&String::from("hot_applications")) {
+                                match pm.get_plugin_by_name(&String::from("hot_applications")) {
                                     None => {
                                         /* Do nothing */
-                                        // trace!("Hook not loaded: 'hot_applications', skipped");
+                                        // trace!("Plugin not loaded: 'hot_applications', skipped");
                                     }
-                                    Some(h) => {
-                                        let h = h.write().unwrap();
-                                        let hot_applications_hook = h.as_any().downcast_ref::<HotApplications>().unwrap();
+                                    Some(p) => {
+                                        let p = p.write().unwrap();
+                                        let hot_applications_plugin = p.as_any().downcast_ref::<HotApplications>().unwrap();
 
-                                        do_perform_prefetching = !hot_applications_hook.is_exe_cached(&exe_name, &process_cmdline);
+                                        do_perform_prefetching = !hot_applications_plugin.is_exe_cached(&exe_name, &process_cmdline);
                                     }
                                 };
 

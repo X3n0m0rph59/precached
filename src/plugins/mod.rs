@@ -31,6 +31,7 @@ pub mod static_blacklist;
 pub mod static_whitelist;
 pub mod iotrace_log_manager;
 pub mod markov_log_manager;
+pub mod hot_applications;
 pub mod statistics;
 pub mod metrics;
 pub mod notifications;
@@ -47,6 +48,7 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     static_whitelist::register_plugin(globals, manager);
     iotrace_log_manager::register_plugin(globals, manager);
     markov_log_manager::register_plugin(globals, manager);
+    hot_applications::register_plugin(globals, manager);
     // dbus_interface::register_plugin(globals, manager);
     rule_plugin::register_plugin(globals, manager);
     forkbomb_mitigation::register_plugin(globals, manager);

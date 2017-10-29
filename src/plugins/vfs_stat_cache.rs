@@ -20,7 +20,6 @@
 
 use events;
 use globals::*;
-use hooks::hot_applications::HotApplications;
 use hooks::iotrace_prefetcher::IOtracePrefetcher;
 use manager::*;
 use plugins::metrics::Metrics;
@@ -28,6 +27,7 @@ use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::static_blacklist::StaticBlacklist;
 use plugins::static_whitelist::StaticWhitelist;
+use plugins::hot_applications::HotApplications;
 use std::any::Any;
 use std::path::Path;
 use storage;
@@ -163,15 +163,15 @@ impl VFSStatCache {
                 let mut h = h.write().unwrap();
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
 
-                let hm = manager.hook_manager.read().unwrap();
+                let pm = manager.plugin_manager.read().unwrap();
 
-                match hm.get_hook_by_name(&String::from("hot_applications")) {
+                match pm.get_plugin_by_name(&String::from("hot_applications")) {
                     None => {
-                        trace!("Hook not loaded: 'hot_applications', skipped");
+                        trace!("Plugin not loaded: 'hot_applications', skipped");
                     }
-                    Some(h) => {
-                        let h = h.read().unwrap();
-                        let hot_applications = h.as_any().downcast_ref::<HotApplications>().unwrap();
+                    Some(p) => {
+                        let p = p.read().unwrap();
+                        let hot_applications = p.as_any().downcast_ref::<HotApplications>().unwrap();
 
                         let app_histogram = hot_applications.get_app_vec_ordered();
 

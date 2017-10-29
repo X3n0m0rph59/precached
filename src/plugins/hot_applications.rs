@@ -24,13 +24,12 @@ extern crate serde;
 extern crate serde_json;
 
 use self::serde::Serialize;
-use super::iotrace_prefetcher::IOtracePrefetcher;
+use hooks::iotrace_prefetcher::IOtracePrefetcher;
 use constants;
 use events;
 use events::EventType;
 use globals;
 use globals::*;
-use hooks::hook;
 use manager::*;
 use plugins::metrics::Metrics;
 use process::Process;
@@ -43,18 +42,22 @@ use std::io::Result;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
+use plugins::plugin::{Plugin, PluginDescription};
 use util;
+use storage;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
 
-/// Register this hook implementation with the system
-pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
-    let hook = Box::new(HotApplications::new());
+/// Register this plugin implementation with the system
+pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
+    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+        let plugin = Box::new(HotApplications::new());
 
-    let m = manager.hook_manager.read().unwrap();
+        let m = manager.plugin_manager.read().unwrap();
 
-    m.register_hook(hook);
+        m.register_plugin(plugin);
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -280,17 +283,28 @@ impl HotApplications {
     }
 }
 
-impl hook::Hook for HotApplications {
+impl Plugin for HotApplications {
     fn register(&mut self) {
-        info!("Registered Hook: 'Hot Applications Prefetcher'");
+        info!("Registered Plugin: 'Hot Applications Prefetcher'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Hook: 'Hot Applications Prefetcher'");
+        info!("Unregistered Plugin: 'Hot Applications Prefetcher'");
     }
 
     fn get_name(&self) -> &'static str {
         NAME
+    }
+
+    fn get_description(&self) -> PluginDescription {
+        PluginDescription {
+            name: String::from(NAME),
+            description: String::from(DESCRIPTION),
+        }
+    }
+
+    fn main_loop_hook(&mut self, _globals: &mut Globals) {
+        // do nothing
     }
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
@@ -316,27 +330,15 @@ impl hook::Hook for HotApplications {
                 self.free_memory(true, globals, manager);
             }
 
+            events::EventType::TrackedProcessChanged(event) => {
+                self.application_executed(event.pid);
+            }
+
             _ => { /* Do nothing */ }
         }
     }
 
-    fn process_event(&mut self, event: &procmon::Event, _globals: &mut Globals, _manager: &Manager) {
-        match event.event_type {
-            procmon::EventType::Exec => {
-                self.application_executed(event.pid);
-            }
-
-            _ => {
-                // trace!("Ignored process event");
-            }
-        }
-    }
-
     fn as_any(&self) -> &Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut Any {
         self
     }
 }
