@@ -25,11 +25,11 @@ use events;
 use events::EventType;
 use globals::*;
 use hooks::hook;
-use plugins::hot_applications::HotApplications;
 use hooks::process_tracker::ProcessTracker;
 
 use iotrace;
 use manager::*;
+use plugins::hot_applications::HotApplications;
 use plugins::iotrace_log_manager::IOtraceLogManager;
 use plugins::static_blacklist::StaticBlacklist;
 use plugins::static_whitelist::StaticWhitelist;

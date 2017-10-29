@@ -24,14 +24,15 @@ extern crate serde;
 extern crate serde_json;
 
 use self::serde::Serialize;
-use hooks::iotrace_prefetcher::IOtracePrefetcher;
 use constants;
 use events;
 use events::EventType;
 use globals;
 use globals::*;
+use hooks::iotrace_prefetcher::IOtracePrefetcher;
 use manager::*;
 use plugins::metrics::Metrics;
+use plugins::plugin::{Plugin, PluginDescription};
 use process::Process;
 use procmon;
 use std::any::Any;
@@ -42,9 +43,8 @@ use std::io::Result;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
-use plugins::plugin::{Plugin, PluginDescription};
-use util;
 use storage;
+use util;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
@@ -157,6 +157,10 @@ impl HotApplications {
 
                 let reverse_app_vec = self.get_app_vec_ordered_reverse();
                 for (hashval, count) in reverse_app_vec {
+                    if Self::available_memory_below_lower_threshold(globals, manager) {
+                        break; // free memory until we reached the lower threshold
+                    }
+
                     if self.cached_apps.contains(&hashval) {
                         debug!("Unmapping files for '{}'", hashval);
                         iotrace_prefetcher_hook.free_memory_by_hash(&hashval, globals, manager);
@@ -192,6 +196,36 @@ impl HotApplications {
                 let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 if metrics_plugin.get_available_mem_percentage() <= 100 - available_mem_upper_threshold {
+                    result = false;
+                }
+            }
+        }
+
+        result
+    }
+
+    fn available_memory_below_lower_threshold(globals: &Globals, manager: &Manager) -> bool {
+        let mut result = true;
+
+        let available_mem_lower_threshold = globals
+            .config
+            .clone()
+            .config_file
+            .unwrap_or_default()
+            .available_mem_lower_threshold
+            .unwrap();
+
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("metrics")) {
+            None => {
+                warn!("Plugin not loaded: 'metrics', skipped");
+            }
+            Some(p) => {
+                let p = p.read().unwrap();
+                let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
+
+                if metrics_plugin.get_available_mem_percentage() <= 100 - available_mem_lower_threshold {
                     result = false;
                 }
             }
