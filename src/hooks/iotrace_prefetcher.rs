@@ -137,10 +137,7 @@ impl IOtracePrefetcher {
         already_prefetched
     }
 
-    fn unmap_files(
-        io_trace: &Vec<iotrace::TraceLogEntry>,
-        our_mapped_files: &HashMap<String, util::MemoryMapping>,
-    ) -> Vec<String> {
+    fn unmap_files(io_trace: &Vec<iotrace::TraceLogEntry>, our_mapped_files: &HashMap<String, util::MemoryMapping>) -> Vec<String> {
         let mut result = vec![];
 
         for entry in io_trace {
@@ -364,10 +361,7 @@ impl IOtracePrefetcher {
 
                             prefetch_pool.execute(move || {
                                 // submit memory freeing work to an idle thread
-                                let unmapped_files = Self::unmap_files(
-                                    &trace_log,
-                                    &our_mapped_files_c,
-                                );
+                                let unmapped_files = Self::unmap_files(&trace_log, &our_mapped_files_c);
 
                                 sc.lock().unwrap().send(unmapped_files).unwrap();
                             })

@@ -93,9 +93,10 @@ impl HotApplications {
 
     /// Returns an ordered Vector of (hash,count) tuples in ascending order of importance
     pub fn get_app_vec_ordered_reverse(&self) -> Vec<(String, usize)> {
-        let mut apps: Vec<(String, usize)> = self.app_histogram.iter().map(|(ref k, ref v)| {
-            ((*k).clone(), (*v).clone())
-        }).collect();
+        let mut apps: Vec<(String, usize)> = self.app_histogram
+            .iter()
+            .map(|(ref k, ref v)| ((*k).clone(), (*v).clone()))
+            .collect();
         apps.sort_by(|a, b| b.1.cmp(&a.1));
         apps.reverse();
 
@@ -158,7 +159,7 @@ impl HotApplications {
                         iotrace_prefetcher_hook.free_memory_by_hash(&hashval, globals, manager);
 
                         // remove hashval from cached_apps vec
-                        self.cached_apps.retain(|ref val| { *val != &hashval });
+                        self.cached_apps.retain(|ref val| *val != &hashval);
                     }
                 }
             }
