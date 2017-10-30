@@ -33,7 +33,7 @@ into the startup process to achieve even faster boot times (delayed prefetching)
   Linux 4.14
 ```
 |Application      |stock|precached|cache hot|
-|:----------------|----:|--------:|--------:|
+|-----------------|----:|--------:|--------:|
 |System Bootup    |1:30 |1:39     |n.a.     |
 |LibreOffice Calc |19   |4        |4        |
 |Firefox 57       |15   |4        |3.5      |
@@ -50,7 +50,7 @@ _Application load times on first run after bootup_
   Linux 4.14
 ```
 |Application      |stock|precached|cache hot|
-|:----------------|----:|--------:|--------:|
+|-----------------|----:|--------:|--------:|
 |System Bootup    |28.5 |32       |n.a.     |
 |LibreOffice Calc |6.5  |3        |3        |
 |Firefox 57       |7    |3.5      |3        |
