@@ -5,7 +5,7 @@ Requisite=precached.service
 After=graphical.target
 
 [Timer]
-OnActiveSec=10
+OnActiveSec=25
 
 [Install]
 WantedBy=timers.target

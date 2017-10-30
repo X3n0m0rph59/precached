@@ -16,7 +16,7 @@ programs while the system is idle.
     $ sudo dnf copr enable x3n0m0rph59/precached
     $ sudo dnf install precached
     $ sudo systemctl enable --now precached.service
-    $ sudo systemctl enable --now precached-prime-caches.service
+    $ sudo systemctl enable precached-prime-caches.timer
 ```
 
 #### Install from Source
