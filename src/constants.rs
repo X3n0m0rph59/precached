@@ -85,13 +85,13 @@ pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 100;
 pub const FREE_MEMORY_LOWER_THRESHOLD: u8 = 30;
 
 /// Available memory critical threshold
-pub const AVAILABLE_MEMORY_CRITICAL_THRESHOLD: u8 = 90;
+pub const AVAILABLE_MEMORY_CRITICAL_THRESHOLD: u8 = 85;
 
 /// Available memory threshold
-pub const AVAILABLE_MEMORY_UPPER_THRESHOLD: u8 = 85;
+pub const AVAILABLE_MEMORY_UPPER_THRESHOLD: u8 = 80;
 
 /// Available memory threshold (percentage available)
-pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u8 = 30;
+pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u8 = 60;
 
 
 /// Time in seconds that has to elapse before we signal "recovery from swap"
@@ -105,7 +105,7 @@ pub const MEM_FREED_THRESHOLD: isize = 256 * 1024 * 1024;
 
 
 /// Time in seconds that has to elapse before we signal "system enters idle period"
-pub const IDLE_PERIOD_WINDOW: u64 = 8;
+pub const IDLE_PERIOD_WINDOW: u64 = 5;
 
 
 /// Maximum allowed size of a file we prefetch

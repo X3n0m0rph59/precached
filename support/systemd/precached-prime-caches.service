@@ -4,6 +4,9 @@ Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precach
 Requisite=precached.service
 After=graphical.target
 
+[Timer]
+OnStartupSec=10
+
 [Service]
 Environment=LOG_LEVEL=warn
 ExecStart=/usr/sbin/precachedctl prime-caches-now
