@@ -32,7 +32,8 @@ into the startup process to achieve even faster boot times (delayed prefetching)
   500GB HDD, BFQ I/O Scheduler
   Linux 4.14
 ```
-|Application      |stock|precached|cache hot|
+
+|Application      |Stock|precached|Cache Hot|
 |-----------------|----:|--------:|--------:|
 |System Bootup    |1:30 |1:39     |n.a.     |
 |LibreOffice Calc |19   |4        |4        |
@@ -49,7 +50,8 @@ _Application load times on first run after bootup_
   256GB SATA-3 fast SSD, CFQ I/O Scheduler
   Linux 4.14
 ```
-|Application      |stock|precached|cache hot|
+
+|Application      |Stock|precached|Cache Hot|
 |-----------------|----:|--------:|--------:|
 |System Bootup    |28.5 |32       |n.a.     |
 |LibreOffice Calc |6.5  |3        |3        |
