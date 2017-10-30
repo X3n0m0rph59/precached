@@ -52,6 +52,7 @@ cp -a %{_builddir}/%{name}-%{version}/support/man/precached.8 %{buildroot}/%{_ma
 cp -a %{_builddir}/%{name}-%{version}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.service %{buildroot}/%{_unitdir}/
+cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.timer %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/
 cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -ra %{_builddir}/%{name}-%{version}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
@@ -82,6 +83,7 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{
 %{_sbindir}/iotracectl
 %{_unitdir}/precached.service
 %{_unitdir}/precached-prime-caches.service
+%{_unitdir}/precached-prime-caches.timer
 %config(noreplace) %{_sysconfdir}/dbus-1/org.precached.precached1.conf
 %{_datarootdir}/metainfo/org.precache.precached.appdata.xml
 %{_sharedstatedir}/%{name}/
