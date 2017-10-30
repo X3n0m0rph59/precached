@@ -26,7 +26,7 @@ into the startup process to achieve even faster boot times (delayed prefetching)
 
 ## Specifications of *System No. 1*:
 ```
-  ~6 year old laptop running Fedora Core 27
+  ~7 year old laptop running Fedora Core 27
   Dual Core Intel CPU
   4GB DDR3 RAM
   500GB HDD, BFQ I/O Scheduler
@@ -44,7 +44,7 @@ _Application load times on first run after bootup_
 
 ## Specifications of *System No. 2*:
 ```
-  ~3 year old laptop running Fedora Core 27
+  ~5 year old laptop running Fedora Core 27
   Quad Core Intel CPU
   4GB DDR3 RAM
   256GB SATA-3 fast SSD, CFQ I/O Scheduler
@@ -68,3 +68,4 @@ This posting has been edited at 2017-10-30:
 
 * Fixed typos
 * Rewordings
+* Corrected age of systems
