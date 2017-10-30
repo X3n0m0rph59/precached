@@ -8,23 +8,24 @@ title: Precached - A Linux process monitor and pre-caching daemon
 
 <p><img src="/precached/images/precached.png"></p>
 
-<p>Precached is written in Rust and utilises the Linux netlink connector interface
-to monitor the system for process events. It can act upon such events via
-multiple means. E.g. in the future it will be able to pre-fault pages into
-memory to speed up loading of programs and increase the
-perceived snappiness of the system.</p>
-
+<p>Precached is written in Rust and utilises the Linux netlink connector
+  interface to monitor the system for process events. It can act upon such
+  events via multiple means. E.g. it is able to pre-fault pages into memory,
+  to speed up loading of programs and increase the perceived overall
+  'snappiness' of the system. Additionally it supports offline prefetching of
+  the most often used programs while the system is idle.</p>
 
 <h3>Quick install guide</h3>
 
-<h4>Install on Fedora</h4>
+<h4>Installation on Fedora</h4>
 <code>
     $ sudo dnf copr enable x3n0m0rph59/precached<br/>
     $ sudo dnf install precached<br/>
-    $ sudo systemctl enable --now precached<br/>
+    $ sudo systemctl enable --now precached.service<br/>
+    $ sudo systemctl enable --now precached-prime-caches.service<br/>
 </code>
 
-<h4>Install from Source</h4>
+<h4>Installation from Source</h4>
 <code>
     $ git clone https://github.com/X3n0m0rph59/precached.git<br/>
     $ cd precached/<br/>
@@ -36,10 +37,6 @@ perceived snappiness of the system.</p>
 <li class="downloads"><a href="{{ site.github.zip_url }}">ZIP</a></li>
 <li class="downloads"><a href="{{ site.github.tar_url }}">TAR</a></li>
 </p>
-
-<h3>Notes</h3>
-<p>This project is in a very early stage of development and you may
-possibly encounter serious bugs.</p>
 
 <h3>Authors</h3>
 <p>precached - Copyright (C) 2017 the precached developers</p>
