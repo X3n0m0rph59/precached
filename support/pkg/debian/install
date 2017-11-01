@@ -1,0 +1,8 @@
+support/config/precached.conf etc/precached
+support/systemd/precached.service lib/systemd/system
+support/systemd/precached-prime-caches.service lib/systemd/system
+support/systemd/precached-prime-caches.timer lib/systemd/system
+support/dbus/org.precached.precached1.conf etc/dbus-1/org.precached.precached1.conf
+target/release/precached usr/sbin
+target/release/precachedctl usr/sbin
+target/release/iotracectl usr/sbin

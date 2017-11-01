@@ -1,0 +1,11 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: precached
+Source: <url://example.com>
+
+Files: *
+Copyright: 2017 the precached team
+License: GPL-3+
+
+Files: debian/*
+Copyright: 2017 the precached team
+License: GPL-3+

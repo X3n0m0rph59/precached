@@ -1,0 +1,23 @@
+[Unit]
+Description=Linux process monitor and pre-caching daemon
+Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precached.conf(5)
+DefaultDependencies=no
+Wants=local-fs.target
+
+[Service]
+Environment=LOG_LEVEL=warn
+ExecStart=/usr/sbin/precached -c /etc/precached/precached.conf
+ExecReload=/usr/sbin/precachedctl reload
+ExecStop=/usr/sbin/precachedctl stop
+PIDFile=/run/precached.pid
+Type=forking
+Restart=always
+Nice=10
+LimitAS=infinity
+LimitRSS=infinity
+LimitCORE=infinity
+LimitMEMLOCK=infinity
+LimitNOFILE=infinity
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+Source: precached
+Section: admin
+Priority: optional
+Maintainer: X3n0m0rph59 <x3n0m0rph59@gmail.com>
+Build-Depends: debhelper (>= 9),
+	       dh-systemd (>=1.5),
+	       cargo (>= 0.19),
+	       libdbus-1-dev (>= 1.10)
+Standards-Version: 3.9.8
+Homepage: https://x3n0m0rph59.github.io/precached/
+Vcs-Git: https://github.com/X3n0m0rph59/precached.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/precached.git
+
+Package: precached
+Architecture: amd64 i386
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Linux process monitor and pre-caching daemon
+ Precached is written in Rust and utilises the Linux netlink connector interface
+ to monitor the system for process events. It can act upon such events via
+ multiple means. E.g. it is able to pre-fault pages into memory, to speed up
+ loading of programs and increase the perceived overall 'snappiness' of the
+ system. Additionally it supports offline prefetching of the most often used
+ programs while the system is idle.
