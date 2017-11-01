@@ -8,7 +8,7 @@ loading of programs and increase the perceived overall 'snappiness' of the
 system. Additionally it supports offline prefetching of the most often used
 programs while the system is idle.
 
-### Quick Install Guide
+### Quick Installation Guide
 
 #### Install on Fedora
 
@@ -17,6 +17,14 @@ programs while the system is idle.
     $ sudo dnf install precached
     $ sudo systemctl enable --now precached.service
     $ sudo systemctl enable precached-prime-caches.timer
+```
+
+#### Install on Ubuntu
+
+```
+    $ sudo add-apt-repository ppa:x3n0m0rph59/precached
+    $ sudo apt update
+    $ sudo apt install precached
 ```
 
 #### Install from Source
@@ -73,14 +81,13 @@ noticeable improvement out of using precached.
 * Markov-chain based prefetching
 * Implement a DBUS interface
 * Write a precached GUI in GTK+
-* Create and publish benchmarks
 * ...
 
 ### Getting Involved
 
 We are actively looking for contributions! Besides from code contributions,
 we could especially well use:
-* Project logo designs
+
 * Text translations
 * Documentation authors
 * Issue triaging
