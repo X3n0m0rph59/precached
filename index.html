@@ -6,8 +6,6 @@ title: Precached - A Linux process monitor and pre-caching daemon
 <h1>Precached</h1>
 <h2>A Linux process monitor and pre-caching daemon</h2>
 
-<p><img src="/precached/images/precached.png"></p>
-
 <p>Precached is written in Rust and utilises the Linux netlink connector
   interface to monitor the system for process events. It can act upon such
   events via multiple means. E.g. it is able to pre-fault pages into memory,
@@ -15,7 +13,7 @@ title: Precached - A Linux process monitor and pre-caching daemon
   'snappiness' of the system. Additionally it supports offline prefetching of
   the most often used programs while the system is idle.</p>
 
-<h3>Quick install guide</h3>
+<h3>Quick installation guide</h3>
 
 <h4>Installation on Fedora</h4>
 <code>
@@ -23,6 +21,13 @@ title: Precached - A Linux process monitor and pre-caching daemon
     $ sudo dnf install precached<br/>
     $ sudo systemctl enable --now precached.service<br/>
     $ sudo systemctl enable precached-prime-caches.timer<br/>
+</code>
+
+<h4>Installation on Ubuntu</h4>
+<code>
+    $ sudo add-apt-repository ppa:x3n0m0rph59/precached<br/>
+    $ sudo apt update<br/>
+    $ sudo apt install precached<br/>
 </code>
 
 <h4>Installation from Source</h4>
