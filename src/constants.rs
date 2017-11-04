@@ -75,7 +75,10 @@ pub const IO_TRACE_TIME_SECS: u64 = 10;
 pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
 
 /// The minimum length an I/O trace log must have for it to be saved/kept
-pub const MIN_TRACE_LOG_LENGTH: usize = 1;
+pub const MIN_TRACE_LOG_LENGTH: usize = 5;
+
+/// The minimum amount of data an I/O trace log must reference for it to be kept
+pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 16 * 1024 * 1024; // 16 MiB
 
 
 /// Upper threshold for free memory
@@ -101,19 +104,19 @@ pub const SWAP_RECOVERY_WINDOW: u64 = 5;
 pub const MEM_FREED_RECOVERY_WINDOW: u64 = 5;
 
 /// Amount of memory that has to be freed for the signal "MemoryFreed" to be sent
-pub const MEM_FREED_THRESHOLD: isize = 256 * 1024 * 1024;
+pub const MEM_FREED_THRESHOLD: isize = 256 * 1024 * 1024; // 256 MiB
 
 
 /// Time in seconds that has to elapse before we signal "system enters idle period"
 pub const IDLE_PERIOD_WINDOW: u64 = 5;
 
 
-/// Maximum allowed size of a file we prefetch
-pub const MAX_ALLOWED_PREFETCH_SIZE: usize = 128 * 1024 * 1024;
+/// Maximum allowed size of a single file we are allowed to prefetch
+pub const MAX_ALLOWED_PREFETCH_SIZE: usize = 128 * 1024 * 1024; // 128 MiB
 
 
 /// Initial gap width of console log output
-pub const INITIAL_MODULE_WIDTH: usize = 40;
+pub const INITIAL_MODULE_WIDTH: usize = 50;
 
 
 /// Default date and time format

@@ -202,6 +202,10 @@ pub fn is_file_accessible(filename: &String) -> bool {
     fs::metadata(Path::new(&filename)).is_ok()
 }
 
+pub fn get_file_size(filename: &String) -> io::Result<u64> {
+    Ok(fs::metadata(Path::new(&filename))?.len())
+}
+
 pub fn is_file(filename: &String) -> bool {
     Path::new(filename).is_file()
 }

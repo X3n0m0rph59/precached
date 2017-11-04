@@ -20,7 +20,6 @@
 
 extern crate libc;
 
-
 use constants;
 use std;
 use std::ffi::CString;
@@ -28,6 +27,7 @@ use std::fs::File;
 use std::io::{Result, Error, ErrorKind};
 use std::os::unix::io::IntoRawFd;
 
+/// Represents a file backed memory mapping
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryMapping {
     pub filename: String,
@@ -51,6 +51,22 @@ type StatSize = i64;
 #[cfg(target_pointer_width = "32")]
 type StatSize = i32;
 
+
+/// Cache the file `filename` into the systems page cache
+/// This currently performs the following actions:
+///   * Open file `filename` and query it's size.
+///     Return an Err if file exceeds the max. prefetch size
+///   * Give the system's kernel a readahead hint via readahead(2) syscall
+///   * Additionally mmap(2) the file
+///   * Call posix_fadvise(2) with POSIX_FADV_WILLNEED | POSIX_FADV_SEQUENTIAL
+///     to give the kernel a hint on how we are about to use that file
+///   * Call madvise(2) with MADV_WILLNEED | MADV_SEQUENTIAL | MADV_MERGEABLE
+///     to give the kernel a hint on how we are about to use that memory mapping
+///   * Call mlock(2) if `with_mlock` is set to `true` to prevent
+///     eviction of the files pages from the page cache
+///
+/// Returns a `MemoryMapping` representing the newly created file backed mapping
+/// or an Err if the requested actions could not be performed
 pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
     trace!("Caching file: '{}'", filename);
 
@@ -189,12 +205,14 @@ pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
     }
 }
 
+/// Unmaps a memory mapping that was previously created by `cache_file(...)`
 pub fn free_mapping(mapping: &MemoryMapping) -> bool {
     let result = unsafe { libc::munmap(mapping.addr as *mut libc::c_void, mapping.len) };
 
     result == 0
 }
 
+/// Prime the kernel's dentry caches by reading the metadata of the file `filename`
 pub fn prime_metadata_cache(filename: &str) -> Result<()> {
     trace!("Caching metadata of file : '{}'", filename);
 

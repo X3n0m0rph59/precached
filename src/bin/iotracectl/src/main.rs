@@ -441,7 +441,7 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
         // Print in "full" format
         println!(
             "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\n\
-             Compression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
+             Compression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\nI/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
             filename,
             io_trace.exe,
             io_trace.comm,
@@ -457,6 +457,7 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
                 .to_string(),
             io_trace.file_map.len(),
             io_trace.trace_log.len(),
+            format!("{} KiB", io_trace.accumulated_size / 1024),
             io_trace.trace_log_optimized,
             flags
         );
@@ -464,7 +465,7 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
         // Print in "short" format
         println!(
             "Executable:\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\nNum I/O Ops:\t{}\n\
-             Flags:\t\t{:?}\n\n",
+             I/O Size:\t{}\nFlags:\t\t{:?}\n\n",
             io_trace.exe,
             io_trace
                 .created_at
@@ -475,6 +476,7 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
                 .format(constants::DATETIME_FORMAT_DEFAULT)
                 .to_string(),
             io_trace.trace_log.len(),
+            format!("{} KiB", io_trace.accumulated_size / 1024),
             flags
         );
     } else if matches.is_present("terse") {
@@ -498,8 +500,9 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
             //     .format(constants::DATETIME_FORMAT_DEFAULT)
             //     .to_string()),
             // Cell::new(&"Zstd"),
-            Cell::new(&format!("{}", io_trace.file_map.len())),
-            Cell::new(&format!("{}", io_trace.trace_log.len())),
+            Cell::new_align(&format!("{}", io_trace.file_map.len()), Alignment::RIGHT),
+            Cell::new_align(&format!("{}", io_trace.trace_log.len()), Alignment::RIGHT),
+            Cell::new_align(&format!("{} KiB", io_trace.accumulated_size / 1024), Alignment::RIGHT),
             Cell::new(&format!("{}", io_trace.trace_log_optimized))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(
@@ -625,6 +628,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         // Cell::new("Compression"),
         Cell::new("# Files"),
         Cell::new("# I/O Ops"),
+        Cell::new("I/O Size"),
         Cell::new("Optimized"),
         Cell::new("Flags"),
     ]));
@@ -707,7 +711,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
                     println!(
                         "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                          Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-                         Optimized:\t{}\nFlags:\t\t{:?}\n\n",
+                         I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
                         filename,
                         io_trace.exe,
                         io_trace.comm,
@@ -723,6 +727,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
                             .to_string(),
                         io_trace.file_map.len(),
                         io_trace.trace_log.len(),
+                        format!("{} KiB", io_trace.accumulated_size / 1024),
                         io_trace.trace_log_optimized,
                         flags.0
                     );
@@ -790,7 +795,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             println!(
                 "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-                 Optimized:\t{}\nFlags:\t\t{:?}\n\n",
+                 I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
                 io_trace.exe,
                 io_trace.comm,
@@ -806,6 +811,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                     .to_string(),
                 io_trace.file_map.len(),
                 io_trace.trace_log.len(),
+                format!("{} KiB", io_trace.accumulated_size / 1024),
                 io_trace.trace_log_optimized,
                 flags.0
             );
@@ -823,6 +829,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 Cell::new("#"),
                 Cell::new("Timestamp"),
                 Cell::new("I/O Operation"),
+                Cell::new("I/O Size"),
             ]));
 
             for e in io_trace.trace_log.iter() {
@@ -840,6 +847,10 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                             .format(constants::DATETIME_FORMAT_DEFAULT)
                             .to_string()),
                         Cell::new(&format!("{:?}", e.operation)),
+                        Cell::new_align(
+                            &format!("{} KiB", e.size / 1024),
+                            Alignment::RIGHT
+                        ),
                     ]));
                 }
 
@@ -920,7 +931,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             println!(
                 "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-                 Optimized:\t{}\nFlags:\t\t{:?}\n\n",
+                 I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
                 io_trace.exe,
                 io_trace.comm,
@@ -936,6 +947,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                     .to_string(),
                 io_trace.file_map.len(),
                 io_trace.trace_log.len(),
+                format!("{} KiB", io_trace.accumulated_size / 1024),
                 io_trace.trace_log_optimized,
                 flags.0
             );
@@ -953,7 +965,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 Cell::new("#"),
                 Cell::new("Timestamp"),
                 Cell::new("I/O Operation"),
-                Cell::new("Payload"),
+                Cell::new("I/O Size"),
                 Cell::new("Flags"),
             ]));
 
@@ -974,7 +986,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                             .format(constants::DATETIME_FORMAT_DEFAULT)
                             .to_string()),
                         Cell::new(&format!("{:?}", e.operation)),
-                        Cell::new(&format!("{}", String::from("n/a"))),
+                        Cell::new_align(&format!("{} KiB", e.size / 1024), Alignment::RIGHT),                        
                         Cell::new(&format!("{}", flags))
                             .with_style(Attr::Bold)
                             .with_style(Attr::ForegroundColor(color)),

@@ -8,10 +8,14 @@ homepage = "https://x3n0m0rph59.github.io/precached/"
 license = "GPLv3+"
 readme = "README.md"
 
+[features]
+default = []
+dev = ["clippy"]
+
 [dependencies]
 procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }
-sys-info = { git = "https://github.com/X3n0m0rph59/sys-info-rs" }
-threadpool = { git = "https://github.com/X3n0m0rph59/rust-threadpool" }
+sys-info = { version = "*", git = "https://github.com/X3n0m0rph59/sys-info-rs", branch = "master" }
+threadpool = { version = "*", git = "https://github.com/X3n0m0rph59/rust-threadpool", branch = "master" }
 chrono = { version = "0.4.0", features = ["serde"] }
 systemstat = "0.1.2"
 libc = "0.2.32"
@@ -42,9 +46,27 @@ prettytable-rs = "^0.6"
 daemonize = "0.2.3"
 clippy = { version = "*", optional = true }
 
-[features]
-default = []
-dev = ["clippy"]
+# [replace]
+# sys-info = { version = "*", path = "vendor/" }
+# threadpool = { version = "*", path = "vendor/" }
+
+[profile.dev]
+opt-level = 0
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 8
+panic = 'unwind'
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'unwind'
 
 [[bin]]
 name = "precached"

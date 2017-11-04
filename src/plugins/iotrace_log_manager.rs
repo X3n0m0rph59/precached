@@ -106,8 +106,13 @@ impl IOtraceLogManager {
     fn shall_io_trace_be_pruned(io_trace: &iotrace::IOTraceLog) -> bool {
         let mut result = false;
 
-        // prune short traces
+        // prune short traces (length)
         if io_trace.trace_log.len() < constants::MIN_TRACE_LOG_LENGTH {
+            result = true;
+        }
+
+        // prune short traces (amount of prefetched data)
+        if io_trace.accumulated_size < constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES {
             result = true;
         }
 

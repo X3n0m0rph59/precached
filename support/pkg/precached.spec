@@ -61,10 +61,23 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl 
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
 
 %post
+case "$1" in
+  2)
+  # we are being upgraded
+  echo "Clearing old I/O trace logs"
+  iotracectl clear
+  ;;
+esac
 %systemd_post %{name}.service
 
 %preun
 %systemd_preun %{name}.service
+case "$1" in
+  0)
+  # we are being erased
+  iotracectl clear
+  ;;
+esac
 
 %postun
 %systemd_postun_with_restart %{name}.service

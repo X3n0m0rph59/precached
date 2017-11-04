@@ -23,6 +23,8 @@ extern crate nix;
 
 use std::result::Result;
 
+/// Check that the system conforms to the minimum requirements
+/// of precached, and we are able to run on this system
 pub fn check_system() -> Result<bool, &'static str> {
     // TODO: Check sysctl tunable 'vm.max_map_count'
     // and ulimit -l 'max locked memory' rlimit
@@ -30,10 +32,17 @@ pub fn check_system() -> Result<bool, &'static str> {
     Ok(true)
 }
 
+/// Tunes system global parameters for precached to be able to run at all
+/// or to be able to run more efficiently
 pub fn prepare_system_config() -> Result<bool, &'static str> {
     Ok(true)
 }
 
+/// Modify the properties of the precached daemon process
+/// This currently does the following:
+///   * Set scheduling class and priority
+///   * Set process' nice level
+///   * Set I/O priority
 pub fn set_process_properties() -> Result<bool, &'static str> {
     // let result = unsafe {
     //     libc::sched_setscheduler(

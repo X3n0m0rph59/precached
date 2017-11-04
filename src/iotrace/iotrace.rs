@@ -52,15 +52,20 @@ pub enum IOOperation {
 /// and a timestamp of when the operation occured
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TraceLogEntry {
+    /// The timestamp when the I/O operation occured
     pub timestamp: DateTime<Utc>,
+    /// The kind of I/O operation
     pub operation: IOOperation,
+    /// The size of the I/O operation e.g.: amount of bytes read
+    pub size: u64,
 }
 
 impl TraceLogEntry {
-    pub fn new(operation: IOOperation) -> TraceLogEntry {
+    pub fn new(operation: IOOperation, size: u64) -> TraceLogEntry {
         TraceLogEntry {
             timestamp: Utc::now(),
             operation: operation,
+            size: size,
         }
     }
 }
@@ -150,6 +155,8 @@ pub struct IOTraceLog {
     /// The I/O trace log, contains all relevant I/O operations
     /// performed by the process being traced
     pub trace_log: Vec<TraceLogEntry>,
+    /// The total amount of data in bytes that the I/O trace log references
+    pub accumulated_size: u64,
     /// Specifies whether the trace_log has been optimized already
     pub trace_log_optimized: bool,
 }
@@ -172,19 +179,20 @@ impl IOTraceLog {
             // make the I/O trace contain an open and a read of the binary itself
             // since we will always miss that event in the tracer
             let first_entries = vec![
-                TraceLogEntry::new(IOOperation::Open(exe.clone(), 0)),
+                TraceLogEntry::new(IOOperation::Open(exe.clone(), 0), util::get_file_size(&exe).unwrap_or(0)),
                 // TraceLogEntry::new(IOOperation::Read(0)),
             ];
 
             Ok(IOTraceLog {
                 hash: String::from(format!("{}", hashval)),
-                exe: exe,
+                exe: exe.clone(),
                 comm: comm,
                 cmdline: cmdline,
                 created_at: Utc::now(),
                 trace_stopped_at: Utc::now(),
                 file_map: HashMap::new(),
                 trace_log: first_entries,
+                accumulated_size: util::get_file_size(&exe).unwrap_or(0),
                 trace_log_optimized: false,
             })
         } else {
@@ -232,10 +240,15 @@ impl IOTraceLog {
     /// Perform neccessary mapping of file descriptors to file name
     pub fn add_event(&mut self, op: IOOperation) {
         let operation = op.clone();
+        let mut size = 0;
 
         // do we have to add a file map entry?
         match op {
             IOOperation::Open(filename, fd) => {
+                // TODO: make this finer grained, count every read operation
+                //       instead of just using the file open operation
+                size = util::get_file_size(&filename).unwrap_or(0);
+
                 let val = self.file_map.entry(filename).or_insert(0);
                 *val += 1;
             }
@@ -243,7 +256,8 @@ impl IOTraceLog {
         }
 
         // append log entry to our log
-        let entry = TraceLogEntry::new(operation);
+        let entry = TraceLogEntry::new(operation, size);
         self.trace_log.push(entry);
+        self.accumulated_size += size;
     }
 }

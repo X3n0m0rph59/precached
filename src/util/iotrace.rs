@@ -33,10 +33,14 @@ use std::path::Path;
 
 use util;
 
+/// Optimizes an I/O trace log. Keep only valid trace log entries that actually
+/// contribute to a faster programm startup time. Remove trace log entries that
+/// are invalid, duplicate, or which referenced files do not exist anymore
 pub fn optimize_io_trace_log(filename: &String, io_trace: &mut iotrace::IOTraceLog, _dry_run: bool) -> Result<()> {
     trace!("Optimizing I/O trace log...");
 
     let mut optimized_trace_log = Vec::<TraceLogEntry>::new();
+    let mut size = 0;
 
     let mut already_opened = vec![];
 
@@ -61,12 +65,14 @@ pub fn optimize_io_trace_log(filename: &String, io_trace: &mut iotrace::IOTraceL
         }
 
         // All tests passed successfuly, append `e` to the optimized trace log
+        size += entry.size;
         optimized_trace_log.push(entry);
     }
 
     io_trace.trace_log.clear();
     io_trace.trace_log.append(&mut optimized_trace_log);
 
+    io_trace.accumulated_size = size;
     io_trace.trace_log_optimized = true;
 
     io_trace.save(filename, true);
@@ -74,6 +80,7 @@ pub fn optimize_io_trace_log(filename: &String, io_trace: &mut iotrace::IOTraceL
     Ok(())
 }
 
+/// Returns a `Vec` of `IOTraceLogFlag` flags describing the I/O trace log `io_trace`
 pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>, bool, Color) {
     let mut flags = Vec::new();
     let mut err = false;
