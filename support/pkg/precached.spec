@@ -64,8 +64,8 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{
 case "$1" in
   2)
   # we are being upgraded
-  echo "Clearing old I/O trace logs"
-  iotracectl clear
+  echo "Clearing old I/O trace logs..."
+  iotracectl clear > /dev/null 2>&1
   ;;
 esac
 %systemd_post %{name}.service
@@ -75,7 +75,8 @@ esac
 case "$1" in
   0)
   # we are being erased
-  iotracectl clear
+  echo "Clearing old I/O trace logs..."
+  iotracectl clear > /dev/null 2>&1
   ;;
 esac
 

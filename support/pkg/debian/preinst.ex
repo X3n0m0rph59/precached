@@ -16,8 +16,6 @@ set -e
 
 case "$1" in
     install|upgrade)
-    echo "Clearing old I/O trace logs"
-    iotracectl clear
     ;;
 
     abort-upgrade)
