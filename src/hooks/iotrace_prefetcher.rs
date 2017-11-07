@@ -122,6 +122,10 @@ impl IOtracePrefetcher {
                     // TODO: Implement this!
                 }
 
+                iotrace::IOOperation::Getdents(ref _fd) => {
+                    // TODO: Implement this!
+                }
+
                 iotrace::IOOperation::Read(ref _fd) => {
                     // TODO: Implement this!
                 }
@@ -132,6 +136,9 @@ impl IOtracePrefetcher {
 
                 // _ => { /* Do nothing */ }
             }
+
+            // yield timeslice after each prefetched entry
+            unsafe { libc::sched_yield() };
         }
 
         already_prefetched
@@ -410,9 +417,6 @@ impl IOtracePrefetcher {
                             }
                         };
 
-                        let our_mapped_files = self.mapped_files.clone();
-                        let prefetched_programs = self.prefetched_programs.clone();
-
                         // distribute prefetching work evenly across the prefetcher threads
                         let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
                         let max = prefetch_pool.max_count();
@@ -429,7 +433,7 @@ impl IOtracePrefetcher {
 
                             prefetch_pool.execute(move || {
                                 // submit prefetching work to an idle thread
-                                let mapped_files = Self::prefetch_statx_metadata(&trace_log, &static_blacklist_c);
+                                Self::prefetch_statx_metadata(&trace_log, &static_blacklist_c);
                             })
                         }
                     }
@@ -532,7 +536,13 @@ impl IOtracePrefetcher {
                                     let max = prefetch_pool.max_count();
                                     let count_total = io_trace.trace_log.len();
 
-                                    let (sender, receiver): (Sender<HashMap<String, util::MemoryMapping>>, _) = channel();
+                                    let (sender, receiver): (Sender<
+                                        HashMap<
+                                            String,
+                                            util::MemoryMapping,
+                                        >,
+                                    >,
+                                                             _) = channel();
 
                                     for n in 0..max {
                                         let sc = Mutex::new(sender.clone());

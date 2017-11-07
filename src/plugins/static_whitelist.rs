@@ -219,7 +219,11 @@ impl StaticWhitelist {
         };
     }
 
-    fn shall_we_map_file(filename: &String, static_blacklist: &Vec<String>, our_mapped_files: &HashMap<String, util::MemoryMapping>) -> bool {
+    fn shall_we_map_file(
+        filename: &String,
+        static_blacklist: &Vec<String>,
+        our_mapped_files: &HashMap<String, util::MemoryMapping>,
+    ) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
             return false;

@@ -19,6 +19,7 @@
 */
 
 #![allow(unused_imports)]
+#![allow(dead_code)]
 
 extern crate chrono;
 extern crate clap;
@@ -500,9 +501,18 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
             //     .format(constants::DATETIME_FORMAT_DEFAULT)
             //     .to_string()),
             // Cell::new(&"Zstd"),
-            Cell::new_align(&format!("{}", io_trace.file_map.len()), Alignment::RIGHT),
-            Cell::new_align(&format!("{}", io_trace.trace_log.len()), Alignment::RIGHT),
-            Cell::new_align(&format!("{} KiB", io_trace.accumulated_size / 1024), Alignment::RIGHT),
+            Cell::new_align(
+                &format!("{}", io_trace.file_map.len()),
+                Alignment::RIGHT
+            ),
+            Cell::new_align(
+                &format!("{}", io_trace.trace_log.len()),
+                Alignment::RIGHT
+            ),
+            Cell::new_align(
+                &format!("{} KiB", io_trace.accumulated_size / 1024),
+                Alignment::RIGHT
+            ),
             Cell::new(&format!("{}", io_trace.trace_log_optimized))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(
@@ -560,13 +570,6 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
                 map_bool_to_color(ftrace_logger_enabled),
             )),
     ]));
-
-    // table.add_row(Row::new(vec![
-    //     Cell::new(&"ptrace() I/O Trace Logger (deprecated)").with_style(Attr::Bold),
-    //     Cell::new(&"ptrace() processes and log their filesystem activity").with_style(Attr::Italic(true)),
-    //     Cell::new(&"Hook"),
-    //     Cell::new(&format!("{}", ptrace_logger_enabled)).with_style(Attr::Bold).with_style(Attr::ForegroundColor(map_color(ptrace_logger_enabled))),
-    // ]));
 
     table.add_row(Row::new(vec![
         Cell::new(&"I/O Trace Prefetcher").with_style(
@@ -865,7 +868,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     println!(
         "\nSummary: {} I/O trace files processed, {} matching filter, {} errors occured",
-        matching,
+        counter,
         matching,
         errors
     );
@@ -977,7 +980,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 } else
                 /*if matches.is_present("tabular")*/
                 {
-                    let (flags, err, color) = get_io_trace_entry_flags(&e);
+                    let (flags, _err, color) = get_io_trace_entry_flags(&e);
 
                     // Print in "tabular" format (the default)
                     table.add_row(Row::new(vec![
@@ -986,7 +989,10 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                             .format(constants::DATETIME_FORMAT_DEFAULT)
                             .to_string()),
                         Cell::new(&format!("{:?}", e.operation)),
-                        Cell::new_align(&format!("{} KiB", e.size / 1024), Alignment::RIGHT),                        
+                        Cell::new_align(
+                            &format!("{} KiB", e.size / 1024),
+                            Alignment::RIGHT
+                        ),
                         Cell::new(&format!("{}", flags))
                             .with_style(Attr::Bold)
                             .with_style(Attr::ForegroundColor(color)),
@@ -1006,7 +1012,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     println!(
         "\nSummary: {} I/O trace files processed, {} matching filter, {} errors occured",
-        matching,
+        counter,
         matching,
         errors
     );
@@ -1045,8 +1051,6 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Cell::new("Trace"),
         Cell::new("Status"),
     ]));
-
-    let state_dir_c = state_dir.clone();
 
     match util::walk_directories(&vec![traces_path], &mut |path| {
         trace!("{:?}", path);
@@ -1332,7 +1336,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
 /// Verify that I/O tracing works as expected
 /// Test all parts of the system
-fn perform_tracing_test(config: &Config, daemon_config: util::ConfigFile) {
+fn perform_tracing_test(_config: &Config, _daemon_config: util::ConfigFile) {
     trace!("Performing I/O tracing test...");
 
     // TODO:
@@ -1364,6 +1368,8 @@ fn print_help(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
     #[allow(unused_must_use)] config.clap.print_help().unwrap();
+
+    println!("");
 }
 
 /// Print usage message on how to use this command
@@ -1371,6 +1377,8 @@ fn print_usage(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
     #[allow(unused_must_use)] config.clap.print_help().unwrap();
+
+    println!("");
 }
 
 /// Program entrypoint

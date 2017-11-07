@@ -30,7 +30,6 @@ use iotrace::*;
 use std::fs;
 use std::io::Result;
 use std::path::Path;
-
 use util;
 
 /// Optimizes an I/O trace log. Keep only valid trace log entries that actually
@@ -75,7 +74,7 @@ pub fn optimize_io_trace_log(filename: &String, io_trace: &mut iotrace::IOTraceL
     io_trace.accumulated_size = size;
     io_trace.trace_log_optimized = true;
 
-    io_trace.save(filename, true);
+    io_trace.save(filename, true)?;
 
     Ok(())
 }

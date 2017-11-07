@@ -30,6 +30,7 @@ use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use std::any::Any;
+use std::collections::HashMap;
 use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
@@ -99,6 +100,25 @@ impl IOtraceLogManager {
 
         let filename = path.to_string_lossy();
         let result = iotrace::IOTraceLog::from_file(&String::from(filename))?;
+
+        Ok(result)
+    }
+
+    pub fn enumerate_all_trace_logs(&self, state_dir: String) -> Result<HashMap<String, iotrace::IOTraceLog>> {
+        let mut result = HashMap::new();
+
+        let traces_path = String::from(
+            Path::new(&state_dir)
+                .join(Path::new(&constants::IOTRACE_DIR))
+                .to_string_lossy(),
+        );
+
+        try!(util::walk_directories(&vec![traces_path], &mut |path| {
+            let filename = String::from(path.to_string_lossy());
+            let io_trace_log = iotrace::IOTraceLog::from_file(&filename).unwrap();
+
+            result.insert(filename, io_trace_log);
+        }));
 
         Ok(result)
     }

@@ -156,7 +156,7 @@ impl HotApplications {
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
 
                 let reverse_app_vec = self.get_app_vec_ordered_reverse();
-                for (hashval, count) in reverse_app_vec {
+                for (hashval, _count) in reverse_app_vec {
                     if Self::available_memory_below_lower_threshold(globals, manager) {
                         break; // free memory until we reached the lower threshold
                     }
@@ -204,6 +204,7 @@ impl HotApplications {
         result
     }
 
+    /// Check if the available memory is below the defined lower threshold
     fn available_memory_below_lower_threshold(globals: &Globals, manager: &Manager) -> bool {
         let mut result = true;
 
@@ -257,10 +258,12 @@ impl HotApplications {
                         );
                         *val += 1;
                     } else {
-                        warn!("Could not update hot applications histogram: could not get process commandline");
+                        // May happen for very short-lived processes
+                        trace!("Could not update hot applications histogram: could not get process commandline");
                     }
                 } else {
-                    warn!("Could not update hot applications histogram: could not get process executable name");
+                    // May happen for very short-lived processes
+                    trace!("Could not update hot applications histogram: could not get process executable name");
                 }
             }
         }
@@ -308,7 +311,7 @@ impl HotApplications {
         let path = Path::new(&config.state_dir.unwrap_or(String::from("."))).join(Path::new("hot_applications.state"));
 
         let filename = path.to_string_lossy();
-        let text = util::read_text_file(&filename)?;
+        let text = util::read_compressed_text_file(&filename)?;
 
         let reader = BufReader::new(text.as_bytes());
         let deserialized = serde_json::from_reader::<_, HashMap<String, usize>>(reader)?;

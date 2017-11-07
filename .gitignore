@@ -1,4 +1,5 @@
 local/
+.vscode/
 .state/
 /target/
 **/target/

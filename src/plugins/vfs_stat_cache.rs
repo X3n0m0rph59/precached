@@ -175,7 +175,7 @@ impl VFSStatCache {
 
                         let app_histogram = hot_applications.get_app_vec_ordered();
 
-                        for (hash, count) in app_histogram {
+                        for (hash, _count) in app_histogram {
                             if Self::check_available_memory(globals, manager) == false {
                                 info!("Available memory exhausted, stopping statx() caching!");
                                 break;
@@ -192,7 +192,7 @@ impl VFSStatCache {
         info!("Finished reading of statx() metadata for most used applications");
     }
 
-    fn check_available_memory(globals: &Globals, manager: &Manager) -> bool {
+    fn check_available_memory(_globals: &Globals, manager: &Manager) -> bool {
         let mut result = true;
 
         let pm = manager.plugin_manager.read().unwrap();

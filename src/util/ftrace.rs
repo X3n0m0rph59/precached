@@ -48,8 +48,11 @@ use std::time::{Duration, Instant};
 pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 
 lazy_static! {
-    /// Regex used to extract a filename from an ftrace event
-    pub static ref REGEX_FILENAME: Regex = Regex::new("getnameprobe(.*?)*?arg1=\"(?P<filename>.*)\"").unwrap();
+    /// Regex used to extract a file name from an ftrace event
+    pub static ref REGEX_FILENAME: Regex = Regex::new("getnameprobe(.*?)*?filename=\"(?P<filename>.*)\"").unwrap();
+
+    /// Regex used to extract a directory name from an ftrace event
+    pub static ref REGEX_DIRNAME: Regex = Regex::new("getdirnameprobe(.*?)*?dirname=\"(?P<dirname>.*)\"").unwrap();
 
     /// Regex used to filter out unwanted lines in the ftrace ringbuffer
     pub static ref REGEX_FILTER: Regex = Regex::new(r"CPU:[[:digit:]]+ \[LOST [[:digit:]]+ EVENTS\]").unwrap();
@@ -233,10 +236,21 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     ).unwrap();
 
 
-    // install a kprobe, used to resolve filenames
+    // getdents syscall
+    // echo(
+    //     &format!("{}/events/syscalls/sys_exit_getdents/enable", TRACING_DIR),
+    //     String::from("1"),
+    // ).unwrap();
+    // echo(
+    //     &format!("{}/events/syscalls/sys_exit_getdents64/filter", TRACING_DIR),
+    //     filter.clone(),
+    // ).unwrap();
+
+
+    // install a kprobe, used to resolve file names
     echo(
         &format!("{}/kprobe_events", TRACING_BASE_DIR),
-        String::from("r:getnameprobe getname +0(+0($retval)):string"),
+        String::from("r:getnameprobe getname filename=+0(+0($retval)):string"),
     );
     // .unwrap();
 
@@ -244,6 +258,19 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         &format!("{}/events/kprobes/getnameprobe/enable", TRACING_DIR),
         String::from("1"),
     ).unwrap();
+
+
+    // install a kprobe, used to resolve directory names
+    // append(
+    //     &format!("{}/kprobe_events", TRACING_BASE_DIR),
+    //     String::from("p:getdirnameprobe sys_getdents fd=%ax:s32 dirname=+19(%si):string"),
+    // );
+    // // .unwrap();
+
+    // echo(
+    //     &format!("{}/events/kprobes/getdirnameprobe/enable", TRACING_DIR),
+    //     String::from("1"),
+    // ).unwrap();
 
 
     // enable the ftrace function tracer just in case it was disabled
@@ -289,6 +316,11 @@ pub fn trace_process_io_ftrace(pid: libc::pid_t) -> io::Result<()> {
 pub fn stop_tracing_process_ftrace(_pid: libc::pid_t) -> io::Result<()> {
     // TODO: disable tracing for `pid`
     Ok(())
+}
+
+/// Insert `message` into the ftrace event stream
+pub fn insert_message_into_ftrace_stream(message: String) -> io::Result<()> {
+    echo(&format!("{}/trace_marker", TRACING_DIR), message)
 }
 
 pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
@@ -399,8 +431,11 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
     let mut trace_pipe_reader = BufReader::new(trace_pipe);
 
-    // filled in by `getnameprobe` kprobe event data
+    // filled in with `getnameprobe` kprobe event data
     let mut last_filename = None;
+
+    // filled in with `getdirnameprobe` kprobe event data
+    // let mut last_dirname = None;
 
     'LINE_LOOP: loop {
         // do we have a pending exit request?
@@ -451,11 +486,32 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         let idx = fields.len() - 1;
 
         if fields.len() >= 3 {
-            if !fields[idx].contains("sys_open") && !fields[idx].contains("sys_openat") && !fields[idx].contains("sys_open_by_handle_at") && !fields[idx].contains("sys_read") && !fields[idx].contains("sys_readv") &&
-                !fields[idx].contains("sys_preadv2") && !fields[idx].contains("sys_pread64") && !fields[idx].contains("sys_mmap") && !fields[idx].contains("sys_statx") && !fields[idx].contains("sys_newstat") &&
-                !fields[idx].contains("sys_newfstat") && !fields[idx].contains("sys_newfstatat") && !fields[idx].contains("getnameprobe")
+            if !fields[idx].contains("sys_open") && !fields[idx].contains("sys_openat") &&
+                !fields[idx].contains("sys_open_by_handle_at") && !fields[idx].contains("sys_read") &&
+                !fields[idx].contains("sys_readv") && !fields[idx].contains("sys_preadv2") &&
+                !fields[idx].contains("sys_pread64") &&
+                !fields[idx].contains("sys_mmap") && !fields[idx].contains("sys_statx") &&
+                !fields[idx].contains("sys_newstat") && !fields[idx].contains("sys_newfstat") &&
+                !fields[idx].contains("sys_newfstatat") &&
+                // !fields[idx].contains("sys_getdents") && !fields[idx].contains("sys_getdents64") &&
+                !fields[idx].contains("getnameprobe") && !fields[idx].contains("getdirnameprobe") &&
+                !fields[idx].contains("tracing_mark_write: ping!")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
+            }
+        }
+
+
+        // ping event
+        if l.contains("tracing_mark_write: ping!") {
+            // debug!("{:#?}", l);
+
+            if cb(
+                0,
+                IOEvent { syscall: SysCall::CustomEvent(String::from("ping!")) },
+            ) == false
+            {
+                break 'LINE_LOOP; // callback returned false, exit requested
             }
         }
 
@@ -497,11 +553,28 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     )
                 }
                 Some(c) => {
-                    trace!("'{}'", l);
                     last_filename = Some(String::from(&c["filename"]));
                 }
             }
         }
+
+        // getdirnameprobe kprobe event
+        // if l.contains("getdirnameprobe") {
+        //     warn!("{:?}", l);
+
+        //     match REGEX_DIRNAME.captures(l) {
+        //         None => {
+        //             error!(
+        //                 "Could not get associated directory name of the current trace event! Event: '{}'",
+        //                 l
+        //             )
+        //         }
+        //         Some(c) => {
+        //             last_dirname = Some(String::from(&c["dirname"]));
+        //         }
+        //     }
+        // }
+
 
         // sys_open syscall
         if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at")) && !l.contains("getnameprobe") {
@@ -609,6 +682,34 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // TODO: Implement this!
             // warn!("{:#?}", l);
         }
+
+        // sys_getdents(64) syscall family
+        // if l.contains("sys_getdents") || l.contains("sys_getdents64") {
+        //     // debug!("{:#?}", l);
+
+        //     let mut reset_dirname = false;
+        //     match last_dirname {
+        //         None => {
+        //             warn!(
+        //                 "Could not get associated directory name of the current trace event! '{}'",
+        //                 l
+        //             )
+        //         }
+
+        //         Some(ref c) => {
+        //             if cb(pid, IOEvent { syscall: SysCall::Getdents(c.clone()) }) == false {
+        //                 break 'LINE_LOOP; // callback returned false, exit requested
+        //             }
+
+        //             reset_dirname = true;
+        //         }
+        //     }
+
+        //     // reset the filename so that we won't use it multiple times accidentally
+        //     if reset_dirname {
+        //         last_dirname = None;
+        //     }
+        // }
     }
 
     Ok(())

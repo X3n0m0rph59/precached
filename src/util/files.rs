@@ -37,6 +37,7 @@ lazy_static! {
     pub static ref GLOB_SET: Arc<Mutex<Option<globset::GlobSet>>> = { Arc::new(Mutex::new(None)) };
 }
 
+/// Returns a `Vec<String>` containing all the lines of the file `filename`
 pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     let path = Path::new(filename);
     let file = try!(OpenOptions::new().read(true).open(&path));
@@ -59,7 +60,9 @@ pub fn get_lines_from_file(filename: &str) -> io::Result<Vec<String>> {
     Ok(result)
 }
 
-pub fn read_text_file(filename: &str) -> io::Result<String> {
+/// Read the compressed text file `filename`.
+/// This function transparently decompresses Zstd compressed files
+pub fn read_compressed_text_file(filename: &str) -> io::Result<String> {
     let path = Path::new(filename);
     let file = try!(OpenOptions::new().read(true).open(&path));
 
@@ -69,6 +72,8 @@ pub fn read_text_file(filename: &str) -> io::Result<String> {
     Ok(result)
 }
 
+/// Read the uncompressed text file `filename`.
+/// This function does *not* perform transparent de-compression
 pub fn read_uncompressed_text_file(filename: &str) -> io::Result<String> {
     let path = Path::new(filename);
     let file = try!(OpenOptions::new().read(true).open(&path));
@@ -80,6 +85,8 @@ pub fn read_uncompressed_text_file(filename: &str) -> io::Result<String> {
     Ok(result)
 }
 
+/// Write `text` to the compressed file `filename`.
+/// This function transparently compresses the file using Zstd compression
 pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
     let path = Path::new(filename);
     let mut file = try!(
@@ -101,36 +108,39 @@ pub fn write_text_file(filename: &str, text: String) -> io::Result<()> {
     Ok(())
 }
 
-pub fn mkdir(filename: &str) -> io::Result<()> {
-    fs::create_dir_all(filename)?;
+// Create directory `dirname`
+pub fn mkdir(dirname: &str) -> io::Result<()> {
+    fs::create_dir_all(dirname)?;
 
     Ok(())
 }
 
-pub fn echo(filename: &str, mut text: String) -> io::Result<()> {
+/// Echo (rewrite) `text` + "\n" to the file `filename`
+pub fn echo(filename: &str, text: String) -> io::Result<()> {
     let path = Path::new(filename);
     let mut file = try!(OpenOptions::new().write(true).append(false).open(&path));
 
-    text.push_str("\n");
+    let mut buffer = text;
+    buffer.push_str("\n");
 
-    trace!("echo: write: '{}' -> {}", &text, &filename);
-    file.write_all(text.into_bytes().as_slice())?;
+    file.write_all(buffer.into_bytes().as_slice())?;
 
     Ok(())
 }
 
+/// Echo (append) `text` + "\n" to the file `filename`
 pub fn append(filename: &str, mut text: String) -> io::Result<()> {
     let path = Path::new(filename);
     let mut file = try!(OpenOptions::new().write(true).append(true).open(&path));
 
     text.push_str("\n");
 
-    trace!("append: write: '{}' -> {}", &text, &filename);
     file.write_all(text.into_bytes().as_slice())?;
 
     Ok(())
 }
 
+/// Delete file `filename` if `dry_run` is set to `false`
 pub fn remove_file(filename: &str, dry_run: bool) -> io::Result<()> {
     trace!("deleting file: '{}'", &filename);
 
@@ -145,6 +155,8 @@ pub fn remove_file(filename: &str, dry_run: bool) -> io::Result<()> {
     }
 }
 
+/// Validates `filename`
+/// Returns `true` if the filename is valid, `false` otherwise
 pub fn is_filename_valid(filename: &String) -> bool {
     let f = filename.trim();
 
@@ -155,6 +167,8 @@ pub fn is_filename_valid(filename: &String) -> bool {
     return true;
 }
 
+/// Validates `filename`. Check if it is a valid regular file identified by an absolute path
+/// Returns `true` if the file is a valid regular file, `false` otherwise
 pub fn is_file_valid(filename: &String) -> bool {
     if !Path::new(filename).is_absolute() {
         return false;
@@ -167,6 +181,8 @@ pub fn is_file_valid(filename: &String) -> bool {
     return true;
 }
 
+/// Returns `true` if `filename` matches a pattern in `pattern`, otherwise returns `false`.
+/// The Vec<String> may contain any POSIX compatible glob pattern.
 pub fn is_file_blacklisted(filename: &String, pattern: &Vec<String>) -> bool {
     match GLOB_SET.lock() {
         Err(e) => {
@@ -198,22 +214,28 @@ pub fn is_file_blacklisted(filename: &String, pattern: &Vec<String>) -> bool {
     }
 }
 
+/// Returns `true` if the file `filename` is accessible
 pub fn is_file_accessible(filename: &String) -> bool {
     fs::metadata(Path::new(&filename)).is_ok()
 }
 
+/// Returns the size in bytes of the file `filename`
 pub fn get_file_size(filename: &String) -> io::Result<u64> {
     Ok(fs::metadata(Path::new(&filename))?.len())
 }
 
+/// Returns `true` if `filename` is a regular file, otherwise returns `false`
 pub fn is_file(filename: &String) -> bool {
     Path::new(filename).is_file()
 }
 
-pub fn is_directory(filename: &String) -> bool {
-    Path::new(filename).is_dir()
+/// Returns `true` if `dirname` is a directory, otherwise returns `false`
+pub fn is_directory(dirname: &String) -> bool {
+    Path::new(dirname).is_dir()
 }
 
+/// Shortens a long path in `filename` by replacing components of it with an ellipsis "..." sequence
+/// Returns the shortened path
 pub fn ellipsize_filename(filename: &String) -> String {
     let mut result = String::from("");
 
@@ -232,6 +254,7 @@ pub fn ellipsize_filename(filename: &String) -> String {
     result
 }
 
+/// Recursively enumerate files and directories in `dir`
 pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&Path)) -> io::Result<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
@@ -250,6 +273,7 @@ pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&Path)) -> io::Result<()> {
     Ok(())
 }
 
+/// Recursively enumerate files and directories in `entries`, calls callback function `cb` for each entry
 pub fn walk_directories<F>(entries: &Vec<String>, cb: &mut F) -> io::Result<()>
 where
     F: FnMut(&Path),

@@ -19,6 +19,7 @@
 */
 
 #![allow(unused_imports)]
+#![allow(dead_code)]
 
 extern crate clap;
 #[macro_use]
@@ -190,9 +191,9 @@ fn default_table_format(config: &Config) -> format::TableFormat {
 }
 
 /// Print status of the precached daemon
-fn print_status(config: &Config, daemon_config: util::ConfigFile) {
+fn print_status(_config: &Config, _daemon_config: util::ConfigFile) {
     match read_daemon_pid() {
-        Err(e) => {
+        Err(_e) => {
             println!("precached is NOT running");
         }
         Ok(_pid) => {
@@ -281,14 +282,18 @@ fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
 fn print_help(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
-    #[allow(unused_must_use)] config.clap.print_help();
+    #[allow(unused_must_use)] config.clap.print_help().unwrap();
+
+    println!("");
 }
 
 /// Print usage message on how to use this command
 fn print_usage(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
-    #[allow(unused_must_use)] config.clap.print_help();
+    #[allow(unused_must_use)] config.clap.print_help().unwrap();
+
+    println!("");
 }
 
 /// Program entrypoint

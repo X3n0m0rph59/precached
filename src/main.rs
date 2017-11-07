@@ -74,6 +74,7 @@ use procmon::ProcMon;
 mod events;
 use events::EventType;
 
+mod dbus;
 mod process;
 mod config;
 mod plugins;
@@ -416,6 +417,16 @@ fn main() {
     hooks::register_default_hooks(&mut globals, &mut manager);
     plugins::register_default_plugins(&mut globals, &mut manager);
 
+    // set-up dbus interface
+    let mut dbus_interface = dbus::create_dbus_interface(&mut globals, &mut manager);
+    match dbus_interface.register_connection(&mut globals, &mut manager) {
+        Err(s) => {
+            error!("Could not create dbus interface: {}", s);
+            return;
+        }
+        _ => { /* Do nothing */ }
+    }
+
     // Log disabled plugins and hooks
     print_disabled_plugins_notice(&mut globals);
     // print_disabled_hooks_notice(&mut globals);
@@ -503,6 +514,9 @@ fn main() {
             // Queue event
             events::queue_internal_event(EventType::PrimeCaches, &mut globals);
         }
+
+        // call the main loop hook of the dbus interface
+        dbus_interface.main_loop_hook(&mut globals, &mut manager);
 
         // NOTE: This is currently unused
         // Allow plugins to integrate into the main loop

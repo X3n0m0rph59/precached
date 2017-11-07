@@ -18,35 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
+pub mod dbus_interface;
 
-#[derive(Debug, Clone)]
-pub enum SysCall {
-    /// Invalid/undefined syscall
-    Undefined,
-
-    /// Used to deliver custom events, not an actual syscall
-    CustomEvent(String),
-
-    /// statx(2)
-    Statx(String),
-    /// fstat(at)(2)
-    Fstat(libc::int32_t),
-    /// getdents(2)
-    Getdents(String),
-    /// open(at)(2)
-    Open(String, libc::int32_t),
-    /// close(2)
-    Close(libc::int32_t),
-    /// (p)read(v)(2)
-    Read(libc::int32_t),
-    /// (p)write(v)(2)
-    Write(libc::int32_t),
-    /// mmap(2)
-    Mmap(usize),
-}
-
-#[derive(Debug, Clone)]
-pub struct IOEvent {
-    pub syscall: SysCall,
-}
+pub use self::dbus_interface::*;

@@ -43,6 +43,7 @@ pub enum IOOperation {
     Open(String, libc::int32_t),
     Stat(String),
     Fstat(libc::int32_t),
+    Getdents(String),
     Read(libc::int32_t),
     Mmap(libc::int32_t),
 }
@@ -178,7 +179,8 @@ impl IOTraceLog {
 
             // make the I/O trace contain an open and a read of the binary itself
             // since we will always miss that event in the tracer
-            let first_entries = vec![
+            let first_entries =
+                vec![
                 TraceLogEntry::new(IOOperation::Open(exe.clone(), 0), util::get_file_size(&exe).unwrap_or(0)),
                 // TraceLogEntry::new(IOOperation::Read(0)),
             ];
@@ -211,7 +213,7 @@ impl IOTraceLog {
     /// JSON representation, and de-serialize an `IOTraceLog` from
     /// that JSON representation.
     fn deserialize(filename: &String) -> io::Result<IOTraceLog> {
-        let text = util::read_text_file(&filename)?;
+        let text = util::read_compressed_text_file(&filename)?;
 
         let reader = BufReader::new(text.as_bytes());
         let deserialized = serde_json::from_reader::<_, IOTraceLog>(reader)?;
@@ -222,8 +224,8 @@ impl IOTraceLog {
     /// Write the I/O trace log to disk
     pub fn save(&self, filename: &String, allow_truncate: bool) -> io::Result<()> {
         if (self.trace_log.len() > constants::MIN_TRACE_LOG_LENGTH &&
-            self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES) ||
-            allow_truncate {
+                self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES) || allow_truncate
+        {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
             util::write_text_file(&filename, serialized)?;
 
