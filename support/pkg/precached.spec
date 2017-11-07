@@ -39,7 +39,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_mandir}/man8
 %{__mkdir_p} %{buildroot}%{_datarootdir}/metainfo/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/iotrace/
