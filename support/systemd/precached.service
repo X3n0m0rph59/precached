@@ -3,6 +3,7 @@ Description=Linux process monitor and pre-caching daemon
 Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precached.conf(5)
 DefaultDependencies=no
 Wants=local-fs.target
+After=local-fs.target
 
 [Service]
 Environment=LOG_LEVEL=warn
