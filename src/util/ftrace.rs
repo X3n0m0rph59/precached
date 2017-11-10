@@ -285,21 +285,33 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
 pub fn try_reset_ftrace_tracing() -> bool {
     let mut error_occured = false;
 
-    echo(&format!("{}/tracing_on", TRACING_DIR), String::from("0")).unwrap_or_else(|_| { error_occured = true; () });
+    echo(&format!("{}/tracing_on", TRACING_DIR), String::from("0")).unwrap_or_else(|_| {
+        error_occured = true;
+        ()
+    });
 
-    echo(&format!("{}/set_event", TRACING_DIR), String::from("")).unwrap_or_else(|_| { error_occured = true; () });
+    echo(&format!("{}/set_event", TRACING_DIR), String::from("")).unwrap_or_else(|_| {
+        error_occured = true;
+        ()
+    });
 
     echo(
         &format!("{}/kprobe_events", TRACING_BASE_DIR),
         String::from(""),
-    ).unwrap_or_else(|_| { error_occured = true; () });
+    ).unwrap_or_else(|_| {
+        error_occured = true;
+        ()
+    });
 
     // echo(
     //     &format!("{}/free_buffer", TRACING_DIR),
     //     String::from("free"),
     // ).unwrap_or_else(|_| { error_occured = true; () });
 
-    rmdir(&format!("{}", TRACING_DIR)).unwrap_or_else(|_| { error_occured = true; () });
+    rmdir(&format!("{}", TRACING_DIR)).unwrap_or_else(|_| {
+        error_occured = true;
+        ()
+    });
 
     !error_occured
 }

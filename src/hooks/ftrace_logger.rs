@@ -26,12 +26,12 @@ use events;
 use events::EventType;
 use globals::*;
 use hooks::hook;
+use hooks::process_tracker::ProcessTracker;
 use iotrace;
 use iotrace::*;
 use manager::*;
 use plugins::iotrace_log_manager::IOtraceLogManager;
 use plugins::static_blacklist::StaticBlacklist;
-use hooks::process_tracker::ProcessTracker;
 use process::Process;
 use procmon;
 use std::any::Any;
@@ -78,7 +78,7 @@ impl FtraceLogger {
     /// Thread entrypoint/main function of the "ftrace thread"
     fn ftrace_trace_log_parser(globals: &mut Globals, manager: &Manager) {
         let mut globals_c = globals.clone();
-        let manager_c = manager.clone();        
+        let manager_c = manager.clone();
 
         'FTRACE_EVENT_LOOP: loop {
             if let Err(e) = util::get_ftrace_events_from_pipe(
@@ -88,7 +88,7 @@ impl FtraceLogger {
                     //       to return `false`. Otherwise we return `true`.
 
                     let hm = manager.hook_manager.read().unwrap();
-                            
+
                     match hm.get_hook_by_name(&String::from("process_tracker")) {
                         None => {
                             error!("Hook not loaded: 'process_tracker', skipped");
@@ -121,7 +121,7 @@ impl FtraceLogger {
 
                             // comm is only used for the syslog output
                             let mut comm = String::from("<not available>");
-                            
+
                             if let Some(process) = process_tracker.get_process(pid) {
                                 comm = process.comm.clone();
                             } else {
@@ -228,17 +228,17 @@ impl FtraceLogger {
                                     }
                                 }
                             }
-
-                        }                    
-                    
+                        }
                     }
-                  
-                    return true;
 
-                }, globals) {            
-                error!("Processing of a trace log entry failed: {}", e);                
+                    return true;
+                },
+                globals,
+            )
+            {
+                error!("Processing of a trace log entry failed: {}", e);
             }
-            
+
             if EXIT_NOW.load(Ordering::Relaxed) {
                 trace!("Leaving the ftrace event loop...");
                 break 'FTRACE_EVENT_LOOP;
@@ -246,7 +246,7 @@ impl FtraceLogger {
                 // If we get here, the ftrace parser thread likely crashed
                 // try to restart it, so continue to the top of the loop...
                 warn!("ftrace parser thread terminated, restarting now!");
-            }            
+            }
         }
 
         // If we got here we returned false from the above "event handler" closure and the
@@ -277,10 +277,10 @@ impl FtraceLogger {
     /// Add process `event.pid` to the list of traced processes
     pub fn trace_process_io_activity(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
         let hm = manager.hook_manager.read().unwrap();
-                            
+
         match hm.get_hook_by_name(&String::from("process_tracker")) {
             None => {
-                error!("Hook not loaded: 'process_tracker', skipped");                
+                error!("Hook not loaded: 'process_tracker', skipped");
             }
             Some(h) => {
                 let h = h.read().unwrap();
@@ -288,7 +288,7 @@ impl FtraceLogger {
 
                 // let mut cmdline = String::from("");
 
-                let mut comm = String::from("<not available>");                
+                let mut comm = String::from("<not available>");
                 if let Some(process) = process_tracker.get_process(event.pid) {
                     comm = process.comm.clone();
                 } else {
@@ -297,7 +297,7 @@ impl FtraceLogger {
                             String::from("<not available>"),
                         );
                     }
-                }                
+                }
 
                 match ACTIVE_TRACERS.lock() {
                     Err(e) => {
@@ -360,9 +360,9 @@ impl FtraceLogger {
                                 }
                             } else {
                                 info!(
-                                        "Error creating trace log for process with pid: {}. Process went away early",
-                                        event.pid
-                                    );
+                                    "Error creating trace log for process with pid: {}. Process went away early",
+                                    event.pid
+                                );
                             }
                         }
                     }
@@ -425,7 +425,7 @@ impl FtraceLogger {
 
         match hm.get_hook_by_name(&String::from("process_tracker")) {
             None => {
-                error!("Hook not loaded: 'process_tracker', skipped");                
+                error!("Hook not loaded: 'process_tracker', skipped");
             }
 
             Some(h) => {
@@ -434,7 +434,7 @@ impl FtraceLogger {
 
                 if let Some(process) = process_tracker.get_process(event.pid) {
                     let comm = process.comm.clone();
-                    
+
                     // NOTE: We have to use `lock()` here instead of `try_lock()`
                     //       because we don't want to miss "exit" events in any case
                     match ACTIVE_TRACERS.lock() {
@@ -489,8 +489,11 @@ impl FtraceLogger {
                         }
                     }
                 } else {
-                    info!("Spurious process exit event for process with pid: {}", event.pid);
-                } 
+                    info!(
+                        "Spurious process exit event for process with pid: {}",
+                        event.pid
+                    );
+                }
             }
         }
     }

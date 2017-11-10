@@ -110,7 +110,11 @@ impl hook::Hook for ProcessTracker {
                 match process {
                     None => {}
                     Some(process) => {
-                        info!("Removed tracked process '{}' with pid: {}", process.comm, process.pid);
+                        info!(
+                            "Removed tracked process '{}' with pid: {}",
+                            process.comm,
+                            process.pid
+                        );
                         events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
                     }
                 }
