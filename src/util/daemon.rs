@@ -24,13 +24,18 @@ use constants;
 use daemonize::{Daemonize, DaemonizeError};
 use globals;
 
-pub fn daemonize(_config: &globals::Globals) -> Result<(), DaemonizeError> {
+/// Daemonizes the calling process
+pub fn daemonize(globals: globals::Globals) -> Result<(), DaemonizeError> {
+    let config = globals.config.config_file.unwrap_or_default();
+    let user = config.user.unwrap();
+    let group = config.group.unwrap();
+
     let daemonize = Daemonize::new()
-        .pid_file(constants::DAEMON_PID_FILE) // Every method except `new` and `start`
-        .chown_pid_file(true)      // is optional, see `Daemonize` documentation
-        .working_directory("/tmp") // for default behaviour.
-        .user("root")
-        .group("root");
+        .pid_file(constants::DAEMON_PID_FILE)
+        .chown_pid_file(true)
+        .working_directory("/tmp")
+        .user(user.as_str())
+        .group(group.as_str());
     // .privileged_action(|| "Executed before drop privileges");
 
     daemonize.start()

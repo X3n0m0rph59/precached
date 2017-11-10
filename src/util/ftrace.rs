@@ -22,7 +22,7 @@ extern crate libc;
 extern crate regex;
 
 use self::regex::Regex;
-use super::{append, echo, mkdir};
+use super::{append, echo, mkdir, rmdir};
 use super::trace_event::*;
 use chrono::{DateTime, Utc};
 use constants;
@@ -83,8 +83,8 @@ impl PerTracerData {
 
 /// Enable ftrace tracing on the system
 pub fn enable_ftrace_tracing() -> io::Result<()> {
-    // clear first
-    disable_ftrace_tracing();
+    // clear first, try to set a sane state
+    try_reset_ftrace_tracing();
 
     // enable the ftrace function tracer
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
@@ -280,13 +280,37 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     Ok(())
 }
 
+/// Try to completely reset the ftrace subsystem
+/// Returns `true` if everything went alright, `false` if at least one operation failed
+pub fn try_reset_ftrace_tracing() -> bool {
+    let mut error_occured = false;
+
+    echo(&format!("{}/tracing_on", TRACING_DIR), String::from("0")).unwrap_or_else(|_| { error_occured = true; () });
+
+    echo(&format!("{}/set_event", TRACING_DIR), String::from("")).unwrap_or_else(|_| { error_occured = true; () });
+
+    echo(
+        &format!("{}/kprobe_events", TRACING_BASE_DIR),
+        String::from(""),
+    ).unwrap_or_else(|_| { error_occured = true; () });
+
+    // echo(
+    //     &format!("{}/free_buffer", TRACING_DIR),
+    //     String::from("free"),
+    // ).unwrap_or_else(|_| { error_occured = true; () });
+
+    rmdir(&format!("{}", TRACING_DIR)).unwrap_or_else(|_| { error_occured = true; () });
+
+    !error_occured
+}
+
 /// Disable ftrace tracing on the system
 pub fn disable_ftrace_tracing() -> io::Result<()> {
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("nop"))?;
 
     echo(&format!("{}/tracing_on", TRACING_DIR), String::from("0"))?;
 
-    echo(&format!("{}/set_event", TRACING_DIR), String::from("")).unwrap();
+    echo(&format!("{}/set_event", TRACING_DIR), String::from(""))?;
 
     echo(
         &format!("{}/kprobe_events", TRACING_BASE_DIR),
@@ -297,6 +321,8 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
     //     &format!("{}/free_buffer", TRACING_DIR),
     //     String::from("free"),
     // ).unwrap();
+
+    rmdir(&format!("{}", TRACING_DIR))?;
 
     Ok(())
 }
@@ -578,7 +604,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
         // sys_open syscall
         if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at")) && !l.contains("getnameprobe") {
-            if fields.len() >= 2 {
+            if fields.len() >= 1 {
                 // debug!("{:#?}", l);
 
                 // let comm = String::from(fields[0]);
@@ -629,7 +655,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         if l.contains("sys_read") || l.contains("sys_readv") || l.contains("sys_preadv2") || l.contains("sys_pread64") {
             // debug!("{:#?}", l);
 
-            if fields.len() >= 2 {
+            if fields.len() >= 1 {
                 // get last part of trace buffer line
                 let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
                 let tmp = tmp[tmp.len() - 1];
@@ -650,7 +676,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         if l.contains("sys_mmap") {
             // debug!("{:#?}", l);
 
-            if fields.len() >= 2 {
+            if fields.len() >= 1 {
                 // get last part of trace buffer line
                 let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
                 let tmp = tmp[tmp.len() - 1];

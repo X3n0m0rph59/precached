@@ -386,16 +386,18 @@ fn main() {
     }
 
     // Become a daemon now, if not otherwise specified
-    if globals.config.daemonize {
+    let daemonize = globals.config.daemonize;
+    if daemonize {
         info!("Daemonizing...");
 
-        match util::daemonize(&globals) {
+        match util::daemonize(globals.clone()) {
             Err(e) => {
                 error!("Could not become a daemon: {}", e);
                 return; // Must fail here, since we were asked to
                 // daemonize, and maybe there is another
                 // instance already running!
             }
+
             Ok(()) => {
                 trace!("Daemonized successfuly!");
             }

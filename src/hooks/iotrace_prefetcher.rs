@@ -583,7 +583,7 @@ impl IOtracePrefetcher {
                                     }
                                 } else {
                                     // executable is already cached by "hot apps"
-                                    info!("Not prefetching, files are already in cache!");
+                                    info!("Skipped prefetching, files are already cached!");
                                 }
                             }
                         }

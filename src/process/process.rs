@@ -60,7 +60,7 @@ pub struct Process {
 impl Process {
     pub fn new(pid: libc::pid_t) -> io::Result<Process> {
         let filename = format!("/proc/{}/comm", pid);
-        let comm = &String::from(util::read_uncompressed_text_file(&filename)?);
+        let comm = &String::from(util::read_uncompressed_text_file(&filename)?.trim());
 
         Ok(Process {
             pid: pid,

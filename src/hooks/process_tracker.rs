@@ -52,6 +52,10 @@ impl ProcessTracker {
         ProcessTracker { tracked_processes: HashMap::new() }
     }
 
+    pub fn get_process(&self, pid: libc::pid_t) -> Option<&Process> {
+        self.tracked_processes.get(&pid)
+    }
+
     pub fn get_tracked_processes(&mut self) -> &mut HashMap<libc::pid_t, Process> {
         &mut self.tracked_processes
     }
@@ -78,6 +82,7 @@ impl hook::Hook for ProcessTracker {
         match event.event_type {
             procmon::EventType::Exec => {
                 let process = Process::new(event.pid);
+
                 match process {
                     Err(e) => {
                         debug!("Could not track process {}: {}", event.pid, e);
@@ -91,9 +96,7 @@ impl hook::Hook for ProcessTracker {
                         );
                         info!(
                             "Now tracking process '{}' pid: {}",
-                            process.get_comm().unwrap_or(
-                                String::from("<not available>"),
-                            ),
+                            process.comm,
                             process.pid
                         );
 
@@ -107,7 +110,7 @@ impl hook::Hook for ProcessTracker {
                 match process {
                     None => {}
                     Some(process) => {
-                        info!("Removed tracked process with pid: {}", process.pid);
+                        info!("Removed tracked process '{}' with pid: {}", process.comm, process.pid);
                         events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
                     }
                 }

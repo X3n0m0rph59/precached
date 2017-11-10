@@ -115,6 +115,13 @@ pub fn mkdir(dirname: &str) -> io::Result<()> {
     Ok(())
 }
 
+// Remove (empty) directory `dirname`
+pub fn rmdir(dirname: &str) -> io::Result<()> {
+    fs::remove_dir(dirname)?;
+
+    Ok(())
+}
+
 /// Echo (rewrite) `text` + "\n" to the file `filename`
 pub fn echo(filename: &str, text: String) -> io::Result<()> {
     let path = Path::new(filename);
