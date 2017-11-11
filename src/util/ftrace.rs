@@ -39,7 +39,8 @@ use std::fs::OpenOptions;
 use std::io;
 use std::io::BufRead;
 use std::io::BufReader;
-use std::path::Path;
+use std::os::unix::ffi::OsStringExt;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -90,192 +91,255 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
 
     // enable "disable on free mechanism"
-    let filename = CString::new(format!("{}/options/free_buffer", TRACING_DIR)).unwrap();
-    let _result = unsafe { libc::open(filename.as_ptr(), libc::O_NOCTTY) };
-    echo(
-        &format!("{}/options/disable_on_free", TRACING_BASE_DIR),
-        String::from("1"),
-    )?;
+    let filename = Path::new(TRACING_DIR).join("options").join("free_buffer");
+    let c_str = unsafe { CString::from_vec_unchecked(filename.as_path().as_os_str().to_os_string().into_vec()) };
+    let _result = unsafe { libc::open(c_str.as_ptr(), libc::O_NOCTTY) };
+
+    let filename = Path::new(TRACING_BASE_DIR).join("options").join(
+        "disable_on_free",
+    );
+    echo(&filename, String::from("1"))?;
 
     // create our private ftrace instance
-    mkdir(&format!("{}", TRACING_DIR)).unwrap();
+    mkdir(&Path::new(TRACING_DIR))?;
 
     // enable ftrace
-    echo(&format!("{}/tracing_on", TRACING_DIR), String::from("1"))?;
+    let filename = Path::new(TRACING_DIR).join("tracing_on");
+    echo(&filename, String::from("1"))?;
 
     let filter = format!("common_pid != {}", unsafe { libc::getpid() });
     trace!("PID Filter: {}", filter);
 
-    // echo(
-    //     &format!("{}/events/syscalls/filter", TRACING_DIR),
-    //     filter.clone(),
-    // )?;
-
     // enable tracing
 
     // open syscall family
-    echo(
-        &format!("{}/events/syscalls/sys_exit_open/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_open/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_open")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_open")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
 
 
-    echo(
-        &format!("{}/events/syscalls/sys_exit_openat/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_openat/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_openat")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_openat")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
 
 
-    echo(
-        &format!(
-            "{}/events/syscalls/sys_exit_open_by_handle_at/enable",
-            TRACING_DIR
-        ),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!(
-            "{}/events/syscalls/sys_exit_open_by_handle_at/filter",
-            TRACING_DIR
-        ),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_open_by_handle_at")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_open_by_handle_at")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
+
 
     // read syscall family
-    echo(
-        &format!("{}/events/syscalls/sys_exit_read/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_read/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_read")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
 
-    echo(
-        &format!("{}/events/syscalls/sys_exit_readv/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_readv/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_read")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
 
-    echo(
-        &format!("{}/events/syscalls/sys_exit_preadv2/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_preadv2/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_readv")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
 
-    echo(
-        &format!("{}/events/syscalls/sys_exit_pread64/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_pread64/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_readv")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
+
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_preadv2")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_preadv2")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_pread64")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_pread64")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
 
 
     // mmap syscall
-    echo(
-        &format!("{}/events/syscalls/sys_exit_mmap/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_mmap/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_mmap")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_mmap")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
 
 
     // stat(x) syscall
-    echo(
-        &format!("{}/events/syscalls/sys_exit_statx/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_statx/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_statx")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
 
-    echo(
-        &format!("{}/events/syscalls/sys_exit_newstat/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_newstat/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_statx")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
 
-    echo(
-        &format!("{}/events/syscalls/sys_exit_newfstat/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_newfstat/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_newstat")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
 
-    echo(
-        &format!("{}/events/syscalls/sys_exit_newfstatat/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
-    echo(
-        &format!("{}/events/syscalls/sys_exit_newfstatat/filter", TRACING_DIR),
-        filter.clone(),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_newstat")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_newfstat")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_newfstat")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_newfstatat")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
+
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("syscalls")
+        .join("sys_exit_newfstatat")
+        .join("filter");
+    echo(&filename, filter.clone()).unwrap();
 
 
     // getdents syscall
+    // let filename = Path::new(TRACING_DIR).join("events").join("syscalls").join("sys_exit_getdents").join("enable");
     // echo(
     //     &format!("{}/events/syscalls/sys_exit_getdents/enable", TRACING_DIR),
     //     String::from("1"),
     // ).unwrap();
+    //
+    // let filename = Path::new(TRACING_DIR).join("events").join("syscalls").join("sys_exit_getdents").join("filter");
     // echo(
-    //     &format!("{}/events/syscalls/sys_exit_getdents64/filter", TRACING_DIR),
+    //     &format!("{}/events/syscalls/sys_exit_getdents/filter", TRACING_DIR),
     //     filter.clone(),
     // ).unwrap();
 
 
     // install a kprobe, used to resolve file names
+    let filename = Path::new(TRACING_BASE_DIR).join("kprobe_events");
     echo(
-        &format!("{}/kprobe_events", TRACING_BASE_DIR),
+        &filename,
         String::from("r:getnameprobe getname filename=+0(+0($retval)):string"),
     );
     // .unwrap();
 
-    echo(
-        &format!("{}/events/kprobes/getnameprobe/enable", TRACING_DIR),
-        String::from("1"),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR)
+        .join("events")
+        .join("kprobes")
+        .join("getnameprobe")
+        .join("enable");
+    echo(&filename, String::from("1")).unwrap();
 
 
     // install a kprobe, used to resolve directory names
+    // let filename = Path::new(TRACING_BASE_DIR).join("kprobe_events");
     // append(
-    //     &format!("{}/kprobe_events", TRACING_BASE_DIR),
+    //     &filename,
     //     String::from("p:getdirnameprobe sys_getdents fd=%ax:s32 dirname=+19(%si):string"),
     // );
     // // .unwrap();
 
+    // let filename = Path::new(TRACING_DIR).join("events").join("kprobes").join("getnameprobe").join("enable");
     // echo(
-    //     &format!("{}/events/kprobes/getdirnameprobe/enable", TRACING_DIR),
+    //     &filename,
     //     String::from("1"),
     // ).unwrap();
 
 
     // enable the ftrace function tracer just in case it was disabled
     // NOTE: This fails sometimes with "Device or Resource busy"
-    // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
+    // let filename = Path::new(TRACING_DIR).join("current_tracer");
+    // echo(&filename, String::from("function"))?;
 
     Ok(())
 }
@@ -285,30 +349,25 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
 pub fn try_reset_ftrace_tracing() -> bool {
     let mut error_occured = false;
 
-    echo(&format!("{}/tracing_on", TRACING_DIR), String::from("0")).unwrap_or_else(|_| {
+    let filename = Path::new(TRACING_DIR).join("tracing_on");
+    echo(&filename, String::from("0")).unwrap_or_else(|_| {
         error_occured = true;
         ()
     });
 
-    echo(&format!("{}/set_event", TRACING_DIR), String::from("")).unwrap_or_else(|_| {
+    let filename = Path::new(TRACING_DIR).join("set_event");
+    echo(&filename, String::from("")).unwrap_or_else(|_| {
         error_occured = true;
         ()
     });
 
-    echo(
-        &format!("{}/kprobe_events", TRACING_BASE_DIR),
-        String::from(""),
-    ).unwrap_or_else(|_| {
+    let filename = Path::new(TRACING_DIR).join("kprobe_events");
+    echo(&filename, String::from("")).unwrap_or_else(|_| {
         error_occured = true;
         ()
     });
 
-    // echo(
-    //     &format!("{}/free_buffer", TRACING_DIR),
-    //     String::from("free"),
-    // ).unwrap_or_else(|_| { error_occured = true; () });
-
-    rmdir(&format!("{}", TRACING_DIR)).unwrap_or_else(|_| {
+    rmdir(&Path::new(TRACING_DIR)).unwrap_or_else(|_| {
         error_occured = true;
         ()
     });
@@ -320,21 +379,17 @@ pub fn try_reset_ftrace_tracing() -> bool {
 pub fn disable_ftrace_tracing() -> io::Result<()> {
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("nop"))?;
 
-    echo(&format!("{}/tracing_on", TRACING_DIR), String::from("0"))?;
+    let filename = Path::new(TRACING_DIR).join("tracing_on");
+    echo(&filename, String::from("0"))?;
 
-    echo(&format!("{}/set_event", TRACING_DIR), String::from(""))?;
+    let filename = Path::new(TRACING_DIR).join("set_event");
+    echo(&filename, String::from(""))?;
 
-    echo(
-        &format!("{}/kprobe_events", TRACING_BASE_DIR),
-        String::from(""),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR).join("kprobe_events");
+    echo(&filename, String::from(""))?;
 
-    // echo(
-    //     &format!("{}/free_buffer", TRACING_DIR),
-    //     String::from("free"),
-    // ).unwrap();
 
-    rmdir(&format!("{}", TRACING_DIR))?;
+    rmdir(&Path::new(TRACING_DIR))?;
 
     Ok(())
 }
@@ -342,31 +397,29 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
 /// Add `pid` to the list of processes being traced
 pub fn trace_process_io_ftrace(pid: libc::pid_t) -> io::Result<()> {
     // filter for pid
-    append(
-        &format!("{}/set_event_pid", TRACING_DIR),
-        format!("{}", pid),
-    ).unwrap();
+    let filename = Path::new(TRACING_DIR).join("set_event_pid");
+    append(&filename, format!("{}", pid)).unwrap();
 
     Ok(())
 }
 
 /// Remove `pid` from the list of processes being traced
-pub fn stop_tracing_process_ftrace(_pid: libc::pid_t) -> io::Result<()> {
+pub fn stop_tracing_process_ftrace(pid: libc::pid_t) -> io::Result<()> {
     // TODO: disable tracing for `pid`
     Ok(())
 }
 
 /// Insert `message` into the ftrace event stream
 pub fn insert_message_into_ftrace_stream(message: String) -> io::Result<()> {
-    echo(&format!("{}/trace_marker", TRACING_DIR), message)
+    let filename = Path::new(TRACING_DIR).join("trace_marker");
+    echo(&filename, message)
 }
 
 pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
     let mut result = HashMap::new();
 
-    let s = format!("{}/printk_formats", TRACING_DIR);
-    let path_s = Path::new(&s);
-    let printk_formats = try!(OpenOptions::new().read(true).open(&path_s));
+    let filename = Path::new(TRACING_DIR).join("printk_formats");
+    let printk_formats = try!(OpenOptions::new().read(true).open(&filename));
 
     let mut printk_formats_reader = BufReader::new(printk_formats);
 
@@ -405,16 +458,10 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
 }
 
 /// Check for, and prune expired tracers; save their logs if valid
-fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData>, iotrace_dir: &String, globals: &mut Globals) {
+fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData>, iotrace_dir: &Path, globals: &mut Globals) {
     for (pid, v) in active_tracers.iter_mut() {
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
             let mut comm = &v.trace_log.comm;
-
-            // if let Ok(process) = Process::new(*pid) {
-            //     comm = process.get_comm().unwrap_or(
-            //         String::from("<not available>"),
-            //     );
-            // }
 
             debug!(
                 "Tracing time expired for process '{}' with pid: {}",
@@ -425,11 +472,9 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
             v.trace_time_expired = true;
             v.trace_log.trace_stopped_at = Utc::now();
 
-            let path = Path::new(iotrace_dir)
-                .join(Path::new(&constants::IOTRACE_DIR))
-                .join(Path::new(&format!("{}.trace", v.trace_log.hash)));
-
-            let filename = String::from(path.to_string_lossy());
+            let filename = iotrace_dir.join(Path::new(&constants::IOTRACE_DIR)).join(
+                Path::new(&format!("{}.trace", v.trace_log.hash)),
+            );
 
             match v.trace_log.save(&filename, false) {
                 Err(e) => {
@@ -445,7 +490,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
                     info!("Successfuly saved I/O trace log for process '{}' with pid: {}", comm, pid );
 
                     // schedule an optimization pass for the newly saved trace log
-                    debug!("Queued an optimization request for '{}'", filename);
+                    debug!("Queued an optimization request for {:?}", filename);
                     events::queue_internal_event(EventType::OptimizeIOTraceLog(filename), globals);
                 }
             }
@@ -460,12 +505,12 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
 pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool, globals: &mut Globals) -> io::Result<()> {
     let config = globals.config.config_file.clone().unwrap();
     let iotrace_dir = config.state_dir.unwrap_or(
-        String::from(constants::STATE_DIR),
+        Path::new(constants::STATE_DIR)
+            .to_path_buf(),
     );
 
-    let p = format!("{}/trace_pipe", TRACING_DIR);
-    let path_p = Path::new(&p);
-    let trace_pipe = try!(OpenOptions::new().read(true).open(&path_p));
+    let filename = Path::new(TRACING_DIR).join("trace_pipe");
+    let trace_pipe = try!(OpenOptions::new().read(true).open(&filename));
 
     let mut trace_pipe_reader = BufReader::new(trace_pipe);
 
@@ -570,6 +615,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     );
                     continue;
                 }
+
                 Ok(p) => {
                     pid = p;
                 }
@@ -590,8 +636,9 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                         l
                     )
                 }
+
                 Some(c) => {
-                    last_filename = Some(String::from(&c["filename"]));
+                    last_filename = Some(PathBuf::from(Path::new(&c["filename"])));
                 }
             }
         }
@@ -642,8 +689,13 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                             l
                         )
                     }
+
                     Some(ref c) => {
-                        if cb(pid, IOEvent { syscall: SysCall::Open(c.clone(), 0) }) == false {
+                        if cb(
+                            pid,
+                            IOEvent { syscall: SysCall::Open(PathBuf::from(c.clone()), 0) },
+                        ) == false
+                        {
                             break 'LINE_LOOP; // callback returned false, exit requested
                         }
 
@@ -735,7 +787,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         //         }
 
         //         Some(ref c) => {
-        //             if cb(pid, IOEvent { syscall: SysCall::Getdents(c.clone()) }) == false {
+        //             if cb(pid, IOEvent { syscall: SysCall::Getdents(PathBuf::from(c.clone())) }) == false {
         //                 break 'LINE_LOOP; // callback returned false, exit requested
         //             }
 

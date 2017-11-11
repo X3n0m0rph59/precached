@@ -33,7 +33,7 @@ where
     let serialized = serde_json::to_string_pretty(&t).unwrap();
 
     let config = globals.config.config_file.clone().unwrap();
-    let filename = config.state_dir.unwrap() + "/precached.state";
+    let filename = config.state_dir.unwrap().join("precached.state");
 
     write_text_file(&filename, serialized)?;
 

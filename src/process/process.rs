@@ -25,7 +25,7 @@ extern crate regex;
 use self::regex::*;
 use std::ffi::OsStr;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use util;
 
 lazy_static! {
@@ -37,7 +37,7 @@ lazy_static! {
 /// Represents a memory mapping of a process
 #[derive(Debug)]
 pub struct Mapping {
-    pub file: String,
+    pub file: PathBuf,
     pub flags: String,
     pub start: usize,
     pub end: usize,
@@ -59,7 +59,8 @@ pub struct Process {
 
 impl Process {
     pub fn new(pid: libc::pid_t) -> io::Result<Process> {
-        let filename = format!("/proc/{}/comm", pid);
+        let tmp = format!("/proc/{}/comm", pid);
+        let filename = Path::new(&tmp);
         let comm = &String::from(util::read_uncompressed_text_file(&filename)?.trim());
 
         Ok(Process {
@@ -69,7 +70,8 @@ impl Process {
     }
 
     pub fn get_mapped_files(&self) -> io::Result<Vec<String>> {
-        let filename = format!("/proc/{}/maps", self.pid);
+        let tmp = format!("/proc/{}/maps", self.pid);
+        let filename = Path::new(&tmp);
         let maps = try!(util::get_lines_from_file(&filename));
 
         let result = maps.into_iter()
@@ -86,7 +88,8 @@ impl Process {
     }
 
     pub fn get_mappings(&self) -> io::Result<Vec<Mapping>> {
-        let filename = format!("/proc/{}/maps", self.pid);
+        let tmp = format!("/proc/{}/maps", self.pid);
+        let filename = Path::new(&tmp);
         let maps = try!(util::get_lines_from_file(&filename));
 
         let result = maps.into_iter()
@@ -94,7 +97,7 @@ impl Process {
                 let caps = RE_PROC_MAPS.captures(&l);
                 match caps {
                     Some(c) => Some(Mapping {
-                        file: String::from(&c["filename"]),
+                        file: PathBuf::from(&c["filename"]),
                         flags: String::from(&c["flags"]),
                         start: usize::from_str_radix(&c["start"], 16).unwrap(),
                         end: usize::from_str_radix(&c["end"], 16).unwrap(),
@@ -110,23 +113,24 @@ impl Process {
     /// Returns the current `exe` of the process
     /// (Executable image file name)
     /// Returns: filename of executable image
-    pub fn get_exe(&self) -> Result<String, &'static str> {
-        let filename = format!("/proc/{}/exe", self.pid);
-        let path = Path::new(&filename);
+    pub fn get_exe(&self) -> Result<PathBuf, &'static str> {
+        let tmp = format!("/proc/{}/exe", self.pid);
+        let filename = Path::new(&tmp);
 
         let mut buffer: [u8; 4096] = [0; 4096];
-        let result = nix::fcntl::readlink(path, &mut buffer);
+        let result = nix::fcntl::readlink(filename, &mut buffer);
 
         match result {
             Err(_e) => Err("Could not get executable file name!"),
-            Ok(r) => Ok(String::from(r.to_str().unwrap().trim())),
+            Ok(r) => Ok(PathBuf::from(r.to_str().unwrap().trim())),
         }
     }
 
     /// Returns the current comm of the process
     /// NOTE: This may be different than the stored `comm`
     pub fn get_comm(&self) -> Result<String, &'static str> {
-        let filename = format!("/proc/{}/comm", self.pid);
+        let tmp = format!("/proc/{}/comm", self.pid);
+        let filename = Path::new(&tmp);
         let result = util::read_uncompressed_text_file(&filename);
 
         match result {
@@ -137,7 +141,8 @@ impl Process {
 
     /// Returns the commandline of the process
     pub fn get_cmdline(&self) -> Result<String, &'static str> {
-        let filename = format!("/proc/{}/cmdline", self.pid);
+        let tmp = format!("/proc/{}/cmdline", self.pid);
+        let filename = Path::new(&tmp);
         let result = util::read_uncompressed_text_file(&filename);
 
         match result {

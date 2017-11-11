@@ -18,9 +18,11 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 use constants;
 use globals::*;
 use std::io;
+use std::path::{Path, PathBuf};
 use toml;
 use util;
 
@@ -32,11 +34,11 @@ pub struct ConfigFile {
     pub available_mem_critical_threshold: Option<u8>,
     pub available_mem_upper_threshold: Option<u8>,
     pub available_mem_lower_threshold: Option<u8>,
-    pub state_dir: Option<String>,
-    pub whitelist: Option<Vec<String>>,
-    pub metadata_whitelist: Option<Vec<String>>,
+    pub state_dir: Option<PathBuf>,
+    pub whitelist: Option<Vec<PathBuf>>,
+    pub metadata_whitelist: Option<Vec<PathBuf>>,
     pub program_whitelist: Option<Vec<String>>,
-    pub blacklist: Option<Vec<String>>,
+    pub blacklist: Option<Vec<PathBuf>>,
     pub disabled_plugins: Option<Vec<String>>,
 }
 
@@ -49,18 +51,18 @@ impl Default for ConfigFile {
             available_mem_critical_threshold: Some(constants::AVAILABLE_MEMORY_CRITICAL_THRESHOLD),
             available_mem_upper_threshold: Some(constants::AVAILABLE_MEMORY_UPPER_THRESHOLD),
             available_mem_lower_threshold: Some(constants::AVAILABLE_MEMORY_LOWER_THRESHOLD),
-            state_dir: Some(String::from(constants::STATE_DIR)),
-            whitelist: Some(vec![String::from("")]),
-            metadata_whitelist: Some(vec![String::from("")]),
+            state_dir: Some(Path::new(constants::STATE_DIR).to_path_buf()),
+            whitelist: Some(vec![PathBuf::new()]),
+            metadata_whitelist: Some(vec![PathBuf::new()]),
             program_whitelist: Some(vec![String::from("")]),
-            blacklist: Some(vec![String::from("")]),
+            blacklist: Some(vec![PathBuf::new()]),
             disabled_plugins: Some(vec![String::from("")]),
         }
     }
 }
 
 pub fn parse_config_file(globals: &mut Globals) -> io::Result<()> {
-    let input = util::get_lines_from_file(&globals.config.config_filename)?;
+    let input = util::get_lines_from_file(&globals.config.config_filename.as_path())?;
 
     let mut s = String::new();
     for l in input {

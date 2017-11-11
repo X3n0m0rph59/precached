@@ -29,6 +29,7 @@ use plugins::plugin::PluginDescription;
 use plugins::static_blacklist::StaticBlacklist;
 use std::any::Any;
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::mpsc::{channel, Sender};
@@ -51,8 +52,8 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct StaticWhitelist {
-    mapped_files: HashMap<String, util::MemoryMapping>,
-    whitelist: Box<Vec<String>>,
+    mapped_files: HashMap<PathBuf, util::MemoryMapping>,
+    whitelist: Box<Vec<PathBuf>>,
     program_whitelist: Box<Vec<String>>,
 }
 
@@ -65,7 +66,7 @@ impl StaticWhitelist {
         }
     }
 
-    fn get_file_whitelist(globals: &Globals) -> Vec<String> {
+    fn get_file_whitelist(globals: &Globals) -> Vec<PathBuf> {
         let mut result = Vec::new();
 
         let mut whitelist = globals
@@ -77,10 +78,11 @@ impl StaticWhitelist {
             .unwrap();
 
         result.append(&mut whitelist);
+
         result
     }
 
-    pub fn get_metadata_whitelist(&self, globals: &Globals) -> Vec<String> {
+    pub fn get_metadata_whitelist(&self, globals: &Globals) -> Vec<PathBuf> {
         let mut result = Vec::new();
 
         let mut whitelist = globals
@@ -92,6 +94,7 @@ impl StaticWhitelist {
             .unwrap();
 
         result.append(&mut whitelist);
+
         result
     }
 
@@ -107,6 +110,7 @@ impl StaticWhitelist {
             .unwrap();
 
         result.append(&mut program_whitelist);
+
         result
     }
 
@@ -115,7 +119,7 @@ impl StaticWhitelist {
 
         let pm = manager.plugin_manager.read().unwrap();
 
-        let mut static_blacklist = Vec::<String>::new();
+        let mut static_blacklist = Vec::new();
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
             None => {
                 trace!("Plugin not loaded: 'static_blacklist', skipped");
@@ -131,7 +135,7 @@ impl StaticWhitelist {
         let whitelist = self.whitelist.clone();
         let our_mapped_files = self.mapped_files.clone();
 
-        let (sender, receiver): (Sender<HashMap<String, util::MemoryMapping>>, _) = channel();
+        let (sender, receiver): (Sender<HashMap<PathBuf, util::MemoryMapping>>, _) = channel();
         let sc = Mutex::new(sender.clone());
 
         match util::POOL.try_lock() {
@@ -156,18 +160,17 @@ impl StaticWhitelist {
 
                         // mmap and mlock file, if it is not contained in the blacklist
                         // and if it was not already mapped by some of the plugins
-                        let filename = String::from(path.to_string_lossy());
-                        let f = filename.clone();
+                        let f = path.clone();
                         let f2 = f.clone();
 
-                        if Self::shall_we_map_file(&filename, &static_blacklist, &our_mapped_files) {
+                        if Self::shall_we_map_file(&path, &static_blacklist, &our_mapped_files) {
                             match util::cache_file(&f, true) {
                                 Err(s) => {
-                                    error!("Could not cache file '{}': {}", &f, &s);
+                                    error!("Could not cache file {:?}: {}", &f, &s);
                                 }
                                 Ok(r) => {
-                                    trace!("Successfuly cached file '{}'", &f);
-                                    mapped_files.insert(f2, r);
+                                    trace!("Successfuly cached file {:?}", &f);
+                                    mapped_files.insert(f2.to_path_buf(), r);
                                 }
                             }
                         }
@@ -220,9 +223,9 @@ impl StaticWhitelist {
     }
 
     fn shall_we_map_file(
-        filename: &String,
-        static_blacklist: &Vec<String>,
-        our_mapped_files: &HashMap<String, util::MemoryMapping>,
+        filename: &Path,
+        static_blacklist: &Vec<PathBuf>,
+        our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>,
     ) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
@@ -279,19 +282,19 @@ impl StaticWhitelist {
         result
     }
 
-    pub fn get_mapped_files(&self) -> &HashMap<String, util::MemoryMapping> {
+    pub fn get_mapped_files(&self) -> &HashMap<PathBuf, util::MemoryMapping> {
         &self.mapped_files
     }
 
-    pub fn get_mapped_files_mut(&mut self) -> &mut HashMap<String, util::MemoryMapping> {
+    pub fn get_mapped_files_mut(&mut self) -> &mut HashMap<PathBuf, util::MemoryMapping> {
         &mut self.mapped_files
     }
 
-    pub fn get_whitelist(&self) -> &Vec<String> {
+    pub fn get_whitelist(&self) -> &Vec<PathBuf> {
         &self.whitelist
     }
 
-    pub fn get_whitelist_mut(&mut self) -> &mut Vec<String> {
+    pub fn get_whitelist_mut(&mut self) -> &mut Vec<PathBuf> {
         &mut self.whitelist
     }
 }

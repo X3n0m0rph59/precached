@@ -29,7 +29,7 @@ use plugins::plugin::PluginDescription;
 use plugins::static_blacklist::StaticBlacklist;
 use plugins::static_whitelist::StaticWhitelist;
 use std::any::Any;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use storage;
 use util;
 use util::Contains;
@@ -72,6 +72,7 @@ impl VFSStatCache {
                     e
                 )
             }
+
             Ok(thread_pool) => {
                 let globals_c = globals.clone();
                 let manager_c = manager.clone();
@@ -100,7 +101,7 @@ impl VFSStatCache {
     /// Helper function, that decides if we should subsequently stat() the
     /// file `filename`. Verifies the validity of `filename`, and check if `filename`
     /// is not blacklisted.
-    fn shall_we_cache_file(&self, filename: &String, _globals: &Globals, manager: &Manager) -> bool {
+    fn shall_we_cache_file(&self, filename: &Path, _globals: &Globals, manager: &Manager) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(&filename) {
             return false;
@@ -130,8 +131,8 @@ impl VFSStatCache {
     /// Get all files and directories that are currently contained in a whitelist,
     /// either a statc whitelist or a dynamic whitelist. Returns a `Vec<String>`
     /// filled with the globally whitelisted files
-    fn get_globally_tracked_entries(&self, globals: &Globals, manager: &Manager) -> Vec<String> {
-        let mut result = Vec::<String>::new();
+    fn get_globally_tracked_entries(&self, globals: &Globals, manager: &Manager) -> Vec<PathBuf> {
+        let mut result = Vec::new();
 
         let pm = manager.plugin_manager.read().unwrap();
 

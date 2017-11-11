@@ -20,6 +20,8 @@
 
 extern crate libc;
 
+use std::path::PathBuf;
+
 #[derive(Debug, Clone)]
 pub enum SysCall {
     /// Invalid/undefined syscall
@@ -29,13 +31,13 @@ pub enum SysCall {
     CustomEvent(String),
 
     /// statx(2)
-    Statx(String),
+    Statx(PathBuf),
     /// fstat(at)(2)
     Fstat(libc::int32_t),
     /// getdents(2)
-    Getdents(String),
+    Getdents(PathBuf),
     /// open(at)(2)
-    Open(String, libc::int32_t),
+    Open(PathBuf, libc::int32_t),
     /// close(2)
     Close(libc::int32_t),
     /// (p)read(v)(2)

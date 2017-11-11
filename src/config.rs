@@ -21,7 +21,10 @@
 extern crate clap;
 
 use self::clap::{App, Arg};
+
 use constants;
+
+use std::path::PathBuf;
 use storage;
 
 
@@ -31,7 +34,7 @@ use storage;
 pub struct Config {
     pub verbosity: u8,
     pub daemonize: bool,
-    pub config_filename: String,
+    pub config_filename: PathBuf,
     pub config_file: Option<storage::ConfigFile>,
 }
 
@@ -63,7 +66,7 @@ impl Config {
         Config {
             verbosity: matches.occurrences_of("v") as u8,
             daemonize: !matches.is_present("foreground"),
-            config_filename: String::from(matches.value_of("config").unwrap_or(constants::CONFIG_FILE)),
+            config_filename: PathBuf::from(matches.value_of("config").unwrap()),
             config_file: None,
         }
     }

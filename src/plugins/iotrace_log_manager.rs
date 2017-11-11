@@ -34,7 +34,7 @@ use std::collections::HashMap;
 use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::{Instant, Duration};
 use storage;
 use util;
@@ -68,56 +68,58 @@ impl IOtraceLogManager {
         let config = globals.config.config_file.clone().unwrap();
 
         let iotrace_dir = config.state_dir.unwrap_or(
-            String::from(constants::STATE_DIR),
+            Path::new(constants::STATE_DIR)
+                .to_path_buf(),
         );
 
-        let path = Path::new(&iotrace_dir)
-            .join(Path::new(&constants::IOTRACE_DIR))
-            .join(Path::new(&format!("{}.trace", hashval)));
+        let filename = iotrace_dir.as_path().join(constants::IOTRACE_DIR).join(
+            Path::new(&format!("{}.trace", hashval)),
+        );
 
-        let filename = path.to_string_lossy();
-        let result = iotrace::IOTraceLog::from_file(&String::from(filename))?;
+        let result = iotrace::IOTraceLog::from_file(&filename)?;
 
         Ok(result)
     }
 
     // Returns the most recent I/O trace log for the executable `exe_name`.
-    pub fn get_trace_log(&self, exe_name: String, cmdline: String, globals: &Globals) -> Result<iotrace::IOTraceLog> {
+    pub fn get_trace_log(&self, exe_name: &Path, cmdline: String, globals: &Globals) -> Result<iotrace::IOTraceLog> {
         let config = globals.config.config_file.clone().unwrap();
 
         let mut hasher = fnv::FnvHasher::default();
-        hasher.write(&exe_name.into_bytes());
+        hasher.write(&exe_name
+            .clone()
+            .to_string_lossy()
+            .into_owned()
+            .into_bytes());
         hasher.write(&cmdline.into_bytes());
         let hashval = hasher.finish();
 
         let iotrace_dir = config.state_dir.unwrap_or(
-            String::from(constants::STATE_DIR),
+            Path::new(constants::STATE_DIR)
+                .to_path_buf(),
         );
 
-        let path = Path::new(&iotrace_dir)
-            .join(Path::new(&constants::IOTRACE_DIR))
-            .join(Path::new(&format!("{}.trace", hashval)));
+        let filename = iotrace_dir.join(constants::IOTRACE_DIR).join(
+            Path::new(&format!(
+                "{}.trace",
+                hashval
+            )),
+        );
 
-        let filename = path.to_string_lossy();
-        let result = iotrace::IOTraceLog::from_file(&String::from(filename))?;
+        let result = iotrace::IOTraceLog::from_file(&filename)?;
 
         Ok(result)
     }
 
-    pub fn enumerate_all_trace_logs(&self, state_dir: String) -> Result<HashMap<String, iotrace::IOTraceLog>> {
+    pub fn enumerate_all_trace_logs(&self, state_dir: &Path) -> Result<HashMap<PathBuf, iotrace::IOTraceLog>> {
         let mut result = HashMap::new();
 
-        let traces_path = String::from(
-            Path::new(&state_dir)
-                .join(Path::new(&constants::IOTRACE_DIR))
-                .to_string_lossy(),
-        );
+        let traces_path = state_dir.join(constants::IOTRACE_DIR);
 
         try!(util::walk_directories(&vec![traces_path], &mut |path| {
-            let filename = String::from(path.to_string_lossy());
-            let io_trace_log = iotrace::IOTraceLog::from_file(&filename).unwrap();
+            let io_trace_log = iotrace::IOTraceLog::from_file(&path).unwrap();
 
-            result.insert(filename, io_trace_log);
+            result.insert(PathBuf::from(path), io_trace_log);
         }));
 
         Ok(result)
@@ -146,31 +148,27 @@ impl IOtraceLogManager {
     }
 
     /// Prunes invalid I/O trace logs
-    pub fn prune_invalid_trace_logs(state_dir: String) {
+    pub fn prune_invalid_trace_logs(state_dir: &Path) {
         debug!("Pruning invalid I/O trace logs...");
 
-        let traces_path = String::from(
-            Path::new(&state_dir)
-                .join(Path::new(&constants::IOTRACE_DIR))
-                .to_string_lossy(),
-        );
+        let traces_path = state_dir.join(constants::IOTRACE_DIR);
 
         let mut counter = 0;
         let mut pruned = 0;
         let mut errors = 0;
 
         match util::walk_directories(&vec![traces_path], &mut |path| {
-            let filename = String::from(path.to_string_lossy());
-            match iotrace::IOTraceLog::from_file(&filename) {
+            match iotrace::IOTraceLog::from_file(&path) {
                 Err(e) => {
                     error!("Skipped invalid I/O trace file, file not readable: {}", e);
                     errors += 1;
                 }
+
                 Ok(io_trace) => {
                     if Self::shall_io_trace_be_pruned(&io_trace) {
-                        debug!("Pruning I/O trace log: '{}'", &filename);
+                        debug!("Pruning I/O trace log: {:?}", path);
 
-                        util::remove_file(&filename, false);
+                        util::remove_file(&path, false);
 
                         pruned += 1;
                     }
@@ -198,8 +196,8 @@ impl IOtraceLogManager {
         }
     }
 
-    pub fn optimize_single_trace_log(filename: &String) {
-        debug!("Optimizing single I/O trace log '{}'", filename);
+    pub fn optimize_single_trace_log(filename: &Path) {
+        debug!("Optimizing single I/O trace log {:?}", filename);
 
         match iotrace::IOTraceLog::from_file(&filename) {
             Err(e) => {
@@ -211,7 +209,7 @@ impl IOtraceLogManager {
                     match util::optimize_io_trace_log(filename, &mut io_trace, false) {
                         Err(e) => {
                             error!(
-                                "Could not optimize I/O trace log for '{}': {}",
+                                "Could not optimize I/O trace log for {:?}: {}",
                                 io_trace.exe,
                                 e
                             );
@@ -227,39 +225,36 @@ impl IOtraceLogManager {
         }
     }
 
-    pub fn optimize_all_trace_logs(state_dir: String) {
+    pub fn optimize_all_trace_logs(state_dir: &Path) {
         debug!("Optimizing all I/O trace logs...");
 
-        let traces_path = String::from(
-            Path::new(&state_dir)
-                .join(Path::new(&constants::IOTRACE_DIR))
-                .to_string_lossy(),
-        );
+        let traces_path = state_dir.join(constants::IOTRACE_DIR);
 
         let mut counter = 0;
         let mut optimized = 0;
         let mut errors = 0;
 
         match util::walk_directories(&vec![traces_path], &mut |path| {
-            let filename = String::from(path.to_string_lossy());
-            match iotrace::IOTraceLog::from_file(&filename) {
+            match iotrace::IOTraceLog::from_file(&path) {
                 Err(e) => {
                     error!("Skipped invalid I/O trace file, file not readable: {}", e);
                     errors += 1;
                 }
+
                 Ok(mut io_trace) => {
                     // Only optimize if the trace log is not optimized already
                     if !io_trace.trace_log_optimized {
-                        match util::optimize_io_trace_log(&filename, &mut io_trace, false) {
+                        match util::optimize_io_trace_log(&path, &mut io_trace, false) {
                             Err(e) => {
                                 error!(
-                                    "Could not optimize I/O trace log for '{}': {}",
+                                    "Could not optimize I/O trace log for {:?}: {}",
                                     io_trace.exe,
                                     e
                                 );
 
                                 // util::remove_file(&filename, true);
                             }
+
                             Ok(_) => {
                                 optimized += 1;
                             }
@@ -317,7 +312,7 @@ impl Plugin for IOtraceLogManager {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             EventType::OptimizeIOTraceLog(ref filename) => {
-                warn!("Optimizing: {}", filename);
+                warn!("Optimizing: {:?}", filename);
 
                 match util::SCHEDULER.lock() {
                     Err(e) => {
@@ -341,12 +336,13 @@ impl Plugin for IOtraceLogManager {
                         Ok(mut scheduler) => {
                             let config = globals.config.config_file.clone().unwrap();
                             let state_dir = config.state_dir.unwrap_or(
-                                String::from(constants::STATE_DIR),
+                                Path::new(constants::STATE_DIR)
+                                    .to_path_buf(),
                             );
 
                             (*scheduler).schedule_job(move || {
-                                Self::prune_invalid_trace_logs(state_dir.clone());
-                                Self::optimize_all_trace_logs(state_dir.clone());
+                                Self::prune_invalid_trace_logs(&state_dir.clone());
+                                Self::optimize_all_trace_logs(&state_dir.clone());
                             });
 
                             self.last_housekeeping_performed = Instant::now();

@@ -42,6 +42,7 @@ use prettytable::cell::Cell;
 use prettytable::format;
 use prettytable::row::Row;
 use std::io;
+use std::path::{Path, PathBuf};
 
 /// Runtime configuration for precachedctl
 #[derive(Clone)]
@@ -139,7 +140,7 @@ under certain conditions.
 
 /// Read the pid of the precached daemon from the file `/run/precached.pid`
 fn read_daemon_pid() -> io::Result<String> {
-    util::read_uncompressed_text_file(constants::DAEMON_PID_FILE)
+    util::read_uncompressed_text_file(&Path::new(constants::DAEMON_PID_FILE))
 }
 
 /// Define a table format using only Unicode character points as
@@ -311,8 +312,8 @@ fn main() {
     let mut config_c = config.clone();
 
     // load external text configuration
-    let filename = String::from(config.matches.value_of(String::from("config")).unwrap());
-    trace!("Loading external configuration from '{}'", filename);
+    let filename = Path::new(config.matches.value_of(String::from("config")).unwrap());
+    trace!("Loading external configuration from {:?}", filename);
     let daemon_config = util::ConfigFile::from_file(&filename).unwrap_or_default();
 
     // Decide what to do

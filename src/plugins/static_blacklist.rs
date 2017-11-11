@@ -27,6 +27,7 @@ use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use std::any::Any;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use storage;
 use util;
@@ -52,7 +53,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct StaticBlacklist {
-    blacklist: Box<Vec<String>>,
+    blacklist: Box<Vec<PathBuf>>,
 }
 
 impl StaticBlacklist {
@@ -60,7 +61,7 @@ impl StaticBlacklist {
         StaticBlacklist { blacklist: Box::new(StaticBlacklist::get_file_blacklist(globals)) }
     }
 
-    fn get_file_blacklist(globals: &Globals) -> Vec<String> {
+    fn get_file_blacklist(globals: &Globals) -> Vec<PathBuf> {
         let mut result = Vec::new();
 
         let mut blacklist = globals
@@ -70,39 +71,45 @@ impl StaticBlacklist {
             .unwrap()
             .blacklist
             .unwrap_or(vec![]);
+
         result.append(&mut blacklist);
 
         result
     }
 
-    pub fn get_blacklist(&self) -> &Vec<String> {
+    pub fn get_blacklist(&self) -> &Vec<PathBuf> {
         &self.blacklist
     }
 
-    pub fn is_file_blacklisted(&self, filename: &String) -> bool {
+    pub fn is_file_blacklisted(&self, filename: &Path) -> bool {
         match GLOB_SET.lock() {
             Err(e) => {
                 error!("Could not lock a shared data structure! {}", e);
                 false
             }
+
             Ok(mut gs_opt) => {
                 if gs_opt.is_none() {
                     // construct a glob set at the first iteration
                     let mut builder = GlobSetBuilder::new();
                     for p in self.get_blacklist().iter() {
-                        builder.add(Glob::new(p).unwrap());
+                        builder.add(
+                            Glob::new(&p.to_string_lossy().into_owned().as_str()).unwrap(),
+                        );
                     }
                     let set = builder.build().unwrap();
 
                     *gs_opt = Some(set.clone());
 
                     // glob_set already available
-                    let matches = set.matches(&filename);
+                    let matches = set.matches(&filename.to_string_lossy().into_owned());
 
                     matches.len() > 0
                 } else {
                     // glob_set already available
-                    let matches = gs_opt.clone().unwrap().matches(&filename);
+                    let matches = gs_opt.clone().unwrap().matches(&filename
+                        .to_string_lossy()
+                        .into_owned());
 
                     matches.len() > 0
                 }

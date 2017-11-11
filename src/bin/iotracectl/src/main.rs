@@ -407,7 +407,7 @@ fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::I
 
     if matches.is_present("executable") {
         if let Some(exe) = matches.value_of("executable") {
-            if !io_trace.exe.contains(exe) {
+            if !io_trace.exe.to_string_lossy().contains(exe) {
                 return false;
             }
         }
@@ -434,14 +434,14 @@ fn get_io_trace_flags(io_trace: &iotrace::IOTraceLog) -> (String, bool, Color) {
     (result, err, color)
 }
 
-fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usize, config: &Config, table: &mut Table) {
+fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize, config: &Config, table: &mut Table) {
     let matches = config.matches.subcommand_matches("list").unwrap();
     let (flags, _err, color) = get_io_trace_flags(&io_trace);
 
     if matches.is_present("full") {
         // Print in "full" format
         println!(
-            "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\n\
+            "I/O Trace\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\n\
              Compression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\nI/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
             filename,
             io_trace.exe,
@@ -465,7 +465,7 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
     } else if matches.is_present("short") {
         // Print in "short" format
         println!(
-            "Executable:\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\nNum I/O Ops:\t{}\n\
+            "Executable:\t{:?}\nCreation Date:\t{}\nTrace End Date:\t{}\nNum I/O Ops:\t{}\n\
              I/O Size:\t{}\nFlags:\t\t{:?}\n\n",
             io_trace.exe,
             io_trace
@@ -482,15 +482,16 @@ fn print_io_trace(filename: &String, io_trace: &iotrace::IOTraceLog, index: usiz
         );
     } else if matches.is_present("terse") {
         // Print in "terse" format
-        println!("{}", io_trace.exe);
+        println!("{:?}", io_trace.exe);
     } else
     /*if matches.is_present("tabular")*/
     {
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
             Cell::new_align(&format!("{}", index), Alignment::RIGHT),
-            Cell::new(&util::ellipsize_filename(&io_trace.exe))
-                .with_style(Attr::Bold),
+            Cell::new(&util::ellipsize_filename(
+                &io_trace.exe.to_string_lossy().into_owned(),
+            )).with_style(Attr::Bold),
             Cell::new(&io_trace.hash),
             Cell::new(&io_trace
                 .created_at
@@ -606,13 +607,10 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
 /// Enumerate all I/O traces and display them in the specified format
 fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let state_dir = daemon_config.state_dir.unwrap_or(
-        String::from(constants::STATE_DIR),
+        Path::new(constants::STATE_DIR)
+            .to_path_buf(),
     );
-    let traces_path = String::from(
-        Path::new(&state_dir)
-            .join(Path::new(&constants::IOTRACE_DIR))
-            .to_string_lossy(),
-    );
+    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -640,14 +638,14 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         trace!("{:?}", path);
 
         let filename = String::from(path.to_string_lossy());
-        match iotrace::IOTraceLog::from_file(&filename) {
+        match iotrace::IOTraceLog::from_file(&path) {
             Err(e) => {
                 error!("Skipped invalid I/O trace file, file not readable: {}", e);
                 errors += 1;
             }
             Ok(io_trace) => {
                 if filter_matches(&String::from("list"), &filename, &io_trace, &config) {
-                    print_io_trace(&filename, &io_trace, counter + 1, config, &mut table);
+                    print_io_trace(&path, &io_trace, counter + 1, config, &mut table);
                     matching += 1;
                 }
             }
@@ -681,13 +679,10 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 /// Display metadata of an I/O trace in the specified format
 fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let state_dir = daemon_config.state_dir.unwrap_or(
-        String::from(constants::STATE_DIR),
+        Path::new(constants::STATE_DIR)
+            .to_path_buf(),
     );
-    let traces_path = String::from(
-        Path::new(&state_dir)
-            .join(Path::new(&constants::IOTRACE_DIR))
-            .to_string_lossy(),
-    );
+    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -700,7 +695,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
         trace!("{:?}", path);
 
         let filename = String::from(path.to_string_lossy());
-        match iotrace::IOTraceLog::from_file(&filename) {
+        match iotrace::IOTraceLog::from_file(&path) {
             Err(e) => {
                 error!("Invalid I/O trace file, file not readable: {}", e);
                 errors += 1;
@@ -712,7 +707,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
                     // TODO: Support other formats here
                     // Print in "full" format
                     println!(
-                        "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                        "I/O Trace\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                          Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
                          I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
                         filename,
@@ -761,13 +756,10 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
 /// Dump the raw I/O trace data
 fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let state_dir = daemon_config.state_dir.unwrap_or(
-        String::from(constants::STATE_DIR),
+        Path::new(constants::STATE_DIR)
+            .to_path_buf(),
     );
-    let traces_path = String::from(
-        Path::new(&state_dir)
-            .join(Path::new(&constants::IOTRACE_DIR))
-            .to_string_lossy(),
-    );
+    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -783,8 +775,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
 
-    let p = Path::new(&traces_path).join(Path::new(&format!("{}.trace", hash)));
-    let filename = String::from(p.to_string_lossy());
+    let filename = traces_path.join(Path::new(&format!("{}.trace", hash)));
 
     match iotrace::IOTraceLog::from_file(&filename) {
         Err(e) => {
@@ -796,7 +787,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
             // Print in "full" format
             println!(
-                "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                "I/O Trace\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
                  I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
@@ -897,13 +888,10 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let matches = config.matches.subcommand_matches("analyze").unwrap();
 
     let state_dir = daemon_config.state_dir.unwrap_or(
-        String::from(constants::STATE_DIR),
+        Path::new(constants::STATE_DIR)
+            .to_path_buf(),
     );
-    let traces_path = String::from(
-        Path::new(&state_dir)
-            .join(Path::new(&constants::IOTRACE_DIR))
-            .to_string_lossy(),
-    );
+    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -919,8 +907,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
 
-    let p = Path::new(&traces_path).join(Path::new(&format!("{}.trace", hash)));
-    let filename = String::from(p.to_string_lossy());
+    let filename = traces_path.join(Path::new(&format!("{}.trace", hash)));
 
     match iotrace::IOTraceLog::from_file(&filename) {
         Err(e) => {
@@ -932,7 +919,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
             // Print in "full" format
             println!(
-                "I/O Trace\t{}\nExecutable:\t{}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                "I/O Trace\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
                  I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
@@ -1021,13 +1008,10 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 /// Optimize I/O trace file access pattern
 fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let state_dir = daemon_config.state_dir.unwrap_or(
-        String::from(constants::STATE_DIR),
+        Path::new(constants::STATE_DIR)
+            .to_path_buf(),
     );
-    let traces_path = String::from(
-        Path::new(&state_dir)
-            .join(Path::new(&constants::IOTRACE_DIR))
-            .to_string_lossy(),
-    );
+    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -1056,7 +1040,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         trace!("{:?}", path);
 
         let filename = String::from(path.to_string_lossy());
-        match iotrace::IOTraceLog::from_file(&filename) {
+        match iotrace::IOTraceLog::from_file(&path) {
             Err(_e) => {
                 // Print in "tabular" format (the default)
                 table.add_row(Row::new(vec![
@@ -1071,9 +1055,10 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 ]));
                 errors += 1;
             }
+
             Ok(mut io_trace) => {
                 if filter_matches(&String::from("optimize"), &filename, &io_trace, &config) {
-                    match util::optimize_io_trace_log(&filename, &mut io_trace, dry_run) {
+                    match util::optimize_io_trace_log(&path, &mut io_trace, dry_run) {
                         Err(_) => {
                             // Print in "tabular" format (the default)
                             table.add_row(Row::new(vec![
@@ -1088,6 +1073,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                             ]));
                             errors += 1;
                         }
+
                         Ok(_) => {
                             // Print in "tabular" format (the default)
                             table.add_row(Row::new(vec![
@@ -1139,13 +1125,10 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 /// Remove I/O traces
 fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let state_dir = daemon_config.state_dir.unwrap_or(
-        String::from(constants::STATE_DIR),
+        Path::new(constants::STATE_DIR)
+            .to_path_buf(),
     );
-    let traces_path = String::from(
-        Path::new(&state_dir)
-            .join(Path::new(&constants::IOTRACE_DIR))
-            .to_string_lossy(),
-    );
+    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -1161,8 +1144,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
 
-    let p = Path::new(&traces_path).join(Path::new(&format!("{}.trace", hash)));
-    let filename = String::from(p.to_string_lossy());
+    let filename = traces_path.join(&format!("{}.trace", hash));
 
     let dry_run = config
         .matches
@@ -1188,7 +1170,9 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                     &format!("{}", counter + 1),
                     Alignment::RIGHT
                 ),
-                Cell::new(&filename).with_style(Attr::Bold),
+                Cell::new(&filename.to_string_lossy()).with_style(
+                    Attr::Bold
+                ),
                 Cell::new(&"error (permission problem?)")
                     .with_style(Attr::Bold)
                     .with_style(Attr::ForegroundColor(RED)),
@@ -1203,7 +1187,9 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                     &format!("{}", counter + 1),
                     Alignment::RIGHT
                 ),
-                Cell::new(&filename).with_style(Attr::Bold),
+                Cell::new(&filename.to_string_lossy()).with_style(
+                    Attr::Bold
+                ),
                 Cell::new(&"removed")
                     .with_style(Attr::Bold)
                     .with_style(Attr::ForegroundColor(GREEN)),
@@ -1239,13 +1225,10 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     trace!("Clearing I/O traces...");
 
     let state_dir = daemon_config.state_dir.unwrap_or(
-        String::from(constants::STATE_DIR),
+        Path::new(constants::STATE_DIR)
+            .to_path_buf(),
     );
-    let traces_path = String::from(
-        Path::new(&state_dir)
-            .join(Path::new(&constants::IOTRACE_DIR))
-            .to_string_lossy(),
-    );
+    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -1270,8 +1253,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     match util::walk_directories(&vec![traces_path], &mut |path| {
         trace!("{:?}", path);
 
-        let filename = String::from(path.to_string_lossy());
-        match util::remove_file(&filename, dry_run) {
+        match util::remove_file(&path, dry_run) {
             Err(_) => {
                 // Print in "tabular" format (the default)
                 table.add_row(Row::new(vec![
@@ -1279,7 +1261,9 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                         &format!("{}", counter + 1),
                         Alignment::RIGHT
                     ),
-                    Cell::new(&filename).with_style(Attr::Bold),
+                    Cell::new(&path.to_string_lossy()).with_style(
+                        Attr::Bold
+                    ),
                     Cell::new(&"error").with_style(Attr::Bold).with_style(
                         Attr::ForegroundColor(RED)
                     ),
@@ -1293,7 +1277,9 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                         &format!("{}", counter + 1),
                         Alignment::RIGHT
                     ),
-                    Cell::new(&filename).with_style(Attr::Bold),
+                    Cell::new(&path.to_string_lossy()).with_style(
+                        Attr::Bold
+                    ),
                     Cell::new(&"removed")
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN)),
@@ -1396,8 +1382,8 @@ fn main() {
     let mut config_c = config.clone();
 
     // load external text configuration
-    let filename = String::from(config.matches.value_of(String::from("config")).unwrap());
-    trace!("Loading external configuration from '{}'", filename);
+    let filename = Path::new(config.matches.value_of(String::from("config")).unwrap());
+    trace!("Loading external configuration from {:?}", filename);
     let daemon_config = util::ConfigFile::from_file(&filename).unwrap_or_default();
 
     // Decide what to do

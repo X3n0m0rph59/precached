@@ -37,6 +37,7 @@ use procmon;
 use std::any::Any;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::{channel, Receiver, Sender};
@@ -153,14 +154,14 @@ impl FtraceLogger {
                                             match event.syscall {
                                                 util::SysCall::Open(ref filename, fd) => {
                                                     trace!(
-                                                        "Process: '{}' with pid {} opened file: {} fd: {}",
+                                                        "Process: '{}' with pid {} opened file: {:?} fd: {}",
                                                         comm,
                                                         pid,
                                                         filename,
                                                         fd
                                                     );
 
-                                                    if !Self::is_file_blacklisted(filename.clone(), &mut globals_c, &manager_c) {
+                                                    if !Self::is_file_blacklisted(&filename, &mut globals_c, &manager_c) {
                                                         iotrace_log.add_event(IOOperation::Open(filename.clone(), fd));
                                                     }
                                                 }
@@ -254,7 +255,7 @@ impl FtraceLogger {
         info!("ftrace parser thread terminating now!");
     }
 
-    fn is_file_blacklisted(filename: String, _globals: &mut Globals, manager: &Manager) -> bool {
+    fn is_file_blacklisted(filename: &Path, _globals: &mut Globals, manager: &Manager) -> bool {
         let mut result = false;
 
         let pm = manager.plugin_manager.read().unwrap();
@@ -263,6 +264,7 @@ impl FtraceLogger {
             None => {
                 warn!("Plugin not loaded: 'static_blacklist', skipped");
             }
+
             Some(p) => {
                 let p = p.read().unwrap();
                 let mut static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
@@ -325,7 +327,7 @@ impl FtraceLogger {
                                     // Construct the "PerTracerData" and a companion IOTraceLog
                                     match iotrace::IOTraceLog::new(event.pid) {
                                         Err(e) => {
-                                            info!("Process went away during tracing! {}", e);
+                                            info!("Process vanished during tracing! {}", e);
                                         }
 
                                         Ok(iotrace_log) => {
@@ -360,7 +362,7 @@ impl FtraceLogger {
                                 }
                             } else {
                                 info!(
-                                    "Error creating trace log for process with pid: {}. Process went away early",
+                                    "Error creating trace log for process with pid: {}, the process vanished",
                                     event.pid
                                 );
                             }
@@ -381,6 +383,7 @@ impl FtraceLogger {
                 trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
                 Ok(false)
             }
+
             Some(p) => {
                 let p = p.read().unwrap();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
@@ -388,7 +391,7 @@ impl FtraceLogger {
                 if let Ok(process) = Process::new(pid) {
                     if let Ok(exe) = process.get_exe() {
                         if let Ok(cmdline) = process.get_cmdline() {
-                            match iotrace_log_manager_plugin.get_trace_log(exe, cmdline, &globals) {
+                            match iotrace_log_manager_plugin.get_trace_log(&exe, cmdline, &globals) {
                                 Err(_e) => Ok(true),
 
                                 Ok(io_trace) => {

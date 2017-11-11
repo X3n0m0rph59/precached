@@ -26,19 +26,20 @@ use std::ffi::CString;
 use std::fs::File;
 use std::io::{Result, Error, ErrorKind};
 use std::os::unix::io::IntoRawFd;
+use std::path::{Path, PathBuf};
 
 /// Represents a file backed memory mapping
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryMapping {
-    pub filename: String,
+    pub filename: PathBuf,
     pub addr: usize,
     pub len: usize,
 }
 
 impl MemoryMapping {
-    pub fn new(filename: String, addr: usize, len: usize) -> MemoryMapping {
+    pub fn new(filename: &Path, addr: usize, len: usize) -> MemoryMapping {
         MemoryMapping {
-            filename: filename,
+            filename: PathBuf::from(filename),
             addr: addr,
             len: len,
         }
@@ -67,8 +68,8 @@ type StatSize = i32;
 ///
 /// Returns a `MemoryMapping` representing the newly created file backed mapping
 /// or an Err if the requested actions could not be performed
-pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
-    trace!("Caching file: '{}'", filename);
+pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
+    trace!("Caching file: {:?}", filename);
 
     let file = File::open(filename)?;
     let fd = file.into_raw_fd();
@@ -98,7 +99,7 @@ pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
 
             Err(std::io::Error::last_os_error())
         } else {
-            trace!("Successfuly called readahead() for: '{}'", filename);
+            trace!("Successfuly called readahead() for: {:?}", filename);
 
             // Call to readahead succeeded, now mmap() and mlock() if requested
 
@@ -119,7 +120,7 @@ pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
 
                 Err(std::io::Error::last_os_error())
             } else {
-                trace!("Successfuly called mmap() for: '{}'", filename);
+                trace!("Successfuly called mmap() for: {:?}", filename);
 
                 // If we are on a 64 bit architecture
                     #[cfg(target_pointer_width = "64")]
@@ -149,7 +150,7 @@ pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
 
                     Err(std::io::Error::last_os_error())
                 } else {
-                    trace!("Successfuly called posix_fadvise() for: '{}'", filename);
+                    trace!("Successfuly called posix_fadvise() for: {:?}", filename);
 
                     let result = unsafe {
                         libc::madvise(
@@ -165,7 +166,7 @@ pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
 
                         Err(std::io::Error::last_os_error())
                     } else {
-                        trace!("Successfuly called madvise() for: '{}'", filename);
+                        trace!("Successfuly called madvise() for: {:?}", filename);
 
                         if with_mlock {
                             let result = unsafe { libc::mlock(addr as *mut libc::c_void, stat.st_size as usize) };
@@ -176,16 +177,16 @@ pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
 
                                 Err(std::io::Error::last_os_error())
                             } else {
-                                trace!("Successfuly called mlock() for: '{}'", filename);
+                                trace!("Successfuly called mlock() for: {:?}", filename);
 
                                 let result = unsafe { libc::close(fd) };
 
                                 if result < 0 as libc::c_int {
                                     Err(std::io::Error::last_os_error())
                                 } else {
-                                    trace!("Successfuly called close() for: '{}'", filename);
+                                    trace!("Successfuly called close() for: {:?}", filename);
 
-                                    let mapping = MemoryMapping::new(String::from(filename), addr as usize, stat.st_size as usize);
+                                    let mapping = MemoryMapping::new(&filename, addr as usize, stat.st_size as usize);
                                     Ok(mapping)
                                 }
                             }
@@ -195,7 +196,7 @@ pub fn cache_file(filename: &str, with_mlock: bool) -> Result<MemoryMapping> {
                             // Try to close the file descriptor
                             unsafe { libc::close(fd) };
 
-                            let mapping = MemoryMapping::new(String::from(filename), addr as usize, stat.st_size as usize);
+                            let mapping = MemoryMapping::new(&filename, addr as usize, stat.st_size as usize);
                             Ok(mapping)
                         }
                     }
@@ -213,17 +214,17 @@ pub fn free_mapping(mapping: &MemoryMapping) -> bool {
 }
 
 /// Prime the kernel's dentry caches by reading the metadata of the file `filename`
-pub fn prime_metadata_cache(filename: &str) -> Result<()> {
-    trace!("Caching metadata of file : '{}'", filename);
+pub fn prime_metadata_cache(filename: &Path) -> Result<()> {
+    trace!("Caching metadata of file: {:?}", filename);
 
     let mut stat: libc::stat = unsafe { std::mem::zeroed() };
-    let f = CString::new(filename).unwrap();
+    let f = unsafe { CString::from_vec_unchecked(filename.to_string_lossy().into_owned().into()) };
     let result = unsafe { libc::stat(f.as_ptr(), &mut stat) };
 
     if result < 0 as libc::c_int {
         Err(std::io::Error::last_os_error())
     } else {
-        trace!("Successfuly called stat() for: '{}'", filename);
+        trace!("Successfuly called stat() for: {:?}", filename);
         Ok(())
     }
 }

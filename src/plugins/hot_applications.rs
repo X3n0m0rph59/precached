@@ -77,9 +77,13 @@ impl HotApplications {
     }
 
     /// Query whether we already do have cached the executable file `exe_name`
-    pub fn is_exe_cached(&self, exe_name: &String, cmdline: &String) -> bool {
+    pub fn is_exe_cached(&self, exe_name: &Path, cmdline: &String) -> bool {
         let mut hasher = fnv::FnvHasher::default();
-        hasher.write(&exe_name.clone().into_bytes());
+        hasher.write(&exe_name
+            .clone()
+            .to_string_lossy()
+            .into_owned()
+            .into_bytes());
         hasher.write(&cmdline.clone().into_bytes());
         let hashval = hasher.finish();
 
@@ -114,6 +118,7 @@ impl HotApplications {
             None => {
                 warn!("Hook not loaded: 'iotrace_prefetcher', skipped");
             }
+
             Some(h) => {
                 let mut h = h.write().unwrap();
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
@@ -151,6 +156,7 @@ impl HotApplications {
             None => {
                 warn!("Hook not loaded: 'iotrace_prefetcher', skipped");
             }
+
             Some(h) => {
                 let mut h = h.write().unwrap();
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
@@ -191,6 +197,7 @@ impl HotApplications {
             None => {
                 warn!("Plugin not loaded: 'metrics', skipped");
             }
+
             Some(p) => {
                 let p = p.read().unwrap();
                 let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
@@ -222,6 +229,7 @@ impl HotApplications {
             None => {
                 warn!("Plugin not loaded: 'metrics', skipped");
             }
+
             Some(p) => {
                 let p = p.read().unwrap();
                 let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
@@ -245,11 +253,12 @@ impl HotApplications {
                     e
                 )
             }
+
             Ok(process) => {
                 if let Ok(exe) = process.get_exe() {
                     if let Ok(cmdline) = process.get_cmdline() {
                         let mut hasher = fnv::FnvHasher::default();
-                        hasher.write(&exe.clone().into_bytes());
+                        hasher.write(&exe.clone().to_string_lossy().into_owned().into_bytes());
                         hasher.write(&cmdline.clone().into_bytes());
                         let hashval = hasher.finish();
 
@@ -275,6 +284,7 @@ impl HotApplications {
             Err(e) => {
                 warn!("Histogram of hot applications could not be loaded! {}", e);
             }
+
             Ok(app_histogram) => {
                 self.app_histogram = app_histogram;
             }
@@ -293,10 +303,12 @@ impl HotApplications {
         let serialized = serde_json::to_string_pretty(&t).unwrap();
 
         let config = globals.config.config_file.clone().unwrap();
-        let path = Path::new(&config.state_dir.unwrap_or(String::from("."))).join(Path::new("hot_applications.state"));
+        let path = config
+            .state_dir
+            .unwrap_or(Path::new(&String::from(".")).to_path_buf())
+            .join("hot_applications.state");
 
-        let filename = path.to_string_lossy();
-        util::write_text_file(&filename, serialized)?;
+        util::write_text_file(&path, serialized)?;
 
         Ok(())
     }
@@ -308,10 +320,12 @@ impl HotApplications {
     /// that JSON representation.
     fn deserialize(globals: &mut Globals) -> Result<HashMap<String, usize>> {
         let config = globals.config.config_file.clone().unwrap();
-        let path = Path::new(&config.state_dir.unwrap_or(String::from("."))).join(Path::new("hot_applications.state"));
+        let path = config
+            .state_dir
+            .unwrap_or(Path::new(&String::from(".")).to_path_buf())
+            .join("hot_applications.state");
 
-        let filename = path.to_string_lossy();
-        let text = util::read_compressed_text_file(&filename)?;
+        let text = util::read_compressed_text_file(&path)?;
 
         let reader = BufReader::new(text.as_bytes());
         let deserialized = serde_json::from_reader::<_, HashMap<String, usize>>(reader)?;

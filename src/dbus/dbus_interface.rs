@@ -132,7 +132,7 @@ fn create_io_trace_stats_iface(
                     .emits_changed(EmitsChangedSignal::False)
                     .on_get(|i, m| {
                         let stats: &Arc<IOTraceLogStats> = m.path.get_data();
-                        i.append(&stats.io_trace_log.exe);
+                        i.append(&stats.io_trace_log.exe.to_string_lossy().into_owned());
                         Ok(())
                     }),
             )
@@ -349,12 +349,13 @@ impl DBUSInterface {
 
                 let config = globals.config.config_file.clone().unwrap();
                 let state_dir = config.state_dir.unwrap_or(
-                    String::from(constants::STATE_DIR),
+                    path::Path::new(constants::STATE_DIR)
+                        .to_path_buf(),
                 );
 
                 // populate data
                 for (k, v) in iotrace_log_manager_plugin
-                    .enumerate_all_trace_logs(state_dir)
+                    .enumerate_all_trace_logs(&state_dir.as_path())
                     .unwrap()
                     .iter()
                 {
@@ -399,8 +400,6 @@ impl DBUSInterface {
                 }
             }
         };
-
-        println!("{:#?}", process_stats);
 
         // Create tree
         let (process_event_s, _process_event_r) = mpsc::channel::<i32>();

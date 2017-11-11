@@ -54,6 +54,7 @@ use log::{Log, LogLevel};
 use nix::sys::signal;
 use std::env;
 use std::io;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::channel;
 use std::thread;
@@ -580,7 +581,7 @@ fn main() {
 
     util::notify(&String::from("precached terminating!"), &manager);
 
-    #[allow(unused_must_use)] util::remove_file(constants::DAEMON_PID_FILE, false);
+    #[allow(unused_must_use)] util::remove_file(&Path::new(constants::DAEMON_PID_FILE), false);
 
     // Unregister plugins and hooks
     plugins::unregister_plugins(&mut globals, &mut manager);

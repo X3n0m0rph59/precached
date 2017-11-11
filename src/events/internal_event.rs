@@ -20,6 +20,7 @@
 
 use globals::*;
 use procmon;
+use std::path::PathBuf;
 use std::time::Instant;
 
 /// Daemon internal events
@@ -37,7 +38,7 @@ pub enum EventType {
     /// advice to plugins to do janitorial tasks now
     DoHousekeeping,
     /// advice to plugins that an I/O trace log needs to be optimized asap
-    OptimizeIOTraceLog(String),
+    OptimizeIOTraceLog(PathBuf),
     /// advice to plugins to gather statistics and performance metrics
     GatherStatsAndMetrics,
     /// occurs *after* the daemon has successfuly reloaded its configuration

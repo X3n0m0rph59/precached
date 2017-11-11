@@ -33,17 +33,17 @@ use std::collections::HashMap;
 use std::hash::Hasher;
 use std::io;
 use std::io::BufReader;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use util;
 
 /// Represents an I/O operation in an I/O trace log entry
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum IOOperation {
-    Open(String, libc::int32_t),
-    Stat(String),
+    Open(PathBuf, libc::int32_t),
+    Stat(PathBuf),
     Fstat(libc::int32_t),
-    Getdents(String),
+    Getdents(PathBuf),
     Read(libc::int32_t),
     Mmap(libc::int32_t),
 }
@@ -142,7 +142,7 @@ pub struct IOTraceLog {
     /// Hash of the `comm` of the process being traced
     pub hash: String,
     /// Name of executable file of the process being traced
-    pub exe: String,
+    pub exe: PathBuf,
     /// Command name of the process being traced
     pub comm: String,
     /// Command line of the process being traced
@@ -152,7 +152,7 @@ pub struct IOTraceLog {
     /// Date and Time (in UTC) this trace log was stopped
     pub trace_stopped_at: DateTime<Utc>,
     /// Map file names to file descriptors used in trace log
-    pub file_map: HashMap<String, usize>,
+    pub file_map: HashMap<PathBuf, usize>,
     /// The I/O trace log, contains all relevant I/O operations
     /// performed by the process being traced
     pub trace_log: Vec<TraceLogEntry>,
@@ -173,7 +173,7 @@ impl IOTraceLog {
             let cmdline = try!(process.get_cmdline());
 
             let mut hasher = fnv::FnvHasher::default();
-            hasher.write(&exe.clone().into_bytes());
+            hasher.write(&exe.clone().to_string_lossy().into_owned().into_bytes());
             hasher.write(&cmdline.clone().into_bytes());
             let hashval = hasher.finish();
 
@@ -203,7 +203,7 @@ impl IOTraceLog {
     }
 
     /// De-serialize from a file
-    pub fn from_file(filename: &String) -> io::Result<IOTraceLog> {
+    pub fn from_file(filename: &Path) -> io::Result<IOTraceLog> {
         Self::deserialize(filename)
     }
 
@@ -212,7 +212,7 @@ impl IOTraceLog {
     /// with the "Zstd" compressor), convert it into an Unicode UTF-8
     /// JSON representation, and de-serialize an `IOTraceLog` from
     /// that JSON representation.
-    fn deserialize(filename: &String) -> io::Result<IOTraceLog> {
+    fn deserialize(filename: &Path) -> io::Result<IOTraceLog> {
         let text = util::read_compressed_text_file(&filename)?;
 
         let reader = BufReader::new(text.as_bytes());
@@ -222,7 +222,7 @@ impl IOTraceLog {
     }
 
     /// Write the I/O trace log to disk
-    pub fn save(&self, filename: &String, allow_truncate: bool) -> io::Result<()> {
+    pub fn save(&self, filename: &Path, allow_truncate: bool) -> io::Result<()> {
         if (self.trace_log.len() > constants::MIN_TRACE_LOG_LENGTH &&
                 self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES) || allow_truncate
         {
