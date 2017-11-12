@@ -62,12 +62,12 @@ impl Default for ConfigFile {
 }
 
 pub fn parse_config_file(globals: &mut Globals) -> io::Result<()> {
-    let input = util::get_lines_from_file(&globals.config.config_filename.as_path())?;
+    let input = util::get_lines_from_file(globals.config.config_filename.as_path())?;
 
     let mut s = String::new();
     for l in input {
         s += &l;
-        s += &"\n";
+        s += "\n";
     }
 
     // TODO: Implement field validation

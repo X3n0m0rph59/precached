@@ -45,7 +45,7 @@ impl HookManager {
         );
     }
 
-    pub fn unregister_hook(&self, name: &String) {
+    pub fn unregister_hook(&self, name: &str) {
         match self.get_hook_by_name(name) {
             Some(h) => {
                 h.write().unwrap().unregister();
@@ -63,8 +63,8 @@ impl HookManager {
     }
 
 
-    pub fn get_hook_by_name(&self, name: &String) -> Option<Arc<RwLock<Box<Hook + Sync + Send>>>> {
-        self.hooks.read().unwrap().get(name).map(|x| x.clone())
+    pub fn get_hook_by_name(&self, name: &str) -> Option<Arc<RwLock<Box<Hook + Sync + Send>>>> {
+        self.hooks.read().unwrap().get(name).cloned()
     }
 
     pub fn dispatch_event(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {

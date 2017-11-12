@@ -173,7 +173,7 @@ impl IOTraceLog {
             let cmdline = try!(process.get_cmdline());
 
             let mut hasher = fnv::FnvHasher::default();
-            hasher.write(&exe.clone().to_string_lossy().into_owned().into_bytes());
+            hasher.write(&exe.to_string_lossy().into_owned().into_bytes());
             hasher.write(&cmdline.clone().into_bytes());
             let hashval = hasher.finish();
 
@@ -213,7 +213,7 @@ impl IOTraceLog {
     /// JSON representation, and de-serialize an `IOTraceLog` from
     /// that JSON representation.
     fn deserialize(filename: &Path) -> io::Result<IOTraceLog> {
-        let text = util::read_compressed_text_file(&filename)?;
+        let text = util::read_compressed_text_file(filename)?;
 
         let reader = BufReader::new(text.as_bytes());
         let deserialized = serde_json::from_reader::<_, IOTraceLog>(reader)?;
@@ -224,10 +224,11 @@ impl IOTraceLog {
     /// Write the I/O trace log to disk
     pub fn save(&self, filename: &Path, allow_truncate: bool) -> io::Result<()> {
         if (self.trace_log.len() > constants::MIN_TRACE_LOG_LENGTH &&
-                self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES) || allow_truncate
+            self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES) || 
+            allow_truncate
         {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
-            util::write_text_file(&filename, serialized)?;
+            util::write_text_file(filename, &serialized)?;
 
             Ok(())
         } else {

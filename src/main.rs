@@ -90,30 +90,30 @@ static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 /// Global 'reload of daemon config pending' flag
 static RELOAD_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 
-/// Global 'SIG_USR1 received' flag
+/// Global '`SIG_USR1` received' flag
 /// SUGUSR1 is curently mapped to the `DoHousekeeping` event
 static SIG_USR1: AtomicBool = ATOMIC_BOOL_INIT;
 
-/// Global 'SIG_USR2 received' flag
+/// Global '`SIG_USR2` received' flag
 static SIG_USR2: AtomicBool = ATOMIC_BOOL_INIT;
 
 
-/// Signal handler for SIGINT and SIGTERM
+/// Signal handler for `SIGINT` and SIGTERM`
 extern "C" fn exit_signal(_: i32) {
     EXIT_NOW.store(true, Ordering::Relaxed);
 }
 
-/// Signal handler for SIGHUP
+/// Signal handler for `SIGHUP`
 extern "C" fn reload_signal(_: i32) {
     RELOAD_NOW.store(true, Ordering::Relaxed);
 }
 
-/// Signal handler for SIGUSR1
+/// Signal handler for `SIGUSR1`
 extern "C" fn usr1_signal(_: i32) {
     SIG_USR1.store(true, Ordering::Relaxed);
 }
 
-/// Signal handler for SIGUSR2
+/// Signal handler for `SIGUSR2`
 extern "C" fn usr2_signal(_: i32) {
     SIG_USR2.store(true, Ordering::Relaxed);
 }
@@ -234,7 +234,7 @@ fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager:
     // dispatch the procmon event to all registered hooks
     let m = manager.hook_manager.read().unwrap();
 
-    m.dispatch_event(&event, globals, manager);
+    m.dispatch_event(event, globals, manager);
 }
 
 fn setup_logging() -> Result<(), fern::InitError> {
@@ -422,7 +422,7 @@ fn main() {
 
     // set-up dbus interface
     let mut dbus_interface = dbus::create_dbus_interface(&mut globals, &mut manager);
-    match dbus_interface.register_connection(&mut globals, &mut manager) {
+    match dbus_interface.register_connection(&mut globals, &manager) {
         Err(s) => {
             error!("Could not create dbus interface: {}", s);
             return;
@@ -519,7 +519,7 @@ fn main() {
         }
 
         // call the main loop hook of the dbus interface
-        dbus_interface.main_loop_hook(&mut globals, &mut manager);
+        dbus_interface.main_loop_hook(&mut globals, &manager);
 
         // NOTE: This is currently unused
         // Allow plugins to integrate into the main loop
@@ -540,7 +540,7 @@ fn main() {
         };
 
         // Dispatch daemon internal events
-        process_internal_events(&mut globals, &mut manager);
+        process_internal_events(&mut globals, &manager);
 
 
         // Let the task scheduler run it's queued jobs
@@ -560,7 +560,7 @@ fn main() {
             trace!("Leaving the main loop...");
 
             events::queue_internal_event(EventType::Shutdown, &mut globals);
-            process_internal_events(&mut globals, &mut manager);
+            process_internal_events(&mut globals, &manager);
 
             break 'MAIN_LOOP;
         }
@@ -581,7 +581,7 @@ fn main() {
 
     util::notify(&String::from("precached terminating!"), &manager);
 
-    #[allow(unused_must_use)] util::remove_file(&Path::new(constants::DAEMON_PID_FILE), false);
+    #[allow(unused_must_use)] util::remove_file(Path::new(constants::DAEMON_PID_FILE), false);
 
     // Unregister plugins and hooks
     plugins::unregister_plugins(&mut globals, &mut manager);

@@ -83,7 +83,7 @@ impl TaskScheduler {
         }
 
         // run local backlog on main thread
-        for j in self.main_backlog.iter() {
+        for j in &self.main_backlog {
             j();
         }
 

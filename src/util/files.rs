@@ -84,7 +84,7 @@ pub fn read_uncompressed_text_file(filename: &Path) -> io::Result<String> {
 
 /// Write `text` to the compressed file `filename`.
 /// This function transparently compresses the file using Zstd compression
-pub fn write_text_file(filename: &Path, text: String) -> io::Result<()> {
+pub fn write_text_file(filename: &Path, text: &str) -> io::Result<()> {
     let mut file = try!(
         OpenOptions::new()
             .write(true)
@@ -159,7 +159,7 @@ pub fn remove_file(filename: &Path, dry_run: bool) -> io::Result<()> {
 /// Validates `filename`
 /// Returns `true` if the filename is valid, `false` otherwise
 pub fn is_filename_valid(filename: &Path) -> bool {
-    if filename.to_string_lossy().into_owned().len() == 0 {
+    if filename.to_string_lossy().into_owned().is_empty() {
         return false;
     }
 
@@ -182,7 +182,7 @@ pub fn is_file_valid(filename: &Path) -> bool {
 
 /// Returns `true` if `filename` matches a pattern in `pattern`, otherwise returns `false`.
 /// The Vec<String> may contain any POSIX compatible glob pattern.
-pub fn is_file_blacklisted(filename: &Path, pattern: &Vec<PathBuf>) -> bool {
+pub fn is_file_blacklisted(filename: &Path, pattern: &[PathBuf]) -> bool {
     match GLOB_SET.lock() {
         Err(e) => {
             error!("Could not lock a shared data structure! {}", e);
@@ -194,7 +194,7 @@ pub fn is_file_blacklisted(filename: &Path, pattern: &Vec<PathBuf>) -> bool {
                 let mut builder = GlobSetBuilder::new();
                 for p in pattern.iter() {
                     builder.add(
-                        Glob::new(&p.to_string_lossy().into_owned().as_str()).unwrap(),
+                        Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap(),
                     );
                 }
                 let set = builder.build().unwrap();
@@ -204,14 +204,14 @@ pub fn is_file_blacklisted(filename: &Path, pattern: &Vec<PathBuf>) -> bool {
                 // glob_set already available
                 let matches = set.matches(&filename.to_string_lossy().into_owned());
 
-                matches.len() > 0
+                !matches.is_empty()
             } else {
                 // glob_set already available
                 let matches = gs_opt.clone().unwrap().matches(&filename
                     .to_string_lossy()
                     .into_owned());
 
-                matches.len() > 0
+                !matches.is_empty()
             }
         }
     }
@@ -239,7 +239,7 @@ pub fn is_directory(dirname: &Path) -> bool {
 
 /// Shortens a long path in `filename` by replacing components of it with an ellipsis "..." sequence
 /// Returns the shortened path
-pub fn ellipsize_filename(filename: &String) -> String {
+pub fn ellipsize_filename(filename: &str) -> String {
     let mut result = String::from("");
 
     const MAX_LEN: usize = 50;
@@ -247,7 +247,7 @@ pub fn ellipsize_filename(filename: &String) -> String {
 
     if filename.len() > MAX_LEN {
         result.push_str(&filename[0..MAX_LEN / 2 - CUTOFF]);
-        result.push_str(&"...");
+        result.push_str("...");
         result.push_str(&filename[MAX_LEN / 2 + CUTOFF..]);
 
     } else {
@@ -277,7 +277,7 @@ pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&Path)) -> io::Result<()> {
 }
 
 /// Recursively enumerate files and directories in `entries`, calls callback function `cb` for each entry
-pub fn walk_directories<F>(entries: &Vec<PathBuf>, cb: &mut F) -> io::Result<()>
+pub fn walk_directories<F>(entries: &[PathBuf], cb: &mut F) -> io::Result<()>
 where
     F: FnMut(&Path),
 {

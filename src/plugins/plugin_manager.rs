@@ -63,7 +63,7 @@ impl PluginManager {
     }
 
     pub fn get_plugin_by_name(&self, name: &String) -> Option<Arc<RwLock<Box<Plugin + Sync + Send>>>> {
-        self.plugins.read().unwrap().get(name).map(|x| x.clone())
+        self.plugins.read().unwrap().get(name).cloned()
     }
 
     pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {

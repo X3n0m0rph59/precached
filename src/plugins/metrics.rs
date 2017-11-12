@@ -100,16 +100,14 @@ impl Metrics {
 
     pub fn get_available_mem_percentage(&self) -> u8 {
         let mem_info = sys_info::mem_info().unwrap();
-        let avail_percentage = (mem_info.avail * 100 / mem_info.total) as u8;
-
-        avail_percentage
+        
+        (mem_info.avail * 100 / mem_info.total) as u8
     }
 
     pub fn get_free_mem_percentage(&self) -> u8 {
         let mem_info = sys_info::mem_info().unwrap();
-        let free_percentage = (mem_info.free * 100 / mem_info.total) as u8;
-
-        free_percentage
+        
+        (mem_info.free * 100 / mem_info.total) as u8
     }
 
     pub fn gather_metrics(&mut self, globals: &mut Globals, _manager: &Manager) {
@@ -217,11 +215,10 @@ impl Metrics {
         } else {
             let duration_without_swapping = Instant::now() - self.last_swapped_time;
 
-            if duration_without_swapping >= Duration::from_secs(constants::SWAP_RECOVERY_WINDOW) {
-                if self.recovered_from_swap_event_sent == false {
+            if duration_without_swapping >= Duration::from_secs(constants::SWAP_RECOVERY_WINDOW) &&
+               self.recovered_from_swap_event_sent == false {
                     events::queue_internal_event(EventType::SystemRecoveredFromSwap, globals);
                     self.recovered_from_swap_event_sent = true;
-                }
             }
         }
 

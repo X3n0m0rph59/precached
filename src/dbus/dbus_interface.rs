@@ -57,7 +57,7 @@ struct IOTraceLogStats {
 }
 
 impl IOTraceLogStats {
-    fn new(filename: String, io_trace_log: IOTraceLog) -> IOTraceLogStats {
+    fn new(filename: &String, io_trace_log: IOTraceLog) -> IOTraceLogStats {
         IOTraceLogStats {
             path: format!("/IOTraceLog/{}", filename).into(),
             io_trace_log: io_trace_log,
@@ -75,13 +75,11 @@ struct ProcessStats {
 }
 
 impl ProcessStats {
-    fn new(pid: libc::pid_t, process: Process) -> ProcessStats {
+    fn new(pid: libc::pid_t, process: &Process) -> ProcessStats {
         ProcessStats {
             path: format!("/Process/{}", pid).into(),
             process: process.clone(),
-            comm: process.get_comm().unwrap_or(
-                String::from("<not available>"),
-            ),
+            comm: process.get_comm().unwrap_or_else(|_| String::from("<not available>")),
             pid: pid,
         }
     }
@@ -110,7 +108,7 @@ impl tree::DataType for TreeDataProcessStats {
 }
 
 fn create_io_trace_stats_iface(
-    _event_s: mpsc::Sender<i32>,
+    _event_s: &mpsc::Sender<i32>,
 ) -> (Interface<MTFn<TreeDataIOTraceLogStats>, TreeDataIOTraceLogStats>, Arc<Signal<TreeDataIOTraceLogStats>>) {
     let f = tree::Factory::new_fn();
 
@@ -151,7 +149,7 @@ fn create_io_trace_stats_iface(
 }
 
 fn create_iface(
-    _process_event_s: mpsc::Sender<i32>,
+    _process_event_s: &mpsc::Sender<i32>,
 ) -> (Interface<MTFn<TreeDataProcessStats>, TreeDataProcessStats>, Arc<Signal<TreeDataProcessStats>>) {
     let f = tree::Factory::new_fn();
 
@@ -362,7 +360,7 @@ impl DBUSInterface {
                     let path = path::Path::new(k);
                     let filename = String::from(path.file_stem().unwrap().to_str().unwrap());
 
-                    io_trace_log_stats.push(Arc::new(IOTraceLogStats::new(filename, v.clone())));
+                    io_trace_log_stats.push(Arc::new(IOTraceLogStats::new(&filename, v.clone())));
                 }
             }
         };
@@ -370,7 +368,7 @@ impl DBUSInterface {
 
         // Create tree
         let (io_trace_log_event_s, _io_trace_log_event_r) = mpsc::channel::<i32>();
-        let (iface, _sig) = create_io_trace_stats_iface(io_trace_log_event_s);
+        let (iface, _sig) = create_io_trace_stats_iface(&io_trace_log_event_s);
         let tree = create_io_trace_stats_tree(&io_trace_log_stats, &Arc::new(iface));
         tree.set_registered(c, true).unwrap();
 
@@ -396,14 +394,14 @@ impl DBUSInterface {
 
                 // populate data
                 for (k, v) in process_tracker_hook.tracked_processes.iter() {
-                    process_stats.push(Arc::new(ProcessStats::new(*k, v.clone())));
+                    process_stats.push(Arc::new(ProcessStats::new(*k, &v.clone())));
                 }
             }
         };
 
         // Create tree
         let (process_event_s, _process_event_r) = mpsc::channel::<i32>();
-        let (iface, _sig) = create_iface(process_event_s);
+        let (iface, _sig) = create_iface(&process_event_s);
         let tree = create_process_stats_tree(&process_stats, &Arc::new(iface));
         tree.set_registered(c, true).unwrap();
 

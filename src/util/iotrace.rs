@@ -43,7 +43,7 @@ pub fn optimize_io_trace_log(filename: &Path, io_trace: &mut iotrace::IOTraceLog
 
     let mut already_opened = vec![];
 
-    for e in io_trace.trace_log.iter() {
+    for e in &io_trace.trace_log {
         let entry = e.clone();
 
         match e.operation {

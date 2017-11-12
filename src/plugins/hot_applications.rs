@@ -79,11 +79,10 @@ impl HotApplications {
     /// Query whether we already do have cached the executable file `exe_name`
     pub fn is_exe_cached(&self, exe_name: &Path, cmdline: &String) -> bool {
         let mut hasher = fnv::FnvHasher::default();
-        hasher.write(&exe_name
-            .clone()
+        hasher.write(&(exe_name            
             .to_string_lossy()
             .into_owned()
-            .into_bytes());
+            .into_bytes()));
         hasher.write(&cmdline.clone().into_bytes());
         let hashval = hasher.finish();
 
@@ -102,7 +101,7 @@ impl HotApplications {
     pub fn get_app_vec_ordered_reverse(&self) -> Vec<(String, usize)> {
         let mut apps: Vec<(String, usize)> = self.app_histogram
             .iter()
-            .map(|(ref k, ref v)| ((*k).clone(), (*v).clone()))
+            .map(|(k, v)| ((*k).clone(), (*v)))
             .collect();
         apps.sort_by(|a, b| b.1.cmp(&a.1));
         apps.reverse();
@@ -126,8 +125,8 @@ impl HotApplications {
                 let mut apps: Vec<(&String, &usize)> = self.app_histogram.iter().collect();
                 apps.sort_by(|a, b| b.1.cmp(a.1));
 
-                for (ref hash, ref _count) in apps {
-                    if Self::check_available_memory(globals, manager) == false {
+                for (hash, _count) in apps {
+                    if !Self::check_available_memory(globals, manager) {
                         info!("Available memory exhausted, stopping prefetching!");
                         break;
                     }
@@ -172,7 +171,7 @@ impl HotApplications {
                         iotrace_prefetcher_hook.free_memory_by_hash(&hashval, globals, manager);
 
                         // remove hashval from cached_apps vec
-                        self.cached_apps.retain(|ref val| *val != &hashval);
+                        self.cached_apps.retain(|val| *val != hashval);
                     }
                 }
             }
@@ -258,7 +257,7 @@ impl HotApplications {
                 if let Ok(exe) = process.get_exe() {
                     if let Ok(cmdline) = process.get_cmdline() {
                         let mut hasher = fnv::FnvHasher::default();
-                        hasher.write(&exe.clone().to_string_lossy().into_owned().into_bytes());
+                        hasher.write(&exe.to_string_lossy().into_owned().into_bytes());
                         hasher.write(&cmdline.clone().into_bytes());
                         let hashval = hasher.finish();
 
@@ -308,7 +307,7 @@ impl HotApplications {
             .unwrap_or(Path::new(&String::from(".")).to_path_buf())
             .join("hot_applications.state");
 
-        util::write_text_file(&path, serialized)?;
+        util::write_text_file(&path, &serialized)?;
 
         Ok(())
     }

@@ -45,13 +45,13 @@ pub struct Event {
 }
 
 fn map_int_to_event_type(i: u32) -> EventType {
-    return match i {
+    match i {
         0x00000000 => EventType::Nothing,
         0x00000001 => EventType::Fork,
         0x00000002 => EventType::Exec,
         0x80000000 => EventType::Exit,
         _ => EventType::Invalid,
-    };
+    }
 }
 
 impl ProcMon {

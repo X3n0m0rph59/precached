@@ -53,12 +53,12 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct StaticBlacklist {
-    blacklist: Box<Vec<PathBuf>>,
+    blacklist: Vec<PathBuf>,
 }
 
 impl StaticBlacklist {
     pub fn new(globals: &Globals) -> StaticBlacklist {
-        StaticBlacklist { blacklist: Box::new(StaticBlacklist::get_file_blacklist(globals)) }
+        StaticBlacklist { blacklist: StaticBlacklist::get_file_blacklist(globals) }
     }
 
     fn get_file_blacklist(globals: &Globals) -> Vec<PathBuf> {
@@ -94,7 +94,7 @@ impl StaticBlacklist {
                     let mut builder = GlobSetBuilder::new();
                     for p in self.get_blacklist().iter() {
                         builder.add(
-                            Glob::new(&p.to_string_lossy().into_owned().as_str()).unwrap(),
+                            Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap(),
                         );
                     }
                     let set = builder.build().unwrap();
@@ -104,14 +104,14 @@ impl StaticBlacklist {
                     // glob_set already available
                     let matches = set.matches(&filename.to_string_lossy().into_owned());
 
-                    matches.len() > 0
+                    !matches.is_empty()
                 } else {
                     // glob_set already available
                     let matches = gs_opt.clone().unwrap().matches(&filename
                         .to_string_lossy()
                         .into_owned());
 
-                    matches.len() > 0
+                    !matches.is_empty()
                 }
             }
         }
@@ -144,9 +144,9 @@ impl Plugin for StaticBlacklist {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
-            events::EventType::Startup => {}
+            // events::EventType::Startup => {}
             events::EventType::ConfigurationReloaded => {
-                self.blacklist = Box::new(StaticBlacklist::get_file_blacklist(globals));
+                self.blacklist = StaticBlacklist::get_file_blacklist(globals);
             }
             _ => {
                 // Ignore all other events

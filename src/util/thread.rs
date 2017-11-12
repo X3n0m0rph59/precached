@@ -21,9 +21,11 @@
 extern crate libc;
 extern crate nix;
 
+use std::ptr;
+
 pub fn set_realtime_priority() {
     let tid = nix::unistd::gettid();
-    unsafe { libc::sched_setscheduler(tid.into(), libc::SCHED_RR, 0 as *mut libc::sched_param) };
+    unsafe { libc::sched_setscheduler(tid.into(), libc::SCHED_RR, ptr::null_mut()) };
 
     unsafe {
         libc::sched_setscheduler(

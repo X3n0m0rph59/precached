@@ -34,6 +34,7 @@ use plugins::plugin::PluginDescription;
 // use std::process::Command;
 use std::any::Any;
 use std::ffi::CString;
+use std::ptr;
 use storage;
 
 static NAME: &str = "notifications";
@@ -63,7 +64,7 @@ impl Notifications {
         self.do_notify(message)
     }
 
-    fn do_notify(&self, message: &String) {
+    fn do_notify(&self, message: &str) {
         let pid = unsafe { libc::fork() };
         if pid == 0 {
             let result = unsafe { libc::setresuid(1000, 1000, 1000) };
@@ -76,14 +77,14 @@ impl Notifications {
                     CString::new("/usr/bin/notify-send").unwrap().as_ptr(),
                     vec![
                         CString::new("precached notification").unwrap().as_ptr(),
-                        CString::new(message.as_str()).unwrap().as_ptr(),
-                        0 as *mut libc::c_char,
+                        CString::new(message).unwrap().as_ptr(),
+                        ptr::null_mut(),
                     ].as_ptr(),
                     vec![
                         CString::new("DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus")
                             .unwrap()
                             .as_ptr(),
-                        0 as *mut libc::c_char,
+                        ptr::null_mut(),
                     ].as_ptr(),
                 )
             };
@@ -118,8 +119,8 @@ impl Notifications {
         //             .spawn()
         //             .unwrap();
         } else {
-            // let result = unsafe { libc::waitpid(pid, 0 as *mut libc::int32_t, 0) };
-            let _result = unsafe { libc::wait(0 as *mut libc::int32_t) };
+            // let result = unsafe { libc::waitpid(pid, ptr::null_mut(), 0) };
+            let _result = unsafe { libc::wait(ptr::null_mut()) };
         }
     }
 }

@@ -61,7 +61,7 @@ impl Process {
     pub fn new(pid: libc::pid_t) -> io::Result<Process> {
         let tmp = format!("/proc/{}/comm", pid);
         let filename = Path::new(&tmp);
-        let comm = &String::from(util::read_uncompressed_text_file(&filename)?.trim());
+        let comm = &String::from(util::read_uncompressed_text_file(filename)?.trim());
 
         Ok(Process {
             pid: pid,
@@ -72,7 +72,7 @@ impl Process {
     pub fn get_mapped_files(&self) -> io::Result<Vec<String>> {
         let tmp = format!("/proc/{}/maps", self.pid);
         let filename = Path::new(&tmp);
-        let maps = try!(util::get_lines_from_file(&filename));
+        let maps = try!(util::get_lines_from_file(filename));
 
         let result = maps.into_iter()
             .filter_map(|l| {
@@ -90,7 +90,7 @@ impl Process {
     pub fn get_mappings(&self) -> io::Result<Vec<Mapping>> {
         let tmp = format!("/proc/{}/maps", self.pid);
         let filename = Path::new(&tmp);
-        let maps = try!(util::get_lines_from_file(&filename));
+        let maps = try!(util::get_lines_from_file(filename));
 
         let result = maps.into_iter()
             .filter_map(|l| {
@@ -131,7 +131,7 @@ impl Process {
     pub fn get_comm(&self) -> Result<String, &'static str> {
         let tmp = format!("/proc/{}/comm", self.pid);
         let filename = Path::new(&tmp);
-        let result = util::read_uncompressed_text_file(&filename);
+        let result = util::read_uncompressed_text_file(filename);
 
         match result {
             Err(_e) => Err("Could not get comm of process!"),
@@ -143,7 +143,7 @@ impl Process {
     pub fn get_cmdline(&self) -> Result<String, &'static str> {
         let tmp = format!("/proc/{}/cmdline", self.pid);
         let filename = Path::new(&tmp);
-        let result = util::read_uncompressed_text_file(&filename);
+        let result = util::read_uncompressed_text_file(filename);
 
         match result {
             Err(_e) => Err("Could not get commandline of process!"),

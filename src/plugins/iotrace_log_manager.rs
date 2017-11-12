@@ -64,7 +64,7 @@ impl IOtraceLogManager {
     }
 
     // Returns the most recent I/O trace log for `hashval`.
-    pub fn get_trace_log_by_hash(&self, hashval: String, globals: &Globals) -> Result<iotrace::IOTraceLog> {
+    pub fn get_trace_log_by_hash(&self, hashval: &str, globals: &Globals) -> Result<iotrace::IOTraceLog> {
         let config = globals.config.config_file.clone().unwrap();
 
         let iotrace_dir = config.state_dir.unwrap_or(
@@ -86,11 +86,10 @@ impl IOtraceLogManager {
         let config = globals.config.config_file.clone().unwrap();
 
         let mut hasher = fnv::FnvHasher::default();
-        hasher.write(&exe_name
-            .clone()
+        hasher.write(&(exe_name
             .to_string_lossy()
             .into_owned()
-            .into_bytes());
+            .into_bytes()));
         hasher.write(&cmdline.into_bytes());
         let hashval = hasher.finish();
 
@@ -117,7 +116,7 @@ impl IOtraceLogManager {
         let traces_path = state_dir.join(constants::IOTRACE_DIR);
 
         try!(util::walk_directories(&vec![traces_path], &mut |path| {
-            let io_trace_log = iotrace::IOTraceLog::from_file(&path).unwrap();
+            let io_trace_log = iotrace::IOTraceLog::from_file(path).unwrap();
 
             result.insert(PathBuf::from(path), io_trace_log);
         }));
@@ -139,7 +138,7 @@ impl IOtraceLogManager {
         }
 
         // prune invalid traces (error condition set)
-        let (_flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
+        let (_flags, err, _) = util::get_io_trace_flags_and_err(io_trace);
         if err {
             result = true;
         }
@@ -158,7 +157,7 @@ impl IOtraceLogManager {
         let mut errors = 0;
 
         match util::walk_directories(&vec![traces_path], &mut |path| {
-            match iotrace::IOTraceLog::from_file(&path) {
+            match iotrace::IOTraceLog::from_file(path) {
                 Err(e) => {
                     error!("Skipped invalid I/O trace file, file not readable: {}", e);
                     errors += 1;
@@ -168,7 +167,7 @@ impl IOtraceLogManager {
                     if Self::shall_io_trace_be_pruned(&io_trace) {
                         debug!("Pruning I/O trace log: {:?}", path);
 
-                        util::remove_file(&path, false);
+                        util::remove_file(path, false);
 
                         pruned += 1;
                     }
@@ -199,7 +198,7 @@ impl IOtraceLogManager {
     pub fn optimize_single_trace_log(filename: &Path) {
         debug!("Optimizing single I/O trace log {:?}", filename);
 
-        match iotrace::IOTraceLog::from_file(&filename) {
+        match iotrace::IOTraceLog::from_file(filename) {
             Err(e) => {
                 error!("Skipped invalid I/O trace file, file not readable: {}", e);
             }
@@ -235,7 +234,7 @@ impl IOtraceLogManager {
         let mut errors = 0;
 
         match util::walk_directories(&vec![traces_path], &mut |path| {
-            match iotrace::IOTraceLog::from_file(&path) {
+            match iotrace::IOTraceLog::from_file(path) {
                 Err(e) => {
                     error!("Skipped invalid I/O trace file, file not readable: {}", e);
                     errors += 1;
@@ -244,7 +243,7 @@ impl IOtraceLogManager {
                 Ok(mut io_trace) => {
                     // Only optimize if the trace log is not optimized already
                     if !io_trace.trace_log_optimized {
-                        match util::optimize_io_trace_log(&path, &mut io_trace, false) {
+                        match util::optimize_io_trace_log(path, &mut io_trace, false) {
                             Err(e) => {
                                 error!(
                                     "Could not optimize I/O trace log for {:?}: {}",

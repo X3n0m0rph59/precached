@@ -53,16 +53,16 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug, Clone)]
 pub struct StaticWhitelist {
     mapped_files: HashMap<PathBuf, util::MemoryMapping>,
-    whitelist: Box<Vec<PathBuf>>,
-    program_whitelist: Box<Vec<String>>,
+    whitelist: Vec<PathBuf>,
+    program_whitelist: Vec<String>,
 }
 
 impl StaticWhitelist {
     pub fn new(globals: &Globals) -> StaticWhitelist {
         StaticWhitelist {
             mapped_files: HashMap::new(),
-            whitelist: Box::new(Self::get_file_whitelist(globals)),
-            program_whitelist: Box::new(Self::get_program_whitelist(globals)),
+            whitelist: Self::get_file_whitelist(globals),
+            program_whitelist: Self::get_program_whitelist(globals),
         }
     }
 
@@ -152,25 +152,22 @@ impl StaticWhitelist {
                 thread_pool.submit_work(move || {
                     let mut mapped_files = HashMap::new();
 
-                    util::walk_directories(&whitelist, &mut |ref path| {
-                        if Self::check_available_memory(&globals_c, &manager_c) == false {
+                    util::walk_directories(&whitelist, &mut |path| {
+                        if !Self::check_available_memory(&globals_c, &manager_c) {
                             info!("Available memory exhausted, stopping prefetching!");
                             return;
                         }
 
                         // mmap and mlock file, if it is not contained in the blacklist
                         // and if it was not already mapped by some of the plugins
-                        let f = path.clone();
-                        let f2 = f.clone();
-
-                        if Self::shall_we_map_file(&path, &static_blacklist, &our_mapped_files) {
-                            match util::cache_file(&f, true) {
+                        if Self::shall_we_map_file(path, &static_blacklist, &our_mapped_files) {
+                            match util::cache_file(path, true) {
                                 Err(s) => {
-                                    error!("Could not cache file {:?}: {}", &f, &s);
+                                    error!("Could not cache file {:?}: {}", path, s);
                                 }
                                 Ok(r) => {
-                                    trace!("Successfuly cached file {:?}", &f);
-                                    mapped_files.insert(f2.to_path_buf(), r);
+                                    trace!("Successfuly cached file {:?}", path);
+                                    mapped_files.insert(path.to_path_buf(), r);
                                 }
                             }
                         }
@@ -208,8 +205,8 @@ impl StaticWhitelist {
 
                 let program_whitelist = self.program_whitelist.clone();
 
-                for hashval in program_whitelist.iter() {
-                    if Self::check_available_memory(globals, manager) == false {
+                for hashval in &program_whitelist {
+                    if !Self::check_available_memory(globals, manager) {
                         info!("Available memory exhausted, stopping prefetching!");
                         break;
                     }
@@ -228,17 +225,17 @@ impl StaticWhitelist {
         our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>,
     ) -> bool {
         // Check if filename is valid
-        if !util::is_filename_valid(&filename) {
+        if !util::is_filename_valid(filename) {
             return false;
         }
 
         // Check if file is valid
-        if !util::is_file_valid(&filename) {
+        if !util::is_file_valid(filename) {
             return false;
         }
 
         // Check if filename matches a blacklist rule
-        if util::is_file_blacklisted(&filename, &static_blacklist) {
+        if util::is_file_blacklisted(filename, &static_blacklist) {
             return false;
         }
 
@@ -335,14 +332,14 @@ impl Plugin for StaticWhitelist {
                     None => vec![],
                 };
 
-                self.whitelist = Box::new(whitelist);
+                self.whitelist = whitelist;
 
                 let program_whitelist = match globals.config.config_file.clone() {
                     Some(config_file) => config_file.program_whitelist.unwrap_or(vec![]),
                     None => vec![],
                 };
 
-                self.program_whitelist = Box::new(program_whitelist);
+                self.program_whitelist = program_whitelist;
 
                 self.cache_whitelisted_files(globals, manager);
                 self.prefetch_whitelisted_programs(globals, manager);

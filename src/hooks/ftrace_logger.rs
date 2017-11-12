@@ -99,21 +99,16 @@ impl FtraceLogger {
                             let h = h.read().unwrap();
                             let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
-
                             // Check if we deal with a custom event, like e.g. a 'ping'
                             match event.clone().syscall {
                                 util::SysCall::CustomEvent(event) => {
                                     // info!("Custom Event: {}", event);
 
-                                    if event == String::from("ping!") {
+                                    if event == "ping!" {
                                         // info!("Ping!");
 
                                         // check if we have a pending "global daemon exit" request
-                                        if EXIT_NOW.load(Ordering::Relaxed) {
-                                            return false;
-                                        } else {
-                                            return true;
-                                        }
+                                        return !EXIT_NOW.load(Ordering::Relaxed);
                                     }
                                 }
 
@@ -127,9 +122,7 @@ impl FtraceLogger {
                                 comm = process.comm.clone();
                             } else {
                                 if let Ok(process) = Process::new(pid) {
-                                    comm = process.get_comm().unwrap_or(
-                                        String::from("<not available>"),
-                                    );
+                                    comm = process.get_comm().unwrap_or_else(|_| String::from("<not available>"));
                                 }
                             }
 
@@ -161,7 +154,7 @@ impl FtraceLogger {
                                                         fd
                                                     );
 
-                                                    if !Self::is_file_blacklisted(&filename, &mut globals_c, &manager_c) {
+                                                    if !Self::is_file_blacklisted(filename, &mut globals_c, &manager_c) {
                                                         iotrace_log.add_event(IOOperation::Open(filename.clone(), fd));
                                                     }
                                                 }
@@ -232,7 +225,7 @@ impl FtraceLogger {
                         }
                     }
 
-                    return true;
+                    true
                 },
                 globals,
             )
@@ -269,7 +262,7 @@ impl FtraceLogger {
                 let p = p.read().unwrap();
                 let mut static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-                result = static_blacklist_plugin.is_file_blacklisted(&filename);
+                result = static_blacklist_plugin.is_file_blacklisted(filename);
             }
         }
 
@@ -293,12 +286,8 @@ impl FtraceLogger {
                 let mut comm = String::from("<not available>");
                 if let Some(process) = process_tracker.get_process(event.pid) {
                     comm = process.comm.clone();
-                } else {
-                    if let Ok(process) = Process::new(event.pid) {
-                        comm = process.get_comm().unwrap_or(
-                            String::from("<not available>"),
-                        );
-                    }
+                } else if let Ok(process) = Process::new(event.pid) {
+                    comm = process.get_comm().unwrap_or_else(|_| String::from("<not available>"));
                 }
 
                 match ACTIVE_TRACERS.lock() {
@@ -320,52 +309,50 @@ impl FtraceLogger {
                                 comm,
                                 event.pid
                             );
-                        } else {
-                            if let Ok(result) = Self::shall_new_tracelog_be_created(event.pid, globals, manager) {
-                                if result {
-                                    // Begin tracing the process `event.pid`.
-                                    // Construct the "PerTracerData" and a companion IOTraceLog
-                                    match iotrace::IOTraceLog::new(event.pid) {
-                                        Err(e) => {
-                                            info!("Process vanished during tracing! {}", e);
-                                        }
+                        } else if let Ok(result) = Self::shall_new_tracelog_be_created(event.pid, globals, manager) {
+                            if result {
+                                // Begin tracing the process `event.pid`.
+                                // Construct the "PerTracerData" and a companion IOTraceLog
+                                match iotrace::IOTraceLog::new(event.pid) {
+                                    Err(e) => {
+                                        info!("Process vanished during tracing! {}", e);
+                                    }
 
-                                        Ok(iotrace_log) => {
-                                            let tracer_data = util::PerTracerData::new(iotrace_log);
-                                            let comm = tracer_data.trace_log.comm.clone();
+                                    Ok(iotrace_log) => {
+                                        let tracer_data = util::PerTracerData::new(iotrace_log);
+                                        let comm = tracer_data.trace_log.comm.clone();
 
-                                            active_tracers.insert(event.pid, tracer_data);
+                                        active_tracers.insert(event.pid, tracer_data);
 
-                                            // Tell ftrace to deliver events for process `event.pid`, from now on
-                                            match util::trace_process_io_ftrace(event.pid) {
-                                                Err(e) => {
-                                                    error!(
-                                                        "Could not enable ftrace for process '{}' with pid {}: {}",
-                                                        comm,
-                                                        event.pid,
-                                                        e
-                                                    )
-                                                }
-                                                Ok(()) => trace!(
-                                                    "Enabled ftrace for process '{}' with pid {}",
+                                        // Tell ftrace to deliver events for process `event.pid`, from now on
+                                        match util::trace_process_io_ftrace(event.pid) {
+                                            Err(e) => {
+                                                error!(
+                                                    "Could not enable ftrace for process '{}' with pid {}: {}",
                                                     comm,
-                                                    event.pid
-                                                ),
+                                                    event.pid,
+                                                    e
+                                                )
                                             }
+                                            Ok(()) => trace!(
+                                                "Enabled ftrace for process '{}' with pid {}",
+                                                comm,
+                                                event.pid
+                                            ),
                                         }
                                     }
-                                } else {
-                                    info!(
-                                        "We already have a valid I/O trace log for process with pid: {}",
-                                        event.pid
-                                    );
                                 }
                             } else {
                                 info!(
-                                    "Error creating trace log for process with pid: {}, the process vanished",
+                                    "We already have a valid I/O trace log for process with pid: {}",
                                     event.pid
                                 );
                             }
+                        } else {
+                            info!(
+                                "Error creating trace log for process with pid: {}, the process vanished",
+                                event.pid
+                            );
                         }
                     }
                 }
@@ -391,7 +378,7 @@ impl FtraceLogger {
                 if let Ok(process) = Process::new(pid) {
                     if let Ok(exe) = process.get_exe() {
                         if let Ok(cmdline) = process.get_cmdline() {
-                            match iotrace_log_manager_plugin.get_trace_log(&exe, cmdline, &globals) {
+                            match iotrace_log_manager_plugin.get_trace_log(&exe, cmdline, globals) {
                                 Err(_e) => Ok(true),
 
                                 Ok(io_trace) => {

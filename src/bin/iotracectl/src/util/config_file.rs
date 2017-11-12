@@ -59,7 +59,7 @@ impl ConfigFile {
         let mut s = String::new();
         for l in input {
             s += &l;
-            s += &"\n";
+            s += "\n";
         }
 
         // TODO: Implement field validation

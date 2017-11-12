@@ -79,7 +79,7 @@ impl VFSStatCache {
 
                 thread_pool.submit_work(move || {
                     util::walk_directories(&tracked_entries, &mut |ref path| {
-                        if Self::check_available_memory(&globals_c, &manager_c) == false {
+                        if !Self::check_available_memory(&globals_c, &manager_c) {
                             info!("Available memory exhausted, stopping statx() caching!");
                             return;
                         }
@@ -103,7 +103,7 @@ impl VFSStatCache {
     /// is not blacklisted.
     fn shall_we_cache_file(&self, filename: &Path, _globals: &Globals, manager: &Manager) -> bool {
         // Check if filename is valid
-        if !util::is_filename_valid(&filename) {
+        if !util::is_filename_valid(filename) {
             return false;
         }
 
@@ -118,7 +118,7 @@ impl VFSStatCache {
                 let p = p.read().unwrap();
                 let static_blacklist = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-                if util::is_file_blacklisted(&filename, &static_blacklist.get_blacklist()) {
+                if util::is_file_blacklisted(&filename, static_blacklist.get_blacklist()) {
                     return false;
                 }
             }
@@ -177,13 +177,13 @@ impl VFSStatCache {
                         let app_histogram = hot_applications.get_app_vec_ordered();
 
                         for (hash, _count) in app_histogram {
-                            if Self::check_available_memory(globals, manager) == false {
+                            if !Self::check_available_memory(globals, manager) {
                                 info!("Available memory exhausted, stopping statx() caching!");
                                 break;
                             }
 
                             trace!("Prefetching metadata for '{}'", hash);
-                            iotrace_prefetcher_hook.prefetch_statx_metadata_by_hash(&hash, globals, manager)
+                            iotrace_prefetcher_hook.prefetch_statx_metadata_by_hash(hash, globals, manager)
                         }
                     }
                 };

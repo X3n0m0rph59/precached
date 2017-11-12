@@ -27,6 +27,7 @@ use std::fs::File;
 use std::io::{Result, Error, ErrorKind};
 use std::os::unix::io::IntoRawFd;
 use std::path::{Path, PathBuf};
+use std::ptr;
 
 /// Represents a file backed memory mapping
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,9 +60,9 @@ type StatSize = i32;
 ///     Return an Err if file exceeds the max. prefetch size
 ///   * Give the system's kernel a readahead hint via readahead(2) syscall
 ///   * Additionally mmap(2) the file
-///   * Call posix_fadvise(2) with POSIX_FADV_WILLNEED | POSIX_FADV_SEQUENTIAL
+///   * Call posix_fadvise(2) with `POSIX_FADV_WILLNEED` | `POSIX_FADV_SEQUENTIAL`
 ///     to give the kernel a hint on how we are about to use that file
-///   * Call madvise(2) with MADV_WILLNEED | MADV_SEQUENTIAL | MADV_MERGEABLE
+///   * Call madvise(2) with `MADV_WILLNEED` | `MADV_SEQUENTIAL` | `MADV_MERGEABLE`
 ///     to give the kernel a hint on how we are about to use that memory mapping
 ///   * Call mlock(2) if `with_mlock` is set to `true` to prevent
 ///     eviction of the files pages from the page cache
@@ -105,7 +106,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
 
             let addr = unsafe {
                 libc::mmap(
-                    0 as *mut libc::c_void,
+                    ptr::null_mut(),
                     stat.st_size as usize,
                     libc::PROT_READ,
                     libc::MAP_SHARED,
@@ -114,7 +115,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
                 )
             };
 
-            if addr < 0 as *mut libc::c_void {
+            if addr < ptr::null_mut() {
                 // Try to close the file descriptor
                 unsafe { libc::close(fd) };
 
@@ -186,7 +187,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
                                 } else {
                                     trace!("Successfuly called close() for: {:?}", filename);
 
-                                    let mapping = MemoryMapping::new(&filename, addr as usize, stat.st_size as usize);
+                                    let mapping = MemoryMapping::new(filename, addr as usize, stat.st_size as usize);
                                     Ok(mapping)
                                 }
                             }
@@ -196,7 +197,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
                             // Try to close the file descriptor
                             unsafe { libc::close(fd) };
 
-                            let mapping = MemoryMapping::new(&filename, addr as usize, stat.st_size as usize);
+                            let mapping = MemoryMapping::new(filename, addr as usize, stat.st_size as usize);
                             Ok(mapping)
                         }
                     }

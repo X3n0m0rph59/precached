@@ -89,7 +89,7 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     try_reset_ftrace_tracing();
 
     // create our private ftrace instance
-    mkdir(&Path::new(TRACING_DIR))?;
+    mkdir(Path::new(TRACING_DIR))?;
 
     // enable "disable on free mechanism"
     let filename = Path::new(TRACING_DIR).join("options").join("free_buffer");
@@ -369,7 +369,7 @@ pub fn try_reset_ftrace_tracing() -> bool {
         ()
     });
 
-    rmdir(&Path::new(TRACING_DIR)).unwrap_or_else(|_| {
+    rmdir(Path::new(TRACING_DIR)).unwrap_or_else(|_| {
         error_occured = true;
         ()
     });
@@ -391,7 +391,7 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
     echo(&filename, String::from(""))?;
 
 
-    rmdir(&Path::new(TRACING_DIR))?;
+    rmdir(Path::new(TRACING_DIR))?;
 
     Ok(())
 }
@@ -457,11 +457,11 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
         }
 
         // ignore possible headers starting with a comment sign
-        if l.trim_left().starts_with("#") {
+        if l.trim_left().starts_with('#') {
             continue;
         }
 
-        let fields: Vec<&str> = l.split(":").collect();
+        let fields: Vec<&str> = l.split(':').collect();
         if fields.len() >= 2 {
             let key = String::from(fields[0].trim());
             let val = String::from(fields[1].trim());
@@ -522,10 +522,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
 /// Read events from ftrace_pipe (ftrace main loop)
 pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool, globals: &mut Globals) -> io::Result<()> {
     let config = globals.config.config_file.clone().unwrap();
-    let iotrace_dir = config.state_dir.unwrap_or(
-        Path::new(constants::STATE_DIR)
-            .to_path_buf(),
-    );
+    let iotrace_dir = config.state_dir.unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
     let filename = Path::new(TRACING_DIR).join("trace_pipe");
     let trace_pipe = try!(OpenOptions::new().read(true).open(&filename));
@@ -573,12 +570,12 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         // ignore the headers starting with a comment sign
-        if l.starts_with("#") {
+        if l.starts_with('#') {
             continue;
         }
 
         // ignore "lost events" events
-        if REGEX_FILTER.is_match(&l) {
+        if REGEX_FILTER.is_match(l) {
             continue;
         }
 
@@ -586,20 +583,19 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         let fields: Vec<&str> = l.split("  ").collect();
         let idx = fields.len() - 1;
 
-        if fields.len() >= 3 {
-            if !fields[idx].contains("sys_open") && !fields[idx].contains("sys_openat") &&
-                !fields[idx].contains("sys_open_by_handle_at") && !fields[idx].contains("sys_read") &&
-                !fields[idx].contains("sys_readv") && !fields[idx].contains("sys_preadv2") &&
-                !fields[idx].contains("sys_pread64") &&
-                !fields[idx].contains("sys_mmap") && !fields[idx].contains("sys_statx") &&
-                !fields[idx].contains("sys_newstat") && !fields[idx].contains("sys_newfstat") &&
-                !fields[idx].contains("sys_newfstatat") &&
-                // !fields[idx].contains("sys_getdents") && !fields[idx].contains("sys_getdents64") &&
-                !fields[idx].contains("getnameprobe") && !fields[idx].contains("getdirnameprobe") &&
-                !fields[idx].contains("tracing_mark_write: ping!")
-            {
-                warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
-            }
+        if fields.len() >= 3 && 
+            !fields[idx].contains("sys_open") && !fields[idx].contains("sys_openat") &&
+            !fields[idx].contains("sys_open_by_handle_at") && !fields[idx].contains("sys_read") &&
+            !fields[idx].contains("sys_readv") && !fields[idx].contains("sys_preadv2") &&
+            !fields[idx].contains("sys_pread64") &&
+            !fields[idx].contains("sys_mmap") && !fields[idx].contains("sys_statx") &&
+            !fields[idx].contains("sys_newstat") && !fields[idx].contains("sys_newfstat") &&
+            !fields[idx].contains("sys_newfstatat") &&
+            // !fields[idx].contains("sys_getdents") && !fields[idx].contains("sys_getdents64") &&
+            !fields[idx].contains("getnameprobe") && !fields[idx].contains("getdirnameprobe") &&
+            !fields[idx].contains("tracing_mark_write:")
+        {
+            warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
         }
 
 
@@ -607,10 +603,10 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         if l.contains("tracing_mark_write: ping!") {
             // debug!("{:#?}", l);
 
-            if cb(
+            if !cb(
                 0,
                 IOEvent { syscall: SysCall::CustomEvent(String::from("ping!")) },
-            ) == false
+            )
             {
                 break 'LINE_LOOP; // callback returned false, exit requested
             }
@@ -621,7 +617,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         let mut pid: libc::pid_t = 0;
         let fields2: Vec<&str> = l.split(" [").collect();
         if fields2.len() >= 1 {
-            let s: Vec<&str> = fields2[0].split("-").collect();
+            let s: Vec<&str> = fields2[0].split('-').collect();
             let pid_s = String::from(s[s.len() - 1].trim());
 
             match pid_s.parse() {
@@ -709,10 +705,10 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     }
 
                     Some(ref c) => {
-                        if cb(
+                        if !cb(
                             pid,
-                            IOEvent { syscall: SysCall::Open(PathBuf::from(c.clone()), 0) },
-                        ) == false
+                            IOEvent { syscall: SysCall::Open(c.clone(), 0) },
+                        )
                         {
                             break 'LINE_LOOP; // callback returned false, exit requested
                         }
@@ -742,8 +738,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                 let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
                 let tmp = tmp[tmp.len() - 1];
 
-                let fd = i32::from_str_radix(&tmp, 16).unwrap_or(-1);
-                if cb(pid, IOEvent { syscall: SysCall::Read(fd) }) == false {
+                let fd = i32::from_str_radix(tmp, 16).unwrap_or(-1);
+                if !cb(pid, IOEvent { syscall: SysCall::Read(fd) }) {
                     break 'LINE_LOOP; // callback returned false, exit requested
                 }
             } else {
@@ -763,8 +759,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                 let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
                 let tmp = tmp[tmp.len() - 1];
 
-                let addr = usize::from_str_radix(&tmp, 16).unwrap_or(0);
-                if cb(pid, IOEvent { syscall: SysCall::Mmap(addr) }) == false {
+                let addr = usize::from_str_radix(tmp, 16).unwrap_or(0);
+                if !cb(pid, IOEvent { syscall: SysCall::Mmap(addr) }) {
                     break 'LINE_LOOP; // callback returned false, exit requested
                 }
             } else {
@@ -826,7 +822,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 pub fn parse_function_call_syntax(s: &str) -> Result<HashMap<String, String>, &'static str> {
     let mut result = HashMap::new();
 
-    let idx = s.find(":").unwrap_or(0);
+    let idx = s.find(':').unwrap_or(0);
     let call = &s[idx + 1..s.len() - 1];
     let separators: &[char] = &['(', ':', ','];
     let tok = call.split(separators);

@@ -36,16 +36,16 @@ use std::path::{Path, PathBuf};
 pub const DEFAULT_LOG_LEVEL: log::LogLevelFilter = log::LogLevelFilter::Info;
 
 /// Config file, where the daemon's config is located
-pub const CONFIG_FILE: &'static str = "/etc/precached/precached.conf";
+pub const CONFIG_FILE: &str = "/etc/precached/precached.conf";
 
 /// Default directory where the daemon state shall be saved
-pub const STATE_DIR: &'static str = "/var/lib/precached/";
+pub const STATE_DIR: &str = "/var/lib/precached/";
 
 /// PID file of the precached daemon
-pub const DAEMON_PID_FILE: &'static str = "/run/precached.pid";
+pub const DAEMON_PID_FILE: &str = "/run/precached.pid";
 
 /// Default directory where I/O traces shall be saved
-pub const IOTRACE_DIR: &'static str = "iotrace/";
+pub const IOTRACE_DIR: &str = "iotrace/";
 
 
 /// Default compression ratio for Zstd compressor
@@ -122,4 +122,4 @@ pub const INITIAL_MODULE_WIDTH: usize = 50;
 
 
 /// Default date and time format
-pub const DATETIME_FORMAT_DEFAULT: &'static str = "%Y-%m-%d %H:%M:%S";
+pub const DATETIME_FORMAT_DEFAULT: &str = "%Y-%m-%d %H:%M:%S";

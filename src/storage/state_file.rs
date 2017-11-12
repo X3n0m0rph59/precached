@@ -35,7 +35,7 @@ where
     let config = globals.config.config_file.clone().unwrap();
     let filename = config.state_dir.unwrap().join("precached.state");
 
-    write_text_file(&filename, serialized)?;
+    write_text_file(&filename, &serialized)?;
 
     Ok(())
 }

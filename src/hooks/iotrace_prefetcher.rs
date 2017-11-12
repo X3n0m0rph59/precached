@@ -70,11 +70,11 @@ impl IOtracePrefetcher {
     }
 
     fn prefetch_data(
-        io_trace: &Vec<iotrace::TraceLogEntry>,
+        io_trace: &[iotrace::TraceLogEntry],
         our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>,
-        prefetched_programs: &Vec<String>,
+        prefetched_programs: &[String],
         // system_mapped_files: &HashMap<String, util::MemoryMapping>,
-        static_blacklist: &Vec<PathBuf>,
+        static_blacklist: &[PathBuf],
         static_whitelist: &HashMap<PathBuf, util::MemoryMapping>,
     ) -> HashMap<PathBuf, util::MemoryMapping> {
         let mut already_prefetched = HashMap::new();
@@ -90,12 +90,12 @@ impl IOtracePrefetcher {
                     // mmap and mlock file, if it is not contained in the blacklist
                     // and if it was not already mapped by some of the plugins
                     if Self::shall_we_map_file(
-                        &file,
-                        &static_blacklist,
-                        &our_mapped_files,
-                        &prefetched_programs,
+                        file,
+                        static_blacklist,
+                        our_mapped_files,
+                        prefetched_programs,
                         // &system_mapped_files,
-                        &static_whitelist,
+                        static_whitelist,
                     )
                     {
                         match util::cache_file(file, true) {
@@ -145,7 +145,7 @@ impl IOtracePrefetcher {
         already_prefetched
     }
 
-    fn unmap_files(io_trace: &Vec<iotrace::TraceLogEntry>, our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>) -> Vec<PathBuf> {
+    fn unmap_files(io_trace: &[iotrace::TraceLogEntry], our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>) -> Vec<PathBuf> {
         let mut result = vec![];
 
         for entry in io_trace {
@@ -175,7 +175,7 @@ impl IOtracePrefetcher {
         result
     }
 
-    fn prefetch_statx_metadata(io_trace: &Vec<iotrace::TraceLogEntry>, static_blacklist: &Vec<PathBuf>) {
+    fn prefetch_statx_metadata(io_trace: &[iotrace::TraceLogEntry], static_blacklist: &[PathBuf]) {
         for entry in io_trace {
             match entry.operation {
                 iotrace::IOOperation::Open(ref file, ref _fd) => {
@@ -187,7 +187,7 @@ impl IOtracePrefetcher {
                     }
 
                     // Check if filename matches a blacklist rule
-                    if util::is_file_blacklisted(file, &static_blacklist) {
+                    if util::is_file_blacklisted(file, static_blacklist) {
                         continue;
                     }
 
@@ -206,24 +206,24 @@ impl IOtracePrefetcher {
     /// another plugin
     fn shall_we_map_file(
         filename: &Path,
-        static_blacklist: &Vec<PathBuf>,
+        static_blacklist: &[PathBuf],
         our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>,
-        prefetched_programs: &Vec<String>,
+        prefetched_programs: &[String],
         // system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_whitelist: &HashMap<PathBuf, util::MemoryMapping>,
     ) -> bool {
         // Check if filename is valid
-        if !util::is_filename_valid(&filename) {
+        if !util::is_filename_valid(filename) {
             return false;
         }
 
         // Check if file is valid
-        if !util::is_file_valid(&filename) {
+        if !util::is_file_valid(filename) {
             return false;
         }
 
         // Check if filename matches a blacklist rule
-        if util::is_file_blacklisted(&filename, &static_blacklist) {
+        if util::is_file_blacklisted(filename, static_blacklist) {
             return false;
         }
 
@@ -248,7 +248,7 @@ impl IOtracePrefetcher {
 
     /// Replay the I/O trace of the I/O trace for `hashval` and cache all files into memory
     /// This is used for offline prefetching, when the system is idle
-    pub fn prefetch_data_by_hash(&mut self, hashval: &String, globals: &Globals, manager: &Manager) {
+    pub fn prefetch_data_by_hash(&mut self, hashval: &str, globals: &Globals, manager: &Manager) {
         let pm = manager.plugin_manager.read().unwrap();
 
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
@@ -259,7 +259,7 @@ impl IOtracePrefetcher {
                 let p = p.write().unwrap();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
-                match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval.clone(), &globals) {
+                match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
                     Err(e) => trace!("I/O trace '{}' not available: {}", hashval, e),
                     Ok(io_trace) => {
                         // use an empty static whitelist here, because of a circular
@@ -333,7 +333,7 @@ impl IOtracePrefetcher {
     }
 
     /// Free memory of a previously replayed I/O trace `hashval` and remove all cached files from memory
-    pub fn free_memory_by_hash(&mut self, hashval: &String, globals: &Globals, manager: &Manager) {
+    pub fn free_memory_by_hash(&mut self, hashval: &str, globals: &Globals, manager: &Manager) {
         let pm = manager.plugin_manager.read().unwrap();
 
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
@@ -344,7 +344,7 @@ impl IOtracePrefetcher {
                 let p = p.write().unwrap();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
-                match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval.clone(), &globals) {
+                match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
                     Err(e) => trace!("I/O trace '{}' not available: {}", hashval, e),
                     Ok(io_trace) => {
                         let our_mapped_files = self.mapped_files.clone();
@@ -391,7 +391,7 @@ impl IOtracePrefetcher {
     /// Prime the kernel's dentry caches by calling statx on all files in the
     /// I/O trace specified by the parameter `hashval`
     /// This is used for offline prefetching, when the system is idle
-    pub fn prefetch_statx_metadata_by_hash(&mut self, hashval: &String, globals: &Globals, manager: &Manager) {
+    pub fn prefetch_statx_metadata_by_hash(&mut self, hashval: &str, globals: &Globals, manager: &Manager) {
         let pm = manager.plugin_manager.read().unwrap();
 
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
@@ -402,7 +402,7 @@ impl IOtracePrefetcher {
                 let p = p.write().unwrap();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
-                match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval.clone(), &globals) {
+                match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
                     Err(e) => trace!("I/O trace '{}' not available: {}", hashval, e),
                     Ok(io_trace) => {
                         let mut static_blacklist = Vec::<PathBuf>::new();
@@ -468,7 +468,7 @@ impl IOtracePrefetcher {
                     }
 
                     Some(process) => {
-                        let process_cmdline = process.get_cmdline().unwrap_or(String::from(""));
+                        let process_cmdline = process.get_cmdline().unwrap_or_else(|_| String::from(""));
                         let process_comm = process.comm.clone();
 
                         match process.get_exe() {
@@ -497,7 +497,7 @@ impl IOtracePrefetcher {
                                         match iotrace_log_manager_plugin.get_trace_log(
                                             &exe_name.clone(),
                                             process_cmdline.clone(),
-                                            &globals,
+                                            globals,
                                         ) {
                                             Err(e) => trace!("No I/O trace available: {}", e),
                                             Ok(io_trace) => {
@@ -602,7 +602,7 @@ impl IOtracePrefetcher {
                                                         // blocking call; wait for worker thread(s)
                                                         let mapped_files = receiver.recv().unwrap();
                                                         for (k, v) in mapped_files {
-                                                            self.mapped_files.insert(PathBuf::from(k), v);
+                                                            self.mapped_files.insert(k, v);
                                                         }
                                                     }
                                                 } else {
