@@ -143,7 +143,7 @@ pub fn append(filename: &Path, mut text: String) -> io::Result<()> {
 
 /// Delete file `filename` if `dry_run` is set to `false`
 pub fn remove_file(filename: &Path, dry_run: bool) -> io::Result<()> {
-    trace!("deleting file: {:?}", filename);
+    trace!("Deleting file: {:?}", filename);
 
     if !dry_run {
         fs::remove_file(filename)

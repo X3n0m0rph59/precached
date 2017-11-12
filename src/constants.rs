@@ -57,7 +57,7 @@ pub const ZSTD_COMPRESSION_RATIO: i32 = 0;
 pub const WORKER_THREAD_NICENESS: i32 = 4;
 
 /// Thread wait time (main loop)
-pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 1000;
+pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2500;
 
 /// Thread wait time (ftrace parser loop)
 pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 100;
@@ -68,7 +68,7 @@ pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 10 * 60;
 
 
 /// `Ping` event timer timeout
-pub const PING_INTERVAL_MILLIS: u64 = 1000;
+pub const PING_INTERVAL_MILLIS: u64 = 2500;
 
 /// Duration that we trace a process' I/O activity
 pub const IO_TRACE_TIME_SECS: u64 = 10;

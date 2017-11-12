@@ -92,7 +92,15 @@ impl Plugin for FTraceMessages {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::Ping => {
-                self.insert_ping(globals, manager);
+                // NOTE: Ping messages are disabled for now, due to raised power consumption
+                //       
+                // self.insert_ping(globals, manager);
+            }
+            events::EventType::Startup => {
+                // self.insert_message(String::from("Startup: precached starting..."), globals, manager);
+            }
+            events::EventType::Shutdown => {
+                self.insert_message(String::from("Shutdown: precached terminating..."), globals, manager);
             }
             _ => {
                 // Ignore all other events
