@@ -406,20 +406,23 @@ pub fn trace_process_io_ftrace(pid: libc::pid_t) -> io::Result<()> {
 }
 
 /// Remove `pid` from the list of processes being traced
-pub fn stop_tracing_process_ftrace(pid: libc::pid_t) -> io::Result<()> {
-    let filename = Path::new(TRACING_DIR).join("set_event_pid");
-    let mut pids = util::get_lines_from_file(&filename)?;
+pub fn stop_tracing_process_ftrace(_pid: libc::pid_t) -> io::Result<()> {
+    // NOTE: Removal of pids is handled now by setting the ftrace
+    //       option "event-fork", so we don't need to do anything.
 
-    // remove pid from pids vector
-    pids.retain(|x| x.trim().parse::<libc::pid_t>().unwrap() != pid);
+    // let filename = Path::new(TRACING_DIR).join("set_event_pid");
+    // let mut pids = util::get_lines_from_file(&filename)?;
 
-    // clear pid filter
-    echo(&filename, String::from(""))?;
+    // // remove pid from pids vector
+    // pids.retain(|x| x.trim().parse::<libc::pid_t>().unwrap() != pid);
 
-    // re-add other pids to the filter
-    for p in pids {
-        append(&filename, format!("{}", p))?;
-    }
+    // // clear pid filter
+    // echo(&filename, String::from(""))?;
+
+    // // re-add other pids to the filter
+    // for p in pids {
+    //     append(&filename, format!("{}", p))?;
+    // }
 
     Ok(())
 }
