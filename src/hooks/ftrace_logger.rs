@@ -465,6 +465,7 @@ impl FtraceLogger {
                                             event.pid
                                         );
                                     }
+
                                     Vacant(_k) => {
                                         // NOTE: We can only ever get here because of race conditions.
                                         //       This should and can not happen if our threading model is sound
@@ -482,6 +483,7 @@ impl FtraceLogger {
                                             e
                                         )
                                     }
+
                                     Ok(()) => trace!(
                                         "Disabled ftrace for process '{}' with pid {}",
                                         comm,

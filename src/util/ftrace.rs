@@ -44,6 +44,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::thread;
 use std::time::{Duration, Instant};
+use util;
 
 /// Global 'shall we exit now' flag
 pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -87,21 +88,22 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     // clear first, try to set a sane state
     try_reset_ftrace_tracing();
 
-    // enable the ftrace function tracer
-    // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("function"))?;
+    // create our private ftrace instance
+    mkdir(&Path::new(TRACING_DIR))?;
 
     // enable "disable on free mechanism"
     let filename = Path::new(TRACING_DIR).join("options").join("free_buffer");
     let c_str = unsafe { CString::from_vec_unchecked(filename.as_path().as_os_str().to_os_string().into_vec()) };
     let _result = unsafe { libc::open(c_str.as_ptr(), libc::O_NOCTTY) };
 
-    let filename = Path::new(TRACING_BASE_DIR).join("options").join(
+    let filename = Path::new(TRACING_DIR).join("options").join(
         "disable_on_free",
     );
     echo(&filename, String::from("1"))?;
 
-    // create our private ftrace instance
-    mkdir(&Path::new(TRACING_DIR))?;
+    // Set ftrace options
+    let filename = Path::new(TRACING_DIR).join("options").join("event-fork");
+    echo(&filename, String::from("1"))?;
 
     // enable ftrace
     let filename = Path::new(TRACING_DIR).join("tracing_on");
@@ -398,14 +400,27 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
 pub fn trace_process_io_ftrace(pid: libc::pid_t) -> io::Result<()> {
     // filter for pid
     let filename = Path::new(TRACING_DIR).join("set_event_pid");
-    append(&filename, format!("{}", pid)).unwrap();
+    append(&filename, format!("{}", pid))?;
 
     Ok(())
 }
 
 /// Remove `pid` from the list of processes being traced
 pub fn stop_tracing_process_ftrace(pid: libc::pid_t) -> io::Result<()> {
-    // TODO: disable tracing for `pid`
+    let filename = Path::new(TRACING_DIR).join("set_event_pid");
+    let mut pids = util::get_lines_from_file(&filename)?;
+
+    // remove pid from pids vector
+    pids.retain(|x| x.trim().parse::<libc::pid_t>().unwrap() != pid);
+
+    // clear pid filter
+    echo(&filename, String::from(""))?;
+
+    // re-add other pids to the filter
+    for p in pids {
+        append(&filename, format!("{}", p))?;
+    }
+
     Ok(())
 }
 
