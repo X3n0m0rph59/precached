@@ -610,7 +610,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Path::new(constants::STATE_DIR)
             .to_path_buf(),
     );
-    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
+    let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -682,7 +682,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
         Path::new(constants::STATE_DIR)
             .to_path_buf(),
     );
-    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
+    let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -759,7 +759,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Path::new(constants::STATE_DIR)
             .to_path_buf(),
     );
-    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
+    let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -891,7 +891,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Path::new(constants::STATE_DIR)
             .to_path_buf(),
     );
-    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
+    let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -1011,7 +1011,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Path::new(constants::STATE_DIR)
             .to_path_buf(),
     );
-    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
+    let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -1128,7 +1128,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Path::new(constants::STATE_DIR)
             .to_path_buf(),
     );
-    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
+    let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
@@ -1228,7 +1228,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Path::new(constants::STATE_DIR)
             .to_path_buf(),
     );
-    let traces_path = state_dir.join(Path::new(constants::STATE_DIR).to_path_buf());
+    let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
     let mut counter = 0;
     let mut matching = 0;
