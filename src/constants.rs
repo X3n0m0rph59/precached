@@ -77,10 +77,10 @@ pub const IO_TRACE_TIME_SECS: u64 = 10;
 pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
 
 /// The minimum length an I/O trace log must have for it to be saved/kept
-pub const MIN_TRACE_LOG_LENGTH: usize = 5;
+pub const MIN_TRACE_LOG_LENGTH: usize = 25;
 
 /// The minimum amount of data an I/O trace log must reference for it to be kept
-pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 16 * 1024 * 1024; // 16 MiB
+pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 32 * 1024 * 1024; // 32 MiB
 
 
 /// Upper threshold for free memory
