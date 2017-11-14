@@ -26,7 +26,6 @@ use events::EventType;
 use globals::*;
 use hooks::hook;
 use hooks::process_tracker::ProcessTracker;
-
 use iotrace;
 use manager::*;
 use plugins::hot_applications::HotApplications;
@@ -96,8 +95,7 @@ impl IOtracePrefetcher {
                         prefetched_programs,
                         // &system_mapped_files,
                         static_whitelist,
-                    )
-                    {
+                    ) {
                         match util::cache_file(file, true) {
                             Err(e) => {
                                 // I/O trace log maybe needs to be optimized.
@@ -133,9 +131,7 @@ impl IOtracePrefetcher {
 
                 iotrace::IOOperation::Mmap(ref _fd) => {
                     // TODO: Implement this!
-                }
-
-                // _ => { /* Do nothing */ }
+                } // _ => { /* Do nothing */ }
             }
 
             // yield timeslice after each prefetched entry
@@ -460,12 +456,10 @@ impl IOtracePrefetcher {
                 let process = process_tracker.get_process(event.pid);
 
                 match process {
-                    None => {
-                        debug!(
-                            "Error during online prefetching! Process with pid {} vanished",
-                            event.pid
-                        )
-                    }
+                    None => debug!(
+                        "Error during online prefetching! Process with pid {} vanished",
+                        event.pid
+                    ),
 
                     Some(process) => {
                         let process_cmdline = process.get_cmdline().unwrap_or_else(|_| String::from(""));
@@ -494,11 +488,8 @@ impl IOtracePrefetcher {
                                         let p = p.write().unwrap();
                                         let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
-                                        match iotrace_log_manager_plugin.get_trace_log(
-                                            &exe_name.clone(),
-                                            process_cmdline.clone(),
-                                            globals,
-                                        ) {
+                                        match iotrace_log_manager_plugin.get_trace_log(&exe_name.clone(), process_cmdline.clone(), globals)
+                                        {
                                             Err(e) => trace!("No I/O trace available: {}", e),
                                             Ok(io_trace) => {
                                                 info!(
@@ -560,13 +551,10 @@ impl IOtracePrefetcher {
                                                     let max = prefetch_pool.max_count();
                                                     let count_total = io_trace.trace_log.len();
 
-                                                    let (sender, receiver): (Sender<
-                                                        HashMap<
-                                                            PathBuf,
-                                                            util::MemoryMapping,
-                                                        >,
-                                                    >,
-                                                                            _) = channel();
+                                                    let (sender, receiver): (
+                                                        Sender<HashMap<PathBuf, util::MemoryMapping>>,
+                                                        _,
+                                                    ) = channel();
 
                                                     for n in 0..max {
                                                         let sc = Mutex::new(sender.clone());
@@ -642,13 +630,11 @@ impl hook::Hook for IOtracePrefetcher {
     fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             procmon::EventType::Exec => {}
-            _ => {
-                if event.pid == 0 {
-                    trace!("Spurious process event received, pid was 0!");
-                } else {
-                    self.replay_process_io(event, globals, manager);
-                }
-            }
+            _ => if event.pid == 0 {
+                trace!("Spurious process event received, pid was 0!");
+            } else {
+                self.replay_process_io(event, globals, manager);
+            },
         }
     }
 

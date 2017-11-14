@@ -49,7 +49,9 @@ pub struct ProcessTracker {
 
 impl ProcessTracker {
     pub fn new() -> ProcessTracker {
-        ProcessTracker { tracked_processes: HashMap::new() }
+        ProcessTracker {
+            tracked_processes: HashMap::new(),
+        }
     }
 
     pub fn get_process(&self, pid: libc::pid_t) -> Option<&Process> {
@@ -90,10 +92,8 @@ impl hook::Hook for ProcessTracker {
 
                     Ok(process) => {
                         // add process to tracking map
-                        self.get_tracked_processes().insert(
-                            event.pid,
-                            process.clone(),
-                        );
+                        self.get_tracked_processes()
+                            .insert(event.pid, process.clone());
                         info!(
                             "Now tracking process '{}' pid: {}",
                             process.comm,

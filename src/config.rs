@@ -21,9 +21,7 @@
 extern crate clap;
 
 use self::clap::{App, Arg};
-
 use constants;
-
 use std::path::PathBuf;
 use storage;
 
@@ -44,9 +42,12 @@ impl Config {
             .version("0.1.0")
             .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
             .about("A Linux process monitor and pre-caching daemon")
-            .arg(Arg::with_name("v").short("v").multiple(true).help(
-                "Sets the level of log verbosity",
-            ))
+            .arg(
+                Arg::with_name("v")
+                    .short("v")
+                    .multiple(true)
+                    .help("Sets the level of log verbosity"),
+            )
             .arg(
                 Arg::with_name("config")
                     .short("c")
@@ -66,7 +67,11 @@ impl Config {
         Config {
             verbosity: matches.occurrences_of("v") as u8,
             daemonize: !matches.is_present("foreground"),
-            config_filename: PathBuf::from(matches.value_of("config").unwrap_or_else(|| constants::CONFIG_FILE)),
+            config_filename: PathBuf::from(
+                matches
+                    .value_of("config")
+                    .unwrap_or_else(|| constants::CONFIG_FILE),
+            ),
             config_file: None,
         }
     }

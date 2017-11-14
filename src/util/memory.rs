@@ -24,7 +24,7 @@ use constants;
 use std;
 use std::ffi::CString;
 use std::fs::File;
-use std::io::{Result, Error, ErrorKind};
+use std::io::{Error, ErrorKind, Result};
 use std::os::unix::io::IntoRawFd;
 use std::path::{Path, PathBuf};
 use std::ptr;
@@ -124,7 +124,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
                 trace!("Successfuly called mmap() for: {:?}", filename);
 
                 // If we are on a 64 bit architecture
-                    #[cfg(target_pointer_width = "64")]
+                #[cfg(target_pointer_width = "64")]
                 let result = unsafe {
                     libc::posix_fadvise(
                         fd,
@@ -135,7 +135,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
                 };
 
                 // If we are on a 32 bit architecture
-                    #[cfg(target_pointer_width = "32")]
+                #[cfg(target_pointer_width = "32")]
                 let result = unsafe {
                     libc::posix_fadvise(
                         fd,
@@ -191,7 +191,6 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
                                     Ok(mapping)
                                 }
                             }
-
                         } else {
                             // We don't perform a call to mlock()
                             // Try to close the file descriptor

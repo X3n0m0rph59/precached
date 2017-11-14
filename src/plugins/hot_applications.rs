@@ -18,8 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
 extern crate fnv;
+extern crate libc;
 extern crate serde;
 extern crate serde_json;
 
@@ -79,10 +79,7 @@ impl HotApplications {
     /// Query whether we already do have cached the executable file `exe_name`
     pub fn is_exe_cached(&self, exe_name: &Path, cmdline: &String) -> bool {
         let mut hasher = fnv::FnvHasher::default();
-        hasher.write(&(exe_name            
-            .to_string_lossy()
-            .into_owned()
-            .into_bytes()));
+        hasher.write(&(exe_name.to_string_lossy().into_owned().into_bytes()));
         hasher.write(&cmdline.clone().into_bytes());
         let hashval = hasher.finish();
 
@@ -245,13 +242,11 @@ impl HotApplications {
     /// Increments the execution counter of an application
     pub fn application_executed(&mut self, pid: libc::pid_t) {
         match Process::new(pid) {
-            Err(e) => {
-                debug!(
-                    "Could not update hot applications histogram for process with pid {}: {}",
-                    pid,
-                    e
-                )
-            }
+            Err(e) => debug!(
+                "Could not update hot applications histogram for process with pid {}: {}",
+                pid,
+                e
+            ),
 
             Ok(process) => {
                 if let Ok(exe) = process.get_exe() {
@@ -261,9 +256,9 @@ impl HotApplications {
                         hasher.write(&cmdline.clone().into_bytes());
                         let hashval = hasher.finish();
 
-                        let val = self.app_histogram.entry(format!("{}", hashval)).or_insert(
-                            0,
-                        );
+                        let val = self.app_histogram
+                            .entry(format!("{}", hashval))
+                            .or_insert(0);
                         *val += 1;
                     } else {
                         // May happen for very short-lived processes
@@ -367,8 +362,7 @@ impl Plugin for HotApplications {
                 self.save_state(globals, manager);
             }
 
-            events::EventType::PrimeCaches |
-            events::EventType::AvailableMemoryLowWatermark => {
+            events::EventType::PrimeCaches | events::EventType::AvailableMemoryLowWatermark => {
                 self.prefetch_data(globals, manager);
             }
 

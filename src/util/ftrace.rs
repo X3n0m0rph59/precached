@@ -31,15 +31,15 @@ use events::EventType;
 use globals::Globals;
 use hooks;
 use iotrace;
-use nix::unistd::{Pid, gettid};
+use nix::unistd::{gettid, Pid};
 use process::Process;
 use std::collections::HashMap;
 use std::ffi::CString;
 use std::fs::OpenOptions;
 use std::io;
-use std::io::Read;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::io::Read;
 use std::os::unix::ffi::OsStringExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
@@ -97,9 +97,9 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     let c_str = unsafe { CString::from_vec_unchecked(filename.as_path().as_os_str().to_os_string().into_vec()) };
     let _result = unsafe { libc::open(c_str.as_ptr(), libc::O_NOCTTY) };
 
-    let filename = Path::new(TRACING_DIR).join("options").join(
-        "disable_on_free",
-    );
+    let filename = Path::new(TRACING_DIR)
+        .join("options")
+        .join("disable_on_free");
     echo(&filename, String::from("1"))?;
 
     // Set ftrace options
@@ -494,22 +494,24 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
             v.trace_time_expired = true;
             v.trace_log.trace_stopped_at = Utc::now();
 
-            let filename = iotrace_dir.join(Path::new(&constants::IOTRACE_DIR)).join(
-                Path::new(&format!("{}.trace", v.trace_log.hash)),
-            );
+            let filename = iotrace_dir
+                .join(Path::new(&constants::IOTRACE_DIR))
+                .join(Path::new(&format!("{}.trace", v.trace_log.hash)));
 
             match v.trace_log.save(&filename, false) {
-                Err(e) => {
-                    error!(
-                        "Error while saving the I/O trace log for process '{}' with pid: {}. {}",
-                        comm,
-                        pid,
-                        e
-                    )
-                }
+                Err(e) => error!(
+                    "Error while saving the I/O trace log for process '{}' with pid: {}. {}",
+                    comm,
+                    pid,
+                    e
+                ),
 
                 Ok(()) => {
-                    info!("Successfuly saved I/O trace log for process '{}' with pid: {}", comm, pid );
+                    info!(
+                        "Successfuly saved I/O trace log for process '{}' with pid: {}",
+                        comm,
+                        pid
+                    );
 
                     // schedule an optimization pass for the newly saved trace log
                     debug!("Queued an optimization request for {:?}", filename);
@@ -524,12 +526,14 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
 }
 
 /// Read events from ftrace_pipe (ftrace main loop)
-pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool, globals: &mut Globals) -> io::Result<()> {    
+pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool, globals: &mut Globals) -> io::Result<()> {
     let config = globals.config.config_file.clone().unwrap();
-    let iotrace_dir = config.state_dir.unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
+    let iotrace_dir = config
+        .state_dir
+        .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
     let filename = Path::new(TRACING_DIR).join("trace_pipe");
-    let mut trace_pipe = try!(OpenOptions::new().read(true).open(&filename));    
+    let mut trace_pipe = try!(OpenOptions::new().read(true).open(&filename));
 
     // filled in with `getnameprobe` kprobe event data
     let mut last_filename = None;
@@ -557,7 +561,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         let mut data: [u8; 8192] = [0; 8192];
-        let len = trace_pipe.read(&mut data)?;        
+        let len = trace_pipe.read(&mut data)?;
 
         // short read, maybe EOF?
         // wait for new data to arrive
@@ -565,32 +569,32 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
             continue;
         }
-        
+
         let data = String::from_utf8_lossy(&data);
 
         for l in data.lines() {
             let l = l.trim();
-    
+
             // ignore invalid lines
             if l.is_empty() {
                 continue;
             }
-    
+
             // ignore the headers starting with a comment sign
             if l.starts_with('#') {
                 continue;
             }
-    
+
             // ignore "lost events" events
             if REGEX_FILTER.is_match(l) {
                 continue;
             }
-    
+
             // check validity of parsed data
             let fields: Vec<&str> = l.split("  ").collect();
             let idx = fields.len() - 1;
 
-            if fields.len() >= 3 && 
+            if fields.len() >= 3 &&
                 !fields[idx].contains("sys_open") && !fields[idx].contains("sys_openat") &&
                 !fields[idx].contains("sys_open_by_handle_at") && !fields[idx].contains("sys_read") &&
                 !fields[idx].contains("sys_readv") && !fields[idx].contains("sys_preadv2") &&
@@ -599,8 +603,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                 !fields[idx].contains("sys_newstat") && !fields[idx].contains("sys_newfstat") &&
                 !fields[idx].contains("sys_newfstatat") &&
                 // !fields[idx].contains("sys_getdents") && !fields[idx].contains("sys_getdents64") &&
-                !fields[idx].contains("getnameprobe") && !fields[idx].contains("getdirnameprobe") &&
-                !fields[idx].contains("tracing_mark_write:")
+                !fields[idx].contains("getnameprobe") && !fields[idx].contains("getdirnameprobe")
+                && !fields[idx].contains("tracing_mark_write:")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
@@ -612,9 +616,10 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
                 if !cb(
                     0,
-                    IOEvent { syscall: SysCall::CustomEvent(String::from("ping!")) },
-                )
-                {
+                    IOEvent {
+                        syscall: SysCall::CustomEvent(String::from("ping!")),
+                    },
+                ) {
                     break 'LINE_LOOP; // callback returned false, exit requested
                 }
             }
@@ -651,12 +656,10 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // getnameprobe kprobe event
             if l.contains("getnameprobe") {
                 match REGEX_FILENAME.captures(l) {
-                    None => {
-                        error!(
-                            "Could not get associated file name of the current trace event! Event: '{}'",
-                            l
-                        )
-                    }
+                    None => error!(
+                        "Could not get associated file name of the current trace event! Event: '{}'",
+                        l
+                    ),
 
                     Some(c) => {
                         last_filename = Some(PathBuf::from(Path::new(&c["filename"])));
@@ -704,19 +707,18 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     let mut reset_filename = false;
                     match last_filename {
                         // Error may happen if the previous open* syscall failed
-                        None => {
-                            trace!(
-                                "Could not get associated file name of the current trace event! '{}'",
-                                l
-                            )
-                        }
+                        None => trace!(
+                            "Could not get associated file name of the current trace event! '{}'",
+                            l
+                        ),
 
                         Some(ref c) => {
                             if !cb(
                                 pid,
-                                IOEvent { syscall: SysCall::Open(c.clone(), 0) },
-                            )
-                            {
+                                IOEvent {
+                                    syscall: SysCall::Open(c.clone(), 0),
+                                },
+                            ) {
                                 break 'LINE_LOOP; // callback returned false, exit requested
                             }
 
@@ -746,7 +748,12 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     let tmp = tmp[tmp.len() - 1];
 
                     let fd = i32::from_str_radix(tmp, 16).unwrap_or(-1);
-                    if !cb(pid, IOEvent { syscall: SysCall::Read(fd) }) {
+                    if !cb(
+                        pid,
+                        IOEvent {
+                            syscall: SysCall::Read(fd),
+                        },
+                    ) {
                         break 'LINE_LOOP; // callback returned false, exit requested
                     }
                 } else {
@@ -767,7 +774,12 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     let tmp = tmp[tmp.len() - 1];
 
                     let addr = usize::from_str_radix(tmp, 16).unwrap_or(0);
-                    if !cb(pid, IOEvent { syscall: SysCall::Mmap(addr) }) {
+                    if !cb(
+                        pid,
+                        IOEvent {
+                            syscall: SysCall::Mmap(addr),
+                        },
+                    ) {
                         break 'LINE_LOOP; // callback returned false, exit requested
                     }
                 } else {

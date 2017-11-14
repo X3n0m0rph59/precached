@@ -18,12 +18,12 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate num_cpus;
 extern crate sys_info;
 extern crate systemstat;
-extern crate num_cpus;
 
 use self::sys_info::MemInfo;
-use self::systemstat::{System, Platform};
+use self::systemstat::{Platform, System};
 use constants;
 use events;
 use events::EventType;
@@ -100,13 +100,13 @@ impl Metrics {
 
     pub fn get_available_mem_percentage(&self) -> u8 {
         let mem_info = sys_info::mem_info().unwrap();
-        
+
         (mem_info.avail * 100 / mem_info.total) as u8
     }
 
     pub fn get_free_mem_percentage(&self) -> u8 {
         let mem_info = sys_info::mem_info().unwrap();
-        
+
         (mem_info.free * 100 / mem_info.total) as u8
     }
 
@@ -215,10 +215,11 @@ impl Metrics {
         } else {
             let duration_without_swapping = Instant::now() - self.last_swapped_time;
 
-            if duration_without_swapping >= Duration::from_secs(constants::SWAP_RECOVERY_WINDOW) &&
-               self.recovered_from_swap_event_sent == false {
-                    events::queue_internal_event(EventType::SystemRecoveredFromSwap, globals);
-                    self.recovered_from_swap_event_sent = true;
+            if duration_without_swapping >= Duration::from_secs(constants::SWAP_RECOVERY_WINDOW)
+                && self.recovered_from_swap_event_sent == false
+            {
+                events::queue_internal_event(EventType::SystemRecoveredFromSwap, globals);
+                self.recovered_from_swap_event_sent = true;
             }
         }
 

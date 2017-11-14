@@ -66,12 +66,10 @@ impl VFSStatCache {
         let tracked_entries = self.get_globally_tracked_entries(globals, manager);
 
         match util::POOL.try_lock() {
-            Err(e) => {
-                warn!(
-                    "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                    e
-                )
-            }
+            Err(e) => warn!(
+                "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                e
+            ),
 
             Ok(thread_pool) => {
                 let globals_c = globals.clone();
@@ -242,14 +240,12 @@ impl Plugin for VFSStatCache {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::PrimeCaches => {
-                if self.memory_freed {
-                    self.prime_statx_cache(globals, manager);
-                    self.prime_statx_cache_for_top_iotraces(globals, manager);
+            events::EventType::PrimeCaches => if self.memory_freed {
+                self.prime_statx_cache(globals, manager);
+                self.prime_statx_cache_for_top_iotraces(globals, manager);
 
-                    self.memory_freed = false;
-                }
-            }
+                self.memory_freed = false;
+            },
 
             events::EventType::MemoryFreed => {
                 self.memory_freed = true;

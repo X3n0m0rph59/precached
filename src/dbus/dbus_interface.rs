@@ -19,8 +19,8 @@
 */
 
 extern crate dbus;
-extern crate libc;
 extern crate lazy_static;
+extern crate libc;
 
 use self::dbus::{tree, BusType, Connection, Path};
 use self::dbus::tree::{Access, EmitsChangedSignal, Interface, MTFn, MethodErr, Signal};
@@ -40,7 +40,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::path;
 use std::result::Result;
-use std::sync::{Mutex, Arc};
+use std::sync::{Arc, Mutex};
 use std::sync::mpsc;
 use storage;
 
@@ -79,7 +79,9 @@ impl ProcessStats {
         ProcessStats {
             path: format!("/Process/{}", pid).into(),
             process: process.clone(),
-            comm: process.get_comm().unwrap_or_else(|_| String::from("<not available>")),
+            comm: process
+                .get_comm()
+                .unwrap_or_else(|_| String::from("<not available>")),
             pid: pid,
         }
     }
@@ -109,7 +111,10 @@ impl tree::DataType for TreeDataProcessStats {
 
 fn create_io_trace_stats_iface(
     _event_s: &mpsc::Sender<i32>,
-) -> (Interface<MTFn<TreeDataIOTraceLogStats>, TreeDataIOTraceLogStats>, Arc<Signal<TreeDataIOTraceLogStats>>) {
+) -> (
+    Interface<MTFn<TreeDataIOTraceLogStats>, TreeDataIOTraceLogStats>,
+    Arc<Signal<TreeDataIOTraceLogStats>>,
+) {
     let f = tree::Factory::new_fn();
 
     let event = Arc::new(f.signal("IOTraceLogEvent", ()));
@@ -143,14 +148,16 @@ fn create_io_trace_stats_iface(
                         Ok(())
                     }),
             ),
-
         event,
     )
 }
 
 fn create_iface(
     _process_event_s: &mpsc::Sender<i32>,
-) -> (Interface<MTFn<TreeDataProcessStats>, TreeDataProcessStats>, Arc<Signal<TreeDataProcessStats>>) {
+) -> (
+    Interface<MTFn<TreeDataProcessStats>, TreeDataProcessStats>,
+    Arc<Signal<TreeDataProcessStats>>,
+) {
     let f = tree::Factory::new_fn();
 
     let process_event = Arc::new(f.signal("ProcessEvent", ()));
@@ -346,10 +353,9 @@ impl DBUSInterface {
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 let config = globals.config.config_file.clone().unwrap();
-                let state_dir = config.state_dir.unwrap_or(
-                    path::Path::new(constants::STATE_DIR)
-                        .to_path_buf(),
-                );
+                let state_dir = config
+                    .state_dir
+                    .unwrap_or(path::Path::new(constants::STATE_DIR).to_path_buf());
 
                 // populate data
                 for (k, v) in iotrace_log_manager_plugin

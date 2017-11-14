@@ -139,12 +139,10 @@ impl StaticWhitelist {
         let sc = Mutex::new(sender.clone());
 
         match util::POOL.try_lock() {
-            Err(e) => {
-                warn!(
-                    "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                    e
-                )
-            }
+            Err(e) => warn!(
+                "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                e
+            ),
             Ok(thread_pool) => {
                 let globals_c = globals.clone();
                 let manager_c = manager.clone();

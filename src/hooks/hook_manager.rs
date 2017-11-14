@@ -34,15 +34,17 @@ pub struct HookManager {
 
 impl HookManager {
     pub fn new() -> HookManager {
-        HookManager { hooks: Arc::new(RwLock::new(HashMap::new())) }
+        HookManager {
+            hooks: Arc::new(RwLock::new(HashMap::new())),
+        }
     }
 
     pub fn register_hook(&self, mut hook: Box<Hook + Sync + Send>) {
         hook.register();
-        self.hooks.write().unwrap().insert(
-            String::from(hook.get_name()),
-            Arc::new(RwLock::new(hook)),
-        );
+        self.hooks
+            .write()
+            .unwrap()
+            .insert(String::from(hook.get_name()), Arc::new(RwLock::new(hook)));
     }
 
     pub fn unregister_hook(&self, name: &str) {

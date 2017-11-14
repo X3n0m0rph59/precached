@@ -35,7 +35,7 @@ use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
 use std::path::{Path, PathBuf};
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 use storage;
 use util;
 
@@ -60,21 +60,23 @@ pub struct IOtraceLogManager {
 
 impl IOtraceLogManager {
     pub fn new() -> IOtraceLogManager {
-        IOtraceLogManager { last_housekeeping_performed: Instant::now() }
+        IOtraceLogManager {
+            last_housekeeping_performed: Instant::now(),
+        }
     }
 
     // Returns the most recent I/O trace log for `hashval`.
     pub fn get_trace_log_by_hash(&self, hashval: &str, globals: &Globals) -> Result<iotrace::IOTraceLog> {
         let config = globals.config.config_file.clone().unwrap();
 
-        let iotrace_dir = config.state_dir.unwrap_or(
-            Path::new(constants::STATE_DIR)
-                .to_path_buf(),
-        );
+        let iotrace_dir = config
+            .state_dir
+            .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
 
-        let filename = iotrace_dir.as_path().join(constants::IOTRACE_DIR).join(
-            Path::new(&format!("{}.trace", hashval)),
-        );
+        let filename = iotrace_dir
+            .as_path()
+            .join(constants::IOTRACE_DIR)
+            .join(Path::new(&format!("{}.trace", hashval)));
 
         let result = iotrace::IOTraceLog::from_file(&filename)?;
 
@@ -86,24 +88,17 @@ impl IOtraceLogManager {
         let config = globals.config.config_file.clone().unwrap();
 
         let mut hasher = fnv::FnvHasher::default();
-        hasher.write(&(exe_name
-            .to_string_lossy()
-            .into_owned()
-            .into_bytes()));
+        hasher.write(&(exe_name.to_string_lossy().into_owned().into_bytes()));
         hasher.write(&cmdline.into_bytes());
         let hashval = hasher.finish();
 
-        let iotrace_dir = config.state_dir.unwrap_or(
-            Path::new(constants::STATE_DIR)
-                .to_path_buf(),
-        );
+        let iotrace_dir = config
+            .state_dir
+            .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
 
-        let filename = iotrace_dir.join(constants::IOTRACE_DIR).join(
-            Path::new(&format!(
-                "{}.trace",
-                hashval
-            )),
-        );
+        let filename = iotrace_dir
+            .join(constants::IOTRACE_DIR)
+            .join(Path::new(&format!("{}.trace", hashval)));
 
         let result = iotrace::IOTraceLog::from_file(&filename)?;
 
@@ -163,15 +158,13 @@ impl IOtraceLogManager {
                     errors += 1;
                 }
 
-                Ok(io_trace) => {
-                    if Self::shall_io_trace_be_pruned(&io_trace) {
-                        debug!("Pruning I/O trace log: {:?}", path);
+                Ok(io_trace) => if Self::shall_io_trace_be_pruned(&io_trace) {
+                    debug!("Pruning I/O trace log: {:?}", path);
 
-                        util::remove_file(path, false);
+                    util::remove_file(path, false);
 
-                        pruned += 1;
-                    }
-                }
+                    pruned += 1;
+                },
             }
 
             counter += 1;
@@ -216,7 +209,7 @@ impl IOtraceLogManager {
 
                             // util::remove_file(&filename, true);
                         }
-                        
+
                         Ok(_) => {
                             debug!("I/O trace log optimized succesfuly!");
                         }
@@ -322,13 +315,14 @@ impl Plugin for IOtraceLogManager {
                     Ok(mut scheduler) => {
                         let filename_c = filename.clone();
 
-                        (*scheduler).schedule_job(move || { Self::optimize_single_trace_log(&filename_c); });
+                        (*scheduler).schedule_job(move || {
+                            Self::optimize_single_trace_log(&filename_c);
+                        });
                     }
                 }
             }
 
-            EventType::IdlePeriod |
-            EventType::DoHousekeeping => {
+            EventType::IdlePeriod | EventType::DoHousekeeping => {
                 if Instant::now() - self.last_housekeeping_performed > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS) {
                     match util::SCHEDULER.lock() {
                         Err(e) => {
@@ -336,10 +330,9 @@ impl Plugin for IOtraceLogManager {
                         }
                         Ok(mut scheduler) => {
                             let config = globals.config.config_file.clone().unwrap();
-                            let state_dir = config.state_dir.unwrap_or(
-                                Path::new(constants::STATE_DIR)
-                                    .to_path_buf(),
-                            );
+                            let state_dir = config
+                                .state_dir
+                                .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
 
                             (*scheduler).schedule_job(move || {
                                 Self::prune_invalid_trace_logs(&state_dir.clone());

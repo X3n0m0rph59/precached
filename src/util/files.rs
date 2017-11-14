@@ -193,9 +193,7 @@ pub fn is_file_blacklisted(filename: &Path, pattern: &[PathBuf]) -> bool {
                 // construct a glob set at the first iteration
                 let mut builder = GlobSetBuilder::new();
                 for p in pattern.iter() {
-                    builder.add(
-                        Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap(),
-                    );
+                    builder.add(Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap());
                 }
                 let set = builder.build().unwrap();
 
@@ -207,9 +205,10 @@ pub fn is_file_blacklisted(filename: &Path, pattern: &[PathBuf]) -> bool {
                 !matches.is_empty()
             } else {
                 // glob_set already available
-                let matches = gs_opt.clone().unwrap().matches(&filename
-                    .to_string_lossy()
-                    .into_owned());
+                let matches = gs_opt
+                    .clone()
+                    .unwrap()
+                    .matches(&filename.to_string_lossy().into_owned());
 
                 !matches.is_empty()
             }
@@ -249,7 +248,6 @@ pub fn ellipsize_filename(filename: &str) -> String {
         result.push_str(&filename[0..MAX_LEN / 2 - CUTOFF]);
         result.push_str("...");
         result.push_str(&filename[MAX_LEN / 2 + CUTOFF..]);
-
     } else {
         result += filename;
     }

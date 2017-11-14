@@ -59,7 +59,7 @@ pub struct StaticBlacklist {
 
 impl StaticBlacklist {
     pub fn new(globals: &Globals) -> StaticBlacklist {
-        StaticBlacklist { 
+        StaticBlacklist {
             blacklist: Self::get_file_blacklist(globals),
             program_blacklist: Self::get_program_blacklist(globals),
         }
@@ -100,7 +100,7 @@ impl StaticBlacklist {
     pub fn get_blacklist(&self) -> &Vec<PathBuf> {
         &self.blacklist
     }
-    
+
     pub fn is_file_blacklisted(&self, filename: &Path) -> bool {
         match GLOB_SET_FILES.lock() {
             Err(e) => {
@@ -113,9 +113,7 @@ impl StaticBlacklist {
                     // construct a glob set at the first iteration
                     let mut builder = GlobSetBuilder::new();
                     for p in self.get_blacklist().iter() {
-                        builder.add(
-                            Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap(),
-                        );
+                        builder.add(Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap());
                     }
                     let set = builder.build().unwrap();
 
@@ -127,9 +125,10 @@ impl StaticBlacklist {
                     !matches.is_empty()
                 } else {
                     // glob_set already available
-                    let matches = gs_opt.clone().unwrap().matches(&filename
-                        .to_string_lossy()
-                        .into_owned());
+                    let matches = gs_opt
+                        .clone()
+                        .unwrap()
+                        .matches(&filename.to_string_lossy().into_owned());
 
                     !matches.is_empty()
                 }
@@ -149,9 +148,7 @@ impl StaticBlacklist {
                     // construct a glob set at the first iteration
                     let mut builder = GlobSetBuilder::new();
                     for p in self.program_blacklist.iter() {
-                        builder.add(
-                            Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap(),
-                        );
+                        builder.add(Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap());
                     }
                     let set = builder.build().unwrap();
 
@@ -163,9 +160,10 @@ impl StaticBlacklist {
                     !matches.is_empty()
                 } else {
                     // glob_set already available
-                    let matches = gs_opt.clone().unwrap().matches(&filename
-                        .to_string_lossy()
-                        .into_owned());
+                    let matches = gs_opt
+                        .clone()
+                        .unwrap()
+                        .matches(&filename.to_string_lossy().into_owned());
 
                     !matches.is_empty()
                 }

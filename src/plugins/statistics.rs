@@ -26,7 +26,7 @@ use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use std::any::Any;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 use storage;
 use util;
 
@@ -125,13 +125,11 @@ impl Plugin for Statistics {
             events::EventType::EnterIdle => {
                 info!("Statistics: System enters idle state");
             }
-            events::EventType::IdlePeriod => {
-                if self.sys_left_idle_period {
-                    info!("Statistics: System enters idle period. Priming stale caches now...");
-                    events::queue_internal_event(events::EventType::PrimeCaches, globals);
-                    self.sys_left_idle_period = false;
-                }
-            }
+            events::EventType::IdlePeriod => if self.sys_left_idle_period {
+                info!("Statistics: System enters idle period. Priming stale caches now...");
+                events::queue_internal_event(events::EventType::PrimeCaches, globals);
+                self.sys_left_idle_period = false;
+            },
             events::EventType::LeaveIdle => {
                 info!("Statistics: System busy");
 

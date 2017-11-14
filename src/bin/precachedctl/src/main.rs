@@ -23,9 +23,9 @@
 
 extern crate clap;
 #[macro_use]
-extern crate log;
-#[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate log;
 extern crate nix;
 extern crate pretty_env_logger;
 // #[macro_use]
@@ -63,9 +63,12 @@ impl<'a, 'b> Config<'a, 'b> {
             .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
             .setting(AppSettings::GlobalVersion)
             .setting(AppSettings::DeriveDisplayOrder)
-            .arg(Arg::with_name("ascii").short("a").long("ascii").help(
-                "Produce ASCII output instead of using Unicode for line drawing",
-            ))
+            .arg(
+                Arg::with_name("ascii")
+                    .short("a")
+                    .long("ascii")
+                    .help("Produce ASCII output instead of using Unicode for line drawing"),
+            )
             .arg(
                 Arg::with_name("config")
                     .short("c")
@@ -75,16 +78,21 @@ impl<'a, 'b> Config<'a, 'b> {
                     .default_value(constants::CONFIG_FILE)
                     .takes_value(true),
             )
-            .arg(Arg::with_name("v").short("v").multiple(true).help(
-                "Sets the level of output verbosity",
-            ))
+            .arg(
+                Arg::with_name("v")
+                    .short("v")
+                    .multiple(true)
+                    .help("Sets the level of output verbosity"),
+            )
             .subcommand(
                 SubCommand::with_name("status")
                     .setting(AppSettings::DeriveDisplayOrder)
                     .about("Show the current status of the precached daemon")
-                    .arg(Arg::with_name("long").short("l").help(
-                        "Use long display format",
-                    )),
+                    .arg(
+                        Arg::with_name("long")
+                            .short("l")
+                            .help("Use long display format"),
+                    ),
             )
             .subcommand(
                 SubCommand::with_name("reload")
@@ -219,7 +227,9 @@ fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
                 Err(e) => {
                     println!("Could not send signal! {}", e);
                 }
-                Ok(()) => { println!("Success"); }
+                Ok(()) => {
+                    println!("Success");
+                }
             }
         }
     };
@@ -237,7 +247,9 @@ fn daemon_shutdown(_config: &Config, _daemon_config: util::ConfigFile) {
                 Err(e) => {
                     println!("Could not send signal! {}", e);
                 }
-                Ok(()) => { println!("Success"); }
+                Ok(()) => {
+                    println!("Success");
+                }
             }
         }
     };
@@ -255,7 +267,9 @@ fn do_housekeeping(_config: &Config, _daemon_config: util::ConfigFile) {
                 Err(e) => {
                     println!("Could not send signal! {}", e);
                 }
-                Ok(()) => { println!("Success"); }
+                Ok(()) => {
+                    println!("Success");
+                }
             }
         }
     };
@@ -273,7 +287,9 @@ fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
                 Err(e) => {
                     println!("Could not send signal! {}", e);
                 }
-                Ok(()) => { println!("Success"); }
+                Ok(()) => {
+                    println!("Success");
+                }
             }
         }
     };
@@ -283,7 +299,8 @@ fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
 fn print_help(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
-    #[allow(unused_must_use)] config.clap.print_help().unwrap();
+    #[allow(unused_must_use)]
+    config.clap.print_help().unwrap();
 
     println!("");
 }
@@ -292,7 +309,8 @@ fn print_help(config: &mut Config) {
 fn print_usage(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
-    #[allow(unused_must_use)] config.clap.print_help().unwrap();
+    #[allow(unused_must_use)]
+    config.clap.print_help().unwrap();
 
     println!("");
 }
@@ -328,12 +346,10 @@ fn main() {
             "stop" | "shutdown" => {
                 daemon_shutdown(&config, daemon_config);
             }
-            "housekeeping" |
-            "do-housekeeping" => {
+            "housekeeping" | "do-housekeeping" => {
                 do_housekeeping(&config, daemon_config);
             }
-            "prime-caches" |
-            "prime-caches-now" => {
+            "prime-caches" | "prime-caches-now" => {
                 do_prime_caches(&config, daemon_config);
             }
             "help" => {

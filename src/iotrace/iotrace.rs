@@ -26,7 +26,7 @@ extern crate libc;
 extern crate serde_json;
 extern crate term;
 
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Duration, Utc};
 use constants;
 use process::Process;
 use std::collections::HashMap;
@@ -34,7 +34,6 @@ use std::hash::Hasher;
 use std::io;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
-
 use util;
 
 /// Represents an I/O operation in an I/O trace log entry
@@ -179,9 +178,11 @@ impl IOTraceLog {
 
             // make the I/O trace contain an open and a read of the binary itself
             // since we will always miss that event in the tracer
-            let first_entries =
-                vec![
-                TraceLogEntry::new(IOOperation::Open(exe.clone(), 0), util::get_file_size(&exe).unwrap_or(0)),
+            let first_entries = vec![
+                TraceLogEntry::new(
+                    IOOperation::Open(exe.clone(), 0),
+                    util::get_file_size(&exe).unwrap_or(0),
+                ),
                 // TraceLogEntry::new(IOOperation::Read(0)),
             ];
 
@@ -223,9 +224,8 @@ impl IOTraceLog {
 
     /// Write the I/O trace log to disk
     pub fn save(&self, filename: &Path, allow_truncate: bool) -> io::Result<()> {
-        if (self.trace_log.len() > constants::MIN_TRACE_LOG_LENGTH &&
-            self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES) || 
-            allow_truncate
+        if (self.trace_log.len() > constants::MIN_TRACE_LOG_LENGTH && self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES)
+            || allow_truncate
         {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
             util::write_text_file(filename, &serialized)?;

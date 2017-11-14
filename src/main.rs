@@ -27,15 +27,14 @@
 
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
-
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![allow(unused_must_use)]
 
-extern crate log_panics;
 extern crate ansi_term;
 extern crate chrono;
 extern crate fern;
+extern crate log_panics;
 
 #[macro_use]
 extern crate daemonize;
@@ -266,16 +265,14 @@ fn setup_logging() -> Result<(), fern::InitError> {
     //     .chain(io::stdout());
 
     let level_filter = match env::var("LOG_LEVEL") {
-        Ok(val) => {
-            match val.to_lowercase().as_ref() {
-                "trace" => log::LogLevelFilter::Trace,
-                "debug" => log::LogLevelFilter::Debug,
-                "info" => log::LogLevelFilter::Info,
-                "warn" => log::LogLevelFilter::Warn,
-                "error" => log::LogLevelFilter::Error,
-                &_ => constants::DEFAULT_LOG_LEVEL,
-            }
-        }
+        Ok(val) => match val.to_lowercase().as_ref() {
+            "trace" => log::LogLevelFilter::Trace,
+            "debug" => log::LogLevelFilter::Debug,
+            "info" => log::LogLevelFilter::Info,
+            "warn" => log::LogLevelFilter::Warn,
+            "error" => log::LogLevelFilter::Error,
+            &_ => constants::DEFAULT_LOG_LEVEL,
+        },
         _ => constants::DEFAULT_LOG_LEVEL,
     };
 
@@ -299,7 +296,9 @@ fn setup_logging() -> Result<(), fern::InitError> {
 
             out.finish(format_args!(
                 "{}:{}: {}",
-                util::Level { level: record.level() },
+                util::Level {
+                    level: record.level(),
+                },
                 Style::new().bold().paint(module_path),
                 record.args()
             ));
@@ -399,8 +398,8 @@ fn main() {
             Err(e) => {
                 error!("Could not become a daemon: {}", e);
                 return; // Must fail here, since we were asked to
-                // daemonize, and maybe there is another
-                // instance already running!
+                        // daemonize, and maybe there is another
+                        // instance already running!
             }
 
             Ok(()) => {
@@ -549,12 +548,10 @@ fn main() {
 
         // Let the task scheduler run it's queued jobs
         match util::SCHEDULER.try_lock() {
-            Err(e) => {
-                warn!(
-                    "Could not take a lock on the global task scheduler! Postponing work until later. {}",
-                    e
-                )
-            }
+            Err(e) => warn!(
+                "Could not take a lock on the global task scheduler! Postponing work until later. {}",
+                e
+            ),
             Ok(ref mut scheduler) => {
                 scheduler.run_jobs();
             }
@@ -585,7 +582,8 @@ fn main() {
 
     util::notify(&String::from("precached terminating!"), &manager);
 
-    #[allow(unused_must_use)] util::remove_file(Path::new(constants::DAEMON_PID_FILE), false);
+    #[allow(unused_must_use)]
+    util::remove_file(Path::new(constants::DAEMON_PID_FILE), false);
 
     // Unregister plugins and hooks
     plugins::unregister_plugins(&mut globals, &mut manager);

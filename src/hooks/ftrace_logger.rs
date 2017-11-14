@@ -73,7 +73,9 @@ pub struct FtraceLogger {
 
 impl FtraceLogger {
     pub fn new() -> FtraceLogger {
-        FtraceLogger { tracer_thread: None }
+        FtraceLogger {
+            tracer_thread: None,
+        }
     }
 
     /// Thread entrypoint/main function of the "ftrace thread"
@@ -122,7 +124,9 @@ impl FtraceLogger {
                                 comm = process.comm.clone();
                             } else {
                                 if let Ok(process) = Process::new(pid) {
-                                    comm = process.get_comm().unwrap_or_else(|_| String::from("<not available>"));
+                                    comm = process
+                                        .get_comm()
+                                        .unwrap_or_else(|_| String::from("<not available>"));
                                 }
                             }
 
@@ -228,8 +232,7 @@ impl FtraceLogger {
                     return true;
                 },
                 globals,
-            )
-            {
+            ) {
                 error!("Processing of a trace log entry failed: {}", e);
             }
 
@@ -310,7 +313,9 @@ impl FtraceLogger {
                     comm = process.comm.clone();
                     exe = process.get_exe();
                 } else if let Ok(process) = Process::new(event.pid) {
-                    comm = process.get_comm().unwrap_or_else(|_| String::from("<not available>"));
+                    comm = process
+                        .get_comm()
+                        .unwrap_or_else(|_| String::from("<not available>"));
                     exe = process.get_exe();
                 }
 
@@ -325,14 +330,12 @@ impl FtraceLogger {
                 }
 
                 match ACTIVE_TRACERS.lock() {
-                    Err(e) => {
-                        warn!(
-                            "Could not take a lock on a shared data structure! Won't trace process '{}' with pid {}: {}",
-                            comm,
-                            event.pid,
-                            e
-                        )
-                    }
+                    Err(e) => warn!(
+                        "Could not take a lock on a shared data structure! Won't trace process '{}' with pid {}: {}",
+                        comm,
+                        event.pid,
+                        e
+                    ),
                     Ok(mut active_tracers) => {
                         // We successfuly acquired the lock
                         if active_tracers.contains_key(&event.pid) {
@@ -360,14 +363,12 @@ impl FtraceLogger {
 
                                         // Tell ftrace to deliver events for process `event.pid`, from now on
                                         match util::trace_process_io_ftrace(event.pid) {
-                                            Err(e) => {
-                                                error!(
-                                                    "Could not enable ftrace for process '{}' with pid {}: {}",
-                                                    comm,
-                                                    event.pid,
-                                                    e
-                                                )
-                                            }
+                                            Err(e) => error!(
+                                                "Could not enable ftrace for process '{}' with pid {}: {}",
+                                                comm,
+                                                event.pid,
+                                                e
+                                            ),
                                             Ok(()) => trace!(
                                                 "Enabled ftrace for process '{}' with pid {}",
                                                 comm,
@@ -418,8 +419,8 @@ impl FtraceLogger {
                                 Ok(io_trace) => {
                                     let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
 
-                                    if err || flags.contains(&iotrace::IOTraceLogFlag::Expired) ||
-                                        flags.contains(&iotrace::IOTraceLogFlag::Outdated)
+                                    if err || flags.contains(&iotrace::IOTraceLogFlag::Expired)
+                                        || flags.contains(&iotrace::IOTraceLogFlag::Outdated)
                                     {
                                         Ok(true)
                                     } else {
@@ -496,14 +497,12 @@ impl FtraceLogger {
 
                                 // Stop tracing of process `event.pid`
                                 match util::stop_tracing_process_ftrace(event.pid) {
-                                    Err(e) => {
-                                        error!(
-                                            "Could not disable ftrace for process '{}' with pid {}: {}",
-                                            comm,
-                                            event.pid,
-                                            e
-                                        )
-                                    }
+                                    Err(e) => error!(
+                                        "Could not disable ftrace for process '{}' with pid {}: {}",
+                                        comm,
+                                        event.pid,
+                                        e
+                                    ),
 
                                     Ok(()) => trace!(
                                         "Disabled ftrace for process '{}' with pid {}",

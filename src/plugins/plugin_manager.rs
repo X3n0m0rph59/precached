@@ -34,7 +34,9 @@ pub struct PluginManager {
 
 impl PluginManager {
     pub fn new() -> PluginManager {
-        PluginManager { plugins: Arc::new(RwLock::new(HashMap::new())) }
+        PluginManager {
+            plugins: Arc::new(RwLock::new(HashMap::new())),
+        }
     }
 
     pub fn register_plugin(&self, mut plugin: Box<Plugin + Sync + Send>) {
