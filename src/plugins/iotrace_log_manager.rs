@@ -202,6 +202,7 @@ impl IOtraceLogManager {
             Err(e) => {
                 error!("Skipped invalid I/O trace file, file not readable: {}", e);
             }
+
             Ok(mut io_trace) => {
                 // Only optimize if the trace log is not optimized already
                 if !io_trace.trace_log_optimized {
@@ -215,6 +216,7 @@ impl IOtraceLogManager {
 
                             // util::remove_file(&filename, true);
                         }
+                        
                         Ok(_) => {
                             debug!("I/O trace log optimized succesfuly!");
                         }

@@ -32,6 +32,7 @@
 #![allow(unused_imports)]
 #![allow(unused_must_use)]
 
+extern crate log_panics;
 extern crate ansi_term;
 extern crate chrono;
 extern crate fern;
@@ -334,6 +335,9 @@ fn setup_logging() -> Result<(), fern::InitError> {
 
 /// Program entrypoint
 fn main() {
+    // Initialize panic handler
+    log_panics::init();
+
     // Initialize logging subsystem
     setup_logging().expect("Could not initialize the logging subsystem!");
 

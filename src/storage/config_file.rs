@@ -39,6 +39,7 @@ pub struct ConfigFile {
     pub metadata_whitelist: Option<Vec<PathBuf>>,
     pub program_whitelist: Option<Vec<String>>,
     pub blacklist: Option<Vec<PathBuf>>,
+    pub program_blacklist: Option<Vec<PathBuf>>,
     pub disabled_plugins: Option<Vec<String>>,
 }
 
@@ -56,6 +57,7 @@ impl Default for ConfigFile {
             metadata_whitelist: Some(vec![PathBuf::new()]),
             program_whitelist: Some(vec![String::from("")]),
             blacklist: Some(vec![PathBuf::new()]),
+            program_blacklist: Some(vec![PathBuf::new()]),
             disabled_plugins: Some(vec![String::from("")]),
         }
     }

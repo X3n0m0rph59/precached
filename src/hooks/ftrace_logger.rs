@@ -225,7 +225,7 @@ impl FtraceLogger {
                         }
                     }
 
-                    true
+                    return true;
                 },
                 globals,
             )
@@ -269,6 +269,27 @@ impl FtraceLogger {
         result
     }
 
+    fn is_program_blacklisted(filename: &Path, _globals: &mut Globals, manager: &Manager) -> bool {
+        let mut result = false;
+
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("static_blacklist")) {
+            None => {
+                warn!("Plugin not loaded: 'static_blacklist', skipped");
+            }
+
+            Some(p) => {
+                let p = p.read().unwrap();
+                let mut static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+
+                result = static_blacklist_plugin.is_program_blacklisted(filename);
+            }
+        }
+
+        result
+    }
+
     /// Add process `event.pid` to the list of traced processes
     pub fn trace_process_io_activity(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
         let hm = manager.hook_manager.read().unwrap();
@@ -284,10 +305,23 @@ impl FtraceLogger {
                 // let mut cmdline = String::from("");
 
                 let mut comm = String::from("<not available>");
+                let mut exe = Err("<not available>");
                 if let Some(process) = process_tracker.get_process(event.pid) {
                     comm = process.comm.clone();
+                    exe = process.get_exe();
                 } else if let Ok(process) = Process::new(event.pid) {
                     comm = process.get_comm().unwrap_or_else(|_| String::from("<not available>"));
+                    exe = process.get_exe();
+                }
+
+                // Check if the program is blacklisted
+                if let Ok(exe) = exe {
+                    info!("Path: {:?}", exe);
+
+                    if Self::is_program_blacklisted(&exe, globals, manager) {
+                        warn!("Program {:?} is blacklisted, not generating trace!", exe);
+                        return;
+                    }
                 }
 
                 match ACTIVE_TRACERS.lock() {

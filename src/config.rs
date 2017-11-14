@@ -66,7 +66,7 @@ impl Config {
         Config {
             verbosity: matches.occurrences_of("v") as u8,
             daemonize: !matches.is_present("foreground"),
-            config_filename: PathBuf::from(matches.value_of("config").unwrap()),
+            config_filename: PathBuf::from(matches.value_of("config").unwrap_or_else(|| constants::CONFIG_FILE)),
             config_file: None,
         }
     }
