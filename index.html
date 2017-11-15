@@ -4,6 +4,7 @@ title: Precached - A Linux process monitor and pre-caching daemon
 ---
 
 <h1>Precached</h1>
+
 <h2>A Linux process monitor and pre-caching daemon</h2>
 
 <p>Precached is written in Rust and utilises the Linux netlink connector
@@ -46,11 +47,12 @@ title: Precached - A Linux process monitor and pre-caching daemon
 <h3>Authors</h3>
 <p>precached - Copyright (C) 2017 the precached developers</p>
 
-<div id="home">
-  <h1>Blog Posts</h1>
-  <ul class="posts">
-    {% for post in site.posts %}
-      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
-    {% endfor %}
-  </ul>
+<div id="blog-posts">
+  {% for post in site.posts %}
+    <div>
+      <h2>{{ post.title }}</h2>
+      
+      {{ post.content }}
+    </div>>
+  {% endfor %}
 </div>
