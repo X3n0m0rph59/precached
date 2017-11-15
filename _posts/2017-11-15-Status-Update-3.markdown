@@ -4,7 +4,7 @@ date:   2017-11-15 13:23:00
 categories: status update
 ---
 
-# Project Status Update
+# Project Status Update No. 3
 
 Welcome to the precached project status update No. 3!
 
@@ -17,7 +17,7 @@ stabilization work, tuning of parameters and testing.
 ## What has been achieved
 
 * Internal code refactoring to improve code quality and style
-* Added "Hot Applications" plugin; supersedes the tentative
+* Added a "Hot Applications" plugin, that supersedes the tentative
   "Dynamic Whitelisting" plugin
 * Improved the ftrace based tracing subsystem
 * Improved compatibility with other ftrace based tracers
@@ -61,3 +61,10 @@ Note: We clear all I/O trace logs now on package updates, to account for
 incompatible changes in the underlying binary format of *.trace files.
 
 The precached team
+
+## Article Updates
+
+This posting has been edited at: Wed Nov 15 14:54:00
+
+* Fixed typos
+* Rewordings
