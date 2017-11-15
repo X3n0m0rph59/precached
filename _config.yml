@@ -1,4 +1,4 @@
-theme: jekyll-theme-architect
+theme: jekyll-theme-cayman-blog
 name: precached
 description: A Linux process monitor and pre-caching daemon
 show_downloads: true
