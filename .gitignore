@@ -1,6 +1,7 @@
 src/
 local/
 .state/
+.vscode/
 /target/
 **/target/
 **/*.rs.bk
