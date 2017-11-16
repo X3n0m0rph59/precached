@@ -35,7 +35,7 @@ lazy_static! {
 }
 
 /// Represents a memory mapping of a process
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Mapping {
     pub file: PathBuf,
     pub flags: String,

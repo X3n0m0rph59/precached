@@ -61,11 +61,11 @@ impl VFSStatCache {
     /// Walk all files and directories from all whitelists
     /// and call stat() on them, to prime the kernel's dentry caches
     pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
-        trace!("Started reading of statx() metadata for whitelisted files...");
+        info!("Started reading of statx() metadata for whitelisted files...");
 
         let tracked_entries = self.get_globally_tracked_entries(globals, manager);
 
-        match util::POOL.try_lock() {
+        match util::PREFETCH_POOL.try_lock() {
             Err(e) => warn!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e
@@ -152,6 +152,8 @@ impl VFSStatCache {
     }
 
     fn prime_statx_cache_for_top_iotraces(&mut self, globals: &mut Globals, manager: &Manager) {
+        info!("Started reading of statx() metadata for most used applications...");
+
         let hm = manager.hook_manager.read().unwrap();
 
         match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
@@ -166,7 +168,7 @@ impl VFSStatCache {
 
                 match pm.get_plugin_by_name(&String::from("hot_applications")) {
                     None => {
-                        trace!("Plugin not loaded: 'hot_applications', skipped");
+                        info!("Plugin not loaded: 'hot_applications', skipped");
                     }
                     Some(p) => {
                         let p = p.read().unwrap();
@@ -241,8 +243,8 @@ impl Plugin for VFSStatCache {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::PrimeCaches => if self.memory_freed {
-                self.prime_statx_cache(globals, manager);
                 self.prime_statx_cache_for_top_iotraces(globals, manager);
+                self.prime_statx_cache(globals, manager);
 
                 self.memory_freed = false;
             },

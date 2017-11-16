@@ -35,8 +35,8 @@ pub mod rule_hook;
 
 pub fn register_default_hooks(globals: &mut Globals, manager: &mut Manager) {
     process_tracker::register_hook(globals, manager);
-    // ptrace_logger::register_hook(globals, manager);  // deprecated in favour of ftrace
     ftrace_logger::register_hook(globals, manager);
+    // ptrace_logger::register_hook(globals, manager);  // deprecated in favour of ftrace_logger
     iotrace_prefetcher::register_hook(globals, manager);
     markov_prefetcher::register_hook(globals, manager);
     forkbomb_detector::register_hook(globals, manager);

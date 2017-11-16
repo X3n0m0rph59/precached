@@ -62,7 +62,7 @@ impl PrefetchThreadPool {
             pool: threadpool::Builder::new()
                 // .num_threads(4)
                 .thread_name(String::from("prefetch"))
-                // .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
+                .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
                 .build(),
         }
     }

@@ -49,7 +49,8 @@ pub const IOTRACE_DIR: &str = "iotrace/";
 
 
 /// Default compression ratio for Zstd compressor
-pub const ZSTD_COMPRESSION_RATIO: i32 = 0;
+pub const ZSTD_COMPRESSION_RATIO: i32 = 0; // 0 == auto select (default: 3),
+                                           // 1 == fastest, 9 == best compression
 
 /// Thread niceness (main process)
 // pub const MAIN_THREAD_NICENESS: i32 = 10;
@@ -64,14 +65,14 @@ pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 250;
 
 
 /// Time that has to elapse before we may perform housekeeping again
-pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 10 * 60;
+pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 10 * 60; // 10 Minutes
 
 
 /// `Ping` event timer timeout
 pub const PING_INTERVAL_MILLIS: u64 = 2500;
 
 /// Duration that we trace a process' I/O activity
-pub const IO_TRACE_TIME_SECS: u64 = 10;
+pub const IO_TRACE_TIME_SECS: u64 = 12;
 
 /// After how many days an I/O trace is flagged as expired
 pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
@@ -96,7 +97,7 @@ pub const AVAILABLE_MEMORY_CRITICAL_THRESHOLD: u8 = 85;
 pub const AVAILABLE_MEMORY_UPPER_THRESHOLD: u8 = 80;
 
 /// Available memory threshold (percentage available)
-pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u8 = 60;
+pub const AVAILABLE_MEMORY_LOWER_THRESHOLD: u8 = 70;
 
 
 /// Time in seconds that has to elapse before we signal "recovery from swap"

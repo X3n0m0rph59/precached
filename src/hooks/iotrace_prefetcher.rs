@@ -453,7 +453,7 @@ impl IOtracePrefetcher {
                 let h = h.read().unwrap();
                 let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
-                let process = process_tracker.get_process(event.pid);
+                let mut process = process_tracker.get_process(event.pid);
 
                 match process {
                     None => debug!(
@@ -629,12 +629,11 @@ impl hook::Hook for IOtracePrefetcher {
 
     fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            procmon::EventType::Exec => {}
-            _ => if event.pid == 0 {
-                trace!("Spurious process event received, pid was 0!");
-            } else {
+            procmon::EventType::Exec => {
                 self.replay_process_io(event, globals, manager);
-            },
+            }
+
+            _ => { /* Do nothing*/ }
         }
     }
 
