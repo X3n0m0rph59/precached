@@ -25,32 +25,34 @@ pub use self::plugin_manager::*;
 use globals::*;
 use manager::*;
 
-pub mod system_agent;
+// pub mod system_agent;
 pub mod vfs_stat_cache;
 pub mod static_blacklist;
 pub mod static_whitelist;
 pub mod iotrace_log_manager;
-pub mod markov_log_manager;
+// pub mod markov_log_manager;
 pub mod hot_applications;
+pub mod user_session;
 pub mod statistics;
 pub mod metrics;
 pub mod notifications;
-pub mod forkbomb_mitigation;
-pub mod rule_plugin;
+// pub mod forkbomb_mitigation;
+// pub mod rule_plugin;
 pub mod ftrace_messages;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     statistics::register_plugin(globals, manager);
     metrics::register_plugin(globals, manager);
-    system_agent::register_plugin(globals, manager);
-    vfs_stat_cache::register_plugin(globals, manager);
+    // system_agent::register_plugin(globals, manager);
     static_blacklist::register_plugin(globals, manager);
     static_whitelist::register_plugin(globals, manager);
     iotrace_log_manager::register_plugin(globals, manager);
-    markov_log_manager::register_plugin(globals, manager);
+    // markov_log_manager::register_plugin(globals, manager);
     hot_applications::register_plugin(globals, manager);
-    rule_plugin::register_plugin(globals, manager);
-    forkbomb_mitigation::register_plugin(globals, manager);
+    user_session::register_plugin(globals, manager);
+    vfs_stat_cache::register_plugin(globals, manager);
+    // rule_plugin::register_plugin(globals, manager);
+    // forkbomb_mitigation::register_plugin(globals, manager);
     notifications::register_plugin(globals, manager);
     ftrace_messages::register_plugin(globals, manager);
 }

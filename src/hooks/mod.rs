@@ -29,18 +29,18 @@ pub mod process_tracker;
 // pub mod ptrace_logger;
 pub mod ftrace_logger;
 pub mod iotrace_prefetcher;
-pub mod markov_prefetcher;
-pub mod forkbomb_detector;
-pub mod rule_hook;
+// pub mod markov_prefetcher;
+// pub mod forkbomb_detector;
+// pub mod rule_hook;
 
 pub fn register_default_hooks(globals: &mut Globals, manager: &mut Manager) {
     process_tracker::register_hook(globals, manager);
     ftrace_logger::register_hook(globals, manager);
     // ptrace_logger::register_hook(globals, manager);  // deprecated in favour of ftrace_logger
     iotrace_prefetcher::register_hook(globals, manager);
-    markov_prefetcher::register_hook(globals, manager);
-    forkbomb_detector::register_hook(globals, manager);
-    rule_hook::register_hook(globals, manager);
+    // markov_prefetcher::register_hook(globals, manager);
+    // forkbomb_detector::register_hook(globals, manager);
+    // rule_hook::register_hook(globals, manager);
 }
 
 pub fn unregister_hooks(_globals: &mut Globals, manager: &mut Manager) {

@@ -18,36 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod vec;
-pub mod deref;
-pub mod utmpx;
-pub mod daemon;
-pub mod files;
-pub mod memory;
-pub mod system;
-pub mod trace_event;
-pub mod notify;
-// pub mod ptrace;
-pub mod ftrace;
-pub mod iotrace;
-pub mod logger;
-pub mod thread_pool;
-pub mod thread;
-pub mod task_scheduler;
+use std::ops::Deref;
 
-pub use self::daemon::*;
-pub use self::files::*;
-pub use self::ftrace::*;
-pub use self::iotrace::*;
-pub use self::logger::*;
-pub use self::memory::*;
-pub use self::notify::*;
-// pub use self::ptrace::*;
-pub use self::system::*;
-pub use self::task_scheduler::*;
-pub use self::thread::*;
-pub use self::thread_pool::*;
-pub use self::trace_event::*;
-pub use self::vec::*;
-pub use self::deref::*;
-pub use self::utmpx::*;
+pub trait OptionDeref<T: Deref> {
+    fn as_deref(&self) -> Option<&T::Target>;
+}
+
+impl<T: Deref> OptionDeref<T> for Option<T> {
+    fn as_deref(&self) -> Option<&T::Target> {
+        self.as_ref().map(Deref::deref)
+    }
+}

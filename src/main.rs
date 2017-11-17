@@ -43,6 +43,8 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 #[macro_use]
+extern crate enum_primitive;
+#[macro_use]
 extern crate serde_derive;
 extern crate syslog;
 

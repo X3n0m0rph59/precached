@@ -514,7 +514,7 @@ impl FtraceLogger {
                         }
                     }
                 } else {
-                    info!(
+                    debug!(
                         "Spurious process exit event for process with pid: {}",
                         event.pid
                     );
@@ -526,11 +526,11 @@ impl FtraceLogger {
 
 impl hook::Hook for FtraceLogger {
     fn register(&mut self) {
-        info!("Registered Hook: 'ftrace based I/O Trace Logger (experimental)'");
+        info!("Registered Hook: 'ftrace based I/O Trace Logger'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Hook: 'ftrace based I/O Trace Logger (experimental)");
+        info!("Unregistered Hook: 'ftrace based I/O Trace Logger");
     }
 
     fn get_name(&self) -> &'static str {

@@ -103,7 +103,7 @@ The following plugins are available for precached (as of 2017-11-10)
 
 The following hooks are available for precached (as of 2017-11-10)
 
-  * ftrace logger (experimental) - Generate I/O trace logs by utilising the Linux ftrace subsystem
+  * ftrace logger (stable) - Generate I/O trace logs by utilising the Linux ftrace subsystem
   * ptrace logger (deprecated) - Generate I/O trace logs by ptrace()ing processes and trapping system calls
   * Fork Bomb detector (not implemented/in development)
   * I/O Trace Prefetcher (in development) - Prefetch files using a previously recorded I/O trace log
