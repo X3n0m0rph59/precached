@@ -257,17 +257,15 @@ pub fn ellipsize_filename(filename: &str) -> String {
 
 /// Recursively enumerate files and directories in `dir`
 pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&Path)) -> io::Result<()> {
-    if dir.is_dir() {
-        for entry in fs::read_dir(dir)? {
-            let entry = entry?;
-            let path = entry.path();
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
 
-            if path.is_dir() {
-                visit_dirs(&path, cb)?;
-            } else {
-                // trace!("{:#?}", &entry);
-                cb(&entry.path());
-            }
+        if path.is_dir() {
+            visit_dirs(&path, cb)?;
+        } else {
+            // trace!("{:#?}", &entry);
+            cb(&entry.path());
         }
     }
 
@@ -283,7 +281,7 @@ where
         let path = Path::new(e);
         if path.is_file() {
             cb(path);
-        } else {
+        } else if path.is_dir() {
             for entry in fs::read_dir(path)? {
                 let entry = entry?;
                 let path = entry.path();
@@ -295,6 +293,8 @@ where
                     cb(&entry.path());
                 }
             }
+        } else {
+            error!("Error while enumerating {:?}", e);
         }
     }
 

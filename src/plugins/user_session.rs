@@ -129,7 +129,7 @@ impl UserSession {
                 Ok(uid) => {
                     logged_uids.push(uid);
 
-                    // fire events for new loggins
+                    // fire events for new logins
                     if !self.logged_in_users.contains_key(&uid) {
                         self.user_logged_in(uid, globals, manager);
                         new_login = true;
