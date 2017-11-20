@@ -49,8 +49,10 @@ zstd = "0.4.16"
 dbus = "0.5.4"
 notify-rust = "3"
 term = "0.4.6"
+pbr = "1.0.0"
 prettytable-rs = "^0.6"
 daemonize = "0.2.3"
+inotify = "0.5.0"
 clippy = { version = "*", optional = true }
 
 # [replace]

@@ -18,10 +18,13 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate inotify;
+
 use globals::*;
 use procmon;
 use std::path::PathBuf;
 use std::time::Instant;
+use self::inotify::Event;
 
 /// Daemon internal events
 #[derive(Debug, Clone)]
@@ -37,8 +40,14 @@ pub enum EventType {
     PrimeCaches,
     /// advice to plugins to do janitorial tasks now
     DoHousekeeping,
+    /// low level event sent by the inotify subsystem when a registered watch fires
+    InotifyEvent(inotify::EventMask, PathBuf),
     /// advice to plugins that an I/O trace log needs to be optimized asap
     OptimizeIOTraceLog(PathBuf),
+    /// high level event that gets sent after an I/O trace log file has been created
+    IoTraceLogCreated(PathBuf),
+    /// high level event that gets sent after an I/O trace log file has been removed
+    IoTraceLogRemoved(PathBuf),
     /// advice to plugins to gather statistics and performance metrics
     GatherStatsAndMetrics,
     /// occurs *after* the daemon has successfuly reloaded its configuration

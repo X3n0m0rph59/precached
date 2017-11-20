@@ -85,9 +85,11 @@ easily extend its functionality in the future.
 
 #### Available Plugins and Hooks
 
-The following plugins are available for precached (as of 2017-11-10)
+The following plugins are available for precached (as of 2017-11-19)
 
+  * Inotify Multiplexer (experimental) - Translate low level inotify events to daemon internal messages
   * I/O Trace Log Manager (stable) - Manage I/O trace logs, optimizes new trace logs, and removes invalid ones
+  * I/O Trace Log Cache (experimental) - mlock() .iotrace files into memory
   * Markov Log Manager (not implemented/in development)
   * Hot Applications (stable) - Offline prefetching of the most often used applications, "locks the desktop into memory"
   * Metrics (stable) - Generate system metrics and deliver events based on them
@@ -95,13 +97,15 @@ The following plugins are available for precached (as of 2017-11-10)
   * Notifications (stable) - Desktop notifications using D-BUS
   * Custom Rules (not implemented/in development)
   * System Agent (not implemented/in development)
+  * User Session (experimental) - Cache metadata of files in logged user's home directories
+  * I/O Trace Log Cache (experimental) - mlock() .iotrace files into memory
   * VFS Stat(x) Cache (stable) - Prime the kernel’s dentry caches by walking directories and stat()ing files
   * Static Blacklist (stable) - Blacklist files that shall not be accessed by the precached daemon
   * Static Whitelist (stable) - Force caching of files or applications into memory
   * ftrace Messages (stable) - Insert custom messages into the Linux ftrace subsystems event stream
   * Fork Bomb Mitigation (not implemented/in development)
 
-The following hooks are available for precached (as of 2017-11-10)
+The following hooks are available for precached (as of 2017-11-19)
 
   * ftrace logger (stable) - Generate I/O trace logs by utilising the Linux ftrace subsystem
   * ptrace logger (deprecated) - Generate I/O trace logs by ptrace()ing processes and trapping system calls

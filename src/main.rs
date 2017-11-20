@@ -39,11 +39,11 @@ extern crate log_panics;
 #[macro_use]
 extern crate daemonize;
 #[macro_use]
+extern crate enum_primitive;
+#[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate enum_primitive;
 #[macro_use]
 extern crate serde_derive;
 extern crate syslog;
@@ -77,6 +77,7 @@ use procmon::ProcMon;
 mod events;
 use events::EventType;
 
+mod inotify;
 mod dbus;
 mod process;
 mod config;
@@ -421,9 +422,18 @@ fn main() {
         }
     };
 
-    // Register hooks and plugins
-    hooks::register_default_hooks(&mut globals, &mut manager);
-    plugins::register_default_plugins(&mut globals, &mut manager);
+    // set-up inotify watches subsystem
+    let mut inotify_watches = inotify::InotifyWatches::new();
+    match inotify_watches.setup_default_inotify_watches(&mut globals, &manager) {
+        Err(s) => {
+            error!("Could not set-up inotify subsystem: {}", s);
+            return;
+        }
+
+        _ => { 
+            info!("Successfuly initialized inotify"); 
+        }
+    }
 
     // set-up dbus interface
     let mut dbus_interface = dbus::create_dbus_interface(&mut globals, &mut manager);
@@ -432,8 +442,15 @@ fn main() {
             error!("Could not create dbus interface: {}", s);
             return;
         }
-        _ => { /* Do nothing */ }
+
+        _ => { 
+            info!("Successfuly initialized dbus interface"); 
+        }
     }
+
+    // Register hooks and plugins
+    hooks::register_default_hooks(&mut globals, &mut manager);
+    plugins::register_default_plugins(&mut globals, &mut manager);
 
     // Log disabled plugins and hooks
     print_disabled_plugins_notice(&mut globals);
@@ -523,12 +540,12 @@ fn main() {
             events::queue_internal_event(EventType::PrimeCaches, &mut globals);
         }
 
-        // call the main loop hook of the dbus interface
+        // call the main loop hooks of the inotify subsystem and the dbus interface
+        inotify_watches.main_loop_hook(&mut globals, &manager);
         dbus_interface.main_loop_hook(&mut globals, &manager);
-
-        // NOTE: This is currently unused
+        
         // Allow plugins to integrate into the main loop
-        // plugins::call_main_loop_hook(&mut globals, &mut manager);
+        plugins::call_main_loop_hook(&mut globals, &mut manager);
 
         // Queue a "Ping" event every n seconds
         if last.elapsed() > Duration::from_millis(constants::PING_INTERVAL_MILLIS) {
@@ -590,6 +607,9 @@ fn main() {
     // Unregister plugins and hooks
     plugins::unregister_plugins(&mut globals, &mut manager);
     hooks::unregister_hooks(&mut globals, &mut manager);
+
+    // unregister other subsystems
+    inotify_watches.teardown_default_inotify_watches(&mut globals, &mut manager);
 
     info!("Exiting now");
 }

@@ -18,17 +18,17 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate enum_primitive;
 extern crate byteorder;
+extern crate enum_primitive;
 extern crate time;
 
+use self::byteorder::{BigEndian, LittleEndian, ReadBytesExt, WriteBytesExt};
+use self::enum_primitive::FromPrimitive;
 use self::time::Timespec;
-use std::path::{Path, PathBuf};
-use std::result::Result;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
-use self::byteorder::{ReadBytesExt, WriteBytesExt, BigEndian, LittleEndian};
-use self::enum_primitive::FromPrimitive;
+use std::path::{Path, PathBuf};
+use std::result::Result;
 
 enum_from_primitive! {
     #[derive(Debug, Clone, Copy, PartialEq)]
@@ -41,7 +41,7 @@ enum_from_primitive! {
         InitProcess,
         LoginProcess,
         UserProcess,
-        DeadProcess,        
+        DeadProcess,
     }
 }
 
@@ -60,33 +60,37 @@ pub fn get_utmpx() -> Vec<UtmpxRecord> {
     let path = Path::new("/run/utmp");
     let mut file = File::open(&path).unwrap();
     let size = file.metadata().unwrap().len();
-    
+
     let mut utmpx = Vec::new();
 
     for _ in 0..size / 382 {
         let result = match file.read_i16::<LittleEndian>() {
-            Ok(v)   => v,
-            Err(_e) => break
+            Ok(v) => v,
+            Err(_e) => break,
         };
         let ut_type = FromPrimitive::from_i16(result).expect("Could not read ut_type");
 
         let _ = file.seek(SeekFrom::Current(2));
 
-        let ut_pid = file.read_i32::<LittleEndian>().expect("Could not read ut_pid");
+        let ut_pid = file.read_i32::<LittleEndian>()
+            .expect("Could not read ut_pid");
 
         // let _ = file.seek(SeekFrom::Current(2));
 
         let mut ut_line: [u8; 32] = [0u8; 32];
-        file.read_exact(&mut ut_line).expect("Could not read ut_line");
+        file.read_exact(&mut ut_line)
+            .expect("Could not read ut_line");
 
         let mut ut_id: [u8; 4] = [0u8; 4];
         file.read_exact(&mut ut_id).expect("Could not read ut_id");
 
         let mut ut_user: [u8; 32] = [0u8; 32];
-        file.read_exact(&mut ut_user).expect("Could not read ut_user");
+        file.read_exact(&mut ut_user)
+            .expect("Could not read ut_user");
 
         let mut ut_host: [u8; 256] = [0u8; 256];
-        file.read_exact(&mut ut_host).expect("Could not read ut_host");
+        file.read_exact(&mut ut_host)
+            .expect("Could not read ut_host");
 
         // 330 bytes until here
 
@@ -99,10 +103,10 @@ pub fn get_utmpx() -> Vec<UtmpxRecord> {
             ut_id: ut_id.as_ref().into(),
             ut_user: String::from_utf8_lossy(ut_user.as_ref()).into_owned(),
             ut_host: String::from_utf8_lossy(ut_host.as_ref()).into_owned(),
-        };                
+        };
 
         utmpx.push(record);
-    };
+    }
 
     utmpx
 }

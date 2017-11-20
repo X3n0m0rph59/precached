@@ -467,7 +467,10 @@ impl IOtracePrefetcher {
 
                         match process.get_exe() {
                             Err(e) => {
-                                info!("Could not get process' executable name: {}, skipped prefetching!", e);
+                                info!(
+                                    "Could not get process' executable name: {}, skipped prefetching!",
+                                    e
+                                );
                             }
 
                             Ok(exe_name) => {

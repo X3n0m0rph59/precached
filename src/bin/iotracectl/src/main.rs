@@ -36,14 +36,17 @@ extern crate serde_derive;
 extern crate term;
 extern crate toml;
 extern crate zstd;
+extern crate pbr;
 
 use clap::{App, AppSettings, Arg, SubCommand};
+use pbr::ProgressBar;
 use prettytable::Table;
 use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::row::Row;
 use std::collections::HashSet;
 use std::path::Path;
+use std::fs::read_dir;
 use term::Attr;
 use term::color::*;
 
@@ -51,6 +54,9 @@ mod util;
 mod process;
 mod iotrace;
 mod constants;
+
+/// Unicode characters used for drawing the progress bar
+const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
 
 /// Runtime configuration for iotracectl
 #[derive(Clone)]
@@ -528,6 +534,9 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
     }
 }
 
+fn print_io_trace_msg(message: &str, index: usize, config: &Config, table: &mut Table) {
+}
+
 /// Top/Htop like display of the I/O tracing subsystem
 fn io_trace_top(_config: &Config, _daemon_config: util::ConfigFile) {
     error!("Not implemented!");
@@ -610,6 +619,18 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let mut matching = 0;
     let mut errors = 0;
 
+    // only show progress bar on tabular output format
+    let matches = config.matches.subcommand_matches("list").unwrap();
+    let display_progress = !matches.is_present("full") && !matches.is_present("short") && !matches.is_present("terse");
+
+    let count = read_dir(&traces_path).unwrap().count();
+    let mut pb = ProgressBar::new(count as u64);
+    
+    if display_progress {
+        pb.format(PROGRESS_BAR_INDICATORS);
+        pb.message("Examining I/O trace log files: ");
+    }
+
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
 
@@ -633,8 +654,9 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
         let filename = String::from(path.to_string_lossy());
         match iotrace::IOTraceLog::from_file(&path) {
-            Err(e) => {
-                error!("Skipped invalid I/O trace file, file not readable: {}", e);
+            Err(e) => {                
+                print_io_trace_msg(&format!("Skipped invalid I/O trace file, file not readable: {}", e), 
+                                   counter + 1, config, &mut table);
                 errors += 1;
             }
             Ok(io_trace) => if filter_matches(&String::from("list"), &filename, &io_trace, &config) {
@@ -643,10 +665,18 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             },
         }
 
+        if display_progress {
+            pb.inc();
+        }
+
         counter += 1;
     }) {
         Err(e) => error!("Error during enumeration of I/O trace files: {}", e),
         _ => { /* Do nothing */ }
+    }
+
+    if display_progress {
+        pb.finish_print("done");
     }
 
     if counter < 1 {
@@ -996,6 +1026,11 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let mut matching = 0;
     let mut errors = 0;
 
+    let count = read_dir(&traces_path).unwrap().count();
+    let mut pb = ProgressBar::new(count as u64);
+    pb.format(PROGRESS_BAR_INDICATORS);
+    pb.message("Optimizing I/O trace log files: ");
+
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
 
@@ -1063,11 +1098,14 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             }
         }
 
+        pb.inc();
         counter += 1;
     }) {
         Err(e) => error!("Error during enumeration of I/O trace files: {}", e),
         _ => { /* Do nothing */ }
     }
+
+    pb.finish_print("done");
 
     if table.len() > 1 {
         table.printstd();

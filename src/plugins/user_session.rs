@@ -29,10 +29,10 @@ use events;
 use events::EventType;
 use globals::*;
 use manager::*;
+use plugins::metrics::Metrics;
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
-use plugins::metrics::Metrics;
 use plugins::static_blacklist::StaticBlacklist;
 use std::any::Any;
 use std::path::{Path, PathBuf};
@@ -89,7 +89,7 @@ impl UserSession {
 
     pub fn user_logged_out(&mut self, uid: Uid, _globals: &mut Globals, _manager: &Manager) {
         let user_name = Self::get_user_name_from_id(uid);
-                
+
         match user_name {
             Err(_e) => {
                 info!("Spurious logout for user with id {}!", uid);
@@ -106,12 +106,12 @@ impl UserSession {
     pub fn poll_logged_in_users(&mut self, globals: &mut Globals, manager: &Manager) -> bool {
         let mut new_login = false;
 
-        let utmps = util::get_utmpx();        
+        let utmps = util::get_utmpx();
         let mut logged_users = vec![];
 
         // Enumerate logged users
         for e in utmps {
-            if e.ut_type == util::UtmpxRecordType::UserProcess {                                
+            if e.ut_type == util::UtmpxRecordType::UserProcess {
                 let user_name = String::from(e.ut_user.trim_right_matches('\0')); // cut off the terminating '\0' characters
 
                 logged_users.push(user_name);
@@ -140,7 +140,7 @@ impl UserSession {
 
         // fire events for logouts
         for uid in self.logged_in_users.clone().keys() {
-            if !logged_uids.contains(uid) {                
+            if !logged_uids.contains(uid) {
                 self.user_logged_out(*uid, globals, manager);
             }
         }
@@ -153,9 +153,10 @@ impl UserSession {
     pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started reading of statx() metadata for logged in users /home directories...");
 
-        let mut tracked_entries: Vec<PathBuf> = self.logged_in_users.values()
-                                                        .map(|v| PathBuf::from(v))
-                                                        .collect();
+        let mut tracked_entries: Vec<PathBuf> = self.logged_in_users
+            .values()
+            .map(|v| PathBuf::from(v))
+            .collect();
         // last logged in user should come first
         tracked_entries.reverse();
         info!("{:?}", tracked_entries);
@@ -205,7 +206,7 @@ impl UserSession {
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
             None => {
                 warn!("Plugin not loaded: 'static_blacklist', skipped");
-            }            
+            }
             Some(p) => {
                 let p = p.read().unwrap();
                 let static_blacklist = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
@@ -245,21 +246,21 @@ impl UserSession {
     fn get_user_name_from_id(uid: Uid) -> Result<String, ()> {
         match get_user_by_uid(uid) {
             Some(u) => Ok(String::from(u.name())),
-            None => Err(())
+            None => Err(()),
         }
     }
 
     fn get_user_id_from_name(name: &str) -> Result<Uid, ()> {
-        match get_user_by_name(name) {            
+        match get_user_by_name(name) {
             Some(u) => Ok(u.uid()),
-            None => Err(())
+            None => Err(()),
         }
     }
 
     fn get_user_home_dir_from_id(uid: Uid) -> Result<PathBuf, ()> {
         match get_user_by_uid(uid) {
             Some(u) => Ok(PathBuf::from(u.home_dir())),
-            None => Err(())
+            None => Err(()),
         }
     }
 }
@@ -295,12 +296,12 @@ impl Plugin for UserSession {
                 //       Assume that the first user will log in subsequently
                 self.user_logged_in(1000, globals, manager);
             }
-            
+
             events::EventType::PrimeCaches => if self.memory_freed {
                 self.prime_statx_cache(globals, manager);
 
                 self.memory_freed = false;
-            }
+            },
 
             events::EventType::MemoryFreed => {
                 self.memory_freed = true;
@@ -309,7 +310,7 @@ impl Plugin for UserSession {
             events::EventType::Ping => {
                 let new_logins = self.poll_logged_in_users(globals, manager);
 
-                if new_logins {                
+                if new_logins {
                     self.prime_statx_cache(globals, manager);
                 }
             }
