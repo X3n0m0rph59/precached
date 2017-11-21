@@ -44,7 +44,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{name}/
-%{__mkdir_p} %{buildroot}%{_datarootdir}/bash-completion/completion/
+%{__mkdir_p} %{buildroot}%{_datarootdir}/bash-completion/completions/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/zsh/site-functions/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{name}/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
