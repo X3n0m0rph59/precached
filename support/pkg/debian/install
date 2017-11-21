@@ -3,6 +3,10 @@ support/systemd/precached.service lib/systemd/system
 support/systemd/precached-prime-caches.service lib/systemd/system
 support/systemd/precached-prime-caches.timer lib/systemd/system
 support/dbus/org.precached.precached1.conf etc/dbus-1/system.d
+support/shell/completions/iotracectl.bash-completion usr/share/bash-completion/completions/iotracectl
+support/shell/completions/precachedctl.bash-completion usr/share/bash-completion/completions/precachedctl
+support/shell/completions/iotracectl.zsh-completion usr/share/zsh/site-functions/_iotracectl
+support/shell/completions/precachedctl.zsh-completion usr/share/zsh/site-functions/_precachedctl
 target/release/precached usr/sbin
 target/release/precachedctl usr/sbin
 target/release/iotracectl usr/sbin
