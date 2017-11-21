@@ -1,0 +1,418 @@
+precached Copyright (C) 2017 the precached team
+This program comes with ABSOLUTELY NO WARRANTY;
+This is free software, and you are welcome to redistribute it
+under certain conditions.
+
+_iotracectl() {
+    local i cur prev opts cmds
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    cmd=""
+    opts=""
+
+    for i in ${COMP_WORDS[@]}
+    do
+        case "${i}" in
+            iotracectl)
+                cmd="iotracectl"
+                ;;
+            
+            analyze)
+                cmd+="__analyze"
+                ;;
+            clear)
+                cmd+="__clear"
+                ;;
+            completions)
+                cmd+="__completions"
+                ;;
+            delete)
+                cmd+="__delete"
+                ;;
+            dump)
+                cmd+="__dump"
+                ;;
+            help)
+                cmd+="__help"
+                ;;
+            info)
+                cmd+="__info"
+                ;;
+            list)
+                cmd+="__list"
+                ;;
+            optimize)
+                cmd+="__optimize"
+                ;;
+            remove)
+                cmd+="__remove"
+                ;;
+            show)
+                cmd+="__show"
+                ;;
+            status)
+                cmd+="__status"
+                ;;
+            test__tracing)
+                cmd+="__test__tracing"
+                ;;
+            top)
+                cmd+="__top"
+                ;;
+            *)
+                ;;
+        esac
+    done
+
+    case "${cmd}" in
+        iotracectl)
+            opts=" -a -v -h -V -c  --ascii --help --version --config   status top list info dump analyze optimize remove clear help test-tracing completions  show  delete"
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --config)
+                    COMPREPLY=("<file>")
+                    return 0
+                    ;;
+                    -c)
+                    COMPREPLY=("<file>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        
+        iotracectl__analyze)
+            opts=" -t -h -V -p  --tabular --terse --help --version --hash  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__clear)
+            opts=" -n -h -V  --dry-run --help --version  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__completions)
+            opts=" -h -V  --help --version  <SHELL> "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__delete)
+            opts=" -n -h -V -p  --dry-run --help --version --hash  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__dump)
+            opts=" -h -V -p  --help --version --hash  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__help)
+            opts=" -h -V  --help --version  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__info)
+            opts=" -f -s -h -V -p -e  --full --short --help --version --hash --executable  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__list)
+            opts=" -f -s -t -h -V -p -e  --tabular --full --short --terse --help --version --hash --executable  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__optimize)
+            opts=" -h -V -p -e  --help --version --hash --executable  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__remove)
+            opts=" -n -h -V -p  --dry-run --help --version --hash  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__show)
+            opts=" -f -s -h -V -p -e  --full --short --help --version --hash --executable  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__status)
+            opts=" -h -V  --tabular --help --version  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__test__tracing)
+            opts=" -h -V  --help --version  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__top)
+            opts=" -h -V -p -e  --help --version --hash --executable  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+    esac
+}
+
+complete -F _iotracectl -o bashdefault -o default iotracectl

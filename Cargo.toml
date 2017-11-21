@@ -1,6 +1,7 @@
 [package]
 name = "precached"
 version = "0.1.0"
+build = "build.rs"
 authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
 description = "A Linux process monitor and pre-caching daemon"
 repository = "https://github.com/X3n0m0rph59/precached"
@@ -80,11 +81,14 @@ panic = 'unwind'
 [[bin]]
 name = "precached"
 path = "src/main.rs"
+# build = "build.rs"
 
 [[bin]]
 name = "precachedctl"
 path = "src/bin/precachedctl/src/main.rs"
+# build = "src/bin/precachedctl/build.rs"
 
 [[bin]]
 name = "iotracectl"
 path = "src/bin/iotracectl/src/main.rs"
+# build = "src/bin/iotracectl/build.rs"

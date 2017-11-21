@@ -1,0 +1,332 @@
+precached Copyright (C) 2017 the precached team
+This program comes with ABSOLUTELY NO WARRANTY;
+This is free software, and you are welcome to redistribute it
+under certain conditions.
+
+#compdef iotracectl
+
+_iotracectl() {
+    typeset -A opt_args
+    local ret=1
+
+    local context curcontext="$curcontext" state line
+    _arguments -s -S -C \
+'-c+[The precached config file to use]' \
+'--config+[The precached config file to use]' \
+'-a[Produce ASCII output instead of using Unicode for line drawing]' \
+'--ascii[Produce ASCII output instead of using Unicode for line drawing]' \
+'*-v[Sets the level of output verbosity]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_iotracectl_commands" \
+"*:: :->iotracectl" \
+&& ret=0
+    case $state in
+    (iotracectl)
+        curcontext="${curcontext%:*:*}:iotracectl-command-$words[1]:"
+        case $line[1] in
+            (status)
+_arguments -s -S -C \
+'--tabular[Use '\''tabular'\'' display format]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(top)
+_arguments -s -S -C \
+'-p+[Filter for the hash value of the I/O trace]' \
+'--hash+[Filter for the hash value of the I/O trace]' \
+'-e+[Filter for executable name of the I/O trace]' \
+'--executable+[Filter for executable name of the I/O trace]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(list)
+_arguments -s -S -C \
+'-p+[Filter for the hash value of the I/O trace]' \
+'--hash+[Filter for the hash value of the I/O trace]' \
+'-e+[Filter for executable name of the I/O trace]' \
+'--executable+[Filter for executable name of the I/O trace]' \
+'(-f --full -s --short -t --terse)--tabular[Use '\''tabular'\'' display format]' \
+'(--tabular -s --short -t --terse)-f[Use '\''full'\'' display format (list all fields)]' \
+'(--tabular -s --short -t --terse)--full[Use '\''full'\'' display format (list all fields)]' \
+'(--tabular -f --full -t --terse)-s[Use '\''short'\'' display format (list important fields only)]' \
+'(--tabular -f --full -t --terse)--short[Use '\''short'\'' display format (list important fields only)]' \
+'(--tabular -f --full -s --short)-t[Use '\''terse'\'' display format (list executables only)]' \
+'(--tabular -f --full -s --short)--terse[Use '\''terse'\'' display format (list executables only)]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(show)
+_arguments -s -S -C \
+'-p+[Filter for the hash value of the I/O trace]' \
+'--hash+[Filter for the hash value of the I/O trace]' \
+'-e+[Filter for executable name of the I/O trace]' \
+'--executable+[Filter for executable name of the I/O trace]' \
+'(-s --short)-f[Use '\''full'\'' display format]' \
+'(-s --short)--full[Use '\''full'\'' display format]' \
+'(-f --full)-s[Use '\''short'\'' display format]' \
+'(-f --full)--short[Use '\''short'\'' display format]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(info)
+_arguments -s -S -C \
+'-p+[Filter for the hash value of the I/O trace]' \
+'--hash+[Filter for the hash value of the I/O trace]' \
+'-e+[Filter for executable name of the I/O trace]' \
+'--executable+[Filter for executable name of the I/O trace]' \
+'(-s --short)-f[Use '\''full'\'' display format]' \
+'(-s --short)--full[Use '\''full'\'' display format]' \
+'(-f --full)-s[Use '\''short'\'' display format]' \
+'(-f --full)--short[Use '\''short'\'' display format]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(dump)
+_arguments -s -S -C \
+'-p+[The hash value of the I/O trace to dump]' \
+'--hash+[The hash value of the I/O trace to dump]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(analyze)
+_arguments -s -S -C \
+'-p+[The hash value of the I/O trace to analyze]' \
+'--hash+[The hash value of the I/O trace to analyze]' \
+'(-t --terse)--tabular[Use '\''tabular'\'' display format]' \
+'-t[Use '\''terse'\'' display format (list files only)]' \
+'--terse[Use '\''terse'\'' display format (list files only)]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(optimize)
+_arguments -s -S -C \
+'-p+[Filter for the hash value of the I/O trace]' \
+'--hash+[Filter for the hash value of the I/O trace]' \
+'-e+[Filter for executable name of the I/O trace]' \
+'--executable+[Filter for executable name of the I/O trace]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(delete)
+_arguments -s -S -C \
+'-p+[The hash value of the I/O trace to remove]' \
+'--hash+[The hash value of the I/O trace to remove]' \
+'-n[Do not actually remove anything, just pretend to]' \
+'--dry-run[Do not actually remove anything, just pretend to]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(remove)
+_arguments -s -S -C \
+'-p+[The hash value of the I/O trace to remove]' \
+'--hash+[The hash value of the I/O trace to remove]' \
+'-n[Do not actually remove anything, just pretend to]' \
+'--dry-run[Do not actually remove anything, just pretend to]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(clear)
+_arguments -s -S -C \
+'-n[Do not actually remove anything, just pretend to]' \
+'--dry-run[Do not actually remove anything, just pretend to]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(help)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(test-tracing)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(completions)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_iotracectl__completions_commands" \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+}
+
+(( $+functions[_iotracectl_commands] )) ||
+_iotracectl_commands() {
+    local commands; commands=(
+        "status:Show the current status of the precached I/O tracing subsystem" \
+"top:Top/htop like display of in-flight I/O traces" \
+"list:List all available I/O traces" \
+"info:Print metadata information of specific I/O traces" \
+"dump:Dump I/O trace log entries (file access operations)" \
+"analyze:Analyze I/O trace logs (check for missing files)" \
+"optimize:Optimize I/O trace logs (optimize access patterns)" \
+"remove:Remove I/O trace" \
+"clear:Completely clear all I/O traces and reset the precached I/O tracing subsystem" \
+"help:Display this short help text" \
+"test-tracing:Test the I/O tracing subsystem of precached" \
+"completions:Generates completion scripts for your shell" \
+    )
+    _describe -t commands 'iotracectl commands' commands "$@"
+}
+(( $+functions[_iotracectl__analyze_commands] )) ||
+_iotracectl__analyze_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl analyze commands' commands "$@"
+}
+(( $+functions[_iotracectl__clear_commands] )) ||
+_iotracectl__clear_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl clear commands' commands "$@"
+}
+(( $+functions[_iotracectl__completions_commands] )) ||
+_iotracectl__completions_commands() {
+    local commands; commands=(
+        "SHELL:The shell to generate the script for" \
+    )
+    _describe -t commands 'iotracectl completions commands' commands "$@"
+}
+(( $+functions[_delete_commands] )) ||
+_delete_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'delete commands' commands "$@"
+}
+(( $+functions[_iotracectl__delete_commands] )) ||
+_iotracectl__delete_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl delete commands' commands "$@"
+}
+(( $+functions[_iotracectl__dump_commands] )) ||
+_iotracectl__dump_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl dump commands' commands "$@"
+}
+(( $+functions[_iotracectl__help_commands] )) ||
+_iotracectl__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl help commands' commands "$@"
+}
+(( $+functions[_iotracectl__info_commands] )) ||
+_iotracectl__info_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl info commands' commands "$@"
+}
+(( $+functions[_iotracectl__list_commands] )) ||
+_iotracectl__list_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl list commands' commands "$@"
+}
+(( $+functions[_iotracectl__optimize_commands] )) ||
+_iotracectl__optimize_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl optimize commands' commands "$@"
+}
+(( $+functions[_iotracectl__remove_commands] )) ||
+_iotracectl__remove_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl remove commands' commands "$@"
+}
+(( $+functions[_iotracectl__show_commands] )) ||
+_iotracectl__show_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl show commands' commands "$@"
+}
+(( $+functions[_show_commands] )) ||
+_show_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'show commands' commands "$@"
+}
+(( $+functions[_iotracectl__status_commands] )) ||
+_iotracectl__status_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl status commands' commands "$@"
+}
+(( $+functions[_iotracectl__test-tracing_commands] )) ||
+_iotracectl__test-tracing_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl test-tracing commands' commands "$@"
+}
+(( $+functions[_iotracectl__top_commands] )) ||
+_iotracectl__top_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl top commands' commands "$@"
+}
+
+_iotracectl "$@"

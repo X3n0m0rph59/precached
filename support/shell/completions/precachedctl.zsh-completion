@@ -1,0 +1,394 @@
+precached Copyright (C) 2017 the precached team
+This program comes with ABSOLUTELY NO WARRANTY;
+This is free software, and you are welcome to redistribute it
+under certain conditions.
+
+#compdef iotracectl
+
+_iotracectl() {
+    typeset -A opt_args
+    local ret=1
+
+    local context curcontext="$curcontext" state line
+    _arguments -s -S -C \
+'-c+[The precached config file to use]' \
+'--config+[The precached config file to use]' \
+'-a[Produce ASCII output instead of using Unicode for line drawing]' \
+'--ascii[Produce ASCII output instead of using Unicode for line drawing]' \
+'*-v[Sets the level of output verbosity]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_iotracectl_commands" \
+"*:: :->precachedctl" \
+&& ret=0
+    case $state in
+    (precachedctl)
+        curcontext="${curcontext%:*:*}:iotracectl-command-$words[1]:"
+        case $line[1] in
+            (status)
+_arguments -s -S -C \
+'-l[Use long display format]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(reload-config)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(reload)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(shutdown)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(stop)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(do-housekeeping)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(housekeeping)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(prime-caches-now)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(prime-caches)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(plugins)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_iotracectl__plugins_commands" \
+"*:: :->plugins" \
+&& ret=0
+case $state in
+    (plugins)
+        curcontext="${curcontext%:*:*}:iotracectl-plugins-command-$words[1]:"
+        case $line[1] in
+            (hot-applications)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_iotracectl__plugins__hot-applications_commands" \
+"*:: :->hot-applications" \
+&& ret=0
+case $state in
+    (hot-applications)
+        curcontext="${curcontext%:*:*}:iotracectl-plugins-hot-applications-command-$words[1]:"
+        case $line[1] in
+            (top)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(show)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(list)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(optimize)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(help)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(help)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(help)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(completions)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_iotracectl__completions_commands" \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+}
+
+(( $+functions[_iotracectl_commands] )) ||
+_iotracectl_commands() {
+    local commands; commands=(
+        "status:Show the current status of the precached daemon" \
+"reload:Reload external configuration of precached" \
+"stop:Instruct precached to shutdown and quit" \
+"housekeeping:Instruct precached to commence housekeeping tasks" \
+"prime-caches:Instruct precached to commence priming all caches now" \
+"plugins:Manage precached daemon plugins" \
+"help:Display this short help text" \
+"completions:Generates completion scripts for your shell" \
+    )
+    _describe -t commands 'iotracectl commands' commands "$@"
+}
+(( $+functions[_iotracectl__completions_commands] )) ||
+_iotracectl__completions_commands() {
+    local commands; commands=(
+        "SHELL:The shell to generate the script for" \
+    )
+    _describe -t commands 'iotracectl completions commands' commands "$@"
+}
+(( $+functions[_do-housekeeping_commands] )) ||
+_do-housekeeping_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'do-housekeeping commands' commands "$@"
+}
+(( $+functions[_iotracectl__do-housekeeping_commands] )) ||
+_iotracectl__do-housekeeping_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl do-housekeeping commands' commands "$@"
+}
+(( $+functions[_iotracectl__help_commands] )) ||
+_iotracectl__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl help commands' commands "$@"
+}
+(( $+functions[_iotracectl__plugins__help_commands] )) ||
+_iotracectl__plugins__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl plugins help commands' commands "$@"
+}
+(( $+functions[_iotracectl__plugins__hot-applications__help_commands] )) ||
+_iotracectl__plugins__hot-applications__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl plugins hot-applications help commands' commands "$@"
+}
+(( $+functions[_iotracectl__plugins__hot-applications_commands] )) ||
+_iotracectl__plugins__hot-applications_commands() {
+    local commands; commands=(
+        "top:Show the top most entries in the histogram of hot applications" \
+"list:Show all entries in the histogram of hot applications" \
+"optimize:Optimize the histogram of hot applications" \
+"help:Prints this message or the help of the given subcommand(s)" \
+    )
+    _describe -t commands 'iotracectl plugins hot-applications commands' commands "$@"
+}
+(( $+functions[_iotracectl__housekeeping_commands] )) ||
+_iotracectl__housekeeping_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl housekeeping commands' commands "$@"
+}
+(( $+functions[_iotracectl__plugins__hot-applications__list_commands] )) ||
+_iotracectl__plugins__hot-applications__list_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl plugins hot-applications list commands' commands "$@"
+}
+(( $+functions[_iotracectl__plugins__hot-applications__optimize_commands] )) ||
+_iotracectl__plugins__hot-applications__optimize_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl plugins hot-applications optimize commands' commands "$@"
+}
+(( $+functions[_iotracectl__plugins_commands] )) ||
+_iotracectl__plugins_commands() {
+    local commands; commands=(
+        "hot-applications:Manage plugin: Hot Applications" \
+"help:Prints this message or the help of the given subcommand(s)" \
+    )
+    _describe -t commands 'iotracectl plugins commands' commands "$@"
+}
+(( $+functions[_iotracectl__prime-caches_commands] )) ||
+_iotracectl__prime-caches_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl prime-caches commands' commands "$@"
+}
+(( $+functions[_iotracectl__prime-caches-now_commands] )) ||
+_iotracectl__prime-caches-now_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl prime-caches-now commands' commands "$@"
+}
+(( $+functions[_prime-caches-now_commands] )) ||
+_prime-caches-now_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'prime-caches-now commands' commands "$@"
+}
+(( $+functions[_iotracectl__reload_commands] )) ||
+_iotracectl__reload_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl reload commands' commands "$@"
+}
+(( $+functions[_iotracectl__reload-config_commands] )) ||
+_iotracectl__reload-config_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl reload-config commands' commands "$@"
+}
+(( $+functions[_reload-config_commands] )) ||
+_reload-config_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'reload-config commands' commands "$@"
+}
+(( $+functions[_iotracectl__plugins__hot-applications__show_commands] )) ||
+_iotracectl__plugins__hot-applications__show_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl plugins hot-applications show commands' commands "$@"
+}
+(( $+functions[_iotracectl__plugins__show_commands] )) ||
+_iotracectl__plugins__show_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl plugins show commands' commands "$@"
+}
+(( $+functions[_iotracectl__shutdown_commands] )) ||
+_iotracectl__shutdown_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl shutdown commands' commands "$@"
+}
+(( $+functions[_shutdown_commands] )) ||
+_shutdown_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'shutdown commands' commands "$@"
+}
+(( $+functions[_iotracectl__status_commands] )) ||
+_iotracectl__status_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl status commands' commands "$@"
+}
+(( $+functions[_iotracectl__stop_commands] )) ||
+_iotracectl__stop_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl stop commands' commands "$@"
+}
+(( $+functions[_iotracectl__plugins__hot-applications__top_commands] )) ||
+_iotracectl__plugins__hot-applications__top_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl plugins hot-applications top commands' commands "$@"
+}
+
+_iotracectl "$@"

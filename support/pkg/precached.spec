@@ -44,6 +44,8 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{name}/
+%{__mkdir_p} %{buildroot}%{_datarootdir}/bash-completion/completion/
+%{__mkdir_p} %{buildroot}%{_datarootdir}/zsh/site-functions/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{name}/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
 cp -a %{_builddir}/%{name}-%{version}/support/man/iotracectl.8 %{buildroot}/%{_mandir}/man8/
@@ -56,6 +58,10 @@ cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.tim
 cp -a %{_builddir}/%{name}-%{version}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/
 cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -ra %{_builddir}/%{name}-%{version}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
+cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/iotracectl
+cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedctl
+cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.zsh-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/_iotracectl
+cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.zsh-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/_precachedctl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
@@ -90,6 +96,8 @@ esac
 %doc %{_mandir}/man8/precachedctl.8.gz
 %doc %{_mandir}/man8/precached.8.gz
 %dir %{_docdir}/%{name}/examples/
+%dir %{_datarootdir}/bash-completion/completions/
+%dir %{_datarootdir}/zsh/site-functions/
 # %docdir %{_docdir}/%{name}/examples/
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sbindir}/precached
@@ -103,6 +111,10 @@ esac
 %{_sharedstatedir}/%{name}/
 %{_sharedstatedir}/%{name}/iotrace/
 %{_docdir}/%{name}/examples/
+%{_datarootdir}/bash-completion/completions/iotracectl
+%{_datarootdir}/bash-completion/completions/precachedctl
+%{_datarootdir}/zsh/site-functions/_iotracectl
+%{_datarootdir}/zsh/site-functions/_precachedctl
 #%{_datadir}/%{name}/
 
 %changelog

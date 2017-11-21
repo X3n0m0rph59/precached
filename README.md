@@ -45,7 +45,7 @@ possibly encounter some serious bugs.
 Precached tries to tackle some of the long standing performance issues
 of the Linux desktop:
 
-* The system has unused (free) memory directly after bootup. Therefor programs
+* The system has unused (free) memory directly after bootup. Therefore programs
   take a longer time to start up, cache cold start is way slower than cache hot
   start
 * A Cron-Job evicts many important pages from the page cache. The system feels
