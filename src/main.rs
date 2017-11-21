@@ -20,7 +20,7 @@
 
 //! # precached - A Linux process monitor and pre-caching daemon
 //!
-//! Precached utilises the Linux netlink connector interface to
+//! Precached utilizes the Linux netlink connector interface to
 //! monitor the system for process events. It can act upon
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system
@@ -430,8 +430,8 @@ fn main() {
             return;
         }
 
-        _ => { 
-            info!("Successfuly initialized inotify"); 
+        _ => {
+            info!("Successfuly initialized inotify");
         }
     }
 
@@ -443,8 +443,8 @@ fn main() {
             return;
         }
 
-        _ => { 
-            info!("Successfuly initialized dbus interface"); 
+        _ => {
+            info!("Successfuly initialized dbus interface");
         }
     }
 
@@ -543,7 +543,7 @@ fn main() {
         // call the main loop hooks of the inotify subsystem and the dbus interface
         inotify_watches.main_loop_hook(&mut globals, &manager);
         dbus_interface.main_loop_hook(&mut globals, &manager);
-        
+
         // Allow plugins to integrate into the main loop
         plugins::call_main_loop_hook(&mut globals, &mut manager);
 

@@ -20,7 +20,7 @@
 
 extern crate inotify;
 
-use self::inotify::{EventMask, WatchMask, Inotify};
+use self::inotify::{EventMask, Inotify, WatchMask};
 use events;
 use events::EventType;
 use globals::*;
@@ -53,8 +53,7 @@ impl InotifyMultiplexer {
         InotifyMultiplexer {}
     }
 
-    pub fn multiplex_inotify_event(&mut self, event: &inotify::EventMask, path: &PathBuf, 
-                                   globals: &mut Globals, _manager: &Manager) {
+    pub fn multiplex_inotify_event(&mut self, event: &inotify::EventMask, path: &PathBuf, globals: &mut Globals, _manager: &Manager) {
         if event.contains(EventMask::CREATE) {
             if event.contains(EventMask::ISDIR) {
                 info!("Directory created: {:?}", path);

@@ -20,13 +20,13 @@
 
 extern crate inotify;
 
-use self::inotify::{EventMask, WatchMask, Inotify};
+use self::inotify::{EventMask, Inotify, WatchMask};
+use constants;
 use events;
 use events::EventType;
 use globals::*;
 use manager::*;
 use std::path::{Path, PathBuf};
-use constants;
 
 pub struct InotifyWatches {
     pub inotify: Option<Inotify>,
@@ -34,35 +34,46 @@ pub struct InotifyWatches {
 
 impl InotifyWatches {
     pub fn new() -> InotifyWatches {
-        InotifyWatches {
-            inotify: None,
-        }
+        InotifyWatches { inotify: None }
     }
-    
+
     pub fn setup_default_inotify_watches(&mut self, globals: &mut Globals, _manager: &Manager) -> Result<(), String> {
         match Inotify::init() {
-            Err(_) => {                
-                Err(String::from("Failed to initialize inotify!"))
-            }
+            Err(_) => Err(String::from("Failed to initialize inotify!")),
 
-            Ok(mut v) => {                
+            Ok(mut v) => {
                 // precached daemon main configuration file
                 let config_file_path = &globals.config.config_filename;
-                match v.add_watch(config_file_path, WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE) {
-                    Err(_) => {                        
-                        return Err(format!("Failed to add inotify watch for: {:?}", config_file_path));
+                match v.add_watch(
+                    config_file_path,
+                    WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE,
+                ) {
+                    Err(_) => {
+                        return Err(format!(
+                            "Failed to add inotify watch for: {:?}",
+                            config_file_path
+                        ));
                     }
 
                     Ok(_) => {
-                        debug!("Successfuly added inotify watch for: {:?}", config_file_path);
+                        debug!(
+                            "Successfuly added inotify watch for: {:?}",
+                            config_file_path
+                        );
                     }
                 }
 
                 // I/O traces directory and contents
                 let iotraces_path = Path::new(constants::STATE_DIR).join(constants::IOTRACE_DIR);
-                match v.add_watch(&iotraces_path, WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE) {
-                    Err(_) => {                        
-                        return Err(format!("Failed to add inotify watch for: {:?}", iotraces_path));
+                match v.add_watch(
+                    &iotraces_path,
+                    WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE,
+                ) {
+                    Err(_) => {
+                        return Err(format!(
+                            "Failed to add inotify watch for: {:?}",
+                            iotraces_path
+                        ));
                     }
 
                     Ok(_) => {
@@ -83,28 +94,27 @@ impl InotifyWatches {
                 let mut buffer = [0u8; 8192];
 
                 match inotify.read_events(&mut buffer) {
-                    Ok(events) => {
-                        for event in events {                            
-                            events::queue_internal_event(EventType::InotifyEvent(event.mask, PathBuf::from(event.name.unwrap())), globals);
-                        }
-                    }
+                    Ok(events) => for event in events {
+                        events::queue_internal_event(
+                            EventType::InotifyEvent(event.mask, PathBuf::from(event.name.unwrap())),
+                            globals,
+                        );
+                    },
 
                     Err(e) => {
                         error!("Failed to read inotify events: {}", e);
                     }
-                }                
+                }
             }
 
             _ => { /* Do nothing */ }
         }
     }
 
-    pub fn teardown_default_inotify_watches(&mut self, _globals: &mut Globals, _manager: &Manager) {
-
-    }
+    pub fn teardown_default_inotify_watches(&mut self, _globals: &mut Globals, _manager: &Manager) {}
 
     // TODO: Implement generic watches mechanism
-    //    
+    //
     // pub fn register_watch(&mut self, ...) {
     //
     // }

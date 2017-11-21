@@ -12,7 +12,7 @@ programs while the system is idle.
 
 #### Install on Fedora
 
-```
+```shell
     $ sudo dnf copr enable x3n0m0rph59/precached
     $ sudo dnf install precached
     $ sudo systemctl enable --now precached.service
@@ -21,7 +21,7 @@ programs while the system is idle.
 
 #### Install on Ubuntu
 
-```
+```shell
     $ sudo add-apt-repository ppa:x3n0m0rph59/precached
     $ sudo apt update
     $ sudo apt install precached
@@ -29,7 +29,7 @@ programs while the system is idle.
 
 #### Install from Source
 
-```
+```shell
     $ git clone https://github.com/X3n0m0rph59/precached.git  
     $ cd precached/
     $ cargo build --release
@@ -69,9 +69,26 @@ CPU (fast) and the I/O subsystem (slow), the more you gain by running precached.
 If any of the above is true for your system, then you aren't likely to get a
 noticeable improvement out of using precached.
 
-### Benchmarks
+### Benchmark Results
 
-* Still need to be done
+The preliminary benchmarks that we took are looking very promising already.
+We used the current development version of precached (as of 2017-10-30) and
+ran some benchmarks on it:
+
+The benchmarks confirmed that precached is able to speed up load times of
+mid-sized and huge applications on Linux. We nearly achieve cache hot load
+times on first run (after system bootup) of applications like e.g. LibreOffice
+and Firefox. After a memory hog process exited we need a short amount of idle
+time (roughly ~30 secs) to re-prime the caches, after that we achieve
+cache hot load times again. We did not discover any corner cases at which
+the system performed significantly worse than without precached running.
+The system feels much more ‘snappier’ even directly after login.
+Bootup is slowed down somewhat though, since we read approximately 2GB of
+additional data into the RAM cache (in our test setup).
+This happens with a raised nice level and mostly during the GDM greeter’s
+password prompt and thereafter. We are investigating the possibility to
+move the offline prefetch phase somewhat further into the startup process
+to achieve even faster boot times (delayed prefetching).
 
 ### Current State
 
@@ -80,6 +97,7 @@ noticeable improvement out of using precached.
 * Possibly implement fork-bomb mitigation
 * Markov-chain based prefetching
 * Implement a DBUS interface
+* Implement plugin "custom rules" for process events
 * Write a precached GUI in GTK+
 * ...
 

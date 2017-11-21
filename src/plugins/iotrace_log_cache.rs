@@ -60,7 +60,7 @@ impl IOtraceLogCache {
         }
     }
 
-    pub fn cache_iotrace_log(&mut self, path: &PathBuf, globals: &Globals, manager: &Manager) {        
+    pub fn cache_iotrace_log(&mut self, path: &PathBuf, globals: &Globals, manager: &Manager) {
         trace!("Started caching of single I/O trace log file...");
 
         let our_mapped_files = self.mapped_files.clone();
@@ -84,9 +84,9 @@ impl IOtraceLogCache {
                     let mut mapped_files = HashMap::new();
 
                     let abs_path = Path::new(constants::STATE_DIR)
-                                                        .join(constants::IOTRACE_DIR)
-                                                        .join(path.clone());
-                    
+                        .join(constants::IOTRACE_DIR)
+                        .join(path.clone());
+
                     if !Self::check_available_memory(&globals_c, &manager_c) {
                         info!("Available memory exhausted, stopping prefetching!");
                         return;
@@ -104,14 +104,14 @@ impl IOtraceLogCache {
                                 mapped_files.insert(abs_path.to_path_buf(), r);
                             }
                         }
-                    }                    
+                    }
 
                     sc.lock().unwrap().send(mapped_files).unwrap();
                 });
 
                 // blocking call; wait for worker thread
                 let result = receiver.recv().unwrap();
-                for (k,v) in result {
+                for (k, v) in result {
                     self.mapped_files.insert(k, v);
                 }
 
@@ -120,7 +120,7 @@ impl IOtraceLogCache {
         }
     }
 
-    pub fn remove_iotrace_log_from_cache(&mut self, _path: &PathBuf, _globals: &Globals, _manager: &Manager) {        
+    pub fn remove_iotrace_log_from_cache(&mut self, _path: &PathBuf, _globals: &Globals, _manager: &Manager) {
         info!("Remove I/O trace log file from cache...");
     }
 
@@ -276,7 +276,7 @@ impl Plugin for IOtraceLogCache {
             events::EventType::PrimeCaches => {
                 // self.cache_iotrace_log_files(globals, manager);
             }
-            
+
             events::EventType::IoTraceLogCreated(ref path) => {
                 self.cache_iotrace_log(path, globals, manager);
             }

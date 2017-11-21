@@ -28,6 +28,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 extern crate nix;
+extern crate pbr;
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate prettytable;
@@ -37,30 +38,33 @@ extern crate serde_json;
 extern crate term;
 extern crate toml;
 extern crate zstd;
-extern crate pbr;
 
 use clap::{App, AppSettings, Arg, SubCommand};
+use nix::libc::pid_t;
+use nix::sys::signal::*;
+use nix::unistd::*;
 use pbr::ProgressBar;
 use prettytable::Table;
 use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::format::Alignment;
 use prettytable::row::Row;
-use std::collections::{HashSet, HashMap};
-use std::path::{Path, PathBuf};
+use std::collections::{HashMap, HashSet};
 use std::io;
-use std::io::prelude;
 use std::io::BufReader;
+use std::io::prelude;
+use std::path::{Path, PathBuf};
 use term::Attr;
 use term::color::*;
 
+mod plugins;
 mod util;
 mod process;
 mod iotrace;
 mod constants;
 
 /// Unicode characters used for drawing the progress bar
-const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
+pub const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
 
 /// Runtime configuration for precachedctl
 #[derive(Clone)]
@@ -147,14 +151,19 @@ impl<'a, 'b> Config<'a, 'b> {
                             .about("Manage plugin: Hot Applications")
                             .subcommand(
                                 SubCommand::with_name("top")
-                                    .setting(AppSettings::DeriveDisplayOrder)                                    
-                                    .about("Show the top entries in the histogram of hot applications"),
+                                    .setting(AppSettings::DeriveDisplayOrder)
+                                    .about("Show the top most entries in the histogram of hot applications"),
                             )
                             .subcommand(
-                                SubCommand::with_name("show")
+                                SubCommand::with_name("list")
                                     .setting(AppSettings::DeriveDisplayOrder)
-                                    .alias("list")
+                                    .alias("show")
                                     .about("Show all entries in the histogram of hot applications"),
+                            )
+                            .subcommand(
+                                SubCommand::with_name("optimize")
+                                    .setting(AppSettings::DeriveDisplayOrder)
+                                    .about("Optimize the histogram of hot applications"),
                             ),
                     ),
             )
@@ -176,7 +185,7 @@ impl<'a, 'b> Config<'a, 'b> {
 }
 
 /// Print a license header to the console
-fn print_license_header() {
+pub fn print_license_header() {
     println!(
         "precached Copyright (C) 2017 the precached team
 This program comes with ABSOLUTELY NO WARRANTY;
@@ -193,7 +202,7 @@ fn read_daemon_pid() -> io::Result<String> {
 
 /// Define a table format using only Unicode character points as
 /// the default output format
-fn default_table_format(config: &Config) -> TableFormat {
+pub fn default_table_format(config: &Config) -> TableFormat {
     if config.matches.is_present("ascii") {
         // Use only ASCII characters
         FormatBuilder::new()
@@ -238,10 +247,6 @@ fn print_status(_config: &Config, _daemon_config: util::ConfigFile) {
         }
     }
 }
-
-use nix::libc::pid_t;
-use nix::sys::signal::*;
-use nix::unistd::*;
 
 /// Reload the precached daemon's external configuration file
 fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
@@ -323,88 +328,8 @@ fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
     };
 }
 
-fn display_hot_applications(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
-    let path = daemon_config.state_dir.expect("Configuration option 'state_dir' has not been specified!");
-    let iotrace_path = PathBuf::from(path.join(constants::IOTRACE_DIR));
-    
-    let text = util::read_compressed_text_file(&path.join("hot_applications.state"))
-                                                .expect("Could not read the compressed file!");                                                
-
-    let reader = BufReader::new(text.as_bytes());
-    let deserialized = serde_json::from_reader::<_, HashMap<String, usize>>(reader);    
-
-    match deserialized {
-        Err(e) => {            
-            error!("Histogram of hot applications could not be loaded! {}", e);
-        }
-
-        Ok(data) => {
-            let mut apps: Vec<(&String, &usize)> = data.iter().collect();
-            
-            // Sort by count descending
-            apps.sort_by(|a, b| b.1.cmp(a.1));
-            
-            if !show_all {
-                // Only show the top n entries
-                apps = apps.into_iter().take(20).collect();
-            }
-
-            let mut pb = ProgressBar::new(apps.len() as u64);
-            pb.format(PROGRESS_BAR_INDICATORS);
-            pb.message("Examining I/O trace log files: ");
-
-            // Print in "tabular" format (the default)
-            let mut table = prettytable::Table::new();
-            table.set_format(default_table_format(&config));
-
-            table.add_row(Row::new(vec![Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                                        Cell::new(&String::from("Executable")).with_style(Attr::Bold),
-                                        Cell::new_align(&String::from("Count"), Alignment::RIGHT).with_style(Attr::Bold),
-                                        ]));
-
-            let mut index = 0;
-            let mut errors = 0;
-
-            for (ref hash, ref count) in apps {                
-                let iotrace = iotrace::IOTraceLog::from_file(&iotrace_path.join(&format!("{}.trace", hash)));
-
-                match iotrace {
-                    Err(_) => {
-                        table.add_row(Row::new(vec![Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
-                                            Cell::new(&format!("Missing I/O Trace Log: {}.trace", hash)).with_style(Attr::Italic(true)),
-                                            Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
-                                            ]));
-
-                        errors += 1;
-                    }
-
-                    Ok(iotrace) => {
-                        let filename = String::from(iotrace.exe.to_string_lossy());
-
-                        table.add_row(Row::new(vec![Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
-                                            // Cell::new(&util::ellipsize_filename(&filename)).with_style(Attr::Bold),
-                                            Cell::new(&filename).with_style(Attr::Bold),
-                                            Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
-                                            ]));
-                    }
-                }                
-
-                pb.inc();
-                index += 1;
-            }
-
-            pb.finish_print("done");
-
-            table.printstd();
-
-            println!("{} histogram entries examined, {} missing I/O trace logs", index, errors);
-        }        
-    }
-
-}
-
 /// Print help message on how to use this command
-fn print_help(config: &mut Config) {
+pub fn print_help(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
     #[allow(unused_must_use)]
@@ -414,7 +339,7 @@ fn print_help(config: &mut Config) {
 }
 
 /// Print usage message on how to use this command
-fn print_usage(config: &mut Config) {
+pub fn print_usage(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
     #[allow(unused_must_use)]
@@ -424,7 +349,7 @@ fn print_usage(config: &mut Config) {
 }
 
 /// Print help message on how to use this command
-fn print_help_plugins(config: &mut Config) {
+pub fn print_help_plugins(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
     #[allow(unused_must_use)]
@@ -434,27 +359,7 @@ fn print_help_plugins(config: &mut Config) {
 }
 
 /// Print usage message on how to use this command
-fn print_usage_plugins(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
-
-    #[allow(unused_must_use)]
-    config.clap.print_help().unwrap();
-
-    println!("");
-}
-
-/// Print help message on how to use this command
-fn print_help_plugin_hot_applications(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
-
-    #[allow(unused_must_use)]
-    config.clap.print_help().unwrap();
-
-    println!("");
-}
-
-/// Print usage message on how to use this command
-fn print_usage_plugin_hot_applications(config: &mut Config) {
+pub fn print_usage_plugins(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
 
     #[allow(unused_must_use)]
@@ -488,57 +393,73 @@ fn main() {
             "status" => {
                 print_status(&config, daemon_config);
             }
+
             "reload" | "reload-config" => {
                 daemon_reload(&config, daemon_config);
             }
+
             "stop" | "shutdown" => {
                 daemon_shutdown(&config, daemon_config);
             }
+
             "housekeeping" | "do-housekeeping" => {
                 do_housekeeping(&config, daemon_config);
             }
+
             "prime-caches" | "prime-caches-now" => {
                 do_prime_caches(&config, daemon_config);
             }
-            "plugins" => {
-                if let Some(plugin) = config.matches.subcommand_matches("plugins").unwrap().subcommand_name() {
-                    match plugin {
-                        "hot-applications" => {
-                            if let Some(subcommand) = config.matches.subcommand_matches("plugins").unwrap()
-                                                                    .subcommand_matches("hot-applications").unwrap()
-                                                                    .subcommand_name() {
-                                match subcommand {
-                                    "show" | "display" => {
-                                        display_hot_applications(&config, daemon_config, true);
-                                    }
 
-                                    "top" => {
-                                        display_hot_applications(&config, daemon_config, false);
-                                    }
-
-                                    "help" => {
-                                        print_help_plugin_hot_applications(&mut config_c);
-                                    }
-                                    &_ => {
-                                        print_usage_plugin_hot_applications(&mut config_c);
-                                    }
-                                };
-                            } else {
-                                print_usage_plugin_hot_applications(&mut config_c);
+            "plugins" => if let Some(plugin) = config
+                .matches
+                .subcommand_matches("plugins")
+                .unwrap()
+                .subcommand_name()
+            {
+                match plugin {
+                    "hot-applications" => if let Some(subcommand) = config
+                        .matches
+                        .subcommand_matches("plugins")
+                        .unwrap()
+                        .subcommand_matches("hot-applications")
+                        .unwrap()
+                        .subcommand_name()
+                    {
+                        match subcommand {
+                            "top" => {
+                                plugins::hot_applications::list(&config, daemon_config, false);
                             }
-                        }
 
-                        "help" => {
-                            print_help_plugins(&mut config_c);
-                        }
-                        &_ => {
-                            print_usage_plugins(&mut config_c);
-                        }
-                    };
-                } else {
-                    print_usage_plugins(&mut config_c);
-                }
-            }
+                            "list" | "show" => {
+                                plugins::hot_applications::list(&config, daemon_config, true);
+                            }
+
+                            "optimize" => {
+                                plugins::hot_applications::optimize(&config, daemon_config);
+                            }
+
+                            "help" => {
+                                plugins::hot_applications::print_help(&mut config_c);
+                            }
+                            &_ => {
+                                plugins::hot_applications::print_usage(&mut config_c);
+                            }
+                        };
+                    } else {
+                        plugins::hot_applications::print_usage(&mut config_c);
+                    },
+
+                    "help" => {
+                        print_help_plugins(&mut config_c);
+                    }
+                    &_ => {
+                        print_usage_plugins(&mut config_c);
+                    }
+                };
+            } else {
+                print_usage_plugins(&mut config_c);
+            },
+
             "help" => {
                 print_help(&mut config_c);
             }

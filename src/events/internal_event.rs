@@ -20,11 +20,11 @@
 
 extern crate inotify;
 
+use self::inotify::Event;
 use globals::*;
 use procmon;
 use std::path::PathBuf;
 use std::time::Instant;
-use self::inotify::Event;
 
 /// Daemon internal events
 #[derive(Debug, Clone)]

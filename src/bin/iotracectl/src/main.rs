@@ -28,6 +28,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 extern crate nix;
+extern crate pbr;
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate prettytable;
@@ -36,7 +37,6 @@ extern crate serde_derive;
 extern crate term;
 extern crate toml;
 extern crate zstd;
-extern crate pbr;
 
 use clap::{App, AppSettings, Arg, SubCommand};
 use pbr::ProgressBar;
@@ -45,8 +45,8 @@ use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::row::Row;
 use std::collections::HashSet;
-use std::path::Path;
 use std::fs::read_dir;
+use std::path::Path;
 use term::Attr;
 use term::color::*;
 
@@ -535,6 +535,35 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
 }
 
 fn print_io_trace_msg(message: &str, index: usize, config: &Config, table: &mut Table) {
+    let matches = config.matches.subcommand_matches("list").unwrap();
+
+    if matches.is_present("full") {
+        // Print in "full" format
+        println!("{}", message);
+    } else if matches.is_present("short") {
+        // Print in "short" format
+        println!("{}", message);
+    } else if matches.is_present("terse") {
+        // Print in "terse" format
+        println!("{}", message);
+    } else
+    /*if matches.is_present("tabular")*/
+    {
+        // Print in "tabular" format (the default)
+        table.add_row(Row::new(vec![
+            Cell::new_align(&format!("{}", index), Alignment::RIGHT),
+            Cell::new(&message)
+                .with_style(Attr::Bold)
+                .with_style(Attr::ForegroundColor(RED)),
+            Cell::new(&"n/a"),
+            Cell::new(&"n/a"),
+            Cell::new(&"n/a"),
+            Cell::new(&"n/a"),
+            Cell::new(&"n/a"),
+            Cell::new(&"n/a"),
+            Cell::new(&"n/a"),
+        ]));
+    }
 }
 
 /// Top/Htop like display of the I/O tracing subsystem
@@ -625,7 +654,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     let count = read_dir(&traces_path).unwrap().count();
     let mut pb = ProgressBar::new(count as u64);
-    
+
     if display_progress {
         pb.format(PROGRESS_BAR_INDICATORS);
         pb.message("Examining I/O trace log files: ");
@@ -654,9 +683,13 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
         let filename = String::from(path.to_string_lossy());
         match iotrace::IOTraceLog::from_file(&path) {
-            Err(e) => {                
-                print_io_trace_msg(&format!("Skipped invalid I/O trace file, file not readable: {}", e), 
-                                   counter + 1, config, &mut table);
+            Err(e) => {
+                print_io_trace_msg(
+                    &format!("Skipped invalid I/O trace file, file not readable: {}", e),
+                    counter + 1,
+                    config,
+                    &mut table,
+                );
                 errors += 1;
             }
             Ok(io_trace) => if filter_matches(&String::from("list"), &filename, &io_trace, &config) {
@@ -1380,36 +1413,47 @@ fn main() {
             "status" => {
                 print_io_trace_subsystem_status(&config, daemon_config);
             }
+
             "top" => {
                 io_trace_top(&config, daemon_config.clone());
             }
+
             "list" => {
                 list_io_traces(&config, daemon_config.clone());
             }
+
             "info" | "show" => {
                 print_info_about_io_traces(&config, daemon_config.clone());
             }
+
             "dump" => {
                 dump_io_traces(&config, daemon_config.clone());
             }
+
             "analyze" => {
                 analyze_io_traces(&config, daemon_config.clone());
             }
+
             "optimize" => {
                 optimize_io_traces(&config, daemon_config.clone());
             }
+
             "remove" | "delete" => {
                 remove_io_traces(&config, daemon_config.clone());
             }
+
             "clear" => {
                 clear_io_traces(&config, daemon_config.clone());
             }
+
             "help" => {
                 print_help(&mut config_c);
             }
+
             "test-tracing" => {
                 perform_tracing_test(&config, daemon_config.clone());
             }
+
             &_ => {
                 print_usage(&mut config_c);
             }
