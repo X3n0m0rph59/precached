@@ -57,8 +57,8 @@ package() {
   install -m 644 "support/man/iotracectl.8" "$pkgdir/usr/share/man/man8/"
   install -m 644 "support/man/precached.conf.5" "$pkgdir/usr/share/man/man5/"
 
-  install -m 644 "support/shell/completions/iotracectl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/"
-  install -m 644 "support/shell/completions/precachedctl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/"
-  install -m 644 "support/shell/completions/iotracectlctl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/"
-  install -m 644 "support/shell/completions/precachedctl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/"
+  install -T 644 "support/shell/completions/iotracectl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/iotracectl"
+  install -T 644 "support/shell/completions/precachedctl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/precachedctl"
+  install -T 644 "support/shell/completions/iotracectlctl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/_iotracectl"
+  install -T 644 "support/shell/completions/precachedctl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/_precachedctl"
 }
