@@ -1,6 +1,6 @@
-#compdef iotracectl
+#compdef precachedctl
 
-_iotracectl() {
+_precachedctl() {
     typeset -A opt_args
     local ret=1
 
@@ -15,12 +15,12 @@ _iotracectl() {
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_iotracectl_commands" \
+"1:: :_precachedctl_commands" \
 "*:: :->precachedctl" \
 && ret=0
     case $state in
     (precachedctl)
-        curcontext="${curcontext%:*:*}:iotracectl-command-$words[1]:"
+        curcontext="${curcontext%:*:*}:precachedctl-command-$words[1]:"
         case $line[1] in
             (status)
 _arguments -s -S -C \
@@ -101,12 +101,12 @@ _arguments -s -S -C \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_iotracectl__plugins_commands" \
+"1:: :_precachedctl__plugins_commands" \
 "*:: :->plugins" \
 && ret=0
 case $state in
     (plugins)
-        curcontext="${curcontext%:*:*}:iotracectl-plugins-command-$words[1]:"
+        curcontext="${curcontext%:*:*}:precachedctl-plugins-command-$words[1]:"
         case $line[1] in
             (hot-applications)
 _arguments -s -S -C \
@@ -114,12 +114,12 @@ _arguments -s -S -C \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_iotracectl__plugins__hot-applications_commands" \
+"1:: :_precachedctl__plugins__hot-applications_commands" \
 "*:: :->hot-applications" \
 && ret=0
 case $state in
     (hot-applications)
-        curcontext="${curcontext%:*:*}:iotracectl-plugins-hot-applications-command-$words[1]:"
+        curcontext="${curcontext%:*:*}:precachedctl-plugins-hot-applications-command-$words[1]:"
         case $line[1] in
             (top)
 _arguments -s -S -C \
@@ -191,7 +191,7 @@ _arguments -s -S -C \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_iotracectl__completions_commands" \
+"1:: :_precachedctl__completions_commands" \
 && ret=0
 ;;
         esac
@@ -199,8 +199,8 @@ _arguments -s -S -C \
 esac
 }
 
-(( $+functions[_iotracectl_commands] )) ||
-_iotracectl_commands() {
+(( $+functions[_precachedctl_commands] )) ||
+_precachedctl_commands() {
     local commands; commands=(
         "status:Show the current status of the precached daemon" \
 "reload:Reload external configuration of precached" \
@@ -211,14 +211,14 @@ _iotracectl_commands() {
 "help:Display this short help text" \
 "completions:Generates completion scripts for your shell" \
     )
-    _describe -t commands 'iotracectl commands' commands "$@"
+    _describe -t commands 'precachedctl commands' commands "$@"
 }
-(( $+functions[_iotracectl__completions_commands] )) ||
-_iotracectl__completions_commands() {
+(( $+functions[_precachedctl__completions_commands] )) ||
+_precachedctl__completions_commands() {
     local commands; commands=(
         "SHELL:The shell to generate the script for" \
     )
-    _describe -t commands 'iotracectl completions commands' commands "$@"
+    _describe -t commands 'precachedctl completions commands' commands "$@"
 }
 (( $+functions[_do-housekeeping_commands] )) ||
 _do-housekeeping_commands() {
@@ -227,86 +227,86 @@ _do-housekeeping_commands() {
     )
     _describe -t commands 'do-housekeeping commands' commands "$@"
 }
-(( $+functions[_iotracectl__do-housekeeping_commands] )) ||
-_iotracectl__do-housekeeping_commands() {
+(( $+functions[_precachedctl__do-housekeeping_commands] )) ||
+_precachedctl__do-housekeeping_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl do-housekeeping commands' commands "$@"
+    _describe -t commands 'precachedctl do-housekeeping commands' commands "$@"
 }
-(( $+functions[_iotracectl__help_commands] )) ||
-_iotracectl__help_commands() {
+(( $+functions[_precachedctl__help_commands] )) ||
+_precachedctl__help_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl help commands' commands "$@"
+    _describe -t commands 'precachedctl help commands' commands "$@"
 }
-(( $+functions[_iotracectl__plugins__help_commands] )) ||
-_iotracectl__plugins__help_commands() {
+(( $+functions[_precachedctl__plugins__help_commands] )) ||
+_precachedctl__plugins__help_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl plugins help commands' commands "$@"
+    _describe -t commands 'precachedctl plugins help commands' commands "$@"
 }
-(( $+functions[_iotracectl__plugins__hot-applications__help_commands] )) ||
-_iotracectl__plugins__hot-applications__help_commands() {
+(( $+functions[_precachedctl__plugins__hot-applications__help_commands] )) ||
+_precachedctl__plugins__hot-applications__help_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl plugins hot-applications help commands' commands "$@"
+    _describe -t commands 'precachedctl plugins hot-applications help commands' commands "$@"
 }
-(( $+functions[_iotracectl__plugins__hot-applications_commands] )) ||
-_iotracectl__plugins__hot-applications_commands() {
+(( $+functions[_precachedctl__plugins__hot-applications_commands] )) ||
+_precachedctl__plugins__hot-applications_commands() {
     local commands; commands=(
         "top:Show the top most entries in the histogram of hot applications" \
 "list:Show all entries in the histogram of hot applications" \
 "optimize:Optimize the histogram of hot applications" \
 "help:Prints this message or the help of the given subcommand(s)" \
     )
-    _describe -t commands 'iotracectl plugins hot-applications commands' commands "$@"
+    _describe -t commands 'precachedctl plugins hot-applications commands' commands "$@"
 }
-(( $+functions[_iotracectl__housekeeping_commands] )) ||
-_iotracectl__housekeeping_commands() {
+(( $+functions[_precachedctl__housekeeping_commands] )) ||
+_precachedctl__housekeeping_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl housekeeping commands' commands "$@"
+    _describe -t commands 'precachedctl housekeeping commands' commands "$@"
 }
-(( $+functions[_iotracectl__plugins__hot-applications__list_commands] )) ||
-_iotracectl__plugins__hot-applications__list_commands() {
+(( $+functions[_precachedctl__plugins__hot-applications__list_commands] )) ||
+_precachedctl__plugins__hot-applications__list_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl plugins hot-applications list commands' commands "$@"
+    _describe -t commands 'precachedctl plugins hot-applications list commands' commands "$@"
 }
-(( $+functions[_iotracectl__plugins__hot-applications__optimize_commands] )) ||
-_iotracectl__plugins__hot-applications__optimize_commands() {
+(( $+functions[_precachedctl__plugins__hot-applications__optimize_commands] )) ||
+_precachedctl__plugins__hot-applications__optimize_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl plugins hot-applications optimize commands' commands "$@"
+    _describe -t commands 'precachedctl plugins hot-applications optimize commands' commands "$@"
 }
-(( $+functions[_iotracectl__plugins_commands] )) ||
-_iotracectl__plugins_commands() {
+(( $+functions[_precachedctl__plugins_commands] )) ||
+_precachedctl__plugins_commands() {
     local commands; commands=(
         "hot-applications:Manage plugin: Hot Applications" \
 "help:Prints this message or the help of the given subcommand(s)" \
     )
-    _describe -t commands 'iotracectl plugins commands' commands "$@"
+    _describe -t commands 'precachedctl plugins commands' commands "$@"
 }
-(( $+functions[_iotracectl__prime-caches_commands] )) ||
-_iotracectl__prime-caches_commands() {
+(( $+functions[_precachedctl__prime-caches_commands] )) ||
+_precachedctl__prime-caches_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl prime-caches commands' commands "$@"
+    _describe -t commands 'precachedctl prime-caches commands' commands "$@"
 }
-(( $+functions[_iotracectl__prime-caches-now_commands] )) ||
-_iotracectl__prime-caches-now_commands() {
+(( $+functions[_precachedctl__prime-caches-now_commands] )) ||
+_precachedctl__prime-caches-now_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl prime-caches-now commands' commands "$@"
+    _describe -t commands 'precachedctl prime-caches-now commands' commands "$@"
 }
 (( $+functions[_prime-caches-now_commands] )) ||
 _prime-caches-now_commands() {
@@ -315,19 +315,19 @@ _prime-caches-now_commands() {
     )
     _describe -t commands 'prime-caches-now commands' commands "$@"
 }
-(( $+functions[_iotracectl__reload_commands] )) ||
-_iotracectl__reload_commands() {
+(( $+functions[_precachedctl__reload_commands] )) ||
+_precachedctl__reload_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl reload commands' commands "$@"
+    _describe -t commands 'precachedctl reload commands' commands "$@"
 }
-(( $+functions[_iotracectl__reload-config_commands] )) ||
-_iotracectl__reload-config_commands() {
+(( $+functions[_precachedctl__reload-config_commands] )) ||
+_precachedctl__reload-config_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl reload-config commands' commands "$@"
+    _describe -t commands 'precachedctl reload-config commands' commands "$@"
 }
 (( $+functions[_reload-config_commands] )) ||
 _reload-config_commands() {
@@ -336,26 +336,26 @@ _reload-config_commands() {
     )
     _describe -t commands 'reload-config commands' commands "$@"
 }
-(( $+functions[_iotracectl__plugins__hot-applications__show_commands] )) ||
-_iotracectl__plugins__hot-applications__show_commands() {
+(( $+functions[_precachedctl__plugins__hot-applications__show_commands] )) ||
+_precachedctl__plugins__hot-applications__show_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl plugins hot-applications show commands' commands "$@"
+    _describe -t commands 'precachedctl plugins hot-applications show commands' commands "$@"
 }
-(( $+functions[_iotracectl__plugins__show_commands] )) ||
-_iotracectl__plugins__show_commands() {
+(( $+functions[_precachedctl__plugins__show_commands] )) ||
+_precachedctl__plugins__show_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl plugins show commands' commands "$@"
+    _describe -t commands 'precachedctl plugins show commands' commands "$@"
 }
-(( $+functions[_iotracectl__shutdown_commands] )) ||
-_iotracectl__shutdown_commands() {
+(( $+functions[_precachedctl__shutdown_commands] )) ||
+_precachedctl__shutdown_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl shutdown commands' commands "$@"
+    _describe -t commands 'precachedctl shutdown commands' commands "$@"
 }
 (( $+functions[_shutdown_commands] )) ||
 _shutdown_commands() {
@@ -364,26 +364,26 @@ _shutdown_commands() {
     )
     _describe -t commands 'shutdown commands' commands "$@"
 }
-(( $+functions[_iotracectl__status_commands] )) ||
-_iotracectl__status_commands() {
+(( $+functions[_precachedctl__status_commands] )) ||
+_precachedctl__status_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl status commands' commands "$@"
+    _describe -t commands 'precachedctl status commands' commands "$@"
 }
-(( $+functions[_iotracectl__stop_commands] )) ||
-_iotracectl__stop_commands() {
+(( $+functions[_precachedctl__stop_commands] )) ||
+_precachedctl__stop_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl stop commands' commands "$@"
+    _describe -t commands 'precachedctl stop commands' commands "$@"
 }
-(( $+functions[_iotracectl__plugins__hot-applications__top_commands] )) ||
-_iotracectl__plugins__hot-applications__top_commands() {
+(( $+functions[_precachedctl__plugins__hot-applications__top_commands] )) ||
+_precachedctl__plugins__hot-applications__top_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'iotracectl plugins hot-applications top commands' commands "$@"
+    _describe -t commands 'precachedctl plugins hot-applications top commands' commands "$@"
 }
 
-_iotracectl "$@"
+_precachedctl "$@"

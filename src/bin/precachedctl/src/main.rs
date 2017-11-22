@@ -293,7 +293,7 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
 
     config
         .clap
-        .gen_completions_to("iotracectl", shell, &mut io::stdout());
+        .gen_completions_to("precachedctl", shell, &mut io::stdout());
 }
 
 /// Program entrypoint

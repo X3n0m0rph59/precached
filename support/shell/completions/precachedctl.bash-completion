@@ -1,4 +1,4 @@
-_iotracectl() {
+_precachedctl() {
     local i cur prev opts cmds
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -9,8 +9,8 @@ _iotracectl() {
     for i in ${COMP_WORDS[@]}
     do
         case "${i}" in
-            iotracectl)
-                cmd="iotracectl"
+            precachedctl)
+                cmd="precachedctl"
                 ;;
             
             completions)
@@ -70,7 +70,7 @@ _iotracectl() {
     done
 
     case "${cmd}" in
-        iotracectl)
+        precachedctl)
             opts=" -a -v -h -V -c  --ascii --help --version --config   status reload stop housekeeping prime-caches plugins help completions  reload-config  shutdown  do-housekeeping  prime-caches-now"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -94,7 +94,7 @@ _iotracectl() {
             return 0
             ;;
         
-        iotracectl__completions)
+        precachedctl__completions)
             opts=" -h -V  --help --version  <SHELL> "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -109,7 +109,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__do__housekeeping)
+        precachedctl__do__housekeeping)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -124,7 +124,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__help)
+        precachedctl__help)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -139,7 +139,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__housekeeping)
+        precachedctl__housekeeping)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -154,7 +154,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__plugins)
+        precachedctl__plugins)
             opts=" -h -V  --help --version   hot-applications help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -169,7 +169,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__plugins__help)
+        precachedctl__plugins__help)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -184,7 +184,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__plugins__hot__applications)
+        precachedctl__plugins__hot__applications)
             opts=" -h -V  --help --version   top list optimize help  show"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -199,7 +199,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__plugins__hot__applications__help)
+        precachedctl__plugins__hot__applications__help)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -214,7 +214,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__plugins__hot__applications__list)
+        precachedctl__plugins__hot__applications__list)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -229,7 +229,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__plugins__hot__applications__optimize)
+        precachedctl__plugins__hot__applications__optimize)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -244,7 +244,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__plugins__hot__applications__show)
+        precachedctl__plugins__hot__applications__show)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -259,7 +259,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__plugins__hot__applications__top)
+        precachedctl__plugins__hot__applications__top)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -274,7 +274,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__prime__caches)
+        precachedctl__prime__caches)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -289,7 +289,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__prime__caches__now)
+        precachedctl__prime__caches__now)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -304,7 +304,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__reload)
+        precachedctl__reload)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -319,7 +319,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__reload__config)
+        precachedctl__reload__config)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -334,7 +334,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__shutdown)
+        precachedctl__shutdown)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -349,7 +349,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__status)
+        precachedctl__status)
             opts=" -l -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -364,7 +364,7 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        iotracectl__stop)
+        precachedctl__stop)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -382,4 +382,4 @@ _iotracectl() {
     esac
 }
 
-complete -F _iotracectl -o bashdefault -o default iotracectl
+complete -F _precachedctl -o bashdefault -o default precachedctl
