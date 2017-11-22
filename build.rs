@@ -19,5 +19,5 @@
 */
 
 fn main() {
-    // TODO: Package shell completions
+    // TODO: Create and package shell completions
 }

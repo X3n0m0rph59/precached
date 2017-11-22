@@ -60,7 +60,8 @@ impl IOtraceLogCache {
         }
     }
 
-    pub fn cache_iotrace_log(&mut self, path: &PathBuf, globals: &Globals, manager: &Manager) {
+    /// Cache and mlock() a single I/O trace log file `filename`
+    pub fn cache_iotrace_log(&mut self, filename: &PathBuf, globals: &Globals, manager: &Manager) {
         trace!("Started caching of single I/O trace log file...");
 
         let our_mapped_files = self.mapped_files.clone();
@@ -68,7 +69,7 @@ impl IOtraceLogCache {
         let (sender, receiver): (Sender<HashMap<PathBuf, util::MemoryMapping>>, _) = channel();
         let sc = Mutex::new(sender.clone());
 
-        match util::POOL.try_lock() {
+        match util::PREFETCH_POOL.try_lock() {
             Err(e) => warn!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e
@@ -77,15 +78,18 @@ impl IOtraceLogCache {
                 let globals_c = globals.clone();
                 let manager_c = manager.clone();
 
-                let path = path.clone();
-                let path_c = path.clone();
+                let filename = filename.clone();
+                let filename_c = filename.clone();
+
+                let config = globals.config.config_file.clone().unwrap();
+                let iotrace_dir = config
+                    .state_dir
+                    .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
+                let iotrace_dir = iotrace_dir.join(constants::IOTRACE_DIR);
+                let abs_path = iotrace_dir.join(&filename);
 
                 thread_pool.submit_work(move || {
                     let mut mapped_files = HashMap::new();
-
-                    let abs_path = Path::new(constants::STATE_DIR)
-                        .join(constants::IOTRACE_DIR)
-                        .join(path.clone());
 
                     if !Self::check_available_memory(&globals_c, &manager_c) {
                         info!("Available memory exhausted, stopping prefetching!");
@@ -97,10 +101,10 @@ impl IOtraceLogCache {
                     if Self::shall_we_map_file(&abs_path, &our_mapped_files) {
                         match util::cache_file(&abs_path, true) {
                             Err(s) => {
-                                error!("Could not cache file {:?}: {}", path, s);
+                                error!("Could not cache file {:?}: {}", filename, s);
                             }
                             Ok(r) => {
-                                trace!("Successfuly cached file {:?}", path);
+                                trace!("Successfuly cached file {:?}", filename);
                                 mapped_files.insert(abs_path.to_path_buf(), r);
                             }
                         }
@@ -115,15 +119,39 @@ impl IOtraceLogCache {
                     self.mapped_files.insert(k, v);
                 }
 
-                info!("Finished caching of single I/O trace log file {:?}", path_c);
+                info!(
+                    "Finished caching of single I/O trace log file {:?}",
+                    filename_c
+                );
             }
         }
     }
 
-    pub fn remove_iotrace_log_from_cache(&mut self, _path: &PathBuf, _globals: &Globals, _manager: &Manager) {
-        info!("Remove I/O trace log file from cache...");
+    /// Remove a single I/O trace log file `filename` from the caches
+    pub fn remove_iotrace_log_from_cache(&mut self, filename: &PathBuf, globals: &Globals, _manager: &Manager) {
+        let config = globals.config.config_file.clone().unwrap();
+        let iotrace_dir = config
+            .state_dir
+            .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
+        let iotrace_dir = iotrace_dir.join(constants::IOTRACE_DIR);
+        let abs_path = iotrace_dir.join(filename);
+
+        match self.mapped_files.get(&abs_path) {
+            None => {
+                error!("I/O trace log is not cached: {:?}", filename);
+            }
+            Some(mapping) => if !util::free_mapping(mapping) {
+                error!("Could not free cached I/O trace log {:?}", filename);
+            } else {
+                info!(
+                    "Removed single I/O trace log file from cache: {:?}",
+                    filename
+                );
+            },
+        }
     }
 
+    /// Enumerate all existing I/O trace log files and cache and mlock() them
     pub fn cache_iotrace_log_files(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started caching of I/O trace log files...");
 
@@ -132,7 +160,7 @@ impl IOtraceLogCache {
         let (sender, receiver): (Sender<HashMap<PathBuf, util::MemoryMapping>>, _) = channel();
         let sc = Mutex::new(sender.clone());
 
-        match util::POOL.try_lock() {
+        match util::PREFETCH_POOL.try_lock() {
             Err(e) => warn!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e

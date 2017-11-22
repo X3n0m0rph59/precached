@@ -43,6 +43,7 @@ use std::io::Result;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
+use iotrace;
 use storage;
 use util;
 
@@ -272,6 +273,59 @@ impl HotApplications {
         }
     }
 
+    pub fn optimize_histogram(&mut self, globals: &Globals, manager: &Manager) {
+        info!("Optimizing hot applications histogram...");
+
+        let config = globals.config.config_file.clone().unwrap();
+
+        let iotrace_dir = config
+            .state_dir
+            .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf())
+            .join(constants::IOTRACE_DIR);        
+
+        let app_histogram_c = self.app_histogram.clone();
+
+        // Tuple fields: (hash value, execution count, flag: 'keep this entry')
+        let mut apps: Vec<(&String, &usize, bool)> = app_histogram_c.iter().map(|(k, v)| (k, v, true)).collect();
+
+        let mut index = 0;
+        let mut errors = 0;
+
+        for &mut (ref hash, ref _count, ref mut keep) in apps.iter_mut() {
+            let iotrace = iotrace::IOTraceLog::from_file(&iotrace_dir.join(&format!("{}.trace", hash)));
+
+            match iotrace {
+                Err(_) => {
+                    // I/O trace is invalid, remove this hot_applications entry
+                    *keep = false;
+                    errors += 1;
+                }
+
+                Ok(_) => {
+                    // I/O trace is valid, keep this hot_applications entry
+                    *keep = true;
+                }
+            }
+
+            index += 1;
+        }
+
+        // build a new HashMap, removing invalid entries
+        let mut t = HashMap::new();
+
+        for &(k, v, keep) in apps.iter() {
+            if keep {
+                t.insert(k.clone(), v.clone());
+            }
+        }
+
+        // Apply and save optimized histogram
+        self.app_histogram = t;
+        self.save_state(globals, manager);
+
+        info!("Successfuly optimized hot applications histogram! Examined: {}, removed: {} entries.", index, errors);
+    }
+
     /// Load the previously saved internal state of our plugin
     pub fn load_state(&mut self, globals: &mut Globals, _manager: &Manager) {
         match Self::deserialize(globals) {
@@ -286,14 +340,14 @@ impl HotApplications {
     }
 
     /// Save the internal state of our plugin
-    pub fn save_state(&mut self, globals: &mut Globals, _manager: &Manager) {
+    pub fn save_state(&mut self, globals: &Globals, _manager: &Manager) {
         Self::serialize(&self.app_histogram, globals);
     }
 
     /// Serialization helper function
     /// Serialize `t` to JSON, compress it with the "Zstd" compressor, and write it to the
     /// file `hot_applications.state`.
-    fn serialize(t: &HashMap<String, usize>, globals: &mut Globals) -> Result<()> {
+    fn serialize(t: &HashMap<String, usize>, globals: &Globals) -> Result<()> {
         let serialized = serde_json::to_string_pretty(&t).unwrap();
 
         let config = globals.config.config_file.clone().unwrap();
@@ -312,7 +366,7 @@ impl HotApplications {
     /// with the "Zstd" compressor), convert it into an Unicode UTF-8
     /// JSON representation, and de-serialize a `HashMap<String, usize>` from
     /// that JSON representation.
-    fn deserialize(globals: &mut Globals) -> Result<HashMap<String, usize>> {
+    fn deserialize(globals: &Globals) -> Result<HashMap<String, usize>> {
         let config = globals.config.config_file.clone().unwrap();
         let path = config
             .state_dir
@@ -362,7 +416,8 @@ impl Plugin for HotApplications {
                 self.save_state(globals, manager);
             }
 
-            events::EventType::PrimeCaches | events::EventType::AvailableMemoryLowWatermark => {
+            events::EventType::PrimeCaches | 
+            events::EventType::AvailableMemoryLowWatermark => {
                 self.prefetch_data(globals, manager);
             }
 
@@ -376,6 +431,10 @@ impl Plugin for HotApplications {
 
             events::EventType::TrackedProcessChanged(event) => {
                 self.application_executed(event.pid);
+            }
+
+            events::EventType::DoHousekeeping => {
+                self.optimize_histogram(&globals, manager);
             }
 
             _ => { /* Do nothing */ }

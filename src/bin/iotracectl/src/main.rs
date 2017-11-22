@@ -22,6 +22,7 @@
 #![allow(dead_code)]
 
 extern crate chrono;
+extern crate chrono_tz;
 extern crate clap;
 #[macro_use]
 extern crate lazy_static;
@@ -38,6 +39,7 @@ extern crate term;
 extern crate toml;
 extern crate zstd;
 
+use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
 use pbr::ProgressBar;
 use prettytable::Table;
@@ -97,6 +99,14 @@ This is free software, and you are welcome to redistribute it
 under certain conditions.
 "
     );
+}
+
+/// Return a formatted `String` containing date and time of `date`
+/// converted to the local timezone
+fn format_date(date: DateTime<Utc>) -> String {
+    date.with_timezone(&Local)
+        .format(constants::DATETIME_FORMAT_DEFAULT)
+        .to_string()
 }
 
 /// Define a table format using only Unicode character points as
@@ -190,14 +200,8 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             io_trace.comm,
             io_trace.cmdline,
             io_trace.hash,
-            io_trace
-                .created_at
-                .format(constants::DATETIME_FORMAT_DEFAULT)
-                .to_string(),
-            io_trace
-                .trace_stopped_at
-                .format(constants::DATETIME_FORMAT_DEFAULT)
-                .to_string(),
+            format_date(io_trace.created_at),
+            format_date(io_trace.trace_stopped_at),
             io_trace.file_map.len(),
             io_trace.trace_log.len(),
             format!("{} KiB", io_trace.accumulated_size / 1024),
@@ -210,14 +214,8 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             "Executable:\t{:?}\nCreation Date:\t{}\nTrace End Date:\t{}\nNum I/O Ops:\t{}\n\
              I/O Size:\t{}\nFlags:\t\t{:?}\n\n",
             io_trace.exe,
-            io_trace
-                .created_at
-                .format(constants::DATETIME_FORMAT_DEFAULT)
-                .to_string(),
-            io_trace
-                .trace_stopped_at
-                .format(constants::DATETIME_FORMAT_DEFAULT)
-                .to_string(),
+            format_date(io_trace.created_at),
+            format_date(io_trace.trace_stopped_at),
             io_trace.trace_log.len(),
             format!("{} KiB", io_trace.accumulated_size / 1024),
             flags
@@ -235,15 +233,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
                 &io_trace.exe.to_string_lossy().into_owned(),
             )).with_style(Attr::Bold),
             Cell::new(&io_trace.hash),
-            Cell::new(&io_trace
-                .created_at
-                .format(constants::DATETIME_FORMAT_DEFAULT)
-                .to_string()),
-            // Cell::new(&io_trace
-            //     .trace_stopped_at
-            //     .format(constants::DATETIME_FORMAT_DEFAULT)
-            //     .to_string()),
-            // Cell::new(&"Zstd"),
+            Cell::new(&format_date(io_trace.created_at)),
             Cell::new_align(&format!("{}", io_trace.file_map.len()), Alignment::RIGHT),
             Cell::new_align(&format!("{}", io_trace.trace_log.len()), Alignment::RIGHT),
             Cell::new_align(
@@ -316,6 +306,7 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
 
     let iotrace_prefetcher_enabled = !conf.contains(&String::from("iotrace_prefetcher"));
     let iotrace_log_manager_enabled = !conf.contains(&String::from("iotrace_log_manager"));
+    let iotrace_log_cache_enabled = !conf.contains(&String::from("iotrace_log_cache"));
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -353,12 +344,23 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
 
     table.add_row(Row::new(vec![
         Cell::new(&"I/O Trace Log Manager").with_style(Attr::Bold),
-        Cell::new(&"Manage I/O activity trace log files").with_style(Attr::Italic(true)),
+        Cell::new(&"Manage I/O trace log files").with_style(Attr::Italic(true)),
         Cell::new(&"Plugin"),
         Cell::new(&format!("{}", iotrace_log_manager_enabled))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(
                 map_bool_to_color(iotrace_log_manager_enabled),
+            )),
+    ]));
+
+    table.add_row(Row::new(vec![
+        Cell::new(&"I/O Trace Log Cache").with_style(Attr::Bold),
+        Cell::new(&"Cache and mlock() I/O trace log files").with_style(Attr::Italic(true)),
+        Cell::new(&"Plugin"),
+        Cell::new(&format!("{}", iotrace_log_cache_enabled))
+            .with_style(Attr::Bold)
+            .with_style(Attr::ForegroundColor(
+                map_bool_to_color(iotrace_log_cache_enabled),
             )),
     ]));
 
@@ -497,14 +499,8 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
                         io_trace.comm,
                         io_trace.cmdline,
                         io_trace.hash,
-                        io_trace
-                            .created_at
-                            .format(constants::DATETIME_FORMAT_DEFAULT)
-                            .to_string(),
-                        io_trace
-                            .trace_stopped_at
-                            .format(constants::DATETIME_FORMAT_DEFAULT)
-                            .to_string(),
+                        format_date(io_trace.created_at),
+                        format_date(io_trace.trace_stopped_at),
                         io_trace.file_map.len(),
                         io_trace.trace_log.len(),
                         format!("{} KiB", io_trace.accumulated_size / 1024),
@@ -576,14 +572,8 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 io_trace.comm,
                 io_trace.cmdline,
                 io_trace.hash,
-                io_trace
-                    .created_at
-                    .format(constants::DATETIME_FORMAT_DEFAULT)
-                    .to_string(),
-                io_trace
-                    .trace_stopped_at
-                    .format(constants::DATETIME_FORMAT_DEFAULT)
-                    .to_string(),
+                format_date(io_trace.created_at),
+                format_date(io_trace.trace_stopped_at),
                 io_trace.file_map.len(),
                 io_trace.trace_log.len(),
                 format!("{} KiB", io_trace.accumulated_size / 1024),
@@ -615,9 +605,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                     // Print in "tabular" format (the default)
                     table.add_row(Row::new(vec![
                         Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
-                        Cell::new(&e.timestamp
-                            .format(constants::DATETIME_FORMAT_DEFAULT)
-                            .to_string()),
+                        Cell::new(&format_date(e.timestamp)),
                         Cell::new(&format!("{:?}", e.operation)),
                         Cell::new_align(&format!("{} KiB", e.size / 1024), Alignment::RIGHT),
                     ]));
@@ -701,14 +689,8 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 io_trace.comm,
                 io_trace.cmdline,
                 io_trace.hash,
-                io_trace
-                    .created_at
-                    .format(constants::DATETIME_FORMAT_DEFAULT)
-                    .to_string(),
-                io_trace
-                    .trace_stopped_at
-                    .format(constants::DATETIME_FORMAT_DEFAULT)
-                    .to_string(),
+                format_date(io_trace.created_at),
+                format_date(io_trace.trace_stopped_at),
                 io_trace.file_map.len(),
                 io_trace.trace_log.len(),
                 format!("{} KiB", io_trace.accumulated_size / 1024),
@@ -746,9 +728,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                     // Print in "tabular" format (the default)
                     table.add_row(Row::new(vec![
                         Cell::new_align(&format!("{}", index), Alignment::RIGHT),
-                        Cell::new(&e.timestamp
-                            .format(constants::DATETIME_FORMAT_DEFAULT)
-                            .to_string()),
+                        Cell::new(&format_date(e.timestamp)),
                         Cell::new(&format!("{:?}", e.operation)),
                         Cell::new_align(&format!("{} KiB", e.size / 1024), Alignment::RIGHT),
                         Cell::new(&format!("{}", flags))

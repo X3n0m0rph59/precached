@@ -70,7 +70,8 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
         .expect("Configuration option 'state_dir' has not been specified!");
     let iotrace_path = PathBuf::from(path.join(constants::IOTRACE_DIR));
 
-    let text = util::read_compressed_text_file(&path.join("hot_applications.state")).expect("Could not read the compressed file!");
+    let text = util::read_compressed_text_file(&path.join("hot_applications.state"))
+        .expect("Could not read the compressed file!");
 
     let reader = BufReader::new(text.as_bytes());
     let deserialized = serde_json::from_reader::<_, HashMap<String, usize>>(reader);
@@ -102,6 +103,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
             table.add_row(Row::new(vec![
                 Cell::new_align(&String::from("#"), Alignment::RIGHT),
                 Cell::new(&String::from("Executable")).with_style(Attr::Bold),
+                Cell::new(&String::from("Hash")).with_style(Attr::Bold),
                 Cell::new_align(&String::from("Count"), Alignment::RIGHT).with_style(Attr::Bold),
             ]));
 
@@ -115,7 +117,8 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
                     Err(_) => {
                         table.add_row(Row::new(vec![
                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
-                            Cell::new(&format!("Missing I/O Trace Log: {}.trace", hash)).with_style(Attr::Italic(true)),
+                            Cell::new(&format!("Missing I/O Trace Log")).with_style(Attr::Italic(true)),
+                            Cell::new(&hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
                         ]));
 
@@ -129,6 +132,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                             // Cell::new(&util::ellipsize_filename(&filename)).with_style(Attr::Bold),
                             Cell::new(&filename).with_style(Attr::Bold),
+                            Cell::new(&iotrace.hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
                         ]));
                     }
@@ -141,6 +145,18 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
             pb.finish_print("done");
 
             table.printstd();
+
+            // Display an optimization hint if we have
+            // a large number of missing I/O trace logs
+            if show_all {
+                if errors > 25 {
+                    println!("\nHint: Use 'precachedctl plugins hot-applications optimize'\nto remove entries with missing I/O trace logs!\n");
+                }
+            } else {
+                if errors > 5 {
+                    println!("\nHint: Use 'precachedctl plugins hot-applications optimize'\nto remove entries with missing I/O trace logs!\n");
+                }
+            }
 
             println!(
                 "{} histogram entries examined, {} missing I/O trace logs",
@@ -182,6 +198,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
             table.add_row(Row::new(vec![
                 Cell::new_align(&String::from("#"), Alignment::RIGHT),
                 Cell::new(&String::from("Executable")).with_style(Attr::Bold),
+                Cell::new(&String::from("Hash")).with_style(Attr::Bold),
                 Cell::new_align(&String::from("Count"), Alignment::RIGHT).with_style(Attr::Bold),
                 Cell::new(&String::from("Status")).with_style(Attr::Bold),
             ]));
@@ -199,7 +216,8 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
                         table.add_row(Row::new(vec![
                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
-                            Cell::new(&format!("Missing I/O Trace Log: {}.trace", hash)).with_style(Attr::Italic(true)),
+                            Cell::new(&format!("Missing I/O Trace Log")).with_style(Attr::Italic(true)),
+                            Cell::new(&hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
                             Cell::new(&String::from("Removed"))
                                 .with_style(Attr::Bold)
@@ -219,6 +237,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                             // Cell::new(&util::ellipsize_filename(&filename)).with_style(Attr::Bold),
                             Cell::new(&filename).with_style(Attr::Bold),
+                            Cell::new(&iotrace.hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
                             Cell::new(&String::from("Valid"))
                                 .with_style(Attr::Bold)

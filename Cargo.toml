@@ -20,6 +20,7 @@ threadpool = { version = "*", git = "https://github.com/X3n0m0rph59/rust-threadp
 # sys-info = { version = "*", path = "vendor/sys-info" }
 # threadpool = { version = "*", path = "vendor/threadpool" }
 chrono = { version = "0.4.0", features = ["serde"] }
+chrono-tz = { version = "0.4.0", features = ["serde"] }
 log-panics = "1.2.0"
 ordermap = "0.3.0"
 time = "0.1.38"

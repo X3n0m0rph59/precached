@@ -189,7 +189,7 @@ impl IOtraceLogManager {
     }
 
     pub fn optimize_single_trace_log(filename: &Path) {
-        debug!("Optimizing single I/O trace log {:?}", filename);
+        info!("Optimizing single I/O trace log {:?}", filename);
 
         match iotrace::IOTraceLog::from_file(filename) {
             Err(e) => {
@@ -211,7 +211,7 @@ impl IOtraceLogManager {
                         }
 
                         Ok(_) => {
-                            debug!("I/O trace log optimized succesfuly!");
+                            info!("I/O trace log optimized succesfuly!");
                         }
                     }
                 }
@@ -220,7 +220,7 @@ impl IOtraceLogManager {
     }
 
     pub fn optimize_all_trace_logs(state_dir: &Path) {
-        debug!("Optimizing all I/O trace logs...");
+        info!("Optimizing all I/O trace logs...");
 
         let traces_path = state_dir.join(constants::IOTRACE_DIR);
 
@@ -264,12 +264,12 @@ impl IOtraceLogManager {
         }
 
         if optimized < 1 {
-            debug!(
+            info!(
                 "{} I/O trace logs examined, no I/O trace logs needed to be optimized",
                 counter
             );
         } else {
-            debug!(
+            info!(
                 "{} I/O trace logs examined, {} logs optimized, {} errors occured",
                 counter,
                 optimized,
