@@ -548,7 +548,6 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             break 'LINE_LOOP;
         }
 
-
         // prune expired tracers
         // NOTE: We have to use `lock()` here instead of `try_lock()`
         //       because we don't want to miss events in any case.

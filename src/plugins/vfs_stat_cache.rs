@@ -65,7 +65,7 @@ impl VFSStatCache {
 
         let tracked_entries = self.get_globally_tracked_entries(globals, manager);
 
-        match util::PREFETCH_POOL.try_lock() {
+        match util::PREFETCH_POOL.lock() {
             Err(e) => warn!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e

@@ -69,7 +69,7 @@ impl IOtraceLogCache {
         let (sender, receiver): (Sender<HashMap<PathBuf, util::MemoryMapping>>, _) = channel();
         let sc = Mutex::new(sender.clone());
 
-        match util::PREFETCH_POOL.try_lock() {
+        match util::PREFETCH_POOL.lock() {
             Err(e) => warn!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e
@@ -160,7 +160,7 @@ impl IOtraceLogCache {
         let (sender, receiver): (Sender<HashMap<PathBuf, util::MemoryMapping>>, _) = channel();
         let sc = Mutex::new(sender.clone());
 
-        match util::PREFETCH_POOL.try_lock() {
+        match util::PREFETCH_POOL.lock() {
             Err(e) => warn!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e

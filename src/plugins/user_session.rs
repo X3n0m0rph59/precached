@@ -46,7 +46,7 @@ static DESCRIPTION: &str = "Allow caching of statx() metadata of files in logged
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(UserSession::new());
+        let plugin = Box::new(UserSession::new(globals));
 
         let m = manager.plugin_manager.read().unwrap();
 
@@ -59,15 +59,33 @@ pub type Uid = u32;
 #[derive(Debug, Clone)]
 pub struct UserSession {
     pub logged_in_users: OrderMap<Uid, PathBuf>,
+    metadata_whitelist: Vec<PathBuf>,
     memory_freed: bool,
 }
 
 impl UserSession {
-    pub fn new() -> UserSession {
+    pub fn new(globals: &Globals) -> UserSession {
         UserSession {
             logged_in_users: OrderMap::new(),
+            metadata_whitelist: Self::get_file_whitelist(globals),
             memory_freed: true,
         }
+    }
+
+    fn get_file_whitelist(globals: &Globals) -> Vec<PathBuf> {
+        let mut result = Vec::new();
+
+        let mut whitelist = globals
+            .config
+            .config_file
+            .clone()
+            .unwrap()
+            .user_home_metadata_whitelist
+            .unwrap();
+
+        result.append(&mut whitelist);
+
+        result
     }
 
     pub fn user_logged_in(&mut self, uid: Uid, _globals: &mut Globals, _manager: &Manager) {
@@ -153,38 +171,46 @@ impl UserSession {
     pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started reading of statx() metadata for logged in users /home directories...");
 
-        let mut tracked_entries: Vec<PathBuf> = self.logged_in_users
+        let mut logged_users_home_dirs: Vec<PathBuf> = self.logged_in_users
             .values()
             .map(|v| PathBuf::from(v))
             .collect();
-        // last logged in user should come first
-        tracked_entries.reverse();
-        info!("{:?}", tracked_entries);
 
-        match util::PREFETCH_POOL.try_lock() {
+        // last logged in user should come first
+        logged_users_home_dirs.reverse();
+        
+        match util::PREFETCH_POOL.lock() {
             Err(e) => warn!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e
             ),
             Ok(thread_pool) => {
-                let globals_c = globals.clone();
-                let manager_c = manager.clone();
+                for home_dir in logged_users_home_dirs {
+                    // Construct a Vec of paths taken from the .config file 
+                    // `user_home_metadata_whitelist` section
+                    let tracked_entries: Vec<PathBuf> = self.metadata_whitelist.iter().map(|f| home_dir.join(f)).collect();
+                                        
+                    debug!("Recursively caching: {:?}", tracked_entries);
 
-                thread_pool.submit_work(move || {
-                    util::walk_directories(&tracked_entries, &mut |ref path| {
-                        if !Self::check_available_memory(&globals_c, &manager_c) {
-                            info!("Available memory exhausted, stopping statx() caching!");
-                            return;
-                        }
+                    let globals_c = globals.clone();
+                    let manager_c = manager.clone();
 
-                        let _metadata = path.metadata();
-                    }).unwrap_or_else(|e| {
-                        error!(
-                            "Unhandled error occured during processing of files and directories! {}",
-                            e
-                        )
+                    thread_pool.submit_work(move || {
+                        util::walk_directories(&tracked_entries, &mut |ref path| {
+                            if !Self::check_available_memory(&globals_c, &manager_c) {
+                                info!("Available memory exhausted, stopping statx() caching!");
+                                return;
+                            }
+
+                            let _metadata = path.metadata();
+                        }).unwrap_or_else(|e| {
+                            error!(
+                                "Unhandled error occured during processing of files and directories! {}",
+                                e
+                            )
+                        });
                     });
-                });
+                }
 
                 info!("Finished reading of statx() metadata for logged in users /home directories");
             }
@@ -295,6 +321,7 @@ impl Plugin for UserSession {
                 // TODO: Replace this hack with something better!
                 //       Assume that the first user will log in subsequently
                 self.user_logged_in(1000, globals, manager);
+                self.prime_statx_cache(globals, manager);
             }
 
             events::EventType::PrimeCaches => if self.memory_freed {
