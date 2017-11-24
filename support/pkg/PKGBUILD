@@ -1,7 +1,7 @@
 # Maintainer: X3n0m0rph59 <x3n0m0rph59@gmail.com>
 pkgname=precached
 pkgver=0.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc="A Linux process monitor and pre-caching daemon"
 arch=('i686' 'x86_64')
 url="https://x3n0m0rph59.github.io/precached/"
@@ -35,7 +35,7 @@ package() {
   mkdir -p "$pkgdir/var/lib/precached/iotrace"
   mkdir -p "$pkgdir/usr/share/doc/precached/examples"
   mkdir -p "$pkgdir/usr/lib/systemd/system/"
-  mkdir -p "$pkgdir/etc/dbus-1/"
+  mkdir -p "$pkgdir/etc/dbus-1/system.d/"
   mkdir -p "$pkgdir/usr/share/man/man8/"
   mkdir -p "$pkgdir/usr/share/man/man5/"
   mkdir -p "$pkgdir/usr/share/doc/precached/examples/"
@@ -57,8 +57,8 @@ package() {
   install -m 644 "support/man/iotracectl.8" "$pkgdir/usr/share/man/man8/"
   install -m 644 "support/man/precached.conf.5" "$pkgdir/usr/share/man/man5/"
 
-  install -T 644 "support/shell/completions/iotracectl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/iotracectl"
-  install -T 644 "support/shell/completions/precachedctl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/precachedctl"
-  install -T 644 "support/shell/completions/iotracectlctl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/_iotracectl"
-  install -T 644 "support/shell/completions/precachedctl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/_precachedctl"
+  install -m 644 -T "support/shell/completions/iotracectl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/iotracectl"
+  install -m 644 -T "support/shell/completions/precachedctl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/precachedctl"
+  install -m 644 -T "support/shell/completions/iotracectl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/_iotracectl"
+  install -m 644 -T "support/shell/completions/precachedctl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/_precachedctl"
 }
