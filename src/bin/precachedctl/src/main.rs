@@ -113,19 +113,8 @@ fn read_daemon_pid() -> io::Result<String> {
 
 /// Define a table format using only Unicode character points as
 /// the default output format
-pub fn default_table_format(config: &Config) -> TableFormat {
-    if config.matches.is_present("ascii") {
-        // Use only ASCII characters
-        FormatBuilder::new()
-            .column_separator('|')
-            .borders('|')
-            .separator(LinePosition::Intern, LineSeparator::new('-', '+', '+', '+'))
-            .separator(LinePosition::Title, LineSeparator::new('=', '+', '+', '+'))
-            .separator(LinePosition::Bottom, LineSeparator::new('-', '+', '+', '+'))
-            .separator(LinePosition::Top, LineSeparator::new('-', '+', '+', '+'))
-            .padding(1, 1)
-            .build()
-    } else {
+fn default_table_format(config: &Config) -> TableFormat {
+    if config.matches.is_present("unicode") {
         // Use Unicode code points
         FormatBuilder::new()
             .column_separator('|')
@@ -142,6 +131,17 @@ pub fn default_table_format(config: &Config) -> TableFormat {
                 &[LinePosition::Bottom],
                 LineSeparator::new('─', '┴', '└', '┘'),
             )
+            .padding(1, 1)
+            .build()
+    } else {
+        // Use only ASCII characters (the default)
+        FormatBuilder::new()
+            .column_separator('|')
+            .borders('|')
+            .separator(LinePosition::Intern, LineSeparator::new('-', '+', '+', '+'))
+            .separator(LinePosition::Title, LineSeparator::new('=', '+', '+', '+'))
+            .separator(LinePosition::Bottom, LineSeparator::new('-', '+', '+', '+'))
+            .separator(LinePosition::Top, LineSeparator::new('-', '+', '+', '+'))
             .padding(1, 1)
             .build()
     }

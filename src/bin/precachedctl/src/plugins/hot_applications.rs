@@ -102,9 +102,9 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
 
             table.add_row(Row::new(vec![
                 Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                Cell::new(&String::from("Executable")).with_style(Attr::Bold),
-                Cell::new(&String::from("Hash")).with_style(Attr::Bold),
-                Cell::new_align(&String::from("Count"), Alignment::RIGHT).with_style(Attr::Bold),
+                Cell::new(&String::from("Executable")),
+                Cell::new(&String::from("Hash")),
+                Cell::new_align(&String::from("Count"), Alignment::RIGHT),                
             ]));
 
             let mut index = 0;
@@ -197,10 +197,10 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
             table.add_row(Row::new(vec![
                 Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                Cell::new(&String::from("Executable")).with_style(Attr::Bold),
-                Cell::new(&String::from("Hash")).with_style(Attr::Bold),
-                Cell::new_align(&String::from("Count"), Alignment::RIGHT).with_style(Attr::Bold),
-                Cell::new(&String::from("Status")).with_style(Attr::Bold),
+                Cell::new(&String::from("Executable")),
+                Cell::new(&String::from("Hash")),
+                Cell::new_align(&String::from("Count"), Alignment::RIGHT),
+                Cell::new(&String::from("Status")),
             ]));
 
             let mut index = 0;

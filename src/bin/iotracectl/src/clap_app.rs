@@ -34,10 +34,16 @@ where
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
         .arg(
-            Arg::with_name("ascii")
+             Arg::with_name("ascii")
                 .short("a")
                 .long("ascii")
-                .help("Produce ASCII output instead of using Unicode for line drawing"),
+                .help("Produce ASCII output (default) instead of using Unicode for line drawing")            
+        )
+        .arg(
+            Arg::with_name("unicode")
+                .short("u")
+                .long("unicode")
+                .help("Produce Unicode output instead of using ASCII (default) for line drawing")
         )
         .arg(
             Arg::with_name("config")
