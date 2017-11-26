@@ -208,7 +208,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
     if matches.is_present("full") {
         // Print in "full" format
         println!(
-            "I/O Trace:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\n\
+            "I/O Trace Log:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\n\
              Compression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\nI/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
             filename,
             io_trace.exe,
@@ -462,7 +462,7 @@ where
         let filename = String::from(path.to_string_lossy());
         match iotrace::IOTraceLog::from_file(&path) {
             Err(e) => {
-                error!("I/O trace file {:?} not readable: {}", &path, e);
+                error!("I/O trace log file {:?} not readable: {}", &path, e);
                 errors += 1;
             }
 
@@ -477,7 +477,7 @@ where
     }) {
         Err(e) => {
             return Err(format!(
-                "Error during enumeration of I/O trace files: {}",
+                "Error during enumeration of I/O trace log files: {}",
                 e
             ))
         }
@@ -580,7 +580,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     let matches = config.matches.subcommand_matches("list").unwrap();
 
-    let (result, _total, matching, errors) = get_io_traces_filtered_and_sorted(
+    let (result, total, matching, errors) = get_io_traces_filtered_and_sorted(
         config,
         daemon_config,
         &mut pb,
@@ -615,18 +615,22 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         index += 1;
     }
 
-    if index < 1 {
-        println!("There are currently no I/O traces available");
+    // pb.finish_println("\n");
+
+    if total < 1 {
+        println!("No I/O trace logs available");
+    } else if index < 1 {
+        println!("No I/O trace log matched the filter parameter(s)");
     } else {
         if table.len() > 1 {
             // Print the generated table to stdout
             table.printstd();
         } else if matching < 1 {
-            println!("No I/O trace matched the filter parameter(s)");
+            println!("No I/O trace log matched the filter parameter(s)");
         }
 
         println!(
-            "\nSummary: {} I/O trace files processed, {} matching filter, {} errors occured",
+            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
             index,
             matching,
             errors
@@ -640,7 +644,7 @@ fn print_io_trace_info(filename: &Path, io_trace: &iotrace::IOTraceLog, _index: 
     // TODO: Support other formats here
     // Print in "full" format
     println!(
-        "I/O Trace:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+        "I/O Trace Log:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
          Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
          I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
         filename,
@@ -672,7 +676,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
 
     let matches = config.matches.subcommand_matches("info").unwrap();
 
-    let (result, _total, matching, errors) = get_io_traces_filtered_and_sorted(
+    let (result, total, matching, errors) = get_io_traces_filtered_and_sorted(
         config,
         daemon_config,
         &mut pb,
@@ -689,15 +693,19 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
         index += 1;
     }
 
-    if index < 1 {
-        println!("There are currently no I/O traces available");
+    // pb.finish_println("\n");
+
+    if total < 1 {
+        println!("No I/O trace logs available");
+    } else if index < 1 {
+        println!("No I/O trace log matched the filter parameter(s)");
     } else {
         if matching < 1 {
-            println!("No I/O trace matched the filter parameter(s)");
+            println!("No I/O trace log matched the filter parameter(s)");
         }
 
         println!(
-            "\nSummary: {} I/O trace files processed, {} matching filter, {} errors occured",
+            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
             index,
             matching,
             errors
@@ -738,7 +746,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
             // Print in "full" format
             println!(
-                "I/O Trace:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                "I/O Trace Log:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
                  I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
@@ -795,7 +803,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     index += 1;
 
     println!(
-        "\nSummary: {} I/O trace files processed, {} matching filter, {} errors occured",
+        "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
         index,
         matching,
         errors
@@ -847,7 +855,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     match iotrace::IOTraceLog::from_file(&filename) {
         Err(e) => {
-            error!("Invalid I/O trace file, file not readable: {}", e);
+            error!("Invalid I/O trace log file, file not readable: {}", e);
             errors += 1;
         }
         Ok(io_trace) => {
@@ -855,7 +863,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
             // Print in "full" format
             println!(
-                "I/O Trace:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
+                "I/O Trace Log:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
                  Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
                  I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
                 filename,
@@ -923,7 +931,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     index += 1;
 
     println!(
-        "\nSummary: {} I/O trace files processed, {} matching filter, {} errors occured",
+        "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
         index,
         matching,
         errors
@@ -1009,26 +1017,28 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     pb.finish_println("\n");
 
-    if table.len() > 1 {
+    if total < 1 {
+        println!("No I/O trace logs available");
+    } else if table.len() > 1 {
         table.printstd();
+
+        if dry_run {
+            println!(
+                "\nSummary: {} I/O trace log files processed, {} trace files would have been optimized, {} errors occured",
+                total,
+                matching,
+                errors
+            );
+        } else {
+            println!(
+                "\nSummary: {} I/O trace log files processed, {} optimized, {} errors occured",
+                total,
+                matching,
+                errors
+            );
+        }
     } else {
         println!("No I/O trace matched the filter parameter(s)");
-    }
-
-    if dry_run {
-        println!(
-            "\nSummary: {} I/O trace files processed, {} trace files would have been optimized, {} errors occured",
-            total,
-            matching,
-            errors
-        );
-    } else {
-        println!(
-            "\nSummary: {} I/O trace files processed, {} optimized, {} errors occured",
-            total,
-            matching,
-            errors
-        );
     }
 }
 
@@ -1111,26 +1121,30 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     pb.finish_println("\n");
 
-    if table.len() > 1 {
-        table.printstd();
-    } else {
-        println!("No I/O trace matched the filter parameter(s)");
-    }
+    // pb.finish_println("\n");
 
-    if dry_run {
-        println!(
-            "\nSummary: {} I/O trace files processed, {} trace files would have been removed, {} errors occured",
-            total,
-            matching,
-            errors
-        );
+    if total < 1 {
+        println!("No I/O trace logs available");
+    } else if table.len() > 1 {
+        table.printstd();
+
+        if dry_run {
+            println!(
+                "\nSummary: {} I/O trace log files processed, {} trace files would have been removed, {} errors occured",
+                total,
+                matching,
+                errors
+            );
+        } else {
+            println!(
+                "\nSummary: {} I/O trace log files processed, {} removed, {} errors occured",
+                total,
+                matching,
+                errors
+            );
+        }
     } else {
-        println!(
-            "\nSummary: {} I/O trace files processed, {} removed, {} errors occured",
-            total,
-            matching,
-            errors
-        );
+        println!("No I/O trace log matched the filter parameter(s)");
     }
 }
 
@@ -1193,12 +1207,12 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
         index += 1;
     }) {
-        Err(e) => error!("Error during enumeration of I/O trace files: {}", e),
+        Err(e) => error!("Error during enumeration of I/O trace log files: {}", e),
         _ => { /* Do nothing */ }
     }
 
     if index < 1 {
-        println!("There are currently no I/O traces available to remove");
+        println!("There are currently no I/O trace logs available to remove");
     } else {
         if table.len() > 1 {
             // Print the generated table to stdout
@@ -1207,14 +1221,14 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
         if dry_run {
             println!(
-                "\nSummary: {} I/O trace files processed, {} would have been removed, {} errors occured",
+                "\nSummary: {} I/O trace log files processed, {} would have been removed, {} errors occured",
                 index,
                 matching,
                 errors
             );
         } else {
             println!(
-                "\nSummary: {} I/O trace files processed, {} removed, {} errors occured",
+                "\nSummary: {} I/O trace log files processed, {} removed, {} errors occured",
                 index,
                 matching,
                 errors
