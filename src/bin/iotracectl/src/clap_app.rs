@@ -34,16 +34,16 @@ where
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
         .arg(
-             Arg::with_name("ascii")
+            Arg::with_name("ascii")
                 .short("a")
                 .long("ascii")
-                .help("Produce ASCII output (default) instead of using Unicode for line drawing")            
+                .help("Produce ASCII output (default) instead of using Unicode for line drawing"),
         )
         .arg(
             Arg::with_name("unicode")
                 .short("u")
                 .long("unicode")
-                .help("Produce Unicode output instead of using ASCII (default) for line drawing")
+                .help("Produce Unicode output instead of using ASCII (default) for line drawing"),
         )
         .arg(
             Arg::with_name("config")
@@ -157,7 +157,7 @@ where
                         .short("o")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&["true", "false"])                        
+                        .possible_values(&["true", "false"])
                         .help("Filter for optimization status of the I/O trace"),
                 )
                 .arg(
@@ -165,7 +165,15 @@ where
                         .long("sort")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
+                        .possible_values(&[
+                            "executable",
+                            "hash",
+                            "date",
+                            "numfiles",
+                            "numioops",
+                            "iosize",
+                            "optimized",
+                        ])
                         .default_value("date")
                         .help("Sort entries by field"),
                 )
@@ -220,7 +228,7 @@ where
                         .short("o")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&["true", "false"])                        
+                        .possible_values(&["true", "false"])
                         .help("Filter for optimization status of the I/O trace"),
                 )
                 .arg(
@@ -228,7 +236,15 @@ where
                         .long("sort")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
+                        .possible_values(&[
+                            "executable",
+                            "hash",
+                            "date",
+                            "numfiles",
+                            "numioops",
+                            "iosize",
+                            "optimized",
+                        ])
                         .default_value("date")
                         .help("Sort entries by field"),
                 )
@@ -312,7 +328,7 @@ where
                         .short("o")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&["true", "false"])                        
+                        .possible_values(&["true", "false"])
                         .help("Filter for optimization status of the I/O trace"),
                 )
                 .arg(
@@ -320,7 +336,15 @@ where
                         .long("sort")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
+                        .possible_values(&[
+                            "executable",
+                            "hash",
+                            "date",
+                            "numfiles",
+                            "numioops",
+                            "iosize",
+                            "optimized",
+                        ])
                         .default_value("date")
                         .help("Sort entries by field"),
                 )
@@ -333,61 +357,75 @@ where
                         .default_value("ascending")
                         .help("Sort order"),
                 )
-                .arg(Arg::with_name("dryrun").long("dry-run").short("n").help(
-                        "Do not actually optimize anything, just pretend to",
-                )),
+                .arg(
+                    Arg::with_name("dryrun")
+                        .long("dry-run")
+                        .short("n")
+                        .help("Do not actually optimize anything, just pretend to"),
+                ),
         )
         .subcommand(
             SubCommand::with_name("remove")
-                    .setting(AppSettings::DeriveDisplayOrder)
-                    .alias("delete")
-                    .about("Remove I/O trace")
-                    .arg(                   
-                        Arg::with_name("hash")
-                            .long("hash")
-                            .short("p")
-                            .takes_value(true)
-                            .required(false)
-                            .help("Filter for the hash value of the I/O trace"),
-                    )
-                    .arg(
-                        Arg::with_name("executable")
-                            .long("executable")
-                            .short("e")
-                            .takes_value(true)
-                            .required(false)
-                            .help("Filter for executable name of the I/O trace"),
-                    )
-                    .arg(
-                        Arg::with_name("optimized")
-                            .long("optimized")
-                            .short("o")
-                            .takes_value(true)
-                            .required(false)
-                            .possible_values(&["true", "false"])                        
-                            .help("Filter for optimization status of the I/O trace"),
-                    )
-                    .arg(
-                        Arg::with_name("sort")
-                            .long("sort")
-                            .takes_value(true)
-                            .required(false)
-                            .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
-                            .default_value("date")
-                            .help("Sort entries by field"),
-                    )
-                    .arg(
-                        Arg::with_name("order")
-                            .long("order")
-                            .takes_value(true)
-                            .required(false)
-                            .possible_values(&["asc", "ascending", "desc", "descending"])
-                            .default_value("ascending")
-                            .help("Sort order"),
-                    )
-                    .arg(Arg::with_name("dryrun").long("dry-run").short("n").help(
-                        "Do not actually remove anything, just pretend to",
-                    )),
+                .setting(AppSettings::DeriveDisplayOrder)
+                .alias("delete")
+                .about("Remove I/O trace")
+                .arg(
+                    Arg::with_name("hash")
+                        .long("hash")
+                        .short("p")
+                        .takes_value(true)
+                        .required(false)
+                        .help("Filter for the hash value of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("executable")
+                        .long("executable")
+                        .short("e")
+                        .takes_value(true)
+                        .required(false)
+                        .help("Filter for executable name of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("optimized")
+                        .long("optimized")
+                        .short("o")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["true", "false"])
+                        .help("Filter for optimization status of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("sort")
+                        .long("sort")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[
+                            "executable",
+                            "hash",
+                            "date",
+                            "numfiles",
+                            "numioops",
+                            "iosize",
+                            "optimized",
+                        ])
+                        .default_value("date")
+                        .help("Sort entries by field"),
+                )
+                .arg(
+                    Arg::with_name("order")
+                        .long("order")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["asc", "ascending", "desc", "descending"])
+                        .default_value("ascending")
+                        .help("Sort order"),
+                )
+                .arg(
+                    Arg::with_name("dryrun")
+                        .long("dry-run")
+                        .short("n")
+                        .help("Do not actually remove anything, just pretend to"),
+                ),
         )
         .subcommand(
             SubCommand::with_name("clear")

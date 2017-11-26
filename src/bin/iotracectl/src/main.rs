@@ -47,10 +47,10 @@ use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::row::Row;
 use std::collections::HashSet;
-use std::str::FromStr;
 use std::fs::read_dir;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use term::Attr;
 use term::color::*;
 
@@ -173,11 +173,9 @@ fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::I
                     error!("Could not parse command line argument 'optimized'");
                 }
 
-                Ok(value) => {
-                    if !io_trace.trace_log_optimized == value {
-                        return false;
-                    }
-                }
+                Ok(value) => if !io_trace.trace_log_optimized == value {
+                    return false;
+                },
             }
         }
     }
@@ -413,9 +411,9 @@ fn parse_sort_field(matches: &clap::ArgMatches) -> SortField {
             "numfiles" => SortField::Numfiles,
             "numioops" => SortField::Numioops,
             "iosize" => SortField::Iosize,
-            "optimized" => SortField::Optimized,        
+            "optimized" => SortField::Optimized,
             &_ => SortField::None,
-        }
+        },
     }
 }
 
@@ -424,22 +422,27 @@ fn parse_sort_order(matches: &clap::ArgMatches) -> SortOrder {
         None => SortOrder::Ascending,
 
         Some(order) => match order {
-            "asc" |"ascending"  => SortOrder::Ascending,
-            "desc"|"descending" => SortOrder::Descending,
+            "asc" | "ascending" => SortOrder::Ascending,
+            "desc" | "descending" => SortOrder::Descending,
             &_ => SortOrder::Ascending,
-        }
+        },
     }
 }
 
-/// Returns a tuple containing a sorted Vec of matching I/O trace logs and the 
+/// Returns a tuple containing a sorted Vec of matching I/O trace logs and the
 /// PathBuf of the respective I/O trace log file. The usize return values are:
 /// Total I/O trace logs examined, I/O trace logs matching filter, Total errors
-fn get_io_traces_filtered_and_sorted<T>(config: &Config, daemon_config: util::ConfigFile, 
-                                        pb: &mut ProgressBar<T>, subcommand: &String, 
-                                        sort_field: SortField, sort_order: SortOrder) 
-    -> Result<(Vec<(iotrace::IOTraceLog, PathBuf)>, usize, usize, usize), String>
-    where T: std::io::Write {
-    
+fn get_io_traces_filtered_and_sorted<T>(
+    config: &Config,
+    daemon_config: util::ConfigFile,
+    pb: &mut ProgressBar<T>,
+    subcommand: &String,
+    sort_field: SortField,
+    sort_order: SortOrder,
+) -> Result<(Vec<(iotrace::IOTraceLog, PathBuf)>, usize, usize, usize), String>
+where
+    T: std::io::Write,
+{
     pb.message("Examining I/O trace log files: ");
 
     let mut result = vec![];
@@ -472,7 +475,12 @@ fn get_io_traces_filtered_and_sorted<T>(config: &Config, daemon_config: util::Co
         pb.inc();
         index += 1;
     }) {
-        Err(e) => return Err(format!("Error during enumeration of I/O trace files: {}", e)),
+        Err(e) => {
+            return Err(format!(
+                "Error during enumeration of I/O trace files: {}",
+                e
+            ))
+        }
         _ => { /* Do nothing */ }
     }
 
@@ -480,72 +488,79 @@ fn get_io_traces_filtered_and_sorted<T>(config: &Config, daemon_config: util::Co
     pb.message("Sorting data set: ");
 
     match sort_field {
-        SortField::None => {
-            /* Do nothing */
-        }
+        SortField::None => { /* Do nothing */ }
 
         SortField::Executable => {
             // Sort by exe name
             if sort_order == SortOrder::Ascending {
-                result.sort_by(|a, b| { a.0.exe.cmp(&b.0.exe) });
+                result.sort_by(|a, b| a.0.exe.cmp(&b.0.exe));
             } else {
-                result.sort_by(|a, b| { a.0.exe.cmp(&b.0.exe).reverse() });
+                result.sort_by(|a, b| a.0.exe.cmp(&b.0.exe).reverse());
             }
         }
 
         SortField::Hash => {
             // Sort by hash value
             if sort_order == SortOrder::Ascending {
-                result.sort_by(|a, b| { a.0.hash.cmp(&b.0.hash) });
+                result.sort_by(|a, b| a.0.hash.cmp(&b.0.hash));
             } else {
-                result.sort_by(|a, b| { a.0.hash.cmp(&b.0.hash).reverse() });
+                result.sort_by(|a, b| a.0.hash.cmp(&b.0.hash).reverse());
             }
         }
 
         SortField::Date => {
             // Sort by creation date
             if sort_order == SortOrder::Ascending {
-                result.sort_by(|a, b| { a.0.created_at.cmp(&b.0.created_at) });
+                result.sort_by(|a, b| a.0.created_at.cmp(&b.0.created_at));
             } else {
-                result.sort_by(|a, b| { a.0.created_at.cmp(&b.0.created_at).reverse() });
+                result.sort_by(|a, b| a.0.created_at.cmp(&b.0.created_at).reverse());
             }
         }
 
         SortField::Iosize => {
             // Sort by accumulated size
             if sort_order == SortOrder::Ascending {
-                result.sort_by(|a, b| { a.0.accumulated_size.cmp(&b.0.accumulated_size) });
+                result.sort_by(|a, b| a.0.accumulated_size.cmp(&b.0.accumulated_size));
             } else {
-                result.sort_by(|a, b| { a.0.accumulated_size.cmp(&b.0.accumulated_size).reverse() });
+                result.sort_by(|a, b| {
+                    a.0.accumulated_size.cmp(&b.0.accumulated_size).reverse()
+                });
             }
         }
 
         SortField::Numfiles => {
             // Sort by num files
             if sort_order == SortOrder::Ascending {
-                result.sort_by(|a, b| { a.0.file_map.len().cmp(&b.0.file_map.len()) });
+                result.sort_by(|a, b| a.0.file_map.len().cmp(&b.0.file_map.len()));
             } else {
-                result.sort_by(|a, b| { a.0.file_map.len().cmp(&b.0.file_map.len()).reverse() });
+                result.sort_by(|a, b| a.0.file_map.len().cmp(&b.0.file_map.len()).reverse());
             }
         }
 
         SortField::Numioops => {
             // Sort by creation date
             if sort_order == SortOrder::Ascending {
-                result.sort_by(|a, b| { a.0.trace_log.len().cmp(&b.0.trace_log.len()) });
+                result.sort_by(|a, b| a.0.trace_log.len().cmp(&b.0.trace_log.len()));
             } else {
-                result.sort_by(|a, b| { a.0.trace_log.len().cmp(&b.0.trace_log.len()).reverse() });
+                result.sort_by(|a, b| {
+                    a.0.trace_log.len().cmp(&b.0.trace_log.len()).reverse()
+                });
             }
         }
 
         SortField::Optimized => {
             // Sort by creation date
             if sort_order == SortOrder::Ascending {
-                result.sort_by(|a, b| { a.0.trace_log_optimized.cmp(&b.0.trace_log_optimized) });
+                result.sort_by(|a, b| a.0.trace_log_optimized.cmp(&b.0.trace_log_optimized));
             } else {
-                result.sort_by(|a, b| { a.0.trace_log_optimized.cmp(&b.0.trace_log_optimized).reverse() });
+                result.sort_by(|a, b| {
+                    a.0
+                        .trace_log_optimized
+                        .cmp(&b.0.trace_log_optimized)
+                        .reverse()
+                });
             }
-        }        
+        }
     }
 
     Ok((result, index, matching, errors))
@@ -553,19 +568,26 @@ fn get_io_traces_filtered_and_sorted<T>(config: &Config, daemon_config: util::Co
 
 /// Enumerate all I/O traces and display them in the specified format
 fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
-    let state_dir = daemon_config.clone()
+    let state_dir = daemon_config
+        .clone()
         .state_dir
         .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
     let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
-    
+
     let count = read_dir(&traces_path).unwrap().count();
-    let mut pb = ProgressBar::new(count as u64);    
+    let mut pb = ProgressBar::new(count as u64);
     pb.format(PROGRESS_BAR_INDICATORS);
-    
+
     let matches = config.matches.subcommand_matches("list").unwrap();
 
-    let (result, _total, matching, errors) = get_io_traces_filtered_and_sorted(config, daemon_config, &mut pb, &String::from("list"), 
-                                                                                parse_sort_field(&matches), parse_sort_order(&matches)).unwrap();
+    let (result, _total, matching, errors) = get_io_traces_filtered_and_sorted(
+        config,
+        daemon_config,
+        &mut pb,
+        &String::from("list"),
+        parse_sort_field(&matches),
+        parse_sort_order(&matches),
+    ).unwrap();
 
     pb.finish_println("\n");
 
@@ -588,16 +610,16 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     ]));
 
     let mut index = 0;
-    for (io_trace, path) in result {            
+    for (io_trace, path) in result {
         print_io_trace(&path, &io_trace, index + 1, config, &mut table);
         index += 1;
     }
-    
+
     if index < 1 {
         println!("There are currently no I/O traces available");
     } else {
         if table.len() > 1 {
-            // Print the generated table to stdout            
+            // Print the generated table to stdout
             table.printstd();
         } else if matching < 1 {
             println!("No I/O trace matched the filter parameter(s)");
@@ -619,8 +641,8 @@ fn print_io_trace_info(filename: &Path, io_trace: &iotrace::IOTraceLog, _index: 
     // Print in "full" format
     println!(
         "I/O Trace:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
-        Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-        I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
+         Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
+         I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
         filename,
         io_trace.exe,
         io_trace.comm,
@@ -638,28 +660,35 @@ fn print_io_trace_info(filename: &Path, io_trace: &iotrace::IOTraceLog, _index: 
 
 /// Display metadata of an I/O trace in the specified format
 fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) {
-    let state_dir = daemon_config.clone()
+    let state_dir = daemon_config
+        .clone()
         .state_dir
         .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
     let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
-    
+
     let count = read_dir(&traces_path).unwrap().count();
-    let mut pb = ProgressBar::new(count as u64);    
+    let mut pb = ProgressBar::new(count as u64);
     pb.format(PROGRESS_BAR_INDICATORS);
-    
+
     let matches = config.matches.subcommand_matches("info").unwrap();
 
-    let (result, _total, matching, errors) = get_io_traces_filtered_and_sorted(config, daemon_config, &mut pb, &String::from("info"), 
-                                                                               parse_sort_field(&matches), parse_sort_order(&matches)).unwrap();
+    let (result, _total, matching, errors) = get_io_traces_filtered_and_sorted(
+        config,
+        daemon_config,
+        &mut pb,
+        &String::from("info"),
+        parse_sort_field(&matches),
+        parse_sort_order(&matches),
+    ).unwrap();
 
     pb.finish_println("\n");
 
     let mut index = 0;
-    for (io_trace, path) in result {            
+    for (io_trace, path) in result {
         print_io_trace_info(&path, &io_trace, index + 1, config);
         index += 1;
     }
-    
+
     if index < 1 {
         println!("There are currently no I/O traces available");
     } else {
@@ -903,29 +932,36 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
 /// Optimize I/O trace file access pattern
 fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
-    let state_dir = daemon_config.clone()
+    let state_dir = daemon_config
+        .clone()
         .state_dir
         .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
     let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
-    
+
     let count = read_dir(&traces_path).unwrap().count();
-    let mut pb = ProgressBar::new(count as u64);    
+    let mut pb = ProgressBar::new(count as u64);
     pb.format(PROGRESS_BAR_INDICATORS);
-    
+
     let matches = config.matches.subcommand_matches("optimize").unwrap();
 
-    let (result, total, matching, mut errors) = get_io_traces_filtered_and_sorted(config, daemon_config, &mut pb, &String::from("optimize"), 
-                                                                                  parse_sort_field(&matches), parse_sort_order(&matches)).unwrap();
+    let (result, total, matching, mut errors) = get_io_traces_filtered_and_sorted(
+        config,
+        daemon_config,
+        &mut pb,
+        &String::from("optimize"),
+        parse_sort_field(&matches),
+        parse_sort_order(&matches),
+    ).unwrap();
 
-    let mut pb = ProgressBar::new(matching as u64);    
+    let mut pb = ProgressBar::new(matching as u64);
     pb.format(PROGRESS_BAR_INDICATORS);
     pb.message("Optimizing I/O trace log files: ");
 
     let dry_run = config
-                    .matches
-                    .subcommand_matches("optimize")
-                    .unwrap()
-                    .is_present("dryrun");
+        .matches
+        .subcommand_matches("optimize")
+        .unwrap()
+        .is_present("dryrun");
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -938,9 +974,9 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     ]));
 
     let mut index = 0;
-    for (mut io_trace, path) in result {            
+    for (mut io_trace, path) in result {
         let filename = String::from(path.to_string_lossy());
- 
+
         match util::optimize_io_trace_log(&path, &mut io_trace, dry_run) {
             Err(_) => {
                 // Print in "tabular" format (the default)
@@ -972,7 +1008,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     }
 
     pb.finish_println("\n");
-    
+
     if table.len() > 1 {
         table.printstd();
     } else {
@@ -998,29 +1034,36 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
 /// Remove I/O traces
 fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
-    let state_dir = daemon_config.clone()
+    let state_dir = daemon_config
+        .clone()
         .state_dir
         .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
     let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
-    
+
     let count = read_dir(&traces_path).unwrap().count();
-    let mut pb = ProgressBar::new(count as u64);    
+    let mut pb = ProgressBar::new(count as u64);
     pb.format(PROGRESS_BAR_INDICATORS);
-    
+
     let matches = config.matches.subcommand_matches("remove").unwrap();
 
-    let (result, total, matching, mut errors) = get_io_traces_filtered_and_sorted(config, daemon_config, &mut pb, &String::from("remove"), 
-                                                                                  parse_sort_field(&matches), parse_sort_order(&matches)).unwrap();
+    let (result, total, matching, mut errors) = get_io_traces_filtered_and_sorted(
+        config,
+        daemon_config,
+        &mut pb,
+        &String::from("remove"),
+        parse_sort_field(&matches),
+        parse_sort_order(&matches),
+    ).unwrap();
 
-    let mut pb = ProgressBar::new(matching as u64);    
+    let mut pb = ProgressBar::new(matching as u64);
     pb.format(PROGRESS_BAR_INDICATORS);
     pb.message("Removing I/O trace log files: ");
 
     let dry_run = config
-                    .matches
-                    .subcommand_matches("remove")
-                    .unwrap()
-                    .is_present("dryrun");
+        .matches
+        .subcommand_matches("remove")
+        .unwrap()
+        .is_present("dryrun");
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -1033,9 +1076,9 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     ]));
 
     let mut index = 0;
-    for (mut _io_trace, path) in result {            
+    for (mut _io_trace, path) in result {
         let filename = String::from(path.to_string_lossy());
- 
+
         match util::remove_file(&path, dry_run) {
             Err(_) => {
                 // Print in "tabular" format (the default)
@@ -1067,7 +1110,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     }
 
     pb.finish_println("\n");
-    
+
     if table.len() > 1 {
         table.printstd();
     } else {

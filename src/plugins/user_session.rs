@@ -178,7 +178,7 @@ impl UserSession {
 
         // last logged in user should come first
         logged_users_home_dirs.reverse();
-        
+
         match util::PREFETCH_POOL.lock() {
             Err(e) => warn!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
@@ -186,10 +186,13 @@ impl UserSession {
             ),
             Ok(thread_pool) => {
                 for home_dir in logged_users_home_dirs {
-                    // Construct a Vec of paths taken from the .config file 
+                    // Construct a Vec of paths taken from the .config file
                     // `user_home_metadata_whitelist` section
-                    let tracked_entries: Vec<PathBuf> = self.metadata_whitelist.iter().map(|f| home_dir.join(f)).collect();
-                                        
+                    let tracked_entries: Vec<PathBuf> = self.metadata_whitelist
+                        .iter()
+                        .map(|f| home_dir.join(f))
+                        .collect();
+
                     debug!("Recursively caching: {:?}", tracked_entries);
 
                     let globals_c = globals.clone();

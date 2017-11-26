@@ -30,6 +30,7 @@ use events::EventType;
 use globals;
 use globals::*;
 use hooks::iotrace_prefetcher::IOtracePrefetcher;
+use iotrace;
 use manager::*;
 use plugins::metrics::Metrics;
 use plugins::plugin::{Plugin, PluginDescription};
@@ -43,7 +44,6 @@ use std::io::Result;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
-use iotrace;
 use storage;
 use util;
 
@@ -281,7 +281,7 @@ impl HotApplications {
         let iotrace_dir = config
             .state_dir
             .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf())
-            .join(constants::IOTRACE_DIR);        
+            .join(constants::IOTRACE_DIR);
 
         let app_histogram_c = self.app_histogram.clone();
 
@@ -323,7 +323,11 @@ impl HotApplications {
         self.app_histogram = t;
         self.save_state(globals, manager);
 
-        info!("Successfuly optimized hot applications histogram! Examined: {}, removed: {} entries.", index, errors);
+        info!(
+            "Successfuly optimized hot applications histogram! Examined: {}, removed: {} entries.",
+            index,
+            errors
+        );
     }
 
     /// Load the previously saved internal state of our plugin
@@ -416,8 +420,7 @@ impl Plugin for HotApplications {
                 self.save_state(globals, manager);
             }
 
-            events::EventType::PrimeCaches | 
-            events::EventType::AvailableMemoryLowWatermark => {
+            events::EventType::PrimeCaches | events::EventType::AvailableMemoryLowWatermark => {
                 self.prefetch_data(globals, manager);
             }
 

@@ -70,8 +70,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
         .expect("Configuration option 'state_dir' has not been specified!");
     let iotrace_path = PathBuf::from(path.join(constants::IOTRACE_DIR));
 
-    let text = util::read_compressed_text_file(&path.join("hot_applications.state"))
-        .expect("Could not read the compressed file!");
+    let text = util::read_compressed_text_file(&path.join("hot_applications.state")).expect("Could not read the compressed file!");
 
     let reader = BufReader::new(text.as_bytes());
     let deserialized = serde_json::from_reader::<_, HashMap<String, usize>>(reader);
@@ -104,7 +103,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
                 Cell::new_align(&String::from("#"), Alignment::RIGHT),
                 Cell::new(&String::from("Executable")),
                 Cell::new(&String::from("Hash")),
-                Cell::new_align(&String::from("Count"), Alignment::RIGHT),                
+                Cell::new_align(&String::from("Count"), Alignment::RIGHT),
             ]));
 
             let mut index = 0;
@@ -150,11 +149,15 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
             // a large number of missing I/O trace logs
             if show_all {
                 if errors > 25 {
-                    println!("\nHint: Use 'precachedctl plugins hot-applications optimize'\nto remove entries with missing I/O trace logs!\n");
+                    println!(
+                        "\nHint: Use 'precachedctl plugins hot-applications optimize'\nto remove entries with missing I/O trace logs!\n"
+                    );
                 }
             } else {
                 if errors > 5 {
-                    println!("\nHint: Use 'precachedctl plugins hot-applications optimize'\nto remove entries with missing I/O trace logs!\n");
+                    println!(
+                        "\nHint: Use 'precachedctl plugins hot-applications optimize'\nto remove entries with missing I/O trace logs!\n"
+                    );
                 }
             }
 
