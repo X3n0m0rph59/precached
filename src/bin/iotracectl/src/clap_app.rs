@@ -101,12 +101,12 @@ where
                 .about("List all available I/O traces")
                 .arg(
                     Arg::with_name("tabular")
-                            .long("tabular")
-                            // .short("t")
-                            .conflicts_with("full")
-                            .conflicts_with("short")
-                            .conflicts_with("terse")
-                            .help("Use 'tabular' display format"),
+                        .long("tabular")
+                        // .short("t")
+                        .conflicts_with("full")
+                        .conflicts_with("short")
+                        .conflicts_with("terse")
+                        .help("Use 'tabular' display format"),
                 )
                 .arg(
                     Arg::with_name("full")
@@ -150,6 +150,33 @@ where
                         .takes_value(true)
                         .required(false)
                         .help("Filter for executable name of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("optimized")
+                        .long("optimized")
+                        .short("o")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["true", "false"])                        
+                        .help("Filter for optimization status of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("sort")
+                        .long("sort")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
+                        .default_value("date")
+                        .help("Sort entries by field"),
+                )
+                .arg(
+                    Arg::with_name("order")
+                        .long("order")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["asc", "ascending", "desc", "descending"])
+                        .default_value("ascending")
+                        .help("Sort order"),
                 ),
         )
         .subcommand(
@@ -186,12 +213,39 @@ where
                         .takes_value(true)
                         .required(false)
                         .help("Filter for executable name of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("optimized")
+                        .long("optimized")
+                        .short("o")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["true", "false"])                        
+                        .help("Filter for optimization status of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("sort")
+                        .long("sort")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
+                        .default_value("date")
+                        .help("Sort entries by field"),
+                )
+                .arg(
+                    Arg::with_name("order")
+                        .long("order")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["asc", "ascending", "desc", "descending"])
+                        .default_value("ascending")
+                        .help("Sort order"),
                 ),
         )
         .subcommand(
             SubCommand::with_name("dump")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Dump I/O trace log entries (file access operations)")
+                .about("Dump I/O trace log entries (recorded I/O operations)")
                 .arg(
                     Arg::with_name("hash")
                         .long("hash")
@@ -235,7 +289,7 @@ where
         .subcommand(
             SubCommand::with_name("optimize")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Optimize I/O trace logs (optimize access patterns)")
+                .about("Optimize I/O trace logs (optimize I/O operations)")
                 .arg(
                     Arg::with_name("hash")
                         .long("hash")
@@ -251,37 +305,86 @@ where
                         .takes_value(true)
                         .required(false)
                         .help("Filter for executable name of the I/O trace"),
-                ),
+                )
+                .arg(
+                    Arg::with_name("optimized")
+                        .long("optimized")
+                        .short("o")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["true", "false"])                        
+                        .help("Filter for optimization status of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("sort")
+                        .long("sort")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
+                        .default_value("date")
+                        .help("Sort entries by field"),
+                )
+                .arg(
+                    Arg::with_name("order")
+                        .long("order")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["asc", "ascending", "desc", "descending"])
+                        .default_value("ascending")
+                        .help("Sort order"),
+                )
+                .arg(Arg::with_name("dryrun").long("dry-run").short("n").help(
+                        "Do not actually optimize anything, just pretend to",
+                )),
         )
         .subcommand(
             SubCommand::with_name("remove")
                     .setting(AppSettings::DeriveDisplayOrder)
                     .alias("delete")
                     .about("Remove I/O trace")
-                    .arg(
+                    .arg(                   
                         Arg::with_name("hash")
                             .long("hash")
                             .short("p")
                             .takes_value(true)
-                            .required(true)
-                            .help("The hash value of the I/O trace to remove"),
+                            .required(false)
+                            .help("Filter for the hash value of the I/O trace"),
                     )
-                    // .arg(
-                    //     Arg::with_name("hash")
-                    //         .long("hash")
-                    //         .short("p")
-                    //         .takes_value(true)
-                    //         .required(false)
-                    //         .help("Filter for the hash value of the I/O trace"),
-                    // )
-                    // .arg(
-                    //     Arg::with_name("executable")
-                    //         .long("executable")
-                    //         .short("e")
-                    //         .takes_value(true)
-                    //         .required(false)
-                    //         .help("Filter for executable name of the I/O trace"),
-                    // )
+                    .arg(
+                        Arg::with_name("executable")
+                            .long("executable")
+                            .short("e")
+                            .takes_value(true)
+                            .required(false)
+                            .help("Filter for executable name of the I/O trace"),
+                    )
+                    .arg(
+                        Arg::with_name("optimized")
+                            .long("optimized")
+                            .short("o")
+                            .takes_value(true)
+                            .required(false)
+                            .possible_values(&["true", "false"])                        
+                            .help("Filter for optimization status of the I/O trace"),
+                    )
+                    .arg(
+                        Arg::with_name("sort")
+                            .long("sort")
+                            .takes_value(true)
+                            .required(false)
+                            .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
+                            .default_value("date")
+                            .help("Sort entries by field"),
+                    )
+                    .arg(
+                        Arg::with_name("order")
+                            .long("order")
+                            .takes_value(true)
+                            .required(false)
+                            .possible_values(&["asc", "ascending", "desc", "descending"])
+                            .default_value("ascending")
+                            .help("Sort order"),
+                    )
                     .arg(Arg::with_name("dryrun").long("dry-run").short("n").help(
                         "Do not actually remove anything, just pretend to",
                     )),

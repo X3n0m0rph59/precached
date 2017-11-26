@@ -8,8 +8,10 @@ _precachedctl() {
     _arguments -s -S -C \
 '-c+[The precached config file to use]' \
 '--config+[The precached config file to use]' \
-'-a[Produce ASCII output instead of using Unicode for line drawing]' \
-'--ascii[Produce ASCII output instead of using Unicode for line drawing]' \
+'-a[Produce ASCII output (default) instead of using Unicode for line drawing]' \
+'--ascii[Produce ASCII output (default) instead of using Unicode for line drawing]' \
+'-u[Produce Unicode output instead of using ASCII (default) for line drawing]' \
+'--unicode[Produce Unicode output instead of using ASCII (default) for line drawing]' \
 '*-v[Sets the level of output verbosity]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \

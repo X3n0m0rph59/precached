@@ -12,7 +12,8 @@ function __fish_using_command
 end
 
 complete -c precachedctl -n "__fish_using_command precachedctl" -s c -l config -d 'The precached config file to use'
-complete -c precachedctl -n "__fish_using_command precachedctl" -s a -l ascii -d 'Produce ASCII output instead of using Unicode for line drawing'
+complete -c precachedctl -n "__fish_using_command precachedctl" -s a -l ascii -d 'Produce ASCII output (default) instead of using Unicode for line drawing'
+complete -c precachedctl -n "__fish_using_command precachedctl" -s u -l unicode -d 'Produce Unicode output instead of using ASCII (default) for line drawing'
 complete -c precachedctl -n "__fish_using_command precachedctl" -s v -d 'Sets the level of output verbosity'
 complete -c precachedctl -n "__fish_using_command precachedctl" -s h -l help -d 'Prints help information'
 complete -c precachedctl -n "__fish_using_command precachedctl" -s V -l version -d 'Prints version information'

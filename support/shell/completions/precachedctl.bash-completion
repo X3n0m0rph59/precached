@@ -71,7 +71,7 @@ _precachedctl() {
 
     case "${cmd}" in
         precachedctl)
-            opts=" -a -v -h -V -c  --ascii --help --version --config   status reload stop housekeeping prime-caches plugins help completions  reload-config  shutdown  do-housekeeping  prime-caches-now"
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status reload stop housekeeping prime-caches plugins help completions  reload-config  shutdown  do-housekeeping  prime-caches-now"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0

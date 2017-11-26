@@ -62,7 +62,7 @@ _iotracectl() {
 
     case "${cmd}" in
         iotracectl)
-            opts=" -a -v -h -V -c  --ascii --help --version --config   status top list info dump analyze optimize remove clear help test-tracing completions  show  delete"
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status top list info dump analyze optimize remove clear help test-tracing completions  show  delete"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -139,7 +139,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__delete)
-            opts=" -n -h -V -p  --dry-run --help --version --hash  "
+            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -152,6 +152,30 @@ _iotracectl() {
                     ;;
                     -p)
                     COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                --optimized)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --sort)
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    return 0
+                    ;;
+                --order)
+                    COMPREPLY=($(compgen -W "asc ascending desc descending" -- ${cur}))
                     return 0
                     ;;
                 *)
@@ -200,7 +224,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__info)
-            opts=" -f -s -h -V -p -e  --full --short --help --version --hash --executable  "
+            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -221,6 +245,22 @@ _iotracectl() {
                     ;;
                     -e)
                     COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                --optimized)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --sort)
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    return 0
+                    ;;
+                --order)
+                    COMPREPLY=($(compgen -W "asc ascending desc descending" -- ${cur}))
                     return 0
                     ;;
                 *)
@@ -231,7 +271,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__list)
-            opts=" -f -s -t -h -V -p -e  --tabular --full --short --terse --help --version --hash --executable  "
+            opts=" -f -s -t -h -V -p -e -o  --tabular --full --short --terse --help --version --hash --executable --optimized --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -252,6 +292,22 @@ _iotracectl() {
                     ;;
                     -e)
                     COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                --optimized)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --sort)
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    return 0
+                    ;;
+                --order)
+                    COMPREPLY=($(compgen -W "asc ascending desc descending" -- ${cur}))
                     return 0
                     ;;
                 *)
@@ -262,7 +318,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__optimize)
-            opts=" -h -V -p -e  --help --version --hash --executable  "
+            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -283,6 +339,22 @@ _iotracectl() {
                     ;;
                     -e)
                     COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                --optimized)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --sort)
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    return 0
+                    ;;
+                --order)
+                    COMPREPLY=($(compgen -W "asc ascending desc descending" -- ${cur}))
                     return 0
                     ;;
                 *)
@@ -293,30 +365,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__remove)
-            opts=" -n -h -V -p  --dry-run --help --version --hash  "
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-                return 0
-            fi
-            case "${prev}" in
-                
-                --hash)
-                    COMPREPLY=("<hash>")
-                    return 0
-                    ;;
-                    -p)
-                    COMPREPLY=("<hash>")
-                    return 0
-                    ;;
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-            return 0
-            ;;
-        iotracectl__show)
-            opts=" -f -s -h -V -p -e  --full --short --help --version --hash --executable  "
+            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -337,6 +386,69 @@ _iotracectl() {
                     ;;
                     -e)
                     COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                --optimized)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --sort)
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    return 0
+                    ;;
+                --order)
+                    COMPREPLY=($(compgen -W "asc ascending desc descending" -- ${cur}))
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__show)
+            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --sort --order  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=("<hash>")
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=("<executable>")
+                    return 0
+                    ;;
+                --optimized)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --sort)
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    return 0
+                    ;;
+                --order)
+                    COMPREPLY=($(compgen -W "asc ascending desc descending" -- ${cur}))
                     return 0
                     ;;
                 *)
