@@ -152,7 +152,12 @@ impl serde::Serialize for EventMaskWrapper {
     {
         let mut state = serializer.serialize_struct("EventMaskWrapper", 1)?;
 
+        #[cfg(target_pointer_width = "64")]
         let event_mask: u64 = unsafe { mem::transmute(&self.event_mask) };
+
+        #[cfg(target_pointer_width = "32")]
+        let event_mask: u32 = unsafe { mem::transmute(&self.event_mask) };
+
         let event_mask = event_mask as u32; // TODO: Verify this!
 
         state.serialize_field("event_mask", &event_mask)?;
