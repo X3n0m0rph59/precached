@@ -123,6 +123,7 @@ esac
 %{_datarootdir}/zsh/site-functions/_iotracectl
 %{_datarootdir}/zsh/site-functions/_precachedctl
 %{_datarootdir}/zsh/site-functions/_precachedtop
+%{_docdir}/%{name}/examples/
 #%{_datadir}/%{name}/
 
 %changelog
