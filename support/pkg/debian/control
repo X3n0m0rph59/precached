@@ -6,6 +6,8 @@ Build-Depends: debhelper (>= 9),
 	       dh-systemd (>=1.5),
 	       cargo (>= 0.22),
 	       libdbus-1-dev (>= 1.10)
+		   libzmq-dev (>= 2.2)
+Depends: libzmq (>= 2.2)
 Standards-Version: 3.9.8
 Homepage: https://x3n0m0rph59.github.io/precached/
 Vcs-Git: https://github.com/X3n0m0rph59/precached.git

@@ -36,6 +36,7 @@
 ​  <provides>
 ​    <binary>precached</binary>
 ​    <binary>precachedctl</binary>
+​    <binary>precachedtop</binary>
 ​    <binary>iotracectl</binary>
 
 		<dbus type="system">org.precached.precached1</dbus>

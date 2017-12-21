@@ -20,7 +20,10 @@
 
 use config::Config;
 use events;
+use ipc::ipc;
+use std::cell::RefCell;
 use std::collections::VecDeque;
+use std::sync::{Arc, RwLock};
 
 /// Global system state
 #[derive(Debug, Clone)]
@@ -29,6 +32,9 @@ pub struct Globals {
     pub config: Config,
     /// Holds pending events, used by the internal eventing mechanism
     pub event_queue: VecDeque<events::InternalEvent>,
+
+    /// Holds pending events, used by the IPC notification mechanism
+    pub ipc_event_queue: Arc<RwLock<VecDeque<events::InternalEvent>>>,
 }
 
 impl Globals {
@@ -36,6 +42,7 @@ impl Globals {
         Globals {
             config: Config::new(),
             event_queue: VecDeque::new(),
+            ipc_event_queue: Arc::new(RwLock::new(VecDeque::new())),
         }
     }
 
@@ -46,4 +53,12 @@ impl Globals {
     pub fn get_event_queue_mut(&mut self) -> &mut VecDeque<events::InternalEvent> {
         &mut self.event_queue
     }
+
+    // pub fn get_ipc_event_queue(&self) -> &VecDeque<events::InternalEvent> {
+    //     &self.ipc_event_queue
+    // }
+
+    // pub fn get_ipc_event_queue_mut(&mut self) -> &mut VecDeque<events::InternalEvent> {
+    //     &mut self.ipc_event_queue
+    // }
 }

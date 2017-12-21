@@ -219,8 +219,7 @@ impl FtraceLogger {
                                             // before our daemon was running
                                             debug!(
                                                 "Spurious trace log entry for untracked process '{}' with pid {} processed!",
-                                                comm,
-                                                pid
+                                                comm, pid
                                             );
                                         }
                                     }
@@ -332,9 +331,7 @@ impl FtraceLogger {
                 match ACTIVE_TRACERS.lock() {
                     Err(e) => warn!(
                         "Could not take a lock on a shared data structure! Won't trace process '{}' with pid {}: {}",
-                        comm,
-                        event.pid,
-                        e
+                        comm, event.pid, e
                     ),
                     Ok(mut active_tracers) => {
                         // We successfuly acquired the lock
@@ -343,8 +340,7 @@ impl FtraceLogger {
                             // It is already being traced by us.
                             warn!(
                                 "Spurious request received, to trace process '{}' with pid {} that is already being traced!",
-                                comm,
-                                event.pid
+                                comm, event.pid
                             );
                         } else if let Ok(result) = Self::shall_new_tracelog_be_created(event.pid, globals, manager) {
                             if result {
@@ -365,9 +361,7 @@ impl FtraceLogger {
                                         match util::trace_process_io_ftrace(event.pid) {
                                             Err(e) => error!(
                                                 "Could not enable ftrace for process '{}' with pid {}: {}",
-                                                comm,
-                                                event.pid,
-                                                e
+                                                comm, event.pid, e
                                             ),
                                             Ok(()) => trace!(
                                                 "Enabled ftrace for process '{}' with pid {}",
@@ -499,9 +493,7 @@ impl FtraceLogger {
                                 match util::stop_tracing_process_ftrace(event.pid) {
                                     Err(e) => error!(
                                         "Could not disable ftrace for process '{}' with pid {}: {}",
-                                        comm,
-                                        event.pid,
-                                        e
+                                        comm, event.pid, e
                                     ),
 
                                     Ok(()) => trace!(

@@ -18,10 +18,12 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate inotify;
+extern crate serde;
+extern crate serde_json;
 
-use self::inotify::Event;
+use chrono::{DateTime, Local, TimeZone, Utc};
 use globals::*;
+use inotify::EventMaskWrapper;
 use procmon;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -41,7 +43,7 @@ pub enum EventType {
     /// advice to plugins to do janitorial tasks now
     DoHousekeeping,
     /// low level event sent by the inotify subsystem when a registered watch fires
-    InotifyEvent(inotify::EventMask, PathBuf),
+    InotifyEvent(EventMaskWrapper, PathBuf),
     /// advice to plugins that an I/O trace log needs to be optimized asap
     OptimizeIOTraceLog(PathBuf),
     /// high level event that gets sent after an I/O trace log file has been created
@@ -85,7 +87,7 @@ pub enum EventType {
 /// Represents an event
 #[derive(Debug, Clone)]
 pub struct InternalEvent {
-    pub timestamp: Instant,
+    pub datetime: DateTime<Utc>,
     pub event_type: EventType,
 }
 
@@ -93,7 +95,7 @@ impl InternalEvent {
     /// Creates a new `InternalEvent`
     pub fn new(event_type: EventType) -> InternalEvent {
         InternalEvent {
-            timestamp: Instant::now(),
+            datetime: Utc::now(),
             event_type: event_type,
         }
     }

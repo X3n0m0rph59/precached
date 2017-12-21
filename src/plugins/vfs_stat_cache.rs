@@ -142,9 +142,7 @@ impl VFSStatCache {
                 let p = p.read().unwrap();
                 let static_whitelist = p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
-                result.append(&mut static_whitelist
-                    .get_metadata_whitelist(globals)
-                    .clone());
+                result.append(&mut static_whitelist.get_metadata_whitelist(globals).clone());
             }
         };
 

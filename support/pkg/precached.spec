@@ -12,9 +12,10 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
 BuildRequires: systemd
 BuildRequires: dbus-devel
+BuildRequires: zeromq-devel
 BuildRequires: cargo
 
-Requires: dbus
+Requires: dbus zeromq
 
 %global gittag master
 %global debug_package %{nil}
@@ -50,6 +51,7 @@ cargo build --all --release --verbose
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
 cp -a %{_builddir}/%{name}-%{version}/support/man/iotracectl.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precachedctl.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{name}-%{version}/support/man/precachedtop.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
@@ -60,11 +62,14 @@ cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached.a
 cp -ra %{_builddir}/%{name}-%{version}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/iotracectl
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedctl
+cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedtop.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedtop
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_iotracectl
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedctl
+cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedtop.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedtop
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
+install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedtop %{buildroot}%{_sbindir}/precachedtop
 
 %post
 case "$1" in
@@ -94,6 +99,7 @@ esac
 %doc %{_mandir}/man5/precached.conf.5.gz
 %doc %{_mandir}/man8/iotracectl.8.gz
 %doc %{_mandir}/man8/precachedctl.8.gz
+%doc %{_mandir}/man8/precachedtop.8.gz
 %doc %{_mandir}/man8/precached.8.gz
 %dir %{_docdir}/%{name}/examples/
 %dir %{_datarootdir}/bash-completion/completions/
@@ -103,6 +109,7 @@ esac
 %{_sbindir}/precached
 %{_sbindir}/precachedctl
 %{_sbindir}/iotracectl
+%{_sbindir}/precachedtop
 %{_unitdir}/precached.service
 %{_unitdir}/precached-prime-caches.service
 %{_unitdir}/precached-prime-caches.timer
@@ -113,8 +120,10 @@ esac
 %{_docdir}/%{name}/examples/
 %{_datarootdir}/bash-completion/completions/iotracectl
 %{_datarootdir}/bash-completion/completions/precachedctl
+%{_datarootdir}/bash-completion/completions/precachedtop
 %{_datarootdir}/zsh/site-functions/_iotracectl
 %{_datarootdir}/zsh/site-functions/_precachedctl
+%{_datarootdir}/zsh/site-functions/_precachedtop
 #%{_datadir}/%{name}/
 
 %changelog

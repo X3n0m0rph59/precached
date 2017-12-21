@@ -18,7 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 use constants;
 use globals::*;
 use std::io;

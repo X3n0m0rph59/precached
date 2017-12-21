@@ -126,7 +126,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         .join("filter");
     echo(&filename, filter.clone()).unwrap();
 
-
     let filename = Path::new(TRACING_DIR)
         .join("events")
         .join("syscalls")
@@ -141,7 +140,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         .join("filter");
     echo(&filename, filter.clone()).unwrap();
 
-
     let filename = Path::new(TRACING_DIR)
         .join("events")
         .join("syscalls")
@@ -155,7 +153,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         .join("sys_exit_open_by_handle_at")
         .join("filter");
     echo(&filename, filter.clone()).unwrap();
-
 
     // read syscall family
     let filename = Path::new(TRACING_DIR)
@@ -186,7 +183,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         .join("filter");
     echo(&filename, filter.clone()).unwrap();
 
-
     let filename = Path::new(TRACING_DIR)
         .join("events")
         .join("syscalls")
@@ -214,7 +210,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         .join("sys_exit_pread64")
         .join("filter");
     echo(&filename, filter.clone()).unwrap();
-
 
     // mmap syscall
     let filename = Path::new(TRACING_DIR)
@@ -230,7 +225,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         .join("sys_exit_mmap")
         .join("filter");
     echo(&filename, filter.clone()).unwrap();
-
 
     // stat(x) syscall
     let filename = Path::new(TRACING_DIR)
@@ -289,7 +283,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         .join("filter");
     echo(&filename, filter.clone()).unwrap();
 
-
     // getdents syscall
     // let filename = Path::new(TRACING_DIR).join("events").join("syscalls").join("sys_exit_getdents").join("enable");
     // echo(
@@ -302,7 +295,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     //     &format!("{}/events/syscalls/sys_exit_getdents/filter", TRACING_DIR),
     //     filter.clone(),
     // ).unwrap();
-
 
     // install a kprobe, used to resolve file names
     let filename = Path::new(TRACING_BASE_DIR).join("kprobe_events");
@@ -318,7 +310,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
         .join("enable");
     echo(&filename, String::from("1")).unwrap();
 
-
     // install a kprobe, used to resolve directory names
     // let filename = Path::new(TRACING_BASE_DIR).join("kprobe_events");
     // append(
@@ -331,7 +322,6 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     //     &filename,
     //     String::from("1"),
     // ).unwrap();
-
 
     // enable the ftrace function tracer just in case it was disabled
     // NOTE: This fails sometimes with "Device or Resource busy"
@@ -487,8 +477,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
 
             debug!(
                 "Tracing time expired for process '{}' with pid: {}",
-                comm,
-                pid
+                comm, pid
             );
 
             v.trace_time_expired = true;
@@ -501,16 +490,13 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
             match v.trace_log.save(&filename, false) {
                 Err(e) => error!(
                     "Error while saving the I/O trace log for process '{}' with pid: {}. {}",
-                    comm,
-                    pid,
-                    e
+                    comm, pid, e
                 ),
 
                 Ok(()) => {
                     info!(
                         "Successfuly saved I/O trace log for process '{}' with pid: {}",
-                        comm,
-                        pid
+                        comm, pid
                     );
 
                     // schedule an optimization pass for the newly saved trace log
@@ -608,7 +594,6 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
             }
 
-
             // ping event
             if l.contains("tracing_mark_write: ping!") {
                 // debug!("{:#?}", l);
@@ -623,7 +608,6 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                 }
             }
 
-
             // extract process' pid off of current trace entry
             let mut pid: libc::pid_t = 0;
             let fields2: Vec<&str> = l.split(" [").collect();
@@ -635,8 +619,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     Err(e) => {
                         error!(
                             "Could not extract the process id from current trace data entry: {} Payload: '{}'",
-                            e,
-                            l
+                            e, l
                         );
                         continue;
                     }
@@ -682,7 +665,6 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             //         }
             //     }
             // }
-
 
             // sys_open syscall
             if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at")) && !l.contains("getnameprobe") {

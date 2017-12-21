@@ -7,8 +7,8 @@ arch=('i686' 'x86_64')
 url="https://x3n0m0rph59.github.io/precached/"
 license=('GPL')
 groups=()
-depends=('dbus')
-makedepends=('rust' 'dbus' 'systemd')
+depends=('dbus' 'zeromq')
+makedepends=('rust' 'dbus' 'zeromq' 'systemd')
 optdepends=()
 provides=()
 conflicts=()
@@ -45,6 +45,7 @@ package() {
   install -m 755 "target/release/precached" "$pkgdir/usr/bin/"
   install -m 755 "target/release/precachedctl" "$pkgdir/usr/bin/"
   install -m 755 "target/release/iotracectl" "$pkgdir/usr/bin/"
+  install -m 755 "target/release/precachedtop" "$pkgdir/usr/bin/"
 
   install -m 644 "support/config/precached.conf" "$pkgdir/etc/precached/"
   install -m 644 "support/systemd/precached.service" "$pkgdir/usr/lib/systemd/system/"
@@ -55,10 +56,13 @@ package() {
   install -m 644 "support/man/precached.8" "$pkgdir/usr/share/man/man8/"
   install -m 644 "support/man/precachedctl.8" "$pkgdir/usr/share/man/man8/"
   install -m 644 "support/man/iotracectl.8" "$pkgdir/usr/share/man/man8/"
+  install -m 644 "support/man/precachedtop.8" "$pkgdir/usr/share/man/man8/"
   install -m 644 "support/man/precached.conf.5" "$pkgdir/usr/share/man/man5/"
 
   install -m 644 -T "support/shell/completions/iotracectl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/iotracectl"
   install -m 644 -T "support/shell/completions/precachedctl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/precachedctl"
+  install -m 644 -T "support/shell/completions/precachedtop.bash-completion" "$pkgdir/usr/share/bash-completion/completions/precachedtop"
   install -m 644 -T "support/shell/completions/iotracectl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/_iotracectl"
   install -m 644 -T "support/shell/completions/precachedctl.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/_precachedctl"
+  install -m 644 -T "support/shell/completions/precachedtop.zsh-completion" "$pkgdir/usr/share/zsh/site-functions/_precachedtop"
 }

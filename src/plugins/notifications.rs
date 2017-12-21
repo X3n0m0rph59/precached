@@ -111,7 +111,6 @@ impl Notifications {
                 _ => { /* Successfuly displayed the notification, just do nothing */ }
             }*/
 
-
         // Command::new("/usr/bin/notify-send")
         //             .env("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus")
         //             .env("DISPLAY", ":0")

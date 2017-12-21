@@ -18,16 +18,20 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
 extern crate procmon_sys;
+
+extern crate libc;
+extern crate serde;
+extern crate serde_json;
 
 use std::io::Result;
 
+#[derive(Debug, Clone)]
 pub struct ProcMon {
     nls: libc::int32_t,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum EventType {
     Nothing,
     Fork,
@@ -36,7 +40,7 @@ pub enum EventType {
     Invalid,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Event {
     pub event_type: EventType,
     pub pid: libc::pid_t,

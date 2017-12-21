@@ -53,7 +53,6 @@ type StatSize = i64;
 #[cfg(target_pointer_width = "32")]
 type StatSize = i32;
 
-
 /// Cache the file `filename` into the systems page cache
 /// This currently performs the following actions:
 ///   * Open file `filename` and query it's size.

@@ -81,6 +81,8 @@ impl hook::Hook for ProcessTracker {
     }
 
     fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, _manager: &Manager) {
+        let event_c = event.clone();
+
         match event.event_type {
             procmon::EventType::Exec => {
                 let process = Process::new(event.pid);
@@ -96,11 +98,10 @@ impl hook::Hook for ProcessTracker {
                             .insert(event.pid, process.clone());
                         info!(
                             "Now tracking process '{}' pid: {}",
-                            process.comm,
-                            process.pid
+                            process.comm, process.pid
                         );
 
-                        events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
+                        events::queue_internal_event(EventType::TrackedProcessChanged(event_c), globals);
                     }
                 }
             }
@@ -112,10 +113,9 @@ impl hook::Hook for ProcessTracker {
                     Some(process) => {
                         info!(
                             "Removed tracked process '{}' with pid: {}",
-                            process.comm,
-                            process.pid
+                            process.comm, process.pid
                         );
-                        events::queue_internal_event(EventType::TrackedProcessChanged(*event), globals);
+                        events::queue_internal_event(EventType::TrackedProcessChanged(event_c), globals);
                     }
                 }
             }

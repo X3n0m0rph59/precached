@@ -93,7 +93,6 @@ pub fn write_text_file(filename: &Path, text: &str) -> io::Result<()> {
             .open(filename)
     );
 
-
     let compressed = zstd::encode_all(
         BufReader::new(text.as_bytes()),
         constants::ZSTD_COMPRESSION_RATIO,

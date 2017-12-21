@@ -24,6 +24,7 @@ use self::inotify::{EventMask, Inotify, WatchMask};
 use events;
 use events::EventType;
 use globals::*;
+use inotify::EventMaskWrapper;
 use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
@@ -53,7 +54,9 @@ impl InotifyMultiplexer {
         InotifyMultiplexer {}
     }
 
-    pub fn multiplex_inotify_event(&mut self, event: &inotify::EventMask, path: &PathBuf, globals: &mut Globals, _manager: &Manager) {
+    pub fn multiplex_inotify_event(&mut self, event: &EventMaskWrapper, path: &PathBuf, globals: &mut Globals, _manager: &Manager) {
+        let event = event.event_mask;
+
         if event.contains(EventMask::CREATE) {
             if event.contains(EventMask::ISDIR) {
                 info!("Directory created: {:?}", path);
@@ -112,8 +115,8 @@ impl Plugin for InotifyMultiplexer {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::InotifyEvent(ref event_mask, ref path) => {
-                self.multiplex_inotify_event(event_mask, path, globals, manager);
+            events::EventType::InotifyEvent(ref event_mask_wrapper, ref path) => {
+                self.multiplex_inotify_event(event_mask_wrapper, path, globals, manager);
             }
             _ => {
                 // Ignore all other events

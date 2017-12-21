@@ -59,6 +59,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::channel;
+use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
 use syslog::{Facility, Severity};
@@ -84,6 +85,7 @@ mod config;
 mod plugins;
 mod hooks;
 mod iotrace;
+mod ipc;
 mod storage;
 mod util;
 
@@ -99,7 +101,6 @@ static SIG_USR1: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Global '`SIG_USR2` received' flag
 static SIG_USR2: AtomicBool = ATOMIC_BOOL_INIT;
-
 
 /// Signal handler for `SIGINT` and SIGTERM`
 extern "C" fn exit_signal(_: i32) {
@@ -215,17 +216,28 @@ fn print_disabled_plugins_notice(globals: &mut Globals) {
 
 /// Process daemon internal events
 fn process_internal_events(globals: &mut Globals, manager: &Manager) {
+    let mut globals_c = globals.clone();    
+
     while let Some(internal_event) = globals.event_queue.pop_front() {
         {
             // dispatch daemon internal events to plugins
             let plugin_manager = manager.plugin_manager.read().unwrap();
-            plugin_manager.dispatch_internal_event(&internal_event, globals, manager);
+            plugin_manager.dispatch_internal_event(&internal_event, &mut globals_c, manager);
         }
 
         {
             // dispatch daemon internal events to hooks
             let hook_manager = manager.hook_manager.read().unwrap();
-            hook_manager.dispatch_internal_event(&internal_event, globals, manager);
+            hook_manager.dispatch_internal_event(&internal_event, &mut globals_c, manager);
+        }
+
+        {
+            // dispatch daemon internal events to connected IPC clients
+            let mut ipc_queue = globals.ipc_event_queue.write().unwrap();
+            ipc_queue.push_back(internal_event);
+
+            // limit the size of the ipc event queue to a reasonable amount
+            ipc_queue.truncate(constants::MAX_IPC_EVENT_BACKLOG);
         }
     }
 }
@@ -308,7 +320,6 @@ fn setup_logging() -> Result<(), fern::InitError> {
         })
         .chain(io::stdout());
 
-
     // syslog::init(Facility::LOG_DAEMON, LogLevelFilter::Debug, Some("precached")).unwrap();
     let mut connection = syslog::unix(Facility::LOG_DAEMON).unwrap();
     connection.set_process_name(String::from("precached"));
@@ -338,7 +349,7 @@ fn setup_logging() -> Result<(), fern::InitError> {
 /// Program entrypoint
 fn main() {
     // Initialize panic handler
-    log_panics::init();
+    // log_panics::init();
 
     // Initialize logging subsystem
     setup_logging().expect("Could not initialize the logging subsystem!");
@@ -456,6 +467,19 @@ fn main() {
     print_disabled_plugins_notice(&mut globals);
     // print_disabled_hooks_notice(&mut globals);
 
+    // Initialize the IPC interface, used by e.g. `precachedtop`
+    let mut ipc_server = ipc::IpcServer::new();    
+    match ipc_server.init(&mut globals, &manager) {
+        Ok(_) => {
+            info!("Successfuly initialized the IPC interface");
+        }
+
+        Err(s) => {
+            error!("Could not initialize the IPC interface: {}", s);
+            return;
+        }
+    }
+
     let (sender, receiver) = channel();
 
     let mut last = Instant::now();
@@ -480,12 +504,45 @@ fn main() {
         .unwrap();
 
 
+    // spawn the IPC event loop thread
+    let queue_c = globals.ipc_event_queue.clone();
+    let manager_c = manager.clone();
+
+    let _handle_ipc = thread::Builder::new()
+        .name("ipc".to_string())
+        .spawn(move || {
+            'EVENT_LOOP: loop {
+                if EXIT_NOW.load(Ordering::Relaxed) {
+                    trace!("Leaving the IPC event loop...");
+                    break 'EVENT_LOOP;
+                }
+
+                // blocking call
+                let event = ipc_server.listen();
+
+                // we got an event, try to lock the shared data structure...
+                match queue_c.write() {
+                    Ok(mut queue) => {
+                        match event {
+                            Err(e) => error!("Invalid IPC request: {}", e),
+                            Ok(event) => ipc_server.process_messages(&event, &mut queue, &manager_c)
+                        }
+                    },
+
+                    Err(e) => {
+                        warn!("Could not lock a shared data structure: {}", e);
+                    }
+                }
+            }
+        })
+        .unwrap();
+
     util::notify(&String::from("precached started!"), &manager);
 
     // ... on the main thread again
     'MAIN_LOOP: loop {
         trace!("Main thread going to sleep...");
-
+        
         // NOTE: Blocking call
         // wait for the event loop thread to submit an event
         // or up to n msecs until a timeout occurs
@@ -557,13 +614,15 @@ fn main() {
 
         // Dispatch procmon events
         match event {
-            Some(e) => process_procmon_event(&e, &mut globals, &mut manager),
+            Some(e) => {
+                process_procmon_event(&e, &mut globals, &mut manager)
+            },
+            
             None => { /* We woke up because of a timeout, just do nothing */ }
-        };
-
+        };        
+        
         // Dispatch daemon internal events
         process_internal_events(&mut globals, &manager);
-
 
         // Let the task scheduler run it's queued jobs
         match util::SCHEDULER.try_lock() {
@@ -595,6 +654,15 @@ fn main() {
             error!("Could not join the event loop thread!");
         }
     };
+
+    // match handle_ipc.join() {
+    //     Ok(_) => {
+    //         trace!("Successfuly joined the IPC event loop thread!");
+    //     }
+    //     Err(_) => {
+    //         error!("Could not join the IPC event loop thread!");
+    //     }
+    // };
 
     // Clean up now
     trace!("Cleaning up...");

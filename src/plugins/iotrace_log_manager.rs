@@ -181,9 +181,7 @@ impl IOtraceLogManager {
         } else {
             debug!(
                 "{} I/O trace logs examined, {} stale logs pruned, {} errors occured",
-                counter,
-                pruned,
-                errors
+                counter, pruned, errors
             );
         }
     }
@@ -203,8 +201,7 @@ impl IOtraceLogManager {
                         Err(e) => {
                             error!(
                                 "Could not optimize I/O trace log for {:?}: {}",
-                                io_trace.exe,
-                                e
+                                io_trace.exe, e
                             );
 
                             // util::remove_file(&filename, true);
@@ -242,8 +239,7 @@ impl IOtraceLogManager {
                             Err(e) => {
                                 error!(
                                     "Could not optimize I/O trace log for {:?}: {}",
-                                    io_trace.exe,
-                                    e
+                                    io_trace.exe, e
                                 );
 
                                 // util::remove_file(&filename, true);
@@ -271,9 +267,7 @@ impl IOtraceLogManager {
         } else {
             info!(
                 "{} I/O trace logs examined, {} logs optimized, {} errors occured",
-                counter,
-                optimized,
-                errors
+                counter, optimized, errors
             );
         }
     }

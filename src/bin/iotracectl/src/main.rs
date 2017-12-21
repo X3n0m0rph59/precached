@@ -299,11 +299,6 @@ fn print_io_trace_msg(message: &str, index: usize, config: &Config, table: &mut 
     }
 }
 
-/// Top/Htop like display of the I/O tracing subsystem
-fn io_trace_top(_config: &Config, _daemon_config: util::ConfigFile) {
-    error!("Not implemented!");
-}
-
 fn map_bool_to_color(b: bool) -> Color {
     if b {
         GREEN
@@ -1327,10 +1322,6 @@ fn main() {
         match command {
             "status" => {
                 print_io_trace_subsystem_status(&config, daemon_config);
-            }
-
-            "top" => {
-                io_trace_top(&config, daemon_config.clone());
             }
 
             "list" => {

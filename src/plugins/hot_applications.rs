@@ -245,8 +245,7 @@ impl HotApplications {
         match Process::new(pid) {
             Err(e) => debug!(
                 "Could not update hot applications histogram for process with pid {}: {}",
-                pid,
-                e
+                pid, e
             ),
 
             Ok(process) => {
@@ -325,8 +324,7 @@ impl HotApplications {
 
         info!(
             "Successfuly optimized hot applications histogram! Examined: {}, removed: {} entries.",
-            index,
-            errors
+            index, errors
         );
     }
 
@@ -432,7 +430,7 @@ impl Plugin for HotApplications {
                 self.free_memory(true, globals, manager);
             }
 
-            events::EventType::TrackedProcessChanged(event) => {
+            events::EventType::TrackedProcessChanged(ref event) => {
                 self.application_executed(event.pid);
             }
 

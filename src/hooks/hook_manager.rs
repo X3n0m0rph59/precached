@@ -66,7 +66,6 @@ impl HookManager {
         }
     }
 
-
     pub fn get_hook_by_name(&self, name: &str) -> Option<Arc<RwLock<Box<Hook + Sync + Send>>>> {
         self.hooks.read().unwrap().get(name).cloned()
     }

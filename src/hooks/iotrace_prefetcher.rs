@@ -20,6 +20,7 @@
 
 extern crate libc;
 extern crate threadpool;
+extern crate lazy_static;
 
 use events;
 use events::EventType;
@@ -38,12 +39,24 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, RwLock, Mutex};
 use std::sync::mpsc::{channel, Sender};
 use util;
+use constants;
 
 static NAME: &str = "iotrace_prefetcher";
 static DESCRIPTION: &str = "Replay file operations previously recorded by an I/O tracer";
+
+/// The states a prefetcher thread can be in
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ThreadState {
+    Uninitialized,
+    Idle,
+    Error(PathBuf),
+    PrefetchingFile(PathBuf),
+    PrefetchingFileMetadata(PathBuf),
+    UnmappingFile(PathBuf),
+}
 
 /// Register this hook implementation with the system
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
@@ -56,15 +69,25 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct IOtracePrefetcher {
-    mapped_files: HashMap<PathBuf, util::MemoryMapping>,
-    prefetched_programs: Vec<String>,
+    pub mapped_files: HashMap<PathBuf, util::MemoryMapping>,
+    pub prefetched_programs: Vec<String>,
+
+    pub thread_states: Vec<Arc<RwLock<ThreadState>>>,
 }
 
 impl IOtracePrefetcher {
     pub fn new() -> IOtracePrefetcher {
+        let mut thread_states = vec![];
+
+        for _ in 0..constants::NUM_PREFETCHER_THREADS {
+            thread_states.push(Arc::new(RwLock::new(ThreadState::Uninitialized))); 
+        }
+
         IOtracePrefetcher {
             mapped_files: HashMap::new(),
             prefetched_programs: vec![],
+
+            thread_states: thread_states,
         }
     }
 
@@ -75,6 +98,7 @@ impl IOtracePrefetcher {
         // system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_blacklist: &[PathBuf],
         static_whitelist: &HashMap<PathBuf, util::MemoryMapping>,
+        thread_state: &mut Arc<RwLock<ThreadState>>,
     ) -> HashMap<PathBuf, util::MemoryMapping> {
         let mut already_prefetched = HashMap::new();
         already_prefetched.reserve(io_trace.len());
@@ -96,6 +120,10 @@ impl IOtracePrefetcher {
                         // &system_mapped_files,
                         static_whitelist,
                     ) {
+                        {
+                            *(thread_state.write().unwrap()) = ThreadState::PrefetchingFile(file.clone());
+                        }
+
                         match util::cache_file(file, true) {
                             Err(e) => {
                                 // I/O trace log maybe needs to be optimized.
@@ -103,11 +131,19 @@ impl IOtracePrefetcher {
 
                                 // inhibit further prefetching of that file
                                 // already_prefetched.insert(file.clone(), None);
+
+                                {
+                                    *(thread_state.write().unwrap()) = ThreadState::Error(file.clone());
+                                }
                             }
                             Ok(mapping) => {
                                 trace!("Successfuly prefetched file: {:?}", file);
 
                                 already_prefetched.insert(file.clone(), mapping);
+
+                                {
+                                    *(thread_state.write().unwrap()) = ThreadState::Idle;
+                                }
                             }
                         }
                     }
@@ -141,7 +177,9 @@ impl IOtracePrefetcher {
         already_prefetched
     }
 
-    fn unmap_files(io_trace: &[iotrace::TraceLogEntry], our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>) -> Vec<PathBuf> {
+    fn unmap_files(io_trace: &[iotrace::TraceLogEntry], 
+                   our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>, 
+                   thread_state: &mut Arc<RwLock<ThreadState>>) -> Vec<PathBuf> {
         let mut result = vec![];
 
         for entry in io_trace {
@@ -151,7 +189,10 @@ impl IOtracePrefetcher {
                     trace!("Unmapping: {:?}", file);
 
                     if let Some(mapping) = our_mapped_files.get(file) {
+                        *(thread_state.write().unwrap()) = ThreadState::UnmappingFile(file.clone());
+                        
                         let mapping_c = mapping.clone();
+
                         if util::free_mapping(mapping) {
                             info!("Successfuly unmapped file: {:?}", file);
                             result.push(mapping_c.filename);
@@ -171,11 +212,14 @@ impl IOtracePrefetcher {
         result
     }
 
-    fn prefetch_statx_metadata(io_trace: &[iotrace::TraceLogEntry], static_blacklist: &[PathBuf]) {
+    fn prefetch_statx_metadata(io_trace: &[iotrace::TraceLogEntry], static_blacklist: &[PathBuf], 
+                               thread_state: &mut Arc<RwLock<ThreadState>>) {
         for entry in io_trace {
             match entry.operation {
                 iotrace::IOOperation::Open(ref file, ref _fd) => {
                     trace!("Prefetching metadata for: {:?}", file);
+                    
+                    *(thread_state.write().unwrap()) = ThreadState::PrefetchingFileMetadata(file.clone());
 
                     // Check if filename is valid
                     if !util::is_filename_valid(file) {
@@ -300,6 +344,8 @@ impl IOtracePrefetcher {
                             let static_blacklist_c = static_blacklist.clone();
                             let static_whitelist_c = static_whitelist.clone();
 
+                            let mut thread_state = self.thread_states[n].clone();
+
                             prefetch_pool.execute(move || {
                                 // submit prefetching work to an idle thread
                                 let mapped_files = Self::prefetch_data(
@@ -309,6 +355,7 @@ impl IOtracePrefetcher {
                                     // &system_mapped_files_c,
                                     &static_blacklist_c,
                                     &static_whitelist_c,
+                                    &mut thread_state,
                                 );
 
                                 sc.lock().unwrap().send(mapped_files).unwrap();
@@ -363,9 +410,12 @@ impl IOtracePrefetcher {
 
                             let our_mapped_files_c = our_mapped_files.clone();
 
+                            let mut thread_state = self.thread_states[n].clone();
+
                             prefetch_pool.execute(move || {
                                 // submit memory freeing work to an idle thread
-                                let unmapped_files = Self::unmap_files(&trace_log, &our_mapped_files_c);
+                                let unmapped_files = Self::unmap_files(&trace_log, &our_mapped_files_c, 
+                                                                       &mut thread_state);
 
                                 sc.lock().unwrap().send(unmapped_files).unwrap();
                             })
@@ -428,9 +478,12 @@ impl IOtracePrefetcher {
 
                             let static_blacklist_c = static_blacklist.clone();
 
+                            let mut thread_state = self.thread_states[n].clone();
+
                             prefetch_pool.execute(move || {
                                 // submit prefetching work to an idle thread
-                                Self::prefetch_statx_metadata(&trace_log, &static_blacklist_c);
+                                Self::prefetch_statx_metadata(&trace_log, &static_blacklist_c, 
+                                                              &mut thread_state);
                             })
                         }
                     }
@@ -497,8 +550,7 @@ impl IOtracePrefetcher {
                                             Ok(io_trace) => {
                                                 info!(
                                                     "Found valid I/O trace log for process '{}' with pid: {}. Prefetching now...",
-                                                    process_comm,
-                                                    event.pid
+                                                    process_comm, event.pid
                                                 );
 
                                                 let mut do_perform_prefetching = true;
@@ -574,6 +626,8 @@ impl IOtracePrefetcher {
                                                         let static_blacklist_c = static_blacklist.clone();
                                                         let static_whitelist_c = static_whitelist.clone();
 
+                                                        let mut thread_state = self.thread_states[n].clone();
+
                                                         // submit prefetching work to an idle thread
                                                         prefetch_pool.execute(move || {
                                                             let mapped_files = Self::prefetch_data(
@@ -583,6 +637,7 @@ impl IOtracePrefetcher {
                                                                 // &system_mapped_files_c,
                                                                 &static_blacklist_c,
                                                                 &static_whitelist_c,
+                                                                &mut thread_state,
                                                             );
 
                                                             sc.lock().unwrap().send(mapped_files).unwrap();

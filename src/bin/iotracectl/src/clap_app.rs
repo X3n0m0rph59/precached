@@ -73,28 +73,7 @@ where
                             // .conflicts_with("terse")
                             .help("Use 'tabular' display format"),
                 ),
-        )
-        .subcommand(
-            SubCommand::with_name("top")
-                .setting(AppSettings::DeriveDisplayOrder)
-                .about("Top/htop like display of in-flight I/O traces")
-                .arg(
-                    Arg::with_name("hash")
-                        .long("hash")
-                        .short("p")
-                        .takes_value(true)
-                        .required(false)
-                        .help("Filter for the hash value of the I/O trace"),
-                )
-                .arg(
-                    Arg::with_name("executable")
-                        .long("executable")
-                        .short("e")
-                        .takes_value(true)
-                        .required(false)
-                        .help("Filter for executable name of the I/O trace"),
-                ),
-        )
+        )        
         .subcommand(
             SubCommand::with_name("list")
                 .setting(AppSettings::DeriveDisplayOrder)

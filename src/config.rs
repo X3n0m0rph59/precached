@@ -25,7 +25,6 @@ use constants;
 use std::path::PathBuf;
 use storage;
 
-
 /// Holds the global configuration of the daemon, including parsed command line options
 /// and the parsed external text configuration file `/etc/precached/precached.conf`
 #[derive(Debug, Clone)]

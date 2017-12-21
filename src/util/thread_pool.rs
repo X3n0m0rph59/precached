@@ -20,7 +20,6 @@
 
 extern crate threadpool;
 
-
 use constants;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -60,7 +59,7 @@ impl PrefetchThreadPool {
     pub fn new() -> PrefetchThreadPool {
         PrefetchThreadPool {
             pool: threadpool::Builder::new()
-                // .num_threads(4)
+                .num_threads(constants::NUM_PREFETCHER_THREADS)
                 .thread_name(String::from("prefetch"))
                 .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
                 .build(),

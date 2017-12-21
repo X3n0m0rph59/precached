@@ -44,7 +44,6 @@ use std::sync::{Arc, Mutex};
 use std::sync::mpsc;
 use storage;
 
-
 pub fn create_dbus_interface(_globals: &mut Globals, _manager: &mut Manager) -> DBUSInterface {
     DBUSInterface::new()
 }
@@ -370,7 +369,6 @@ impl DBUSInterface {
                 }
             }
         };
-
 
         // Create tree
         let (io_trace_log_event_s, _io_trace_log_event_r) = mpsc::channel::<i32>();
