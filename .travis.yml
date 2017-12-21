@@ -1,4 +1,5 @@
-dist: artful
+dist: trusty
+sudo: false
 addons:
   apt:
     packages:
