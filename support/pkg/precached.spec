@@ -117,7 +117,6 @@ esac
 %{_datarootdir}/metainfo/org.precache.precached.appdata.xml
 %{_sharedstatedir}/%{name}/
 %{_sharedstatedir}/%{name}/iotrace/
-%{_docdir}/%{name}/examples/
 %{_datarootdir}/bash-completion/completions/iotracectl
 %{_datarootdir}/bash-completion/completions/precachedctl
 %{_datarootdir}/bash-completion/completions/precachedtop
