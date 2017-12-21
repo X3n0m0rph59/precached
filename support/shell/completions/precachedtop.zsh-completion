@@ -1,0 +1,68 @@
+#compdef precachedtop
+
+_precachedtop() {
+    typeset -A opt_args
+    local ret=1
+
+    local context curcontext="$curcontext" state line
+    _arguments -s -S -C \
+'-c+[The precached config file to use]' \
+'--config+[The precached config file to use]' \
+'*-v[Sets the level of output verbosity]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_precachedtop_commands" \
+"*:: :->precachedtop" \
+&& ret=0
+    case $state in
+    (precachedtop)
+        curcontext="${curcontext%:*:*}:precachedtop-command-$words[1]:"
+        case $line[1] in
+            (help)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(completions)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_precachedtop__completions_commands" \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+}
+
+(( $+functions[_precachedtop_commands] )) ||
+_precachedtop_commands() {
+    local commands; commands=(
+        "help:Display this short help text" \
+"completions:Generates completion scripts for your shell" \
+    )
+    _describe -t commands 'precachedtop commands' commands "$@"
+}
+(( $+functions[_precachedtop__completions_commands] )) ||
+_precachedtop__completions_commands() {
+    local commands; commands=(
+        "SHELL:The shell to generate the script for" \
+    )
+    _describe -t commands 'precachedtop completions commands' commands "$@"
+}
+(( $+functions[_precachedtop__help_commands] )) ||
+_precachedtop__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'precachedtop help commands' commands "$@"
+}
+
+_precachedtop "$@"

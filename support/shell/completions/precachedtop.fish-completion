@@ -1,0 +1,23 @@
+function __fish_using_command
+    set cmd (commandline -opc)
+    if [ (count $cmd) -eq (count $argv) ]
+        for i in (seq (count $argv))
+            if [ $cmd[$i] != $argv[$i] ]
+                return 1
+            end
+        end
+        return 0
+    end
+    return 1
+end
+
+complete -c precachedtop -n "__fish_using_command precachedtop" -s c -l config -d 'The precached config file to use'
+complete -c precachedtop -n "__fish_using_command precachedtop" -s v -d 'Sets the level of output verbosity'
+complete -c precachedtop -n "__fish_using_command precachedtop" -s h -l help -d 'Prints help information'
+complete -c precachedtop -n "__fish_using_command precachedtop" -s V -l version -d 'Prints version information'
+complete -c precachedtop -n "__fish_using_command precachedtop" -f -a "help" -d 'Display this short help text'
+complete -c precachedtop -n "__fish_using_command precachedtop" -f -a "completions" -d 'Generates completion scripts for your shell'
+complete -c precachedtop -n "__fish_using_command precachedtop help" -s h -l help -d 'Prints help information'
+complete -c precachedtop -n "__fish_using_command precachedtop help" -s V -l version -d 'Prints version information'
+complete -c precachedtop -n "__fish_using_command precachedtop completions" -s h -l help -d 'Prints help information'
+complete -c precachedtop -n "__fish_using_command precachedtop completions" -s V -l version -d 'Prints version information'
