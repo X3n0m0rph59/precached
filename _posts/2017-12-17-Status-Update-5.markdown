@@ -18,13 +18,15 @@ We created an UNIX domain sockets based IPC mechanism in the `precached`
 daemon that implements a simple request/response protocol.
 
 The following requests are currently implemented:
+  * Get a list of currently traced processes
   * Get in-flight tracer data of currently traced processes
   * Get the current status of the prefetcher threads
   * Request and drain ringbuffer of `precached` daemon's internal events
   * Get global statistics gathered by the daemon
 
 The new `preachedtop` application periodically issues one or more of the above
-listed requests to the `precached` daemon, and then displays the returned data.
+mentioned requests to the `precached` daemon, and then displays the returned
+data.
 
 ## User Interface of `precachedtop`
 
@@ -33,10 +35,14 @@ change.
 
 ![precachedtop](/precached/images/precachedtop_01.png)
 
-![precachedtop](/precached/images/precachedtop_02.png)
-
-![precachedtop](/precached/images/precachedtop_03.png)
-
-![precachedtop](/precached/images/precachedtop_04.png)
 
 The precached team
+
+
+## Article Updates
+
+This posting has been edited at: Thu Dec 21 09:01:00
+
+* Rewording
+* Fixed typos
+* Publish
