@@ -2,6 +2,7 @@ addons:
   apt:
     packages:
       - libdbus-1-dev
+      - libzmq-dev
 language: rust
 rust:
   - stable
