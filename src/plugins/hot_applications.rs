@@ -44,6 +44,7 @@ use std::io::Result;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
+use std::time::{Duration, Instant};
 use storage;
 use util;
 
@@ -67,13 +68,15 @@ pub struct HotApplications {
     app_histogram: HashMap<String, usize>,
     /// Vector of currently cached apps
     cached_apps: Vec<String>,
+    last_housekeeping_performed: Instant,
 }
 
 impl HotApplications {
     pub fn new() -> HotApplications {
         HotApplications {
             app_histogram: HashMap::new(),
-            cached_apps: vec![],
+            cached_apps: vec![],            
+            last_housekeeping_performed: Instant::now(),
         }
     }
 
@@ -434,10 +437,13 @@ impl Plugin for HotApplications {
                 self.application_executed(event.pid);
             }
 
-            events::EventType::DoHousekeeping => {
-                self.optimize_histogram(&globals, manager);
+            EventType::IdlePeriod | events::EventType::DoHousekeeping => {                                
+                if Instant::now() - self.last_housekeeping_performed > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS) {                    
+                    self.optimize_histogram(&globals, manager);
+                    self.last_housekeeping_performed = Instant::now();                    
+                }
             }
-
+        
             _ => { /* Do nothing */ }
         }
     }

@@ -121,5 +121,3 @@ pub const DATETIME_FORMAT_DEFAULT: &str = "%Y-%m-%d %H:%M:%S";
 
 /// Maximum size of IPC message backlog ringbuffer
 pub const MAX_IPC_EVENT_BACKLOG: usize = 100;
-
-pub const IPC_LOOP_DELAY_MILLIS: u64 = 250;

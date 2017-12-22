@@ -51,5 +51,3 @@ pub const DATETIME_FORMAT_DEFAULT: &str = "%Y-%m-%d %H:%M:%S";
 pub const NUM_PREFETCHER_THREADS: usize = 4;
 
 pub const MAIN_LOOP_DELAY_MILLIS: u64 = 10;
-
-pub const IPC_LOOP_DELAY_MILLIS: u64 = 1;
