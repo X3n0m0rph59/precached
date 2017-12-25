@@ -253,7 +253,7 @@ impl Application {
                 Tabs::default()
                     .block(Block::default().borders(border::ALL)
                     .title("Tab Pages"))
-                    .titles(&["Overview", "Events", "Cached Files", "Statistics", "Help"])                    
+                    .titles(&["Overview", "Events", &format!("Cached Files ({})", app.cached_files.len()), "Statistics", "Help"])                    
                     .select(app.tab_index)
                     .style(Style::default().fg(Color::White))                    
                     .highlight_style(Style::default().fg(Color::Yellow))
@@ -511,7 +511,7 @@ fn main_loop(_config: &mut Config) {
         //     }
         // }
         
-        // Send initial connection request
+        // Send initial connection request        
         match do_request(&socket, ipc::IpcCommand::Connect) {
             Ok(_data) => {
                 GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
@@ -528,53 +528,32 @@ fn main_loop(_config: &mut Config) {
                 break 'IPC_LOOP;
             }
 
+            macro_rules! request {
+                ($socket:ident, $command:expr) => {
+                    match do_request(&$socket, $command) {
+                            Ok(data) => {
+                                GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
+                                tx.send(data).unwrap();
+                            },
+
+                            Err(_e) => {
+                                GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
+                            }
+                        }
+                };
+            }
+
             // Request current data
-            match do_request(&socket, ipc::IpcCommand::RequestInFlightTracers) {
-                Ok(data) => {
-                    GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
-                    tx.send(data).unwrap();
-                },
-
-                Err(_e) => {
-                    GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
-                }
-            }
-                       
-            // Request states of prefetcher threads            
-            match do_request(&socket, ipc::IpcCommand::RequestPrefetchStatus) {
-                Ok(data) => {
-                    GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
-                    tx.send(data).unwrap();
-                },
-
-                Err(_e) => {
-                    GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
-                }
-            }
+            request!(socket, ipc::IpcCommand::RequestInFlightTracers);
+                                   
+            // Request states of prefetcher threads
+            request!(socket, ipc::IpcCommand::RequestPrefetchStatus);
             
-            // Request daemon internal events            
-            match do_request(&socket, ipc::IpcCommand::RequestInternalEvents) {
-                Ok(data) => {
-                    GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
-                    tx.send(data).unwrap();
-                },
-
-                Err(_e) => {
-                    GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
-                }
-            }
-             
-            // Request cached files            
-            match do_request(&socket, ipc::IpcCommand::RequestCachedFiles) {
-                Ok(data) => {
-                    GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
-                    tx.send(data).unwrap();
-                },
-
-                Err(_e) => {
-                    GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
-                }
-            }
+            // Request daemon internal events
+            request!(socket, ipc::IpcCommand::RequestInternalEvents);
+                         
+            // Request cached files
+            request!(socket, ipc::IpcCommand::RequestCachedFiles);            
         }            
 
         info!("Exiting the IPC event loop!");

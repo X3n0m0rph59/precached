@@ -141,9 +141,9 @@ impl IOtracePrefetcher {
 
                                 already_prefetched.insert(file.clone(), mapping);
 
-                                {
-                                    *(thread_state.write().unwrap()) = ThreadState::Idle;
-                                }
+                                // {
+                                //     *(thread_state.write().unwrap()) = ThreadState::Idle;
+                                // }
                             }
                         }
                     }
@@ -189,13 +189,19 @@ impl IOtracePrefetcher {
                     trace!("Unmapping: {:?}", file);
 
                     if let Some(mapping) = our_mapped_files.get(file) {
-                        *(thread_state.write().unwrap()) = ThreadState::UnmappingFile(file.clone());
+                        {
+                            *(thread_state.write().unwrap()) = ThreadState::UnmappingFile(file.clone());
+                        }
                         
                         let mapping_c = mapping.clone();
 
                         if util::free_mapping(mapping) {
                             info!("Successfuly unmapped file: {:?}", file);
                             result.push(mapping_c.filename);
+
+                            // {
+                            //         *(thread_state.write().unwrap()) = ThreadState::Idle;
+                            // }
                         } else {
                             error!("Could not unmap file: {:?}", file);
                         }
@@ -219,7 +225,9 @@ impl IOtracePrefetcher {
                 iotrace::IOOperation::Open(ref file, ref _fd) => {
                     trace!("Prefetching metadata for: {:?}", file);
                     
-                    *(thread_state.write().unwrap()) = ThreadState::PrefetchingFileMetadata(file.clone());
+                    {
+                        *(thread_state.write().unwrap()) = ThreadState::PrefetchingFileMetadata(file.clone());
+                    }
 
                     // Check if filename is valid
                     if !util::is_filename_valid(file) {
@@ -681,8 +689,20 @@ impl hook::Hook for IOtracePrefetcher {
         NAME
     }
 
-    fn internal_event(&mut self, _event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
-        // trace!("Skipped internal event (not handled)");
+    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
+        match event.event_type {
+            events::EventType::EnterIdle => {
+                // when the system is idle, set thread states to idle too
+                for s in self.thread_states.iter_mut() {
+                    let mut s = s.write().unwrap();
+                    *s = ThreadState::Idle;
+                }
+            },
+
+            _ => {
+                // Ignore all other events
+            }
+        }
     }
 
     fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {

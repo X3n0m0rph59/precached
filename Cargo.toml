@@ -101,3 +101,8 @@ path = "src/bin/iotracectl/src/main.rs"
 name = "precachedtop"
 path = "src/bin/precachedtop/src/main.rs"
 # build = "src/bin/precachedtop/build.rs"
+
+[[bin]]
+name = "rulesctl"
+path = "src/bin/rulesctl/src/main.rs"
+# build = "src/bin/rulesctl/build.rs"
