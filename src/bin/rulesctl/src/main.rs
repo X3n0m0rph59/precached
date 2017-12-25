@@ -216,23 +216,23 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
     table.printstd();
 }
 
-fn list_rules(config: &mut Config, daemon_config: util::ConfigFile) {
+fn list_rules(_config: &Config, _daemon_config: util::ConfigFile) {
 
 }
 
-fn show_rule(config: &mut Config, daemon_config: util::ConfigFile) {
+fn show_rule(_config: &Config, _daemon_config: util::ConfigFile) {
 
 }
 
-fn dump_rule(config: &mut Config, daemon_config: util::ConfigFile) {
+fn dump_rule(_config: &Config, _daemon_config: util::ConfigFile) {
 
 }
 
-fn enable_rule(config: &mut Config, daemon_config: util::ConfigFile) {
-
+fn enable_rule(_config: &Config, _daemon_config: util::ConfigFile) {
+    
 }
 
-fn disable_rule(config: &mut Config, daemon_config: util::ConfigFile) {
+fn disable_rule(_config: &Config, _daemon_config: util::ConfigFile) {
 
 }
 

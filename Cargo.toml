@@ -17,8 +17,10 @@ dev = ["clippy"]
 procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }
 sys-info = { version = "*", git = "https://github.com/X3n0m0rph59/sys-info-rs", branch = "master" }
 threadpool = { version = "*", git = "https://github.com/X3n0m0rph59/rust-threadpool", branch = "master" }
+zmq = { version = "*", git = "https://github.com/X3n0m0rph59/rust-zmq", branch = "master" }
 # sys-info = { version = "*", path = "vendor/sys-info" }
 # threadpool = { version = "*", path = "vendor/threadpool" }
+# zmq = { version = "*", path = "vendor/rust-zmq" }
 chrono = { version = "0.4.0", features = ["serde", "rustc-serialize"] }
 chrono-tz = { version = "0.4.0", features = ["serde"] }
 log-panics = "1.2.0"
@@ -28,7 +30,6 @@ systemstat = "0.1.2"
 users = "0.6.0"
 libc = "0.2.33"
 nix = "0.9"
-zmq = "0.8"
 num_cpus = "1.0"
 log = "0.3"
 env_logger = "0.4.3"
