@@ -114,6 +114,7 @@ esac
 %{_sbindir}/precached
 %{_sbindir}/precachedctl
 %{_sbindir}/iotracectl
+%{_sbindir}/rulesctl
 %{_sbindir}/precachedtop
 %{_unitdir}/precached.service
 %{_unitdir}/precached-prime-caches.service
