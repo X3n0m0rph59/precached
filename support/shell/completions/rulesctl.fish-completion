@@ -1,0 +1,54 @@
+function __fish_using_command
+    set cmd (commandline -opc)
+    if [ (count $cmd) -eq (count $argv) ]
+        for i in (seq (count $argv))
+            if [ $cmd[$i] != $argv[$i] ]
+                return 1
+            end
+        end
+        return 0
+    end
+    return 1
+end
+
+complete -c rulesctl -n "__fish_using_command rulesctl" -s c -l config -d 'The precached config file to use'
+complete -c rulesctl -n "__fish_using_command rulesctl" -s a -l ascii -d 'Produce ASCII output (default) instead of using Unicode for line drawing'
+complete -c rulesctl -n "__fish_using_command rulesctl" -s u -l unicode -d 'Produce Unicode output instead of using ASCII (default) for line drawing'
+complete -c rulesctl -n "__fish_using_command rulesctl" -s v -d 'Sets the level of output verbosity'
+complete -c rulesctl -n "__fish_using_command rulesctl" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl" -s V -l version -d 'Prints version information'
+complete -c rulesctl -n "__fish_using_command rulesctl" -f -a "status" -d 'Show the current status of the precached rules subsystem'
+complete -c rulesctl -n "__fish_using_command rulesctl" -f -a "list" -d 'List all available rules'
+complete -c rulesctl -n "__fish_using_command rulesctl" -f -a "info" -d 'Print information about a specific rule'
+complete -c rulesctl -n "__fish_using_command rulesctl" -f -a "dump" -d 'Dump contents of a specific rule file'
+complete -c rulesctl -n "__fish_using_command rulesctl" -f -a "enable" -d 'Enable a rule'
+complete -c rulesctl -n "__fish_using_command rulesctl" -f -a "disable" -d 'Disable a rule'
+complete -c rulesctl -n "__fish_using_command rulesctl" -f -a "reload" -d 'Tell precached to reload its configuration'
+complete -c rulesctl -n "__fish_using_command rulesctl" -f -a "help" -d 'Display this short help text'
+complete -c rulesctl -n "__fish_using_command rulesctl" -f -a "completions" -d 'Generates completion scripts for your shell'
+complete -c rulesctl -n "__fish_using_command rulesctl status" -l tabular -d 'Use \'tabular\' display format'
+complete -c rulesctl -n "__fish_using_command rulesctl status" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl status" -s V -l version -d 'Prints version information'
+complete -c rulesctl -n "__fish_using_command rulesctl list" -l tabular -d 'Use \'tabular\' display format'
+complete -c rulesctl -n "__fish_using_command rulesctl list" -s f -l full -d 'Use \'full\' display format (list all fields)'
+complete -c rulesctl -n "__fish_using_command rulesctl list" -s s -l short -d 'Use \'short\' display format (list important fields only)'
+complete -c rulesctl -n "__fish_using_command rulesctl list" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl list" -s V -l version -d 'Prints version information'
+complete -c rulesctl -n "__fish_using_command rulesctl info" -s f -l full -d 'Use \'full\' display format'
+complete -c rulesctl -n "__fish_using_command rulesctl info" -s s -l short -d 'Use \'short\' display format'
+complete -c rulesctl -n "__fish_using_command rulesctl info" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl info" -s V -l version -d 'Prints version information'
+complete -c rulesctl -n "__fish_using_command rulesctl dump" -s f -l full -d 'Use \'full\' display format'
+complete -c rulesctl -n "__fish_using_command rulesctl dump" -s s -l short -d 'Use \'short\' display format'
+complete -c rulesctl -n "__fish_using_command rulesctl dump" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl dump" -s V -l version -d 'Prints version information'
+complete -c rulesctl -n "__fish_using_command rulesctl enable" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl enable" -s V -l version -d 'Prints version information'
+complete -c rulesctl -n "__fish_using_command rulesctl disable" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl disable" -s V -l version -d 'Prints version information'
+complete -c rulesctl -n "__fish_using_command rulesctl reload" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl reload" -s V -l version -d 'Prints version information'
+complete -c rulesctl -n "__fish_using_command rulesctl help" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl help" -s V -l version -d 'Prints version information'
+complete -c rulesctl -n "__fish_using_command rulesctl completions" -s h -l help -d 'Prints help information'
+complete -c rulesctl -n "__fish_using_command rulesctl completions" -s V -l version -d 'Prints version information'
