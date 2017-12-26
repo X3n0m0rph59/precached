@@ -41,6 +41,9 @@ pub const CONFIG_FILE: &str = "/etc/precached/precached.conf";
 /// Default directory where the daemon state shall be saved
 pub const STATE_DIR: &str = "/var/lib/precached/";
 
+/// Default directory where the daemon rules shall be stored
+pub const RULES_DIR: &str = "/etc/precached/rules.d";
+
 /// PID file of the precached daemon
 pub const DAEMON_PID_FILE: &str = "/run/precached.pid";
 

@@ -40,6 +40,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_mandir}/man8
 %{__mkdir_p} %{buildroot}%{_datarootdir}/metainfo/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/rules.d
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/
@@ -109,6 +110,7 @@ esac
 %dir %{_docdir}/%{name}/examples/
 %dir %{_datarootdir}/bash-completion/completions/
 %dir %{_datarootdir}/zsh/site-functions/
+%dir %{_sysconfdir}/%{name}/rules.s/
 # %docdir %{_docdir}/%{name}/examples/
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sbindir}/precached

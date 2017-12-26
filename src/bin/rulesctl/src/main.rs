@@ -217,6 +217,7 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
 }
 
 fn list_rules(_config: &Config, _daemon_config: util::ConfigFile) {
+    let rules_path = Path::new(constants::RULES_DIR);
 
 }
 

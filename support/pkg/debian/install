@@ -14,3 +14,5 @@ support/shell/completions/precachedtop.zsh-completion usr/share/zsh/site-functio
 target/release/precached usr/sbin
 target/release/precachedctl usr/sbin
 target/release/iotracectl usr/sbin
+target/release/rulesctl usr/sbin
+target/release/precachedtop usr/sbin

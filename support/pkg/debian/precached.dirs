@@ -1,3 +1,4 @@
 /etc/precached
+/etc/precached/rules.d
 /var/lib/precached
 /var/lib/precached/iotrace

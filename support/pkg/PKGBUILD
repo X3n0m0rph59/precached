@@ -32,6 +32,7 @@ package() {
 
   mkdir -p "$pkgdir/usr/bin"
   mkdir -p "$pkgdir/etc/precached"
+  mkdir -p "$pkgdir/etc/precached/rules.d"
   mkdir -p "$pkgdir/var/lib/precached/iotrace"
   mkdir -p "$pkgdir/usr/share/doc/precached/examples"
   mkdir -p "$pkgdir/usr/lib/systemd/system/"
