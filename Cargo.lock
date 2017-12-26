@@ -1016,7 +1016,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "zmq"
 version = "0.9.0"
-source = "git+https://github.com/X3n0m0rph59/rust-zmq#df498e7c2f01364cec16bd1e33d70f77b7f0841a"
+source = "git+https://github.com/X3n0m0rph59/rust-zmq#941ef1aa05d347c03a61e779133fcbb510c11238"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1027,7 +1027,7 @@ dependencies = [
 [[package]]
 name = "zmq-sys"
 version = "0.9.0"
-source = "git+https://github.com/X3n0m0rph59/rust-zmq#df498e7c2f01364cec16bd1e33d70f77b7f0841a"
+source = "git+https://github.com/X3n0m0rph59/rust-zmq#941ef1aa05d347c03a61e779133fcbb510c11238"
 dependencies = [
  "libc 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
  "metadeps 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
