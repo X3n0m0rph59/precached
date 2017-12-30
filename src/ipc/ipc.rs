@@ -48,11 +48,10 @@ use constants;
 
 /// Represents a process
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProcessEntry {
-    pub datetime: DateTime<Utc>,
+pub struct ProcessEntry {    
     /// Holds the `pid` of the process
     pub pid: libc::pid_t,
-    pub executable: String,
+    pub comm: String,
 }
 
 /// Represents an in-flight trace
@@ -302,7 +301,7 @@ impl IpcServer {
     }
 
     fn handle_request_tracked_processes(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
-        trace!("IPC client command: RequestInFlightTracers");
+        warn!("IPC client command: RequestTrackedProcesses");
 
         let hm = manager.hook_manager.read().unwrap();
 
@@ -315,16 +314,15 @@ impl IpcServer {
 
             Some(h) => {
                 let h = h.read().unwrap();
-                let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
+                let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();                
 
                 let v: Vec<ProcessEntry> = process_tracker
                     .tracked_processes
                     .values()
                     .map(|v| {                        
                         ProcessEntry {
-                            datetime: Utc::now(),
                             pid: v.pid,
-                            executable: "exe".to_string(),
+                            comm: v.comm.to_string(),
                         }
                     })
                     .collect();
@@ -361,41 +359,7 @@ impl IpcServer {
 
         socket.send(&buf, 0)?;
     
-        Ok(())
-
-        // let hm = manager.hook_manager.read().unwrap();
-
-        // match hm.get_hook_by_name(&String::from("ftrace_logger")) {
-        //     None => {
-        //         warn!("Hook not loaded: 'ftrace_logger', skipped");
-                
-        //         Ok(())
-        //     }
-
-        //     Some(h) => {
-        //         let h = h.read().unwrap();
-        //         let mut ftrace_logger = h.as_any().downcast_ref::<FtraceLogger>().unwrap();
-
-        //         let v: Vec<TracerEntry> = FtraceLogger
-        //             .tracked_processes
-        //             .values()
-        //             .map(|v| {                        
-        //                 ProcessEntry {
-        //                     datetime: Utc::now(),
-        //                     pid: v.pid,
-        //                     executable: "exe".to_string(),
-        //                 }
-        //             })
-        //             .collect();
-
-        //         let cmd = IpcMessage::new(IpcCommand::SendInFlightTracers(v));
-        //         let buf = serde_json::to_string(&cmd).unwrap();
-
-        //         socket.send_str(&buf, 0)?;
-                
-        //         Ok(())
-        //     }
-        // }
+        Ok(())        
     }
 
     fn handle_request_prefetch_status(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {        

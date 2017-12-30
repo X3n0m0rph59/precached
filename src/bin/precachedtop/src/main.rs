@@ -21,6 +21,7 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
+extern crate libc;
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
@@ -142,8 +143,8 @@ under certain conditions.
 /// Represents a tracked process
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ProcessListItem {
-    pub datetime: DateTime<Utc>,
-    pub process: ipc::Process,
+    pub pid: libc::pid_t,
+    pub comm: String,
 }
 
 /// Represents an active trace
@@ -272,17 +273,17 @@ impl Application {
                                     // Show error
                                     items = vec![format!("Connection Error!")];
                                 } else {
-                                    // Render traced processes
+                                    // Render tracked processes
                                     items = self.tracked_processes.iter()
                                     .map(|v| { 
                                         let v = v.clone();
-                                        format!("{}\t{}\t{}", format_date(v.datetime), v.process.pid, v.process.executable) 
+                                        format!("{}\t{}", v.pid, v.comm) 
                                     }).collect();
                                 }
 
                                 SelectableList::default()
                                     .block(Block::default().borders(border::ALL)
-                                    .title("Traced Processes"))
+                                    .title("Tracked Processes"))
                                     .items(&items)
                                     .select(self.sel_index_processes)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -544,6 +545,9 @@ fn main_loop(_config: &mut Config) {
             }
 
             // Request current data
+            request!(socket, ipc::IpcCommand::RequestTrackedProcesses);
+
+            // Request current data
             request!(socket, ipc::IpcCommand::RequestInFlightTracers);
                                    
             // Request states of prefetcher threads
@@ -639,8 +643,8 @@ fn process_message(app: &mut Application, msg: ipc::IpcMessage) {
             let mut tmp = vec![];
             for p in processes {
                 let i = ProcessListItem {
-                    datetime: p.datetime, 
-                    process: p 
+                    pid: p.pid,
+                    comm: p.comm, 
                 };
 
                 tmp.push(i);       

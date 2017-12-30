@@ -50,6 +50,8 @@ package() {
   install -m 755 "target/release/rulesctl" "$pkgdir/usr/bin/"
 
   install -m 644 "support/config/precached.conf" "$pkgdir/etc/precached/"
+  install -m 644 "support/rules/README" "$pkgdir/etc/precached/rules.d/"
+  install -m 644 "support/rules/examples/ping-logger.rules" "$pkgdir/etc/precached/rules.d/"
   install -m 644 "support/systemd/precached.service" "$pkgdir/usr/lib/systemd/system/"
   install -m 644 "support/systemd/precached-prime-caches.service" "$pkgdir/usr/lib/systemd/system/"
   install -m 644 "support/systemd/precached-prime-caches.timer" "$pkgdir/usr/lib/systemd/system/"
@@ -61,6 +63,7 @@ package() {
   install -m 644 "support/man/precachedtop.8" "$pkgdir/usr/share/man/man8/"
   install -m 644 "support/man/rulesctl.8" "$pkgdir/usr/share/man/man8/"
   install -m 644 "support/man/precached.conf.5" "$pkgdir/usr/share/man/man5/"
+  install -m 644 "support/man/precached.rules.5" "$pkgdir/usr/share/man/man5/"
 
   install -m 644 -T "support/shell/completions/iotracectl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/iotracectl"
   install -m 644 -T "support/shell/completions/precachedctl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/precachedctl"

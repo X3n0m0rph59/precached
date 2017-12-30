@@ -41,6 +41,8 @@ pub mod notifications;
 // pub mod rule_plugin;
 pub mod ftrace_messages;
 pub mod inotify_multiplexer;
+pub mod rule_engine;
+pub mod rule_event_proxy;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     inotify_multiplexer::register_plugin(globals, manager);
@@ -58,6 +60,8 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     // rule_plugin::register_plugin(globals, manager);
     // forkbomb_mitigation::register_plugin(globals, manager);
     notifications::register_plugin(globals, manager);
+    rule_engine::register_plugin(globals, manager);
+    rule_event_proxy::register_plugin(globals, manager);
     ftrace_messages::register_plugin(globals, manager);
 }
 

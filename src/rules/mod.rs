@@ -18,6 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod builtin;
+pub mod rules;
 
-pub use self::builtin::*;
+pub use self::rules::*;

@@ -40,7 +40,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_mandir}/man8
 %{__mkdir_p} %{buildroot}%{_datarootdir}/metainfo/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/rules.d
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/rules.d/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/
@@ -50,12 +50,15 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_datarootdir}/zsh/site-functions/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{name}/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
+cp -a %{_builddir}/%{name}-%{version}/support/man/precached.rules.5 %{buildroot}/%{_mandir}/man5/
 cp -a %{_builddir}/%{name}-%{version}/support/man/iotracectl.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precachedctl.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precachedtop.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/man/rulesctl.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
+cp -a %{_builddir}/%{name}-%{version}/support/rules/README %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
+cp -a %{_builddir}/%{name}-%{version}/support/rules/examples/ping-logger.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.timer %{buildroot}/%{_unitdir}/
@@ -102,6 +105,7 @@ esac
 %files
 %license LICENSE
 %doc %{_mandir}/man5/precached.conf.5.gz
+%doc %{_mandir}/man5/precached.rules.5.gz
 %doc %{_mandir}/man8/iotracectl.8.gz
 %doc %{_mandir}/man8/precachedctl.8.gz
 %doc %{_mandir}/man8/precachedtop.8.gz
@@ -110,7 +114,7 @@ esac
 %dir %{_docdir}/%{name}/examples/
 %dir %{_datarootdir}/bash-completion/completions/
 %dir %{_datarootdir}/zsh/site-functions/
-%dir %{_sysconfdir}/%{name}/rules.s/
+%dir %{_sysconfdir}/%{name}/rules.d/
 # %docdir %{_docdir}/%{name}/examples/
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sbindir}/precached

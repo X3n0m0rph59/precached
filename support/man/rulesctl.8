@@ -1,24 +1,31 @@
 .\" Manpage for rulesctl.
-.TH man 8 "22 Dec 2017" "1.0" "rulesctl man page"
+.TH man 8 "31 Dec 2017" "1.0" "rulesctl man page"
 .SH NAME
- rulesctl - Manage the rules subsystem of the precached daemon
+ rulesctl - Manage rules of the precached daemon
 .SH SYNOPSIS
  rulesctl [FLAGS] [OPTIONS] [SUBCOMMAND]
 .SH DESCRIPTION
- rulesctl - Manage rules
+ Manage rules of the precached daemon
 .SH FLAGS
- -v             Sets the level of output verbosity
- -h, --help     Prints help information
- -V, --version  Prints version information
+ -a, --ascii      Produce ASCII output (default) instead of using Unicode for line drawing
+ -u, --unicode    Produce Unicode output instead of using ASCII (default) for line drawing
+ -v               Sets the level of output verbosity
+ -h, --help       Prints help information
+ -V, --version    Prints version information
 .SH OPTIONS
  -c, --config <file>  The precached config file to use [default: /etc/precached/precached.conf]
 .SH SUBCOMMANDS 
- help          Display this short help text
+ status    Show the current status of the precached rules subsystem
+ list      List all available .rules files
+ show      Print information about a specific .rules file
+ reload    Tell precached to reload its configuration
+ help      Display this short help text
 
- rulesctl is a tool for managing custom rules.
+
+ rulesctl is a tool for managing precached .rules files.
 
 .SH SEE ALSO
- iotracectl(8), precachedctl(8), precachedtop(8), precached(8), precached.conf(5)
+ iotracectl(8), precachedctl(8), precachedtop(8), precached(8), precached.conf(5), precached.rules(5)
 .SH BUGS
  No known bugs.
 .SH AUTHOR

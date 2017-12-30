@@ -1,7 +1,0 @@
-# =============================================================================
-# precached - custom rule file
-# =============================================================================
-# event-name        filter     action-name               parameters
-  ForkBombDetected             log                       severity:error
-  ForkBombDetected             notify
-# =============================================================================

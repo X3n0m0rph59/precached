@@ -30,7 +30,7 @@ where
     App::new("rulesctl")
         .version("0.1.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
-        .about("Manage rules for the precached daemon")
+        .about("Manage rules of the precached daemon")
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
         .arg(
@@ -63,97 +63,24 @@ where
         .subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Show the current status of the precached rules subsystem")
-                .arg(
-                    Arg::with_name("tabular")
-                            .long("tabular")
-                            // .short("t")
-                            // .conflicts_with("full")
-                            // .conflicts_with("short")
-                            // .conflicts_with("terse")
-                            .help("Use 'tabular' display format"),
-                ),
+                .about("Show the current status of the precached rules subsystem")                
         )        
         .subcommand(
             SubCommand::with_name("list")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("List all available rules")
-                .arg(
-                    Arg::with_name("tabular")
-                        .long("tabular")
-                        // .short("t")
-                        .conflicts_with("full")
-                        .conflicts_with("short")
-                        .conflicts_with("terse")
-                        .help("Use 'tabular' display format"),
-                )
-                .arg(
-                    Arg::with_name("full")
-                        .long("full")
-                        .short("f")
-                        .conflicts_with("tabular")
-                        .conflicts_with("short")
-                        .conflicts_with("terse")
-                        .help("Use 'full' display format (list all fields)"),
-                )
-                .arg(
-                    Arg::with_name("short")
-                        .long("short")
-                        .short("s")
-                        .conflicts_with("tabular")
-                        .conflicts_with("full")
-                        .conflicts_with("terse")
-                        .help("Use 'short' display format (list important fields only)"),
-                )                
+                .about("List all available .rules files")
         )
         .subcommand(
-            SubCommand::with_name("info")
+            SubCommand::with_name("show")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .alias("show")
-                .about("Print information about a specific rule")
+                .alias("info")
+                .about("Print information about a specific .rules file")                
                 .arg(
-                    Arg::with_name("full")
-                        .long("full")
-                        .short("f")
-                        .conflicts_with("short")
-                        .help("Use 'full' display format"),
+                    Arg::with_name("filename")                       
+                        .takes_value(true)
+                        .required(true)
+                        .help("The name of the .rules file to show"),
                 )
-                .arg(
-                    Arg::with_name("short")
-                        .long("short")
-                        .short("s")
-                        .conflicts_with("full")
-                        .help("Use 'short' display format"),
-                )                
-        )
-        .subcommand(
-            SubCommand::with_name("dump")
-                .setting(AppSettings::DeriveDisplayOrder)                
-                .about("Dump contents of a specific rule file")
-                .arg(
-                    Arg::with_name("full")
-                        .long("full")
-                        .short("f")
-                        .conflicts_with("short")
-                        .help("Use 'full' display format"),
-                )
-                .arg(
-                    Arg::with_name("short")
-                        .long("short")
-                        .short("s")
-                        .conflicts_with("full")
-                        .help("Use 'short' display format"),
-                )                
-        )
-        .subcommand(
-            SubCommand::with_name("enable")
-                .setting(AppSettings::DeriveDisplayOrder)                
-                .about("Enable a rule")                
-        )
-        .subcommand(
-            SubCommand::with_name("disable")
-                .setting(AppSettings::DeriveDisplayOrder)                
-                .about("Disable a rule")                
         )
         .subcommand(
             SubCommand::with_name("reload")

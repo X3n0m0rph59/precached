@@ -28,10 +28,8 @@ use chrono::{DateTime, Local, TimeZone, Utc};
 /// Represents a process
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Process {
-    pub datetime: DateTime<Utc>,
-    /// Holds the `pid` of the process
     pub pid: libc::pid_t,
-    pub executable: String,
+    pub comm: String,
 }
 
 /// Represents an in-flight trace

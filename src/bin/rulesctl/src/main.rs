@@ -59,6 +59,7 @@ use term::color::*;
 
 mod util;
 mod process;
+mod rules;
 mod iotrace;
 mod constants;
 mod clap_app;
@@ -216,25 +217,124 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
     table.printstd();
 }
 
-fn list_rules(_config: &Config, _daemon_config: util::ConfigFile) {
+fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
     let rules_path = Path::new(constants::RULES_DIR);
 
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
+
+    let mut idx = 0;
+    let mut cnt = 0;
+    let mut valid = 0;
+
+    // Add table row header
+    table.add_row(Row::new(vec![
+        Cell::new("#"),
+        Cell::new("File"),
+        Cell::new("Name"),
+        Cell::new("Description"),        
+        Cell::new("Enabled"),
+        Cell::new("Version"),
+        Cell::new("# Rules"),
+    ]));    
+
+    util::walk_directories(&[rules_path.to_path_buf()], &mut |path| {
+        if path.to_string_lossy().contains(".rules") {                    
+            match rules::RuleFile::from_file(&path) {
+                Err(e) => {
+                    // error!("Could not load rule file {:?}: {}", path, e);
+
+                    table.add_row(Row::new(vec![
+                        Cell::new(&format!("{}", idx + 1)),
+                        Cell::new(&path.file_name().unwrap().to_string_lossy()),
+                        Cell::new("n/a"),
+                        Cell::new(&format!("{}", e)).with_style(Attr::Bold),
+                        Cell::new("Error")
+                            .with_style(Attr::Bold)
+                            .with_style(Attr::ForegroundColor(
+                                RED,
+                            )),
+                        Cell::new("n/a"),
+                        Cell::new("n/a"),
+                    ]));
+                },
+
+                Ok(rule_file) => {                
+                    // Print in "tabular" format (the default)
+                    table.add_row(Row::new(vec![
+                        Cell::new(&format!("{}", idx + 1)),
+                        Cell::new(&path.file_name().unwrap().to_string_lossy()),
+                        Cell::new(&rule_file.metadata.name).with_style(Attr::Bold),
+                        Cell::new(&rule_file.metadata.description),
+                        Cell::new(&format!("{}", rule_file.metadata.enabled))
+                            .with_style(Attr::Bold)
+                            .with_style(Attr::ForegroundColor(
+                                map_bool_to_color(rule_file.metadata.enabled),
+                            )),
+                        Cell::new(&format!("{}", rule_file.metadata.version)),
+                        Cell::new(&format!("{}", rule_file.rules.len())),
+                    ]));
+                    
+                    valid += 1;
+                }
+            }
+
+            cnt += 1;
+            idx += 1;
+        }
+    }).unwrap();
+
+
+    table.printstd();
+
+    println!("\n{} rule files examined, {} valid rule(s)", cnt, valid);    
 }
 
-fn show_rule(_config: &Config, _daemon_config: util::ConfigFile) {
+fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {    
+    let rules_path = Path::new(constants::RULES_DIR);
 
-}
+    let matches = config.matches.subcommand_matches("show").unwrap();
+    let filename = Path::new(matches.value_of("filename").unwrap());
+    let filename = rules_path.join(filename);
 
-fn dump_rule(_config: &Config, _daemon_config: util::ConfigFile) {
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
 
-}
+    let mut idx = 0;    
 
-fn enable_rule(_config: &Config, _daemon_config: util::ConfigFile) {
-    
-}
+    // Add table row header
+    table.add_row(Row::new(vec![
+        Cell::new("#"),
+        Cell::new("Event"),
+        Cell::new("Filter"),
+        Cell::new("Action"),
+        Cell::new("Arguments"),        
+    ]));    
+     
+    match rules::RuleFile::from_file(&filename) {
+        Err(e) => {
+            error!("Could not load rule file {:?}: {}", filename, e);                    
+        },
 
-fn disable_rule(_config: &Config, _daemon_config: util::ConfigFile) {
+        Ok(rule_file) => {
+            for rule in rule_file.rules.iter() {            
+                // Print in "tabular" format (the default)
+                table.add_row(Row::new(vec![
+                    Cell::new(&format!("{}", idx + 1)),                    
+                    Cell::new(&format!("{:?}", rule.event)).with_style(Attr::Bold),
+                    Cell::new(&format!("{:?}", rule.filter)),
+                    Cell::new(&format!("{:?}", rule.action)).with_style(Attr::Bold),
+                    Cell::new(&format!("{:?}", rule.params)),
+                ]));
+                                
+                idx += 1;
+            }
+        }
+    }
 
+    table.printstd();
+
+    println!("\n{} rules examined", idx); 
 }
 
 /// Instruct precached to reload its configuration and rules
@@ -243,12 +343,14 @@ fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
         Err(_e) => {
             println!("precached is NOT running, did not send signal");
         }
+
         Ok(pid_str) => {
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGHUP) {
                 Err(e) => {
                     println!("Could not send signal! {}", e);
                 }
+
                 Ok(()) => {
                     println!("Success");
                 }
@@ -324,21 +426,9 @@ fn main() {
                 list_rules(&mut config_c, daemon_config);
             }
 
-            "info" | "show" => {
-                show_rule(&mut config_c, daemon_config);
-            }
-
-            "dump" => {
-                dump_rule(&mut config_c, daemon_config);
-            }
-           
-            "enable" => {
-                enable_rule(&mut config_c, daemon_config);
-            }
-
-            "disable" => {
-                disable_rule(&mut config_c, daemon_config);
-            }
+            "show" | "info" => {
+                show_rules(&mut config_c, daemon_config);
+            }            
 
             "reload" => {
                 daemon_reload(&mut config_c, daemon_config);

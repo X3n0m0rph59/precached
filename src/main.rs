@@ -88,6 +88,7 @@ mod iotrace;
 mod ipc;
 mod storage;
 mod util;
+mod rules;
 
 /// Global 'shall we exit now' flag
 static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
