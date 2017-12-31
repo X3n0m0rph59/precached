@@ -107,13 +107,15 @@ impl RuleEngine {
 
         for rule_file in self.rule_files.iter() {
             if rule_file.metadata.enabled {
-                for rule in rule_file.rules.iter() {                
-                    match event {
-                        rules::Event::Ping => {
-                            Self::process_ping_event(&event, &rule);
-                        }
+                for rule in rule_file.rules.iter() {
+                    if rule.event == event {
+                        match event {
+                            rules::Event::Ping => {
+                                Self::process_ping_event(&event, &rule);
+                            }
 
-                        _ => { /* Do nothing */ }
+                            _ => { /* Do nothing */ }
+                        }
                     }
                 }
             }

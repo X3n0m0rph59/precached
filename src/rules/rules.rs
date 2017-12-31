@@ -26,7 +26,7 @@ use std::str::FromStr;
 use std::path::{Path, PathBuf};
 
 /// Events that may appear in a .rules file
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Event {
     // Rule Events
     /// No-operation, placeholder
