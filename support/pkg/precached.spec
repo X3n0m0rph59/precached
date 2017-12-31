@@ -58,6 +58,7 @@ cp -a %{_builddir}/%{name}-%{version}/support/man/rulesctl.8 %{buildroot}/%{_man
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
 cp -a %{_builddir}/%{name}-%{version}/support/rules/README %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
+cp -a %{_builddir}/%{name}-%{version}/support/rules/examples/log-fork-bombs.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
 cp -a %{_builddir}/%{name}-%{version}/support/rules/examples/ping-logger.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.service %{buildroot}/%{_unitdir}/
@@ -117,6 +118,7 @@ esac
 %dir %{_sysconfdir}/%{name}/rules.d/
 # %docdir %{_docdir}/%{name}/examples/
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %{_sysconfdir}/%{name}/rules.d/
 %{_sbindir}/precached
 %{_sbindir}/precachedctl
 %{_sbindir}/iotracectl
