@@ -59,7 +59,6 @@ pbr = "1.0.0"
 prettytable-rs = "^0.6"
 daemonize = "0.2.3"
 inotify = "0.5.0"
-fluent = "0.1.2"
 clippy = { version = "*", optional = true }
 
 # [replace]

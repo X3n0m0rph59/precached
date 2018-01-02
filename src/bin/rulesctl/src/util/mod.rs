@@ -18,8 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#[macro_use] 
-pub mod fluent;
 pub mod files;
 pub mod iotrace;
 pub mod vec;
@@ -27,6 +25,5 @@ pub mod config_file;
 
 pub use self::config_file::*;
 pub use self::files::*;
-pub use self::fluent::*;
 pub use self::iotrace::*;
 pub use self::vec::*;

@@ -115,10 +115,6 @@ esac
 %dir %{_docdir}/%{name}/examples/
 %dir %{_datarootdir}/bash-completion/completions/
 %dir %{_datarootdir}/zsh/site-functions/
-%dir %{_datarootdir}/%{name}/iotracectl/locale/
-%dir %{_datarootdir}/%{name}/precachedctl/locale/
-%dir %{_datarootdir}/%{name}/precachedtop/locale/
-%dir %{_datarootdir}/%{name}/rulesctl/locale/
 %dir %{_sysconfdir}/%{name}/rules.d/
 # %docdir %{_docdir}/%{name}/examples/
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
@@ -143,11 +139,6 @@ esac
 %{_datarootdir}/zsh/site-functions/_precachedctl
 %{_datarootdir}/zsh/site-functions/_precachedtop
 %{_datarootdir}/zsh/site-functions/_rulesctl
-%{_datarootdir}/%{name}/iotracectl/locale/
-%{_datarootdir}/%{name}/precachedctl/locale/
-%{_datarootdir}/%{name}/precachedtop/locale/
-%{_datarootdir}/%{name}/rulesctl/locale/en-US.fluent
-%{_datarootdir}/%{name}/rulesctl/locale/de-DE.fluent
 %{_docdir}/%{name}/examples/
 #%{_datadir}/%{name}/
 
