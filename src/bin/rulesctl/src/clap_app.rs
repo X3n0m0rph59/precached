@@ -21,6 +21,7 @@
 extern crate clap;
 
 use self::clap::{App, AppSettings, Arg, SubCommand};
+use util;
 use constants;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b>
@@ -30,7 +31,7 @@ where
     App::new("rulesctl")
         .version("0.1.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
-        .about("Manage rules of the precached daemon")
+        .about("about")
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
         .arg(

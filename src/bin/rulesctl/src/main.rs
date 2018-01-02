@@ -57,6 +57,7 @@ use std::str::FromStr;
 use term::Attr;
 use term::color::*;
 
+#[macro_use]
 mod util;
 mod process;
 mod rules;
@@ -97,13 +98,7 @@ impl<'a, 'b> Config<'a, 'b> {
 
 /// Print a license header to the console
 fn print_license_header() {
-    println!(
-        "precached Copyright (C) 2017 the precached team
-This program comes with ABSOLUTELY NO WARRANTY;
-This is free software, and you are welcome to redistribute it
-under certain conditions.
-"
-    );
+    println!("{}\n", tr!("license-header"));
 }
 
 /// Return a formatted `String` containing date and time of `date`

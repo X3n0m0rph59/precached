@@ -1,0 +1,8 @@
+license-header =
+    precached Copyright (C) 2017 the precached team
+    This program comes with ABSOLUTELY NO WARRANTY;
+    This is free software, and you are welcome to redistribute it
+    under certain conditions.
+
+about = Manage rules of the precached daemon
+
