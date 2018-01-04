@@ -18,12 +18,15 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate sys_info;
+
 use std::fs::File;
 use std::io::prelude::*;
 use std::io;
 use std::io::{Error, ErrorKind, BufReader};
 use std::str::FromStr;
 use std::path::{Path, PathBuf};
+use chrono::Utc;
 
 /// Events that may appear in a .rules file
 #[derive(Debug, Clone, PartialEq)]
@@ -31,6 +34,10 @@ pub enum Event {
     // Rule Events
     /// No-operation, placeholder
     Noop,
+    /// Timer event
+    Timer,
+    /// User login event
+    UserLogin(Option<String>, Option<PathBuf>),
         
     // Map most InternalEvents
     /// occurs every n seconds
@@ -85,6 +92,12 @@ pub enum Event {
     LeaveIdle,
 }
 
+// impl PartialEq for Event {
+//     fn eq(&self, other: &Event) -> bool {
+//         util::variant_eq(self, other)
+//     }
+// }
+
 /// Actions that may appear in a .rules file
 #[derive(Debug, Clone)]
 pub enum Action {
@@ -94,6 +107,8 @@ pub enum Action {
     Log,
     /// Notify logged in user
     Notify,
+    /// Recursively cache the specified directory
+    CacheDirRecursive,
 }
 
 /// An entry in a .rules file (a rule)
@@ -153,8 +168,8 @@ impl RuleFile {
             let l = line.unwrap();
             let l = l.trim();
 
-            if l.starts_with('#') {
-                // Ignore comment lines
+            if l.starts_with('#') || l.is_empty() {
+                // Ignore empty and comment lines
                 continue; 
             } else if l.starts_with('!') {
                 // Metadata declarations start with an exclamation mark ('!')
@@ -191,9 +206,14 @@ impl RuleFile {
             } else {
                 // We are not a comment line, and not a metadata declaration
                 // therefore we assume that we have a rule statement here
-                let rule: Vec<&str> = l.split_whitespace().collect();
+                let rule = tokenize(&String::from(l));
+                                
+                // Spurious row
+                if rule.len() <= 1 {
+                    continue;
+                }
 
-                // Check if rule has the right amount of statements
+                // Check if rule has an ample amount of statements
                 if rule.len() < 4 {
                     // parsed rule can't be valid, error out
                     error_at_line = line_counter + 1;
@@ -255,10 +275,15 @@ pub fn get_param_value(params: &Vec<String>, param_name: &str) -> Result<String,
     for p in params.iter() {
         let pn: Vec<&str> = p.split(':').collect();
 
-        if pn[0] == param_name {
-            result = pn[1].to_string();
-            found = true;
-            break;
+        if pn.len() >= 2 {
+            if pn[0] == param_name {
+                result = expand_macros(pn[1].to_string());
+                found = true;
+                break;
+            }
+        } else {
+            // No associated parameter value
+            continue;
         }
     }
 
@@ -269,12 +294,49 @@ pub fn get_param_value(params: &Vec<String>, param_name: &str) -> Result<String,
     }
 }
 
+/// Gathers memory statistics
+fn memory_statistics() -> sys_info::MemInfo {
+    sys_info::mem_info().unwrap()
+}
+
+/// Support macro replacement in parameters
+/// Currently supported macros are:
+///   $meminfo: Insert memory statistics
+///   $date: Insert current date and time (UTC)
+fn expand_macros(param: String) -> String {
+    let mut result = param.clone();
+
+    // Expand macro $meminfo
+    if param.contains("$meminfo") {       
+        let stats = format!("{:?}", memory_statistics());
+        result = param.replace("$meminfo", &stats);       
+    }
+    
+    // Expand macro $date
+    if param.contains("$date") {
+        let date = Utc::now();
+        result = result.replace("$date", &date.format("%Y-%m-%d %H:%M:%S").to_string());
+    }
+    
+    result
+}
+
 /// Parse an `Event` statement that may appear in a .rules file
 fn parse_event(event: &str) -> Result<Event, String> {
     match event {
+        // rules Events
         "Noop" => {
             Ok(Event::Noop)
         },
+
+        "Timer" => {
+            Ok(Event::Timer)
+        },
+
+        "UserLogin" => {
+            Ok(Event::UserLogin(None, None))
+        },
+
 
         // Internal Events
         "Ping" => {
@@ -398,27 +460,167 @@ fn parse_action(action: &str) -> Result<Action, String> {
             Ok(Action::Notify)
         },
 
+        "CacheDirRecursive" => {
+            Ok(Action::CacheDirRecursive)
+        },
+
         _ => {
             Err(format!("Invalid Action: '{}'", action))
         }
     }
 }
 
-/// Parse the arguments part that may appear in a .rules file
-/// Processing is done in the plugin `rule_engine`
-fn parse_params(params: &str) -> Result<Vec<String>, String> {
-    let result: Vec<String> = params.split(',').map(|v| { v.to_string() }).collect();
-
-    Ok(result)
-}
-
 /// Recursive descending parser for .rules files, mid-layer
 /// On success, returns a 4-tuple representing a "rule"
-fn parse_rule(rule: &[&str]) -> Result<(Event, Vec<String>, Action, Vec<String>), String> {
-    let event  = parse_event(rule[0])?;
-    let filter = parse_filter(rule[1])?;
-    let action = parse_action(rule[2])?;
-    let params = parse_params(rule[3])?;
+fn parse_rule(rule: &[String]) -> Result<(Event, Vec<String>, Action, Vec<String>), String> {
+    let event  = parse_event(rule[0].trim())?;
+    let filter = parse_filter(rule[1].trim())?;
+    let action = parse_action(rule[2].trim())?;
+
+    let remainder: Vec<&String> = rule.iter().skip(3).collect();
+    let params = tokenize_parameters(&remainder);
 
     Ok((event, filter, action, params))
+}
+
+/// Tokenizer suited for tokenizing .rules files
+fn tokenize(line: &String) -> Vec<String> {
+    let mut result = vec![];
+
+    // flags to control the tokenizer
+    // let mut escape_flag = false;
+    let mut string_flag = false;
+    let mut pushed_flag = false;
+
+    let mut acc = String::new();
+    for c in line.chars() {
+        match c {
+            // Match Comments
+            '#' => {
+                // Ignore rest of line
+                continue;
+            },
+
+            // Match whitespace
+            ' ' | '\t' => {
+                pushed_flag = false;
+
+                if !string_flag {
+                    let tmp = String::from(acc.trim());
+                    if tmp.len() > 0 {
+                        result.push(tmp.clone());
+                        acc.clear();
+                    }
+                } else {
+                    acc.push(c);
+                }
+            },
+
+            // Match Line endings
+            '\n' => {
+                pushed_flag = false;
+                result.push(acc.clone());
+            }
+
+            // Match string control characters
+            '"' => {
+                string_flag = !string_flag;
+
+                if !string_flag {
+                    pushed_flag = true;
+                    result.push(acc.clone());
+                }
+            }
+
+            // Match separator characters
+            ',' => {
+                if !string_flag {
+                    pushed_flag = false;
+                    result.push(acc.clone());
+                    acc.clear();
+                }
+            }
+
+            // Match every other character
+            _ => {
+                pushed_flag = false;
+                acc.push(c);
+            }
+        }
+    }
+
+    if !pushed_flag {
+        result.push(acc.clone());
+    }
+
+    result
+}
+
+/// Tokenizer suited for tokenizing parameters in .rules files
+fn tokenize_parameters(params: &Vec<&String>) -> Vec<String> {
+    let mut result = vec![];    
+
+    // flags to control the tokenizer
+    // let mut escape_flag = false;
+    let mut string_flag = false;
+    let mut pushed_flag = false;
+
+    for line in params.iter() {
+        let mut acc = String::new();
+        for c in line.chars() {
+            match c {
+                // Match whitespace
+                // ' ' | '\t' => {
+                //     pushed_flag = false;
+
+                //     if !string_flag {
+                //         let tmp = String::from(acc.trim());
+                //         if tmp.len() > 0 {
+                //             result.push(tmp.clone());
+                //             acc.clear();
+                //         }
+                //     } else {
+                //         acc.push(c);
+                //     }
+                // },
+
+                // Match Line endings
+                '\n' => {
+                    pushed_flag = false;
+                    result.push(acc.clone());
+                }
+
+                // Match string control characters
+                '"' => {
+                    string_flag = !string_flag;
+
+                    if !string_flag {                        
+                        pushed_flag = true;
+                        result.push(acc.clone());
+                    }
+                }
+
+                // Match separator characters
+                // ',' | ':' => {
+                //     if !string_flag {
+                //         pushed_flag = false;
+                //         result.push(acc.clone());
+                //         acc.clear();
+                //     }
+                // }
+
+                // Match every other character
+                _ => {
+                    pushed_flag = false;
+                    acc.push(c);
+                }
+            }
+        }
+
+        if !pushed_flag {
+            result.push(acc.clone());
+        }
+    }
+
+    result
 }

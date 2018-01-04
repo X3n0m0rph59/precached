@@ -21,9 +21,9 @@
 use events;
 use globals::*;
 use manager::*;
-// use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use plugins::vfs_stat_cache::VFSStatCache;
 use std::any::Any;
 use std::path::{Path, PathBuf};
 use storage;
@@ -53,65 +53,256 @@ pub struct RuleEngine {
 impl RuleEngine {
     pub fn new() -> RuleEngine {
         RuleEngine {
+            /// Holds all .rules files known to precached in a parsed form
             rule_files: vec![],
         }
     }
 
-    // Event handler for `Ping` events
-    fn process_ping_event(event: &rules::Event, rule: &rules::RuleEntry) {
-        match rule.action {
-            rules::Action::Noop => { /* Do nothing */ },
+    /// Implements the `Log` rule action
+    /// Supported parameters:
+    /// Severity: [trace, debug, info, warn, error], required
+    /// Message: String, optional
+    fn rule_action_log(&self, event: &rules::Event, rule: &rules::RuleEntry, 
+                        _globals: &mut Globals, _manager: &Manager) {
+        trace!("Rule Action: Log");        
 
-            rules::Action::Log => {
-                match rules::get_param_value(&rule.params, "Severity") {
+        let message = match event {
+            &rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
+                // We are being invoked through `process_user_login_event(..)`
+                // So we have valid `user` and `home_dir` parameters
+                match rules::get_param_value(&rule.params, "Message") {
                     Err(e) => {
-                        error!("Invalid severity specified: '{}'", e);
+                        error!("Invalid message specified: '{}'", e);
+
+                        // Default text is the name of the event
+                        format!("{:?}", event)
                     },
 
                     Ok(val) => {
-                        match val.to_lowercase().as_str() {
-                            "trace" => {
-                                trace!("{:?}", event);
-                            },
+                        let home_dir_str = &home_dir.to_string_lossy().to_string();
+                        let message = Self::expand_variables(val, &[(&"$user".to_string(), &user), 
+                                                                    (&"$home_dir".to_string(), &home_dir_str)]);
 
-                            "debug" => {
-                                debug!("{:?}", event);
-                            },
+                        message
+                    }
+                }
+            },
 
-                            "info" => {
-                                info!("{:?}", event);
-                            },
+            &_ => {
+                match rules::get_param_value(&rule.params, "Message") {
+                    Err(_e) => {
+                        // Default text is the name of the event
+                        format!("{:?}", event)
+                    },
 
-                            "warn" => {
-                                warn!("{:?}", event);
-                            },
+                    Ok(val) => {                
+                        val
+                    }   
+                }
+            }
+        };
 
-                            "error" => {
-                                error!("{:?}", event);
-                            },
+        match rules::get_param_value(&rule.params, "Severity") {
+            Err(e) => {
+                error!("Invalid severity specified: '{}'", e);
+            },
 
-                            _ => {
-                                error!("Invalid severity '{}' specified!", val);
+            Ok(val) => {
+                match val.to_lowercase().as_str() {
+                    "trace" => {
+                        trace!("{:?}", message);
+                    },
+
+                    "debug" => {
+                        debug!("{:?}", message);
+                    },
+
+                    "info" => {
+                        info!("{:?}", message);
+                    },
+
+                    "warn" => {
+                        warn!("{:?}", message);
+                    },
+
+                    "error" => {
+                        error!("{:?}", message);
+                    },
+
+                    _ => {
+                        error!("Invalid severity '{}' specified!", val);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Implements the `Notify` rule action
+    fn rule_action_notify(&self, _event: &rules::Event, _rule: &rules::RuleEntry, 
+                          _globals: &mut Globals, _manager: &Manager) {
+        trace!("Rule Action: Notify");
+
+        // TODO: Implement this!
+    }
+
+    /// Perform variable expansion in strings    
+    fn expand_variables(param: String, vars: &[(&String, &String)]) -> String {
+        let mut result = param.clone();
+
+        for var in vars.iter() {
+            result = result.replace(var.0, var.1);
+        }
+
+        result
+    }
+
+    /// Implements the `CacheDirRecursive` rule action
+    fn rule_action_cache_dir_recursive(&self, event: &rules::Event, rule: &rules::RuleEntry, 
+                                       globals: &mut Globals, manager: &Manager) {
+        trace!("Rule Action: CacheDirRecursive");
+
+        match event {
+            &rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
+                // We are being invoked through `process_user_login_event(..)`
+                // So we have valid `user` and `home_dir` parameters
+                match rules::get_param_value(&rule.params, "Directory") {
+                    Err(e) => {
+                        error!("Invalid directory specified: '{}'", e);
+                    },
+
+                    Ok(val) => {
+                        let home_dir_str = &home_dir.to_string_lossy().to_string();
+                        let path = Self::expand_variables(val, &[(&"$user".to_string(), &user), 
+                                                                   (&"$home_dir".to_string(), &home_dir_str)]);
+                        
+                        let pm = manager.plugin_manager.read().unwrap();
+
+                        match pm.get_plugin_by_name(&String::from("vfs_stat_cache")) {
+                            None => {
+                                warn!("Plugin not loaded: 'vfs_stat_cache', skipped");
+                            }
+                            Some(p) => {
+                                let p = p.read().unwrap();
+                                let vfs_stat_cache = p.as_any().downcast_ref::<VFSStatCache>().unwrap();
+
+                                let paths = vec![PathBuf::from(&path)];
+
+                                vfs_stat_cache.prime_statx_cache(&paths, globals, manager);
                             }
                         }
                     }
                 }
             },
 
-            rules::Action::Notify => { /* TODO: Implement this! */ },
+            &_ => {
+
+            }
+        }
+    }
+
+    /// Event handler for `Timer` events
+    /// Valid Actions are:
+    ///     * Noop
+    ///     * Log
+    ///     * Notify
+    ///     * CacheDirRecursive
+    fn process_timer_event(&self, event: &rules::Event, rule: &rules::RuleEntry,
+                           globals: &mut Globals, manager: &Manager) {
+        match rule.action {
+            rules::Action::Noop => { /* Do nothing */ },
+
+            rules::Action::Log => {
+                self.rule_action_log(event, rule, globals, manager);
+            },
+
+            rules::Action::Notify => { 
+                /* TODO: Implement this! */ 
+                self.rule_action_notify(event, rule, globals, manager);
+            },
+
+            rules::Action::CacheDirRecursive => {                 
+                self.rule_action_cache_dir_recursive(event, rule, globals, manager);
+            },
+        }
+    }
+
+    /// Event handler for `Ping` events
+    /// Valid Actions are:
+    ///     * Noop
+    ///     * Log
+    ///     * Notify
+    ///     * CacheDirRecursive
+    fn process_ping_event(&self, event: &rules::Event, rule: &rules::RuleEntry,
+                          globals: &mut Globals, manager: &Manager) {
+        match rule.action {
+            rules::Action::Noop => { /* Do nothing */ },
+
+            rules::Action::Log => {
+                self.rule_action_log(event, rule, globals, manager);
+            },
+
+            rules::Action::Notify => { 
+                /* TODO: Implement this! */ 
+                self.rule_action_notify(event, rule, globals, manager);
+            },
+
+            rules::Action::CacheDirRecursive => {                 
+                self.rule_action_cache_dir_recursive(event, rule, globals, manager);
+            },
+        }
+    }
+
+    /// Event handler for `UserLogin` events
+    /// Valid Actions are:
+    ///     * Noop
+    ///     * Log
+    ///     * Notify
+    ///     * CacheDirRecursive(), Valid variables are: $user, $home_dir
+    fn process_user_login_event(&self, event: &rules::Event, rule: &rules::RuleEntry,
+                                globals: &mut Globals, manager: &Manager) {
+        match rule.action {
+            rules::Action::Noop => { /* Do nothing */ },
+
+            rules::Action::Log => {
+                self.rule_action_log(event, rule, globals, manager);
+            },
+
+            rules::Action::Notify => { 
+                /* TODO: Implement this! */ 
+                self.rule_action_notify(event, rule, globals, manager);
+            },
+
+            rules::Action::CacheDirRecursive => {                 
+                self.rule_action_cache_dir_recursive(event, rule, globals, manager);
+            },
         }
     }
     
-    pub fn process_event(&self, event: rules::Event) {
+    pub fn process_event(&self, event: rules::Event, globals: &mut Globals, manager: &Manager) {
         trace!("Processing event: {:?}", event);
 
         for rule_file in self.rule_files.iter() {
             if rule_file.metadata.enabled {
                 for rule in rule_file.rules.iter() {
-                    if rule.event == event {
+                    // Compare for equality without comparing parameters of enums
+                    if util::variant_eq(&rule.event, &event) {   
                         match event {
+                            // rules events
+                            rules::Event::Noop => {
+                                trace!("Noop: {:?}", event);
+                            }
+
+                            rules::Event::Timer => {
+                                self.process_timer_event(&event, &rule, globals, manager);
+                            }
+
+                            rules::Event::UserLogin(..) => {                                
+                                self.process_user_login_event(&event, &rule, globals, manager);
+                            }
+
+                            // InternalEvent events
                             rules::Event::Ping => {
-                                Self::process_ping_event(&event, &rule);
+                                self.process_ping_event(&event, &rule, globals, manager);
                             }
 
                             _ => { /* Do nothing */ }
@@ -174,6 +365,11 @@ impl Plugin for RuleEngine {
             events::EventType::Startup | 
             events::EventType::ConfigurationReloaded => {
                 self.load_rules(globals, manager);
+            }
+
+            events::EventType::Ping => {
+                // Fire timer event
+                self.process_event(rules::Event::Timer, globals, manager);
             }
 
             _ => {

@@ -58,9 +58,46 @@ impl VFSStatCache {
         VFSStatCache { memory_freed: true }
     }
 
+    /// Walk all files and directories from the specified paths
+    /// and call stat() on them, to prime the kernel's dentry caches
+    pub fn prime_statx_cache(&self, paths: &Vec<PathBuf>, globals: &Globals, manager: &Manager) {
+        info!("Started reading of statx() metadata...");
+
+        match util::PREFETCH_POOL.lock() {
+            Err(e) => warn!(
+                "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                e
+            ),
+
+            Ok(thread_pool) => {
+                let paths_c = paths.clone();
+                let globals_c = globals.clone();
+                let manager_c = manager.clone();
+
+                thread_pool.submit_work(move || {
+                    util::walk_directories(&paths_c, &mut |ref path| {
+                        if !Self::check_available_memory(&globals_c, &manager_c) {
+                            info!("Available memory exhausted, stopping statx() caching!");
+                            return;
+                        }
+
+                        let _metadata = path.metadata();
+                    }).unwrap_or_else(|e| {
+                        error!(
+                            "Unhandled error occured during processing of files and directories! {}",
+                            e
+                        )
+                    });
+                });
+
+                info!("Finished reading of statx() metadata for whitelisted files");
+            }
+        }
+    }
+
     /// Walk all files and directories from all whitelists
     /// and call stat() on them, to prime the kernel's dentry caches
-    pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
+    pub fn prime_statx_cache_from_whitelist(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started reading of statx() metadata for whitelisted files...");
 
         let tracked_entries = self.get_globally_tracked_entries(globals, manager);
@@ -242,7 +279,7 @@ impl Plugin for VFSStatCache {
         match event.event_type {
             events::EventType::PrimeCaches => if self.memory_freed {
                 self.prime_statx_cache_for_top_iotraces(globals, manager);
-                self.prime_statx_cache(globals, manager);
+                self.prime_statx_cache_from_whitelist(globals, manager);
 
                 self.memory_freed = false;
             },

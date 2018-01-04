@@ -27,13 +27,14 @@ use self::users::*;
 use self::users::os::unix::UserExt;
 use events;
 use events::EventType;
+use rules;
 use globals::*;
 use manager::*;
 use plugins::metrics::Metrics;
-// use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::static_blacklist::StaticBlacklist;
+use plugins::rule_event_proxy::RuleEventProxy;
 use std::any::Any;
 use std::path::{Path, PathBuf};
 use std::result::Result;
@@ -88,7 +89,7 @@ impl UserSession {
         result
     }
 
-    pub fn user_logged_in(&mut self, uid: Uid, _globals: &mut Globals, _manager: &Manager) {
+    pub fn user_logged_in(&mut self, uid: Uid, globals: &mut Globals, manager: &Manager) {
         let user_name = Self::get_user_name_from_id(uid);
 
         match user_name {
@@ -100,7 +101,23 @@ impl UserSession {
                 info!("User '{}' with id {} logged in!", u, uid);
 
                 let home_dir = Self::get_user_home_dir_from_id(uid).unwrap();
-                self.logged_in_users.insert(uid, PathBuf::from(home_dir));
+                self.logged_in_users.insert(uid, PathBuf::from(home_dir.clone()));
+
+                // Notify rules engine of the login event
+                let pm = manager.plugin_manager.read().unwrap();
+    
+                match pm.get_plugin_by_name(&String::from("rule_event_proxy")) {
+                    None => {
+                        warn!("Plugin not loaded: 'rules_event_proxy', skipped");
+                    }
+                    
+                    Some(p) => {
+                        let p = p.read().unwrap();
+                        let rule_event_proxy = p.as_any().downcast_ref::<RuleEventProxy>().unwrap();
+                                                
+                        rule_event_proxy.fire_event(rules::Event::UserLogin(Some(u), Some(home_dir)), globals, manager);                        
+                    }
+                };
             }
         };
     }

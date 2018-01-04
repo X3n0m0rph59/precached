@@ -52,10 +52,12 @@ impl RuleEventProxy {
         RuleEventProxy {}
     }
 
-    pub fn fire_event(&self, event: &rules::Event) {
-        // TODO: Implement this!
+    /// fire a rules engine specific `rules::Event` Event
+    pub fn fire_event(&self, event: rules::Event, globals: &mut Globals, manager: &Manager) {
+        Self::rule_engine_fire_event(event, globals, manager);
     }
 
+    /// Map `InternalEvent` to `rules::Event`
     fn translate_event(&self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) { 
         match event.event_type {
             events::EventType::Ping => {
@@ -78,19 +80,19 @@ impl RuleEventProxy {
                 Self::rule_engine_fire_event(rules::Event::DoHousekeeping, globals, manager);
             },
 
-            events::EventType::InotifyEvent(ref event_mask_wrapper, ref path) => {
+            events::EventType::InotifyEvent(ref _event_mask_wrapper, ref _path) => {
                 Self::rule_engine_fire_event(rules::Event::DoHousekeeping, globals, manager);
             },
 
-            events::EventType::OptimizeIOTraceLog(ref path) => {
+            events::EventType::OptimizeIOTraceLog(ref _path) => {
                 Self::rule_engine_fire_event(rules::Event::OptimizeIOTraceLog, globals, manager);
             },
 
-            events::EventType::IoTraceLogCreated(ref path) => {
+            events::EventType::IoTraceLogCreated(ref _path) => {
                 Self::rule_engine_fire_event(rules::Event::IoTraceLogCreated, globals, manager);
             },
 
-            events::EventType::IoTraceLogRemoved(ref path) => {
+            events::EventType::IoTraceLogRemoved(ref _path) => {
                 Self::rule_engine_fire_event(rules::Event::IoTraceLogRemoved, globals, manager);
             },
 
@@ -102,7 +104,7 @@ impl RuleEventProxy {
                 Self::rule_engine_fire_event(rules::Event::ConfigurationReloaded, globals, manager);
             },
 
-            events::EventType::TrackedProcessChanged(ref event) => {
+            events::EventType::TrackedProcessChanged(ref _event) => {
                 Self::rule_engine_fire_event(rules::Event::TrackedProcessChanged, globals, manager);
             },
 
@@ -154,13 +156,13 @@ impl RuleEventProxy {
                 Self::rule_engine_fire_event(rules::Event::LeaveIdle, globals, manager);
             },
 
-            _ => {
-                // Ignore all other events
-            }
+            // _ => {
+            //     // Ignore all other events
+            // }
         }
     }
 
-    fn rule_engine_fire_event(event: rules::Event, _globals: &mut Globals, manager: &Manager) {
+    fn rule_engine_fire_event(event: rules::Event, globals: &mut Globals, manager: &Manager) {
         let pm = manager.plugin_manager.read().unwrap();
         
         match pm.get_plugin_by_name(&String::from("rule_engine")) {
@@ -172,7 +174,7 @@ impl RuleEventProxy {
                 let p = p.read().unwrap();
                 let rule_engine = p.as_any().downcast_ref::<RuleEngine>().unwrap();                 
 
-                rule_engine.process_event(event);
+                rule_engine.process_event(event, globals, manager);                
             }
         };
     }
@@ -203,6 +205,7 @@ impl Plugin for RuleEventProxy {
     }
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
+        // Support matching on `InternalEvent`
         self.translate_event(event, globals, manager);
 
         match event.event_type {

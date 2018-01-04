@@ -18,38 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod vec;
-pub mod deref;
-pub mod utmpx;
-pub mod daemon;
-pub mod files;
-pub mod mem;
-pub mod memory;
-pub mod system;
-pub mod trace_event;
-pub mod notify;
-// pub mod ptrace;
-pub mod ftrace;
-pub mod iotrace;
-pub mod logger;
-pub mod thread_pool;
-pub mod thread;
-pub mod task_scheduler;
+use std::mem::discriminant;
 
-pub use self::daemon::*;
-pub use self::deref::*;
-pub use self::files::*;
-pub use self::ftrace::*;
-pub use self::iotrace::*;
-pub use self::logger::*;
-pub use self::mem::*;
-pub use self::memory::*;
-pub use self::notify::*;
-// pub use self::ptrace::*;
-pub use self::system::*;
-pub use self::task_scheduler::*;
-pub use self::thread::*;
-pub use self::thread_pool::*;
-pub use self::trace_event::*;
-pub use self::utmpx::*;
-pub use self::vec::*;
+pub fn variant_eq<T>(a: &T, b: &T) -> bool {
+    discriminant(a) == discriminant(b)
+}
