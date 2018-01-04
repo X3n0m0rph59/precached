@@ -156,7 +156,7 @@ impl IpcServer {
             },
 
             Ok(socket) => {
-                socket.bind("ipc:///tmp/precached.sock");                
+                socket.bind("ipc:///run/precached.sock");                
                 self.socket = Some(socket);
                 
                 Ok(())

@@ -500,7 +500,7 @@ fn main_loop(_config: &mut Config) {
 
         let ctx = zmq::Context::new();
         let socket = ctx.socket(zmq::REQ).unwrap();
-        socket.connect("ipc:///tmp/precached.sock").unwrap();
+        socket.connect("ipc:///run/precached.sock").unwrap();
 
         // match socket.set_rcvtimeo(1) {
         //     Ok(()) => {
