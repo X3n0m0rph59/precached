@@ -1,11 +1,57 @@
 .\" Manpage for .rules file format.
-.TH man 5 "31 Dec 2017" "1.0" ".rules file format man page"
+.TH man 5 "04 Jan 2018" "1.0" ".rules file format man page"
 .SH NAME
- rules - Overview of the precached rules file format
+ Overview of the precached .rules file format
 .SH SYNOPSIS
 .SH DESCRIPTION
  The precached rules file mechanism allows for an easy customization of the behaviour of the precached daemon.
  This can be achieved using a simple declarative language.
+
+ Header fields (required)
+   !Version: <Semantic Version>
+   !Enabled: <boolean>
+   !Name: <string>
+   !Description: <string>
+
+ Example .rules file header:
+   !Version: 1.0
+   !Enabled: false
+   !Name: Recursively cache Directories when a User logged in
+   !Description: Recursively prime the dentry caches with specified directories
+
+ A rule stanza is built out of four distinct fields:
+   * Event-Name - The name of the event that shall be matched
+   * Filter - A filter condition that narrows the matching
+   * Action - An action that should be executed on match
+   * Arguments - Arguments for the specified action
+
+ Supported Events:
+   * Noop - No-operation, does nothing; just a placeholder 
+   * Timer - A timer that fires every 5 seconds
+   * UserLogin - System user logged in
+   * Ping - A ping event (currently fires every 5 seconds)
+
+ Supported actions:
+   * Noop - No-operation, does nothing; just a placeholder
+   * Log - Logs a message to syslog using specified severity
+   * Notify - Sends a message to the logged in users desktop
+   * CacheDirRecursive - Cache directory specified in argument `Directory`
+
+ Example .rules file contents:
+   # =============================================================================
+   !Version: 1.0
+   !Enabled: false
+   !Name: Recursively cache Directories when a User logged in
+   !Description: Recursively prime the dentry caches with specified directories
+   # =============================================================================
+   # =============================================================================
+   # Event-Name              Filter            Action      	       Arguments
+     UserLogin		         Noop              Log                 Severity:Warn,Message:"User $user logged in! ($home_dir)"
+     UserLogin               Noop              CacheDirRecursive   Directory:"$home_dir/.gnome"
+     UserLogin               Noop              CacheDirRecursive   Directory:"/home/$user/.gnome2"   
+   # =============================================================================
+
+
 .SH SEE ALSO
  iotracectl(8), precachedctl(8), rulesctl(8), precachedtop(8), precached(8), precached.conf(5)
 .SH BUGS

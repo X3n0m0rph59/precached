@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017 the precached developers
+    Copyright (C) 2017-2018 the precached developers
 
     This file is part of precached.
 
@@ -32,7 +32,7 @@ use storage;
 use util;
 
 static NAME: &str = "rule_engine";
-static DESCRIPTION: &str = "Support custom rules for precached";
+static DESCRIPTION: &str = "A rule matching engine for precached";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {

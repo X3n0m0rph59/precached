@@ -77,7 +77,7 @@ It spins up multiple threads:
   * event loop - Listens for procmon events and delivers them to the main thread
   * ftrace - This thread processes the event stream of the Linux ftrace subsystem
   * worker (4) - Thread pool that executes background tasks of lower priority (e.g.: task scheduler)
-  * prefetch (NCPUs) - Thread pool that is used to asynchronously read data from slow mass storage devices into ram
+  * prefetch (4) - Thread pool that is used to asynchronously read data from slow mass storage devices into ram
 
 #### Design Considerations
 
@@ -86,17 +86,18 @@ easily extend its functionality in the future.
 
 #### Available Plugins and Hooks
 
-The following plugins are available for precached (as of 2017-11-21)
+The following plugins are available for precached (as of 2018-01-04)
 
-  * Inotify Multiplexer (experimental) - Translate low level inotify events to daemon internal messages
+  * Inotify Multiplexer (stable) - Translate low level inotify events to daemon internal events
   * I/O Trace Log Manager (stable) - Manage I/O trace logs, optimizes new trace logs, and removes invalid ones
-  * I/O Trace Log Cache (experimental) - mlock() .iotrace files into memory
+  * I/O Trace Log Cache (stable) - mlock() .iotrace files into memory
   * Markov Log Manager (not implemented/in development)
   * Hot Applications (stable) - Offline prefetching of the most often used applications, "locks the desktop into memory"
   * Metrics (stable) - Generate system metrics and deliver events based on them
-  * Statistics (stable) - Generate statistics using data from Metrics plugin
-  * Notifications (stable) - Desktop notifications using D-BUS
-  * Custom Rules (not implemented/in development)
+  * Statistics (not implemented/in development) - Generate statistics using data from Metrics plugin
+  * Notifications (in development) - Desktop notifications using D-BUS
+  * Rule Engine  (experimental/in development) - A rules based matching engine; executes actions when events are triggered
+  * Rule Event Bridge (stable) - Convert daemon internal events to events used inside the rule matching engine
   * System Agent (not implemented/in development)
   * User Session (experimental) - Cache metadata of files in logged user's home directories
   * I/O Trace Log Cache (experimental) - mlock() .iotrace files into memory

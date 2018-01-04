@@ -1,12 +1,12 @@
 # =============================================================================
 !Version: 1.0
 !Enabled: false
-!Name: Recursively Cache Directories on Login of a User
-!Description: Recursively prime the dentry Caches with specified Directories
+!Name: Recursively cache Directories when a User logged in
+!Description: Recursively prime the dentry caches with specified directories
 # =============================================================================
 # =============================================================================
-# Event-Name              Filter            Action      	    Arguments
-  UserLogin		          Noop		        Log			        Severity:Warn,Message:"User $user logged in! ($home_dir)"
+# Event-Name              Filter            Action      	Arguments
+  UserLogin		  Noop              Log                 Severity:Warn,Message:"User $user logged in! ($home_dir)"
   UserLogin               Noop              CacheDirRecursive   Directory:"$home_dir/.gnome"
   UserLogin               Noop              CacheDirRecursive   Directory:"/home/$user/.gnome2"   
 # =============================================================================

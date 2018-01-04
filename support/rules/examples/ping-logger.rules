@@ -5,6 +5,6 @@
 !Description: A Simple Demo Rule
 # =============================================================================
 # =============================================================================
-# Event-Name		    Filter		  Action		  Arguments
-  Ping		          Noop		    Log		      Severity:Info
+# Event-Name		    Filter		  Action	  Arguments
+  Ping		            Noop		  Log		  Severity:Info
 # =============================================================================

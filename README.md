@@ -37,7 +37,7 @@ programs while the system is idle.
 
 ### Notes
 
-This project is still in a very early stage of development and you may
+This project is still in an early stage of development and you may
 possibly encounter some serious bugs.
 
 ### Why You may want to use precached
@@ -97,8 +97,7 @@ to achieve even faster boot times (delayed prefetching).
 * Possibly implement fork-bomb mitigation
 * Markov-chain based prefetching
 * Implement a DBUS interface
-* Implement plugin "custom rules" for process events
-* Write a precached GUI in GTK+
+* Write a precached GUI using GTK+
 * ...
 
 ### Getting Involved
@@ -121,4 +120,4 @@ If you are new to Open Source software, you may want to read
 
 ### Authors
 
-precached - Copyright (C) 2017 the precached developers
+precached - Copyright (C) 2017-2018 the precached developers

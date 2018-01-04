@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017 the precached developers
+    Copyright (C) 2017-2018 the precached developers
 
     This file is part of precached.
 

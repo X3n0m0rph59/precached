@@ -51,7 +51,9 @@ package() {
 
   install -m 644 "support/config/precached.conf" "$pkgdir/etc/precached/"
   install -m 644 "support/rules/README" "$pkgdir/etc/precached/rules.d/"
+  install -m 644 "support/rules/examples/cache-on-login.rules" "$pkgdir/etc/precached/rules.d/"
   install -m 644 "support/rules/examples/ping-logger.rules" "$pkgdir/etc/precached/rules.d/"
+  install -m 644 "support/rules/examples/log-fork-bombs.rules" "$pkgdir/etc/precached/rules.d/"
   install -m 644 "support/systemd/precached.service" "$pkgdir/usr/lib/systemd/system/"
   install -m 644 "support/systemd/precached-prime-caches.service" "$pkgdir/usr/lib/systemd/system/"
   install -m 644 "support/systemd/precached-prime-caches.timer" "$pkgdir/usr/lib/systemd/system/"

@@ -1,11 +1,11 @@
 # =============================================================================
 !Version: 1.0
-!Enabled: true
+!Enabled: false
 !Name: Log Fork Bombs
 !Description: Log Fork Bombs
 # =============================================================================
 # =============================================================================
-# Event-Name		    Filter		  Action		  Arguments
-  ForkBombDetected  Noop        Log         Severity:Warn
-  ForkBombDetected  Noop        Notify      Noop
+# Event-Name		    Filter		  Action	  Arguments
+  ForkBombDetected          Noop                  Log             Severity:Warn
+  ForkBombDetected          Noop                  Notify          Noop
 # =============================================================================

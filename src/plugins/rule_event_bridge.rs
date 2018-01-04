@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017 the precached developers
+    Copyright (C) 2017-2018 the precached developers
 
     This file is part of precached.
 
@@ -30,13 +30,13 @@ use std::any::Any;
 use storage;
 use util;
 
-static NAME: &str = "rule_event_proxy";
-static DESCRIPTION: &str = "Event proxy for rules engine plugin";
+static NAME: &str = "rule_event_bridge";
+static DESCRIPTION: &str = "Convey internal events to the rule matching engine";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
-        let plugin = Box::new(RuleEventProxy::new());
+        let plugin = Box::new(RuleEventBridge::new());
 
         let m = manager.plugin_manager.read().unwrap();
 
@@ -45,11 +45,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug, Clone)]
-pub struct RuleEventProxy {}
+pub struct RuleEventBridge {}
 
-impl RuleEventProxy {
-    pub fn new() -> RuleEventProxy {
-        RuleEventProxy {}
+impl RuleEventBridge {
+    pub fn new() -> RuleEventBridge {
+        RuleEventBridge {}
     }
 
     /// fire a rules engine specific `rules::Event` Event
@@ -154,10 +154,9 @@ impl RuleEventProxy {
 
             events::EventType::LeaveIdle => {
                 Self::rule_engine_fire_event(rules::Event::LeaveIdle, globals, manager);
-            }
-            // _ => {
-            //     // Ignore all other events
-            // }
+            } // _ => {
+              //     // Ignore all other events
+              // }
         }
     }
 
@@ -179,13 +178,13 @@ impl RuleEventProxy {
     }
 }
 
-impl Plugin for RuleEventProxy {
+impl Plugin for RuleEventBridge {
     fn register(&mut self) {
-        info!("Registered Plugin: 'Rule Event Proxy'");
+        info!("Registered Plugin: 'Rule Event Bridge'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'Rule Event Proxy'");
+        info!("Unregistered Plugin: 'Rule Event Bridge'");
     }
 
     fn get_name(&self) -> &'static str {

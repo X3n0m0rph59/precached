@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017 the precached developers
+    Copyright (C) 2017-2018 the precached developers
 
     This file is part of precached.
 
@@ -42,7 +42,7 @@ pub mod notifications;
 pub mod ftrace_messages;
 pub mod inotify_multiplexer;
 pub mod rule_engine;
-pub mod rule_event_proxy;
+pub mod rule_event_bridge;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     inotify_multiplexer::register_plugin(globals, manager);
@@ -61,7 +61,7 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     // forkbomb_mitigation::register_plugin(globals, manager);
     notifications::register_plugin(globals, manager);
     rule_engine::register_plugin(globals, manager);
-    rule_event_proxy::register_plugin(globals, manager);
+    rule_event_bridge::register_plugin(globals, manager);
     ftrace_messages::register_plugin(globals, manager);
 }
 

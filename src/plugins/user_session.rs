@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017 the precached developers
+    Copyright (C) 2017-2018 the precached developers
 
     This file is part of precached.
 
@@ -32,7 +32,7 @@ use manager::*;
 use plugins::metrics::Metrics;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
-use plugins::rule_event_proxy::RuleEventProxy;
+use plugins::rule_event_bridge::RuleEventBridge;
 use plugins::static_blacklist::StaticBlacklist;
 use rules;
 use std::any::Any;
@@ -107,16 +107,16 @@ impl UserSession {
                 // Notify rules engine of the login event
                 let pm = manager.plugin_manager.read().unwrap();
 
-                match pm.get_plugin_by_name(&String::from("rule_event_proxy")) {
+                match pm.get_plugin_by_name(&String::from("rule_event_bridge")) {
                     None => {
-                        warn!("Plugin not loaded: 'rules_event_proxy', skipped");
+                        warn!("Plugin not loaded: 'rule_event_bridge', skipped");
                     }
 
                     Some(p) => {
                         let p = p.read().unwrap();
-                        let rule_event_proxy = p.as_any().downcast_ref::<RuleEventProxy>().unwrap();
+                        let rule_event_bridge = p.as_any().downcast_ref::<RuleEventBridge>().unwrap();
 
-                        rule_event_proxy.fire_event(
+                        rule_event_bridge.fire_event(
                             rules::Event::UserLogin(Some(u), Some(home_dir)),
                             globals,
                             manager,
