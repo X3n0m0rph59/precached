@@ -31,7 +31,7 @@ where
         .version("0.1.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
         .setting(AppSettings::GlobalVersion)
-        .setting(AppSettings::DeriveDisplayOrder)        
+        .setting(AppSettings::DeriveDisplayOrder)
         .arg(
             Arg::with_name("config")
                 .short("c")
@@ -46,7 +46,7 @@ where
                 .short("v")
                 .multiple(true)
                 .help("Sets the level of output verbosity"),
-        )        
+        )
         .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)

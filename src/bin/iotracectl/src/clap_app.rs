@@ -73,7 +73,7 @@ where
                             // .conflicts_with("terse")
                             .help("Use 'tabular' display format"),
                 ),
-        )        
+        )
         .subcommand(
             SubCommand::with_name("list")
                 .setting(AppSettings::DeriveDisplayOrder)

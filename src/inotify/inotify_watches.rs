@@ -100,26 +100,22 @@ impl InotifyWatches {
                 let mut buffer = [0u8; 8192];
 
                 match inotify.read_events(&mut buffer) {
-                    Ok(events) => {
-                        for event in events {
-                            match event.name {
-                                None => {
-                                    warn!("Caught invalid inotify event, skipped!");
-                                },
+                    Ok(events) => for event in events {
+                        match event.name {
+                            None => {
+                                warn!("Caught invalid inotify event, skipped!");
+                            }
 
-                                Some(path) => {
-                                    events::queue_internal_event(
-                                        EventType::InotifyEvent(
-                                            EventMaskWrapper {
-                                                event_mask: event.mask,
-                                            },
-
-                                            PathBuf::from(path),
-                                        ),
-
-                                        globals,
-                                    );
-                                }
+                            Some(path) => {
+                                events::queue_internal_event(
+                                    EventType::InotifyEvent(
+                                        EventMaskWrapper {
+                                            event_mask: event.mask,
+                                        },
+                                        PathBuf::from(path),
+                                    ),
+                                    globals,
+                                );
                             }
                         }
                     },
@@ -130,7 +126,7 @@ impl InotifyWatches {
                 }
             }
 
-            None => { 
+            None => {
                 warn!("Invalid inotify instance!");
             }
         }

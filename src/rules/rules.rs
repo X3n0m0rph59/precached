@@ -20,13 +20,13 @@
 
 extern crate sys_info;
 
-use std::fs::File;
-use std::io::prelude::*;
-use std::io;
-use std::io::{Error, ErrorKind, BufReader};
-use std::str::FromStr;
-use std::path::{Path, PathBuf};
 use chrono::Utc;
+use std::fs::File;
+use std::io;
+use std::io::{BufReader, Error, ErrorKind};
+use std::io::prelude::*;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 /// Events that may appear in a .rules file
 #[derive(Debug, Clone, PartialEq)]
@@ -38,7 +38,7 @@ pub enum Event {
     Timer,
     /// User login event
     UserLogin(Option<String>, Option<PathBuf>),
-        
+
     // Map most InternalEvents
     /// occurs every n seconds
     Ping,
@@ -129,7 +129,7 @@ pub struct RuleFileMetadata {
     pub description: String,
 }
 
-/// Represents a .rules file consisting of a metadata 
+/// Represents a .rules file consisting of a metadata
 /// header and one or more "rules" statements
 #[derive(Debug, Clone)]
 pub struct RuleFile {
@@ -142,7 +142,7 @@ impl RuleFile {
     pub fn from_file(filename: &Path) -> io::Result<RuleFile> {
         let f = File::open(filename)?;
         let f = BufReader::new(f);
-        
+
         // Parser control variables
         let mut metadata_valid = false;
         let mut ruleset_valid = true;
@@ -160,9 +160,9 @@ impl RuleFile {
         let mut rules = vec![];
 
         for line in f.lines() {
-            if line.is_err() { 
+            if line.is_err() {
                 // file or parser error, break out of loop
-                break; 
+                break;
             }
 
             let l = line.unwrap();
@@ -170,7 +170,7 @@ impl RuleFile {
 
             if l.starts_with('#') || l.is_empty() {
                 // Ignore empty and comment lines
-                continue; 
+                continue;
             } else if l.starts_with('!') {
                 // Metadata declarations start with an exclamation mark ('!')
 
@@ -183,23 +183,30 @@ impl RuleFile {
                     metadata_valid = false;
                     ruleset_valid = false;
                     error_desc = format!("Invalid number of declarations: {}", sp.len());
-                    break; 
+                    break;
                 }
 
-                let key = sp[0]; 
+                let key = sp[0];
                 let value: String = String::from(sp[1].trim());
 
                 match key.to_lowercase().as_str() {
-                    "!version" => { version = Some(value); },
-                    "!enabled" => { enabled = Some(value); },
-                    "!name" => { name = Some(value); },
-                    "!description" => { description = Some(value); },
-                    
-                    &_ => { warn!("Invalid metadata field: '{}'", key) }
+                    "!version" => {
+                        version = Some(value);
+                    }
+                    "!enabled" => {
+                        enabled = Some(value);
+                    }
+                    "!name" => {
+                        name = Some(value);
+                    }
+                    "!description" => {
+                        description = Some(value);
+                    }
+
+                    &_ => warn!("Invalid metadata field: '{}'", key),
                 }
 
-                if version.is_some() && enabled.is_some() &&
-                   name.is_some() && description.is_some() {
+                if version.is_some() && enabled.is_some() && name.is_some() && description.is_some() {
                     // All required metadata fields are valid
                     metadata_valid = true;
                 }
@@ -207,7 +214,7 @@ impl RuleFile {
                 // We are not a comment line, and not a metadata declaration
                 // therefore we assume that we have a rule statement here
                 let rule = tokenize(&String::from(l));
-                                
+
                 // Spurious row
                 if rule.len() <= 1 {
                     continue;
@@ -229,12 +236,17 @@ impl RuleFile {
                         ruleset_valid = false;
                         error_desc = e;
                         break;
-                    },
+                    }
 
                     Ok((event, filter, action, params)) => {
                         // It seems that all went well
-                        let rule_entry = RuleEntry { event: event, filter:filter, action: action, params: params };
-                        
+                        let rule_entry = RuleEntry {
+                            event: event,
+                            filter: filter,
+                            action: action,
+                            params: params,
+                        };
+
                         rules.push(rule_entry);
                     }
                 }
@@ -247,22 +259,31 @@ impl RuleFile {
         // or because of EOF of the .rules file
         if !metadata_valid {
             // Metadata parsing failed
-            Err(Error::new(ErrorKind::Other, format!("Invalid Metadata at Line {}: {}", error_at_line, error_desc).as_str()))
+            Err(Error::new(
+                ErrorKind::Other,
+                format!("Invalid Metadata at Line {}: {}", error_at_line, error_desc).as_str(),
+            ))
         } else if !ruleset_valid {
             // Rules parsing failed
-            Err(Error::new(ErrorKind::Other, format!("Syntax Error at Line {}: {}", error_at_line, error_desc).as_str()))
+            Err(Error::new(
+                ErrorKind::Other,
+                format!("Syntax Error at Line {}: {}", error_at_line, error_desc).as_str(),
+            ))
         } else {
             // It seems that the .rules file is well formed
-            let metadata = RuleFileMetadata { 
-                                version: version.unwrap(), 
-                                enabled: bool::from_str(&enabled.unwrap()).unwrap_or(false), 
-                                name: name.unwrap(), 
-                                description: description.unwrap(), 
-                            };
-                        
-            let result = RuleFile { metadata: metadata, rules: rules };
+            let metadata = RuleFileMetadata {
+                version: version.unwrap(),
+                enabled: bool::from_str(&enabled.unwrap()).unwrap_or(false),
+                name: name.unwrap(),
+                description: description.unwrap(),
+            };
 
-            Ok(result)        
+            let result = RuleFile {
+                metadata: metadata,
+                rules: rules,
+            };
+
+            Ok(result)
         }
     }
 }
@@ -271,7 +292,7 @@ impl RuleFile {
 pub fn get_param_value(params: &Vec<String>, param_name: &str) -> Result<String, &'static str> {
     let mut result = String::new();
     let mut found = false;
-    
+
     for p in params.iter() {
         let pn: Vec<&str> = p.split(':').collect();
 
@@ -307,17 +328,17 @@ fn expand_macros(param: String) -> String {
     let mut result = param.clone();
 
     // Expand macro $meminfo
-    if param.contains("$meminfo") {       
+    if param.contains("$meminfo") {
         let stats = format!("{:?}", memory_statistics());
-        result = param.replace("$meminfo", &stats);       
+        result = param.replace("$meminfo", &stats);
     }
-    
+
     // Expand macro $date
     if param.contains("$date") {
         let date = Utc::now();
         result = result.replace("$date", &date.format("%Y-%m-%d %H:%M:%S").to_string());
     }
-    
+
     result
 }
 
@@ -325,122 +346,67 @@ fn expand_macros(param: String) -> String {
 fn parse_event(event: &str) -> Result<Event, String> {
     match event {
         // rules Events
-        "Noop" => {
-            Ok(Event::Noop)
-        },
+        "Noop" => Ok(Event::Noop),
 
-        "Timer" => {
-            Ok(Event::Timer)
-        },
+        "Timer" => Ok(Event::Timer),
 
-        "UserLogin" => {
-            Ok(Event::UserLogin(None, None))
-        },
-
+        "UserLogin" => Ok(Event::UserLogin(None, None)),
 
         // Internal Events
-        "Ping" => {
-            Ok(Event::Ping)
-        },
+        "Ping" => Ok(Event::Ping),
 
-        "Startup" => {
-            Ok(Event::Startup)
-        },
+        "Startup" => Ok(Event::Startup),
 
-        "Shutdown" => {
-            Ok(Event::Shutdown)
-        },
+        "Shutdown" => Ok(Event::Shutdown),
 
-        "PrimeCaches" => {
-            Ok(Event::PrimeCaches)
-        },
+        "PrimeCaches" => Ok(Event::PrimeCaches),
 
-        "DoHousekeeping" => {
-            Ok(Event::DoHousekeeping)
-        },
+        "DoHousekeeping" => Ok(Event::DoHousekeeping),
 
-        "InotifyEvent" => {            
-            Ok(Event::InotifyEvent)
-        },
+        "InotifyEvent" => Ok(Event::InotifyEvent),
 
-        "OptimizeIOTraceLog" => {            
-            Ok(Event::OptimizeIOTraceLog)
-        },
+        "OptimizeIOTraceLog" => Ok(Event::OptimizeIOTraceLog),
 
-        "IoTraceLogCreated" => {            
-            Ok(Event::IoTraceLogCreated)
-        },
+        "IoTraceLogCreated" => Ok(Event::IoTraceLogCreated),
 
-        "IoTraceLogRemoved" => {            
-            Ok(Event::IoTraceLogRemoved)
-        },
+        "IoTraceLogRemoved" => Ok(Event::IoTraceLogRemoved),
 
-        "GatherStatsAndMetrics" => {
-            Ok(Event::GatherStatsAndMetrics)
-        },
+        "GatherStatsAndMetrics" => Ok(Event::GatherStatsAndMetrics),
 
-        "ConfigurationReloaded" => {
-            Ok(Event::ConfigurationReloaded)
-        },
+        "ConfigurationReloaded" => Ok(Event::ConfigurationReloaded),
 
-        "TrackedProcessChanged" => {            
-            Ok(Event::TrackedProcessChanged)
-        },
+        "TrackedProcessChanged" => Ok(Event::TrackedProcessChanged),
 
-        "ForkBombDetected" => {
-            Ok(Event::ForkBombDetected)
-        },
+        "ForkBombDetected" => Ok(Event::ForkBombDetected),
 
-        "FreeMemoryLowWatermark" => {
-            Ok(Event::FreeMemoryLowWatermark)
-        },
+        "FreeMemoryLowWatermark" => Ok(Event::FreeMemoryLowWatermark),
 
-        "FreeMemoryHighWatermark" => {
-            Ok(Event::FreeMemoryHighWatermark)
-        },
+        "FreeMemoryHighWatermark" => Ok(Event::FreeMemoryHighWatermark),
 
-        "AvailableMemoryLowWatermark" => {
-            Ok(Event::AvailableMemoryLowWatermark)
-        },
+        "AvailableMemoryLowWatermark" => Ok(Event::AvailableMemoryLowWatermark),
 
-        "AvailableMemoryHighWatermark" => {
-            Ok(Event::AvailableMemoryHighWatermark)
-        },
+        "AvailableMemoryHighWatermark" => Ok(Event::AvailableMemoryHighWatermark),
 
-        "AvailableMemoryCritical" => {
-            Ok(Event::AvailableMemoryCritical)
-        },
+        "AvailableMemoryCritical" => Ok(Event::AvailableMemoryCritical),
 
-        "MemoryFreed" => {
-            Ok(Event::MemoryFreed)
-        },
+        "MemoryFreed" => Ok(Event::MemoryFreed),
 
-        "SystemIsSwapping" => {
-            Ok(Event::SystemIsSwapping)
-        },
+        "SystemIsSwapping" => Ok(Event::SystemIsSwapping),
 
-        "SystemRecoveredFromSwap" => {
-            Ok(Event::SystemRecoveredFromSwap)
-        },
+        "SystemRecoveredFromSwap" => Ok(Event::SystemRecoveredFromSwap),
 
-        "IdlePeriod" => {
-            Ok(Event::IdlePeriod)
-        },
+        "IdlePeriod" => Ok(Event::IdlePeriod),
 
-        "LeaveIdle" => {
-            Ok(Event::LeaveIdle)
-        },
+        "LeaveIdle" => Ok(Event::LeaveIdle),
 
-        _ => {            
-            Err(format!("Invalid Event: '{}'", event))
-        }
+        _ => Err(format!("Invalid Event: '{}'", event)),
     }
 }
 
 /// Parse the `Filter` part that may appear in a .rules file
 /// Processing is done in the plugin `rule_engine`
 fn parse_filter(filter: &str) -> Result<Vec<String>, String> {
-    let result: Vec<String> = filter.split(',').map(|v| { v.to_string() }).collect();
+    let result: Vec<String> = filter.split(',').map(|v| v.to_string()).collect();
 
     Ok(result)
 }
@@ -448,32 +414,22 @@ fn parse_filter(filter: &str) -> Result<Vec<String>, String> {
 /// Parse the `Action` part that may appear in a .rules file
 fn parse_action(action: &str) -> Result<Action, String> {
     match action {
-        "Noop" => {
-            Ok(Action::Noop)
-        },
+        "Noop" => Ok(Action::Noop),
 
-        "Log" => {
-            Ok(Action::Log)
-        },
+        "Log" => Ok(Action::Log),
 
-        "Notify" => {
-            Ok(Action::Notify)
-        },
+        "Notify" => Ok(Action::Notify),
 
-        "CacheDirRecursive" => {
-            Ok(Action::CacheDirRecursive)
-        },
+        "CacheDirRecursive" => Ok(Action::CacheDirRecursive),
 
-        _ => {
-            Err(format!("Invalid Action: '{}'", action))
-        }
+        _ => Err(format!("Invalid Action: '{}'", action)),
     }
 }
 
 /// Recursive descending parser for .rules files, mid-layer
 /// On success, returns a 4-tuple representing a "rule"
 fn parse_rule(rule: &[String]) -> Result<(Event, Vec<String>, Action, Vec<String>), String> {
-    let event  = parse_event(rule[0].trim())?;
+    let event = parse_event(rule[0].trim())?;
     let filter = parse_filter(rule[1].trim())?;
     let action = parse_action(rule[2].trim())?;
 
@@ -499,7 +455,7 @@ fn tokenize(line: &String) -> Vec<String> {
             '#' => {
                 // Ignore rest of line
                 continue;
-            },
+            }
 
             // Match whitespace
             ' ' | '\t' => {
@@ -514,7 +470,7 @@ fn tokenize(line: &String) -> Vec<String> {
                 } else {
                     acc.push(c);
                 }
-            },
+            }
 
             // Match Line endings
             '\n' => {
@@ -558,7 +514,7 @@ fn tokenize(line: &String) -> Vec<String> {
 
 /// Tokenizer suited for tokenizing parameters in .rules files
 fn tokenize_parameters(params: &Vec<&String>) -> Vec<String> {
-    let mut result = vec![];    
+    let mut result = vec![];
 
     // flags to control the tokenizer
     // let mut escape_flag = false;
@@ -594,7 +550,7 @@ fn tokenize_parameters(params: &Vec<&String>) -> Vec<String> {
                 '"' => {
                     string_flag = !string_flag;
 
-                    if !string_flag {                        
+                    if !string_flag {
                         pushed_flag = true;
                         result.push(acc.clone());
                     }

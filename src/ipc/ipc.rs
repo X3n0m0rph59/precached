@@ -26,29 +26,29 @@ extern crate serde_json;
 extern crate zmq;
 
 use EXIT_NOW;
-use hooks::ftrace_logger::ACTIVE_TRACERS;
-use chrono::{DateTime, Local, TimeZone, Utc, NaiveDateTime};
+use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
+use constants;
 use events;
 use globals::*;
+use hooks::ftrace_logger::ACTIVE_TRACERS;
+use hooks::iotrace_prefetcher::{IOtracePrefetcher, ThreadState};
 use hooks::process_tracker::ProcessTracker;
 use manager::*;
 use process;
+use std::collections::VecDeque;
 use std::fs::OpenOptions;
 use std::io;
 use std::io::Write;
 use std::io::prelude;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::thread;
-use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
-use std::collections::VecDeque;
-use std::path::{Path, PathBuf};
-use hooks::iotrace_prefetcher::{IOtracePrefetcher, ThreadState};
-use constants;
 
 /// Represents a process
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProcessEntry {    
+pub struct ProcessEntry {
     /// Holds the `pid` of the process
     pub pid: libc::pid_t,
     pub comm: String,
@@ -58,7 +58,7 @@ pub struct ProcessEntry {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracerEntry {
     pub start_time: DateTime<Utc>,
-    pub trace_time_expired: bool,    
+    pub trace_time_expired: bool,
     pub exe: PathBuf,
 }
 
@@ -142,56 +142,46 @@ pub struct IpcServer {
 
 impl IpcServer {
     pub fn new() -> IpcServer {
-        IpcServer {
-            socket: None,
-        }
+        IpcServer { socket: None }
     }
 
     pub fn init(&mut self, globals: &mut Globals, manager: &Manager) -> Result<(), &'static str> {
         let ctx = zmq::Context::new();
 
         match ctx.socket(zmq::REP) {
-            Err(e) => {                
-                Err("Socket creation failed!")
-            },
+            Err(e) => Err("Socket creation failed!"),
 
             Ok(socket) => {
-                socket.bind("ipc:///run/precached.sock");                
+                socket.bind("ipc:///run/precached.sock");
                 self.socket = Some(socket);
-                
+
                 Ok(())
             }
         }
-    }    
+    }
 
     pub fn listen(&self) -> Result<String, String> {
         match self.socket {
-            None => {
-                Err(String::from("IPC socket is not connected!"))
-            },
+            None => Err(String::from("IPC socket is not connected!")),
 
-            Some(ref socket) => {                
+            Some(ref socket) => {
                 // wait for consumer
-                trace!("Awaiting next IPC request...");                
+                trace!("Awaiting next IPC request...");
 
                 match socket.recv_string(0) {
-                    Err(e) => {
-                        Err(format!("Socket recv() error: {}", e))
-                    },
+                    Err(e) => Err(format!("Socket recv() error: {}", e)),
 
-                    Ok(data) => {
-                        Ok(data.unwrap())
-                    }
+                    Ok(data) => Ok(data.unwrap()),
                 }
             }
         }
     }
 
     pub fn process_messages(&self, data: &str, queue: &mut VecDeque<events::InternalEvent>, manager: &Manager) {
-         match self.socket {
+        match self.socket {
             None => {
                 error!("IPC socket is not connected!");
-            },
+            }
 
             Some(ref socket) => {
                 let manager = manager.clone();
@@ -204,100 +194,88 @@ impl IpcServer {
 
                         let cmd = IpcMessage::new(IpcCommand::ConnectedSuccessfuly);
                         let buf = serde_json::to_string(&cmd).unwrap();
-                        
+
                         match socket.send(&buf, 0) {
                             Err(e) => {
                                 error!("Error sending response: {}", e);
-                            },
+                            }
 
                             Ok(()) => {
                                 trace!("Successfuly sent reply");
-                            }                                 
+                            }
                         }
                     }
 
                     IpcCommand::Close => {
-                        info!("IPC client disconnected");                        
+                        info!("IPC client disconnected");
                     }
 
-                    IpcCommand::RequestTrackedProcesses => {                                    
-                        match Self::handle_request_tracked_processes(&socket, &manager) {
-                            Err(e) => {
-                                error!("Error sending response: {}", e);
-                            },
-
-                            Ok(()) => {
-                                trace!("Successfuly sent reply");
-                            }                                 
+                    IpcCommand::RequestTrackedProcesses => match Self::handle_request_tracked_processes(&socket, &manager) {
+                        Err(e) => {
+                            error!("Error sending response: {}", e);
                         }
-                    }
 
-                    IpcCommand::RequestInFlightTracers => {                                    
-                        match Self::handle_request_inflight_tracers(&socket, &manager) {
-                            Err(e) => {
-                                error!("Error sending response: {}", e);
-                            },
-
-                            Ok(()) => {
-                                trace!("Successfuly sent reply");
-                            }                                 
+                        Ok(()) => {
+                            trace!("Successfuly sent reply");
                         }
-                    }
+                    },
 
-                    IpcCommand::RequestPrefetchStatus => {                                                                                                         
-                        match Self::handle_request_prefetch_status(&socket, &manager) {
-                            Err(e) => {
-                                error!("Error sending response: {}", e);
-                            },
-
-                            Ok(()) => {
-                                trace!("Successfuly sent reply");
-                            }                                 
+                    IpcCommand::RequestInFlightTracers => match Self::handle_request_inflight_tracers(&socket, &manager) {
+                        Err(e) => {
+                            error!("Error sending response: {}", e);
                         }
-                    }
 
-                    IpcCommand::RequestInternalEvents => {
-                        match Self::handle_request_internal_events(&socket, queue, &manager) {
-                            Err(e) => {
-                                error!("Error sending response: {}", e);
-                            },
-
-                            Ok(()) => {
-                                trace!("Successfuly sent reply");
-                            }                                 
+                        Ok(()) => {
+                            trace!("Successfuly sent reply");
                         }
-                    }
+                    },
 
-                    IpcCommand::RequestCachedFiles => {                                    
-                        match Self::handle_request_cached_files(&socket, &manager) {
-                            Err(e) => {
-                                error!("Error sending response: {}", e);
-                            },
-
-                            Ok(()) => {
-                                trace!("Successfuly sent reply");
-                            }                                 
+                    IpcCommand::RequestPrefetchStatus => match Self::handle_request_prefetch_status(&socket, &manager) {
+                        Err(e) => {
+                            error!("Error sending response: {}", e);
                         }
-                    }
 
-                    IpcCommand::RequestStatistics => {                        
-                        match Self::handle_request_statistics(&socket, queue, &manager) {
-                            Err(e) => {
-                                error!("Error sending response: {}", e);
-                            },
-
-                            Ok(()) => {
-                                trace!("Successfuly sent reply");
-                            }                                 
+                        Ok(()) => {
+                            trace!("Successfuly sent reply");
                         }
-                    }
+                    },
+
+                    IpcCommand::RequestInternalEvents => match Self::handle_request_internal_events(&socket, queue, &manager) {
+                        Err(e) => {
+                            error!("Error sending response: {}", e);
+                        }
+
+                        Ok(()) => {
+                            trace!("Successfuly sent reply");
+                        }
+                    },
+
+                    IpcCommand::RequestCachedFiles => match Self::handle_request_cached_files(&socket, &manager) {
+                        Err(e) => {
+                            error!("Error sending response: {}", e);
+                        }
+
+                        Ok(()) => {
+                            trace!("Successfuly sent reply");
+                        }
+                    },
+
+                    IpcCommand::RequestStatistics => match Self::handle_request_statistics(&socket, queue, &manager) {
+                        Err(e) => {
+                            error!("Error sending response: {}", e);
+                        }
+
+                        Ok(()) => {
+                            trace!("Successfuly sent reply");
+                        }
+                    },
 
                     _ => {
                         warn!("Unknown IPC command received");
                     }
-                }                             
+                }
             }
-        }                                 
+        }
     }
 
     fn handle_request_tracked_processes(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
@@ -308,22 +286,20 @@ impl IpcServer {
         match hm.get_hook_by_name(&String::from("process_tracker")) {
             None => {
                 warn!("Hook not loaded: 'process_tracker', skipped");
-                
+
                 Ok(())
             }
 
             Some(h) => {
                 let h = h.read().unwrap();
-                let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();                
+                let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
                 let v: Vec<ProcessEntry> = process_tracker
                     .tracked_processes
                     .values()
-                    .map(|v| {                        
-                        ProcessEntry {
-                            pid: v.pid,
-                            comm: v.comm.to_string(),
-                        }
+                    .map(|v| ProcessEntry {
+                        pid: v.pid,
+                        comm: v.comm.to_string(),
                     })
                     .collect();
 
@@ -331,11 +307,11 @@ impl IpcServer {
                 let buf = serde_json::to_string(&cmd).unwrap();
 
                 socket.send(&buf, 0)?;
-                
+
                 Ok(())
             }
         }
-    }    
+    }
 
     fn handle_request_inflight_tracers(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
         trace!("IPC client command: RequestInFlightTracers");
@@ -343,14 +319,14 @@ impl IpcServer {
         let active_tracers = ACTIVE_TRACERS.lock().unwrap();
 
         let mut result: Vec<TracerEntry> = vec![];
-        for trace in active_tracers.values() {            
+        for trace in active_tracers.values() {
             let item = TracerEntry {
                 // start_time: DateTime::<Utc>::from_utc(NaiveDateTime::from(trace.start_time), Utc),
                 start_time: Utc::now(),
                 trace_time_expired: trace.trace_time_expired,
                 exe: trace.trace_log.exe.clone(),
             };
-            
+
             result.push(item);
         }
 
@@ -358,11 +334,11 @@ impl IpcServer {
         let buf = serde_json::to_string(&cmd).unwrap();
 
         socket.send(&buf, 0)?;
-    
-        Ok(())        
+
+        Ok(())
     }
 
-    fn handle_request_prefetch_status(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {        
+    fn handle_request_prefetch_status(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
         let hm = manager.hook_manager.read().unwrap();
 
         match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
@@ -376,28 +352,28 @@ impl IpcServer {
                 let h = h.read().unwrap();
                 let mut iotrace_prefetcher = h.as_any().downcast_ref::<IOtracePrefetcher>().unwrap();
 
-                let mut v: Vec<ThreadState> = vec![];                
+                let mut v: Vec<ThreadState> = vec![];
                 for ref s in iotrace_prefetcher.thread_states.iter() {
                     let val = s.read().unwrap();
                     v.push((*val).clone());
                 }
-                
+
                 let stats = PrefetchStats {
                     datetime: Utc::now(),
                     thread_states: v,
                 };
-                
+
                 let cmd = IpcMessage::new(IpcCommand::SendPrefetchStatus(stats));
                 let buf = serde_json::to_string(&cmd).unwrap();
 
                 socket.send(&buf, 0)?;
-                
+
                 Ok(())
             }
-        }        
+        }
     }
 
-     fn handle_request_cached_files(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
+    fn handle_request_cached_files(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
         trace!("IPC client command: RequestCachedFiles");
 
         let hm = manager.hook_manager.read().unwrap();
@@ -413,20 +389,27 @@ impl IpcServer {
                 let h = h.read().unwrap();
                 let mut iotrace_prefetcher = h.as_any().downcast_ref::<IOtracePrefetcher>().unwrap();
 
-                let v = iotrace_prefetcher.mapped_files.keys().map(|v| v.clone()).collect();
-                
+                let v = iotrace_prefetcher
+                    .mapped_files
+                    .keys()
+                    .map(|v| v.clone())
+                    .collect();
+
                 let cmd = IpcMessage::new(IpcCommand::SendCachedFiles(v));
                 let buf = serde_json::to_string(&cmd).unwrap();
 
                 socket.send(&buf, 0)?;
-                
+
                 Ok(())
             }
         }
     }
 
-    fn handle_request_internal_events(socket: &zmq::Socket, queue: &mut VecDeque<events::InternalEvent>,
-                                      manager: &Manager) -> Result<(), zmq::Error> {
+    fn handle_request_internal_events(
+        socket: &zmq::Socket,
+        queue: &mut VecDeque<events::InternalEvent>,
+        manager: &Manager,
+    ) -> Result<(), zmq::Error> {
         let mut items = vec![];
 
         for e in queue.drain(..) {
@@ -442,12 +425,15 @@ impl IpcServer {
         let buf = serde_json::to_string(&cmd).unwrap();
 
         socket.send(&buf, 0)?;
-                
+
         Ok(())
     }
 
-    fn handle_request_statistics(socket: &zmq::Socket, queue: &mut VecDeque<events::InternalEvent>, 
-                                 manager: &Manager) -> Result<(), zmq::Error> {
+    fn handle_request_statistics(
+        socket: &zmq::Socket,
+        queue: &mut VecDeque<events::InternalEvent>,
+        manager: &Manager,
+    ) -> Result<(), zmq::Error> {
         let mut items = vec![];
 
         for e in queue.drain(..) {
@@ -463,7 +449,7 @@ impl IpcServer {
         let buf = serde_json::to_string(&cmd).unwrap();
 
         socket.send(&buf, 0)?;
-                
+
         Ok(())
     }
 }

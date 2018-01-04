@@ -244,9 +244,11 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
             Cell::new_align(&format!("{}", index), Alignment::RIGHT),
-            Cell::new(&util::ellipsize_filename(
-                &io_trace.exe.to_string_lossy().into_owned(),
-            )).with_style(Attr::Bold),
+            Cell::new(&util::ellipsize_filename(&io_trace
+                .exe
+                .to_string_lossy()
+                .into_owned()))
+                .with_style(Attr::Bold),
             Cell::new(&io_trace.hash),
             Cell::new(&format_date(io_trace.created_at)),
             Cell::new_align(&format!("{}", io_trace.file_map.len()), Alignment::RIGHT),
@@ -257,9 +259,9 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             ),
             Cell::new(&format!("{}", io_trace.trace_log_optimized))
                 .with_style(Attr::Bold)
-                .with_style(Attr::ForegroundColor(
-                    map_bool_to_color(io_trace.trace_log_optimized),
-                )),
+                .with_style(Attr::ForegroundColor(map_bool_to_color(
+                    io_trace.trace_log_optimized,
+                ))),
             Cell::new(&format!("{}", flags))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(color)),
@@ -336,9 +338,9 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
         Cell::new(&"Hook"),
         Cell::new(&format!("{}", ftrace_logger_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(
-                map_bool_to_color(ftrace_logger_enabled),
-            )),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(
+                ftrace_logger_enabled,
+            ))),
     ]));
 
     table.add_row(Row::new(vec![
@@ -347,9 +349,9 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
         Cell::new(&"Hook"),
         Cell::new(&format!("{}", iotrace_prefetcher_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(
-                map_bool_to_color(iotrace_prefetcher_enabled),
-            )),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(
+                iotrace_prefetcher_enabled,
+            ))),
     ]));
 
     table.add_row(Row::new(vec![
@@ -358,9 +360,9 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
         Cell::new(&"Plugin"),
         Cell::new(&format!("{}", iotrace_log_manager_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(
-                map_bool_to_color(iotrace_log_manager_enabled),
-            )),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(
+                iotrace_log_manager_enabled,
+            ))),
     ]));
 
     table.add_row(Row::new(vec![
@@ -369,9 +371,9 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
         Cell::new(&"Plugin"),
         Cell::new(&format!("{}", iotrace_log_cache_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(
-                map_bool_to_color(iotrace_log_cache_enabled),
-            )),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(
+                iotrace_log_cache_enabled,
+            ))),
     ]));
 
     table.printstd();
@@ -517,9 +519,7 @@ where
             if sort_order == SortOrder::Ascending {
                 result.sort_by(|a, b| a.0.accumulated_size.cmp(&b.0.accumulated_size));
             } else {
-                result.sort_by(|a, b| {
-                    a.0.accumulated_size.cmp(&b.0.accumulated_size).reverse()
-                });
+                result.sort_by(|a, b| a.0.accumulated_size.cmp(&b.0.accumulated_size).reverse());
             }
         }
 
@@ -537,9 +537,7 @@ where
             if sort_order == SortOrder::Ascending {
                 result.sort_by(|a, b| a.0.trace_log.len().cmp(&b.0.trace_log.len()));
             } else {
-                result.sort_by(|a, b| {
-                    a.0.trace_log.len().cmp(&b.0.trace_log.len()).reverse()
-                });
+                result.sort_by(|a, b| a.0.trace_log.len().cmp(&b.0.trace_log.len()).reverse());
             }
         }
 
@@ -626,9 +624,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
         println!(
             "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
-            index,
-            matching,
-            errors
+            index, matching, errors
         );
     }
 }
@@ -701,9 +697,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
 
         println!(
             "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
-            index,
-            matching,
-            errors
+            index, matching, errors
         );
     }
 }
@@ -799,9 +793,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     println!(
         "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
-        index,
-        matching,
-        errors
+        index, matching, errors
     );
 }
 
@@ -927,9 +919,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     println!(
         "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
-        index,
-        matching,
-        errors
+        index, matching, errors
     );
 }
 
@@ -1020,16 +1010,12 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         if dry_run {
             println!(
                 "\nSummary: {} I/O trace log files processed, {} trace files would have been optimized, {} errors occured",
-                total,
-                matching,
-                errors
+                total, matching, errors
             );
         } else {
             println!(
                 "\nSummary: {} I/O trace log files processed, {} optimized, {} errors occured",
-                total,
-                matching,
-                errors
+                total, matching, errors
             );
         }
     } else {
@@ -1126,16 +1112,12 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         if dry_run {
             println!(
                 "\nSummary: {} I/O trace log files processed, {} trace files would have been removed, {} errors occured",
-                total,
-                matching,
-                errors
+                total, matching, errors
             );
         } else {
             println!(
                 "\nSummary: {} I/O trace log files processed, {} removed, {} errors occured",
-                total,
-                matching,
-                errors
+                total, matching, errors
             );
         }
     } else {
@@ -1217,16 +1199,12 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         if dry_run {
             println!(
                 "\nSummary: {} I/O trace log files processed, {} would have been removed, {} errors occured",
-                index,
-                matching,
-                errors
+                index, matching, errors
             );
         } else {
             println!(
                 "\nSummary: {} I/O trace log files processed, {} removed, {} errors occured",
-                index,
-                matching,
-                errors
+                index, matching, errors
             );
         }
     }

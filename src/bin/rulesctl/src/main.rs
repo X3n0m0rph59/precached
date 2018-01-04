@@ -167,7 +167,7 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
     let conf = daemon_config.disabled_plugins.unwrap_or(vec![]);
 
     let rules_engine_enabled = !conf.contains(&String::from("rule_plugin"));
-    let is_precached_running =  read_daemon_pid().is_ok();
+    let is_precached_running = read_daemon_pid().is_ok();
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -187,10 +187,10 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
         Cell::new(&"Daemon"),
         Cell::new(&format!("{}", is_precached_running))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(
-                map_bool_to_color(is_precached_running),
-            )),
-    ]));    
+            .with_style(Attr::ForegroundColor(map_bool_to_color(
+                is_precached_running,
+            ))),
+    ]));
 
     table.add_row(Row::new(vec![
         Cell::new(&"Rule Engine").with_style(Attr::Bold),
@@ -198,10 +198,10 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
         Cell::new(&"Plugin"),
         Cell::new(&format!("{}", rules_engine_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(
-                map_bool_to_color(rules_engine_enabled),
-            )),
-    ]));    
+            .with_style(Attr::ForegroundColor(map_bool_to_color(
+                rules_engine_enabled,
+            ))),
+    ]));
 
     table.add_row(Row::new(vec![
         Cell::new(&"Rule Hook").with_style(Attr::Bold),
@@ -209,9 +209,7 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
         Cell::new(&"Hook"),
         Cell::new(&format!("{}", true))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(
-                map_bool_to_color(true),
-            )),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(true))),
     ]));
 
     table.printstd();
@@ -232,14 +230,14 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
         Cell::new("#"),
         Cell::new("File"),
         Cell::new("Name"),
-        Cell::new("Description"),        
+        Cell::new("Description"),
         Cell::new("Enabled"),
         Cell::new("Version"),
         Cell::new("# Rules"),
-    ]));    
+    ]));
 
     util::walk_directories(&[rules_path.to_path_buf()], &mut |path| {
-        if path.to_string_lossy().contains(".rules") {                    
+        if path.to_string_lossy().contains(".rules") {
             match rules::RuleFile::from_file(&path) {
                 Err(e) => {
                     // error!("Could not load rule file {:?}: {}", path, e);
@@ -251,15 +249,13 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
                         Cell::new(&format!("{}", e)).with_style(Attr::Bold),
                         Cell::new("Error")
                             .with_style(Attr::Bold)
-                            .with_style(Attr::ForegroundColor(
-                                RED,
-                            )),
+                            .with_style(Attr::ForegroundColor(RED)),
                         Cell::new("n/a"),
                         Cell::new("n/a"),
                     ]));
-                },
+                }
 
-                Ok(rule_file) => {                
+                Ok(rule_file) => {
                     // Print in "tabular" format (the default)
                     table.add_row(Row::new(vec![
                         Cell::new(&format!("{}", idx + 1)),
@@ -268,13 +264,13 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
                         Cell::new(&rule_file.metadata.description),
                         Cell::new(&format!("{}", rule_file.metadata.enabled))
                             .with_style(Attr::Bold)
-                            .with_style(Attr::ForegroundColor(
-                                map_bool_to_color(rule_file.metadata.enabled),
-                            )),
+                            .with_style(Attr::ForegroundColor(map_bool_to_color(
+                                rule_file.metadata.enabled,
+                            ))),
                         Cell::new(&format!("{}", rule_file.metadata.version)),
                         Cell::new(&format!("{}", rule_file.rules.len())),
                     ]));
-                    
+
                     valid += 1;
                 }
             }
@@ -284,13 +280,12 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
         }
     }).unwrap();
 
-
     table.printstd();
 
-    println!("\n{} rule files examined, {} valid rule(s)", cnt, valid);    
+    println!("\n{} rule files examined, {} valid files(s)", cnt, valid);
 }
 
-fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {    
+fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
     let rules_path = Path::new(constants::RULES_DIR);
 
     let matches = config.matches.subcommand_matches("show").unwrap();
@@ -300,7 +295,7 @@ fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
 
-    let mut idx = 0;    
+    let mut idx = 0;
 
     // Add table row header
     table.add_row(Row::new(vec![
@@ -308,25 +303,25 @@ fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
         Cell::new("Event"),
         Cell::new("Filter"),
         Cell::new("Action"),
-        Cell::new("Arguments"),        
-    ]));    
-     
+        Cell::new("Arguments"),
+    ]));
+
     match rules::RuleFile::from_file(&filename) {
         Err(e) => {
-            error!("Could not load rule file {:?}: {}", filename, e);                    
-        },
+            error!("Could not load rule file {:?}: {}", filename, e);
+        }
 
         Ok(rule_file) => {
-            for rule in rule_file.rules.iter() {            
+            for rule in rule_file.rules.iter() {
                 // Print in "tabular" format (the default)
                 table.add_row(Row::new(vec![
-                    Cell::new(&format!("{}", idx + 1)),                    
+                    Cell::new(&format!("{}", idx + 1)),
                     Cell::new(&format!("{:?}", rule.event)).with_style(Attr::Bold),
                     Cell::new(&format!("{:?}", rule.filter)),
                     Cell::new(&format!("{:?}", rule.action)).with_style(Attr::Bold),
                     Cell::new(&format!("{:?}", rule.params)),
                 ]));
-                                
+
                 idx += 1;
             }
         }
@@ -334,7 +329,7 @@ fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
 
     table.printstd();
 
-    println!("\n{} rules examined", idx); 
+    println!("\n{} rules examined", idx);
 }
 
 /// Instruct precached to reload its configuration and rules
@@ -428,15 +423,15 @@ fn main() {
 
             "show" | "info" => {
                 show_rules(&mut config_c, daemon_config);
-            }            
+            }
 
             "reload" => {
                 daemon_reload(&mut config_c, daemon_config);
-            }            
+            }
 
             "help" => {
                 print_help(&mut config_c);
-            }            
+            }
 
             "completions" => {
                 generate_completions(&mut config_c, daemon_config.clone());

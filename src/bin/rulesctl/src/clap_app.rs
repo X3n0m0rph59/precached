@@ -63,35 +63,35 @@ where
         .subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Show the current status of the precached rules subsystem")                
-        )        
+                .about("Show the current status of the precached rules subsystem"),
+        )
         .subcommand(
             SubCommand::with_name("list")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("List all available .rules files")
+                .about("List all available .rules files"),
         )
         .subcommand(
             SubCommand::with_name("show")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("info")
-                .about("Print information about a specific .rules file")                
+                .about("Print information about a specific .rules file")
                 .arg(
-                    Arg::with_name("filename")                       
+                    Arg::with_name("filename")
                         .takes_value(true)
                         .required(true)
                         .help("The name of the .rules file to show"),
-                )
+                ),
         )
         .subcommand(
             SubCommand::with_name("reload")
-                .setting(AppSettings::DeriveDisplayOrder)                
-                .about("Tell precached to reload its configuration")                
+                .setting(AppSettings::DeriveDisplayOrder)
+                .about("Tell precached to reload its configuration"),
         )
         .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about("Display this short help text"),
-        )        
+        )
         .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)

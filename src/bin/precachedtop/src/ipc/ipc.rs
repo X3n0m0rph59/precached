@@ -22,8 +22,8 @@ extern crate libc;
 extern crate serde;
 extern crate serde_json;
 
-use std::path::{Path, PathBuf};
 use chrono::{DateTime, Local, TimeZone, Utc};
+use std::path::{Path, PathBuf};
 
 /// Represents a process
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,7 +36,7 @@ pub struct Process {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracerEntry {
     pub start_time: DateTime<Utc>,
-    pub trace_time_expired: bool,    
+    pub trace_time_expired: bool,
     pub exe: PathBuf,
 }
 
@@ -72,11 +72,11 @@ pub struct Statistics {
 pub enum IpcCommand {
     Ping,
     Pong,
-    
+
     Connect,
     ConnectedSuccessfuly,
     Close,
-    
+
     RequestTrackedProcesses,
     SendTrackedProcesses(Vec<Process>),
 

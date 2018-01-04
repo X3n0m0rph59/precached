@@ -21,65 +21,65 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-extern crate libc;
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
 #[macro_use]
 extern crate lazy_static;
+extern crate libc;
 #[macro_use]
 extern crate log;
 extern crate nix;
-extern crate tui;
 extern crate pbr;
 extern crate pretty_env_logger as logger;
 #[macro_use]
 extern crate prettytable;
 extern crate serde;
-extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_json;
 extern crate term;
-extern crate toml;
-extern crate zstd;
 extern crate termion;
+extern crate toml;
+extern crate tui;
 extern crate zmq;
+extern crate zstd;
 
-use std::thread;
+use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
 use nix::libc::pid_t;
 use nix::sys::signal::*;
 use nix::unistd::*;
 use pbr::ProgressBar;
-use tui::Terminal;
-use tui::backend::TermionBackend;
-use tui::widgets::{Widget, Paragraph, Tabs, Block, List, SelectableList, border};
-use tui::layout::{Group, Rect, Direction, Size};
-use tui::style::{Color, Modifier, Style};
-use term::Attr;
-use term::color::*;
-use termion::{event, color, clear};
-use termion::event::{Key, Event, MouseEvent};
-use termion::input::{TermRead, MouseTerminal};
-use termion::raw::IntoRawMode;
-use std::io::{Write, stdout, stdin};
 use prettytable::Table;
 use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::format::Alignment;
 use prettytable::row::Row;
 use std::collections::{HashMap, HashSet};
-use std::io;
-use std::io::Read;
-use std::io::BufReader;
-use std::io::prelude;
 use std::fs::OpenOptions;
+use std::io;
+use std::io::{stdin, stdout, Write};
+use std::io::BufReader;
+use std::io::Read;
+use std::io::prelude;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc;
-use std::sync::mpsc::{Sender, Receiver};
-use std::time::Duration;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
-use chrono::{DateTime, Local, TimeZone, Utc};
+use std::sync::mpsc;
+use std::sync::mpsc::{Receiver, Sender};
+use std::thread;
+use std::time::Duration;
+use term::Attr;
+use term::color::*;
+use termion::{clear, color, event};
+use termion::event::{Event, Key, MouseEvent};
+use termion::input::{MouseTerminal, TermRead};
+use termion::raw::IntoRawMode;
+use tui::Terminal;
+use tui::backend::TermionBackend;
+use tui::layout::{Direction, Group, Rect, Size};
+use tui::style::{Color, Modifier, Style};
+use tui::widgets::{border, Block, List, Paragraph, SelectableList, Tabs, Widget};
 
 mod util;
 mod ipc;
@@ -93,7 +93,6 @@ static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Signals a global error condition, like a lost connection to the daemon
 static GLOBAL_ERROR_STATE: AtomicBool = ATOMIC_BOOL_INIT;
-
 
 /// Unicode characters used for drawing the progress bar
 pub const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
@@ -151,8 +150,8 @@ struct ProcessListItem {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct TracerListItem {
     pub start_time: DateTime<Utc>,
-    pub trace_time_expired: bool,    
-    pub exe: PathBuf,    
+    pub trace_time_expired: bool,
+    pub exe: PathBuf,
 }
 
 /// Represents an InternalEvent
@@ -213,7 +212,7 @@ impl Application {
             size: Rect::default(),
 
             tab_index: 0,
-            
+
             sel_index_processes: 0,
             tracked_processes: vec![],
 
@@ -223,13 +222,22 @@ impl Application {
             prefetch_stats: None,
 
             sel_index_events: 0,
-            events: vec![EventListItem { datetime: Utc::now(), msg: String::from("<Beginning of Log>") }],
+            events: vec![
+                EventListItem {
+                    datetime: Utc::now(),
+                    msg: String::from("<Beginning of Log>"),
+                },
+            ],
 
             sel_index_files: 0,
             cached_files: vec![],
 
             sel_index_statistics: 0,
-            statistics: vec![StatisticsListItem { datetime: Utc::now() }],
+            statistics: vec![
+                StatisticsListItem {
+                    datetime: Utc::now(),
+                },
+            ],
 
             info_style: Style::default().fg(Color::White),
             warning_style: Style::default().fg(Color::Yellow),
@@ -239,8 +247,9 @@ impl Application {
     }
 
     pub fn render<B>(&self, terminal: &mut Terminal<B>, app: &Application)
-        where B: tui::backend::Backend {
-
+    where
+        B: tui::backend::Backend,
+    {
         // trace!("Rendering startet...");
 
         let size = app.size;
@@ -250,22 +259,36 @@ impl Application {
             .sizes(&[Size::Max(3), Size::Percent(90)])
             .margin(0)
             .render(terminal, &size, |ref mut terminal, chunks| {
-                Block::default().borders(border::ALL).render(terminal, &size);
+                Block::default()
+                    .borders(border::ALL)
+                    .render(terminal, &size);
                 Tabs::default()
-                    .block(Block::default().borders(border::ALL)
-                    .title("Tab Pages"))
-                    .titles(&["Overview", "Events", &format!("Cached Files ({})", app.cached_files.len()), "Statistics", "Help"])                    
+                    .block(Block::default().borders(border::ALL).title("Tab Pages"))
+                    .titles(&[
+                        "Overview",
+                        "Events",
+                        &format!("Cached Files ({})", app.cached_files.len()),
+                        "Statistics",
+                        "Help",
+                    ])
                     .select(app.tab_index)
-                    .style(Style::default().fg(Color::White))                    
+                    .style(Style::default().fg(Color::White))
                     .highlight_style(Style::default().fg(Color::Yellow))
                     .render(terminal, &chunks[0]);
 
                 match app.tab_index {
                     0 => {
-                        Block::default().borders(border::ALL).render(terminal, &chunks[1]);
-                        Group::default()                                        
+                        Block::default()
+                            .borders(border::ALL)
+                            .render(terminal, &chunks[1]);
+                        Group::default()
                             .direction(Direction::Vertical)
-                            .sizes(&[Size::Percent(25), Size::Percent(25), Size::Percent(15), Size::Percent(35)])
+                            .sizes(&[
+                                Size::Percent(25),
+                                Size::Percent(25),
+                                Size::Percent(15),
+                                Size::Percent(35),
+                            ])
                             .margin(0)
                             .render(terminal, &chunks[1], |terminal, chunks| {
                                 let items: Vec<String>;
@@ -274,21 +297,25 @@ impl Application {
                                     items = vec![format!("Connection Error!")];
                                 } else {
                                     // Render tracked processes
-                                    items = self.tracked_processes.iter()
-                                    .map(|v| { 
-                                        let v = v.clone();
-                                        format!("{}\t{}", v.pid, v.comm) 
-                                    }).collect();
+                                    items = self.tracked_processes
+                                        .iter()
+                                        .map(|v| {
+                                            let v = v.clone();
+                                            format!("{}\t{}", v.pid, v.comm)
+                                        })
+                                        .collect();
                                 }
 
                                 SelectableList::default()
-                                    .block(Block::default().borders(border::ALL)
-                                    .title("Tracked Processes"))
+                                    .block(
+                                        Block::default()
+                                            .borders(border::ALL)
+                                            .title("Tracked Processes"),
+                                    )
                                     .items(&items)
                                     .select(self.sel_index_processes)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
                                     .render(terminal, &chunks[0]);
-
 
                                 let trace_items: Vec<String>;
                                 if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
@@ -296,11 +323,13 @@ impl Application {
                                     trace_items = vec![format!("Connection Error!")];
                                 } else {
                                     // Render traced processes
-                                    trace_items = self.active_traces.iter()
-                                    .map(|v| { 
-                                        let v = v.clone();
-                                        format!("{}\t{:?}", format_date(v.start_time), v.exe) 
-                                    }).collect();
+                                    trace_items = self.active_traces
+                                        .iter()
+                                        .map(|v| {
+                                            let v = v.clone();
+                                            format!("{}\t{:?}", format_date(v.start_time), v.exe)
+                                        })
+                                        .collect();
                                 }
 
                                 SelectableList::default()
@@ -310,7 +339,6 @@ impl Application {
                                     // .select(self.sel_index_active_traces)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
                                     .render(terminal, &chunks[1]);
-
 
                                 // Render prefetcher thread states
                                 let mut prefetcher: Vec<String> = vec![];
@@ -336,11 +364,13 @@ impl Application {
                                     .render(terminal, &chunks[2]);
 
                                 // Render daemon internal events
-                                let mut events: Vec<String> = self.events.iter()
-                                .map(|v| { 
-                                    let v = v.clone();
-                                    format!("{}\t{}", format_date(v.datetime), v.msg) 
-                                }).collect();
+                                let mut events: Vec<String> = self.events
+                                    .iter()
+                                    .map(|v| {
+                                        let v = v.clone();
+                                        format!("{}\t{}", format_date(v.datetime), v.msg)
+                                    })
+                                    .collect();
 
                                 events.reverse();
 
@@ -352,99 +382,106 @@ impl Application {
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
                                     .render(terminal, &chunks[3]);
                             });
-                            
-                        }
+                    }
 
-                        1 => {
-                            Block::default().borders(border::ALL).render(terminal, &chunks[1]);
-                            Group::default()
-                                .direction(Direction::Horizontal)
-                                .sizes(&[Size::Percent(100)])
-                                .margin(0)
-                                .render(terminal, &chunks[1], |terminal, chunks| {
-                                    // Render daemon internal events
-                                    let mut events: Vec<String> = self.events.iter()
+                    1 => {
+                        Block::default()
+                            .borders(border::ALL)
+                            .render(terminal, &chunks[1]);
+                        Group::default()
+                            .direction(Direction::Horizontal)
+                            .sizes(&[Size::Percent(100)])
+                            .margin(0)
+                            .render(terminal, &chunks[1], |terminal, chunks| {
+                                // Render daemon internal events
+                                let mut events: Vec<String> = self.events
+                                    .iter()
                                     .map(|v| {
                                         let v = v.clone();
-                                        format!("{}\t{}", format_date(v.datetime), v.msg) 
-                                    }).collect();
+                                        format!("{}\t{}", format_date(v.datetime), v.msg)
+                                    })
+                                    .collect();
 
-                                    events.reverse();
+                                events.reverse();
 
-                                    SelectableList::default()
-                                        .block(Block::default().borders(border::ALL)
-                                        .title("Events"))
-                                        .items(&events)
-                                        .select(self.sel_index_events)
-                                        .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
-                                        .render(terminal, &chunks[0]);
-                                });
-                        }
+                                SelectableList::default()
+                                    .block(Block::default().borders(border::ALL).title("Events"))
+                                    .items(&events)
+                                    .select(self.sel_index_events)
+                                    .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                                    .render(terminal, &chunks[0]);
+                            });
+                    }
 
-                        2 => {
-                            Block::default().borders(border::ALL).render(terminal, &chunks[1]);
-                            Group::default()
-                                .direction(Direction::Horizontal)
-                                .sizes(&[Size::Percent(100)])
-                                .margin(0)
-                                .render(terminal, &chunks[1], |terminal, chunks| {
-                                    // Render cached files
-                                    let cached_files: Vec<String> = self.cached_files.iter()
-                                    .map(|v| String::from(v.to_string_lossy())).collect();                                        
+                    2 => {
+                        Block::default()
+                            .borders(border::ALL)
+                            .render(terminal, &chunks[1]);
+                        Group::default()
+                            .direction(Direction::Horizontal)
+                            .sizes(&[Size::Percent(100)])
+                            .margin(0)
+                            .render(terminal, &chunks[1], |terminal, chunks| {
+                                // Render cached files
+                                let cached_files: Vec<String> = self.cached_files
+                                    .iter()
+                                    .map(|v| String::from(v.to_string_lossy()))
+                                    .collect();
 
-                                    SelectableList::default()
-                                        .block(Block::default().borders(border::ALL)
-                                        .title("Cached Files"))
-                                        .items(&cached_files)
-                                        .select(self.sel_index_files)
-                                        .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
-                                        .render(terminal, &chunks[0]);
-                                });
-                        }
+                                SelectableList::default()
+                                    .block(Block::default().borders(border::ALL).title("Cached Files"))
+                                    .items(&cached_files)
+                                    .select(self.sel_index_files)
+                                    .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                                    .render(terminal, &chunks[0]);
+                            });
+                    }
 
-                        3 => {
-                            Block::default().borders(border::ALL).render(terminal, &chunks[1]);
-                            Group::default()
-                                .direction(Direction::Horizontal)
-                                .sizes(&[Size::Percent(100)])
-                                .margin(2)
-                                .render(terminal, &chunks[1], |terminal, chunks| {
-                                    Block::default()
-                                        .title("Stats")
-                                        .render(terminal, &chunks[0]);
+                    3 => {
+                        Block::default()
+                            .borders(border::ALL)
+                            .render(terminal, &chunks[1]);
+                        Group::default()
+                            .direction(Direction::Horizontal)
+                            .sizes(&[Size::Percent(100)])
+                            .margin(2)
+                            .render(terminal, &chunks[1], |terminal, chunks| {
+                                Block::default().title("Stats").render(terminal, &chunks[0]);
 
-                                    Paragraph::default()
-                                        .text("... Stats ...")
-                                        .render(terminal, &chunks[0]);
-                                });
-                        }
+                                Paragraph::default()
+                                    .text("... Stats ...")
+                                    .render(terminal, &chunks[0]);
+                            });
+                    }
 
-                        4 => {
-                            Block::default().borders(border::ALL).render(terminal, &chunks[1]);
-                            Group::default()
-                                .direction(Direction::Horizontal)
-                                .sizes(&[Size::Percent(100)])
-                                .margin(2)
-                                .render(terminal, &chunks[1], |terminal, chunks| {
-                                    Block::default()
-                                        .title("Help")
-                                        .render(terminal, &chunks[0]);
+                    4 => {
+                        Block::default()
+                            .borders(border::ALL)
+                            .render(terminal, &chunks[1]);
+                        Group::default()
+                            .direction(Direction::Horizontal)
+                            .sizes(&[Size::Percent(100)])
+                            .margin(2)
+                            .render(terminal, &chunks[1], |terminal, chunks| {
+                                Block::default().title("Help").render(terminal, &chunks[0]);
 
-                                    Paragraph::default()
-                                        .text("\n\nprecached Copyright (C) 2017 the precached team
+                                Paragraph::default()
+                                    .text(
+                                        "\n\nprecached Copyright (C) 2017 the precached team
 This program comes with ABSOLUTELY NO WARRANTY;
 This is free software, and you are welcome to redistribute it
-under certain conditions.")
-                                        .render(terminal, &chunks[0]);
-                                });
-                        }
-
-                        _ => {}
+under certain conditions.",
+                                    )
+                                    .render(terminal, &chunks[0]);
+                            });
                     }
+
+                    _ => {}
+                }
             });
 
         trace!("Rendering finished");
-    }    
+    }
 }
 
 fn do_request(socket: &zmq::Socket, command: ipc::IpcCommand) -> Result<ipc::IpcMessage, String> {
@@ -455,29 +492,21 @@ fn do_request(socket: &zmq::Socket, command: ipc::IpcCommand) -> Result<ipc::Ipc
         Ok(()) => {
             // Receive the daemon's reply
             match socket.recv_string(0) {
-                Ok(data) => {
-                    match data {
-                        Ok(data) => {
-                            let deserialized_data: ipc::IpcMessage = serde_json::from_str(&data).unwrap();
-                
-                            Ok(deserialized_data)
-                        },
+                Ok(data) => match data {
+                    Ok(data) => {
+                        let deserialized_data: ipc::IpcMessage = serde_json::from_str(&data).unwrap();
 
-                        Err(e) => {
-                            Err(format!("Invalid data received: {:?}", e))
-                        }
-                    }                    
+                        Ok(deserialized_data)
+                    }
+
+                    Err(e) => Err(format!("Invalid data received: {:?}", e)),
                 },
 
-                Err(e) => {            
-                    Err(format!("Could not receive data from socket: {}", e))
-                }
+                Err(e) => Err(format!("Could not receive data from socket: {}", e)),
             }
-        },
-
-        Err(e) => {
-            Err(format!("Could not send data via a socket: {}", e))
         }
+
+        Err(e) => Err(format!("Could not send data via a socket: {}", e)),
     }
 }
 
@@ -485,51 +514,51 @@ fn do_request(socket: &zmq::Socket, command: ipc::IpcCommand) -> Result<ipc::Ipc
 fn main_loop(_config: &mut Config) {
     let backend = TermionBackend::new().unwrap();
     let mut terminal = Terminal::new(backend).unwrap();
-    
+
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
 
-    let mut app = Application::new();    
-    
+    let mut app = Application::new();
+
     let (tx, rx): (Sender<ipc::IpcMessage>, Receiver<ipc::IpcMessage>) = mpsc::channel();
 
     let _ipc_thread = thread::Builder::new()
-                        .name(String::from("ipc"))
-                        .spawn(move || {
-        warn!("Initializing IPC...");
+        .name(String::from("ipc"))
+        .spawn(move || {
+            warn!("Initializing IPC...");
 
-        let ctx = zmq::Context::new();
-        let socket = ctx.socket(zmq::REQ).unwrap();
-        socket.connect("ipc:///run/precached.sock").unwrap();
+            let ctx = zmq::Context::new();
+            let socket = ctx.socket(zmq::REQ).unwrap();
+            socket.connect("ipc:///run/precached.sock").unwrap();
 
-        // match socket.set_rcvtimeo(1) {
-        //     Ok(()) => {
-        //         /* Do nothing */
-        //     },
+            // match socket.set_rcvtimeo(1) {
+            //     Ok(()) => {
+            //         /* Do nothing */
+            //     },
 
-        //     Err(e) => {
-        //         error!("Could not set socket attributes: {}", e);
-        //     }
-        // }
-        
-        // Send initial connection request        
-        match do_request(&socket, ipc::IpcCommand::Connect) {
-            Ok(_data) => {
-                GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
-            },
+            //     Err(e) => {
+            //         error!("Could not set socket attributes: {}", e);
+            //     }
+            // }
 
-            Err(_e) => {
-                GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
-            }
-        }
-        
-        'IPC_LOOP: loop {
-            if EXIT_NOW.load(Ordering::Relaxed) {
-                trace!("Leaving the IPC event loop...");
-                break 'IPC_LOOP;
+            // Send initial connection request
+            match do_request(&socket, ipc::IpcCommand::Connect) {
+                Ok(_data) => {
+                    GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
+                }
+
+                Err(_e) => {
+                    GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
+                }
             }
 
-            macro_rules! request {
+            'IPC_LOOP: loop {
+                if EXIT_NOW.load(Ordering::Relaxed) {
+                    trace!("Leaving the IPC event loop...");
+                    break 'IPC_LOOP;
+                }
+
+                macro_rules! request {
                 ($socket:ident, $command:expr) => {
                     match do_request(&$socket, $command) {
                             Ok(data) => {
@@ -544,59 +573,58 @@ fn main_loop(_config: &mut Config) {
                 };
             }
 
-            // Request current data
-            request!(socket, ipc::IpcCommand::RequestTrackedProcesses);
+                // Request current data
+                request!(socket, ipc::IpcCommand::RequestTrackedProcesses);
 
-            // Request current data
-            request!(socket, ipc::IpcCommand::RequestInFlightTracers);
-                                   
-            // Request states of prefetcher threads
-            request!(socket, ipc::IpcCommand::RequestPrefetchStatus);
-            
-            // Request daemon internal events
-            request!(socket, ipc::IpcCommand::RequestInternalEvents);
-                         
-            // Request cached files
-            request!(socket, ipc::IpcCommand::RequestCachedFiles);            
-        }            
+                // Request current data
+                request!(socket, ipc::IpcCommand::RequestInFlightTracers);
 
-        info!("Exiting the IPC event loop!");
-    }).unwrap();
+                // Request states of prefetcher threads
+                request!(socket, ipc::IpcCommand::RequestPrefetchStatus);
 
+                // Request daemon internal events
+                request!(socket, ipc::IpcCommand::RequestInternalEvents);
+
+                // Request cached files
+                request!(socket, ipc::IpcCommand::RequestCachedFiles);
+            }
+
+            info!("Exiting the IPC event loop!");
+        })
+        .unwrap();
 
     let (tx_events, rx_events): (Sender<Event>, Receiver<Event>) = mpsc::channel();
 
     let _input_thread = thread::Builder::new()
-                        .name(String::from("input"))
-                        .spawn(move || {
+        .name(String::from("input"))
+        .spawn(move || {
+            // let stdin = termion::async_stdin();
 
-        // let stdin = termion::async_stdin();
+            'INPUT_LOOP: loop {
+                let stdin = io::stdin();
 
-        'INPUT_LOOP: loop {
-            let stdin = io::stdin();
+                for c in stdin.events() {
+                    if EXIT_NOW.load(Ordering::Relaxed) {
+                        trace!("Leaving the input event loop...");
+                        break 'INPUT_LOOP;
+                    }
 
-            for c in stdin.events() {
-                if EXIT_NOW.load(Ordering::Relaxed) {
-                    trace!("Leaving the input event loop...");
-                    break 'INPUT_LOOP;
+                    let evt = c.unwrap();
+                    tx_events.send(evt).unwrap();
                 }
-
-                let evt = c.unwrap();
-                tx_events.send(evt).unwrap();
             }
-        }
 
-        info!("Exiting input thread!");
-    }).unwrap();
-
+            info!("Exiting input thread!");
+        })
+        .unwrap();
 
     'MAIN_LOOP: loop {
         // terminal.clear().unwrap();
-        
+
         if EXIT_NOW.load(Ordering::Relaxed) {
             trace!("Leaving the main event loop...");
             break 'MAIN_LOOP;
-        }        
+        }
 
         // Process replies sent by the precached daemon
         while let Ok(msg) = rx.recv_timeout(Duration::from_millis(0)) {
@@ -612,11 +640,11 @@ fn main_loop(_config: &mut Config) {
         if size != app.size {
             terminal.resize(size).unwrap();
             app.size = size;
-        }        
+        }
 
         app.render(&mut terminal, &app);
         terminal.draw().unwrap();
-        
+
         thread::sleep(Duration::from_millis(constants::MAIN_LOOP_DELAY_MILLIS));
     }
 
@@ -630,71 +658,75 @@ fn main_loop(_config: &mut Config) {
     if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
         println!("Could not connect to the precached daemon! Please verifiy that precached is running, and that you have valid access rights to connect!");
     }
-    
 }
 
 fn process_message(app: &mut Application, msg: ipc::IpcMessage) {
     match msg.command {
         ipc::IpcCommand::Connect => {
             info!("IPC connected succesfuly!");
-        },
+        }
 
         ipc::IpcCommand::SendTrackedProcesses(processes) => {
             let mut tmp = vec![];
             for p in processes {
                 let i = ProcessListItem {
                     pid: p.pid,
-                    comm: p.comm, 
+                    comm: p.comm,
                 };
 
-                tmp.push(i);       
+                tmp.push(i);
             }
 
             app.tracked_processes = tmp;
-        },
+        }
 
-        ipc::IpcCommand::SendInFlightTracers(tracers) => {            
+        ipc::IpcCommand::SendInFlightTracers(tracers) => {
             let mut tmp = vec![];
             for a in tracers {
-                let i = TracerListItem { 
+                let i = TracerListItem {
                     start_time: a.start_time,
                     trace_time_expired: a.trace_time_expired,
-                    exe: a.exe
+                    exe: a.exe,
                 };
 
-                tmp.push(i);       
+                tmp.push(i);
             }
 
             app.active_traces = tmp;
-        },
+        }
 
         ipc::IpcCommand::SendPrefetchStatus(stats) => {
             app.prefetch_stats = Some(stats);
-        },
+        }
 
-        ipc::IpcCommand::SendCachedFiles(files) => {        
+        ipc::IpcCommand::SendCachedFiles(files) => {
             app.cached_files = files;
-        },
+        }
 
         ipc::IpcCommand::SendInternalEvents(events) => {
             let mut tmp = vec![];
             for e in events {
-                let i = EventListItem { datetime: e.datetime, msg: e.name };
-                tmp.push(i);       
+                let i = EventListItem {
+                    datetime: e.datetime,
+                    msg: e.name,
+                };
+                tmp.push(i);
             }
 
             app.events.append(&mut tmp);
-        },
+        }
 
         ipc::IpcCommand::SendStatistics(stats) => {
             let mut tmp = vec![];
             for e in stats {
-                let i = StatisticsListItem { datetime: e.datetime };
-                tmp.push(i);       
+                let i = StatisticsListItem {
+                    datetime: e.datetime,
+                };
+                tmp.push(i);
             }
 
             app.statistics.append(&mut tmp);
-        },
+        }
 
         _ => {
             warn!("Unknown IPC command received");
@@ -747,15 +779,14 @@ fn process_event(app: &mut Application, evt: Event) {
                 }
 
                 _ => { /* Do nothing */ }
-            }                                        
+            }
         }
 
         Event::Key(Key::Down) => {
             match app.tab_index {
                 // cursor down on main view
                 0 => {
-                    if app.tracked_processes.len() > 0 && 
-                       app.sel_index_processes < app.tracked_processes.len() - 1 {
+                    if app.tracked_processes.len() > 0 && app.sel_index_processes < app.tracked_processes.len() - 1 {
                         if app.sel_index_processes > 0 {
                             app.sel_index_processes += 1;
                         } else {
@@ -765,9 +796,8 @@ fn process_event(app: &mut Application, evt: Event) {
                 }
 
                 // cursor down on events view
-                1 => {                    
-                    if app.events.len() > 0 && 
-                       app.sel_index_events < app.events.len() - 1 {
+                1 => {
+                    if app.events.len() > 0 && app.sel_index_events < app.events.len() - 1 {
                         if app.sel_index_events > 0 {
                             app.sel_index_events += 1;
                         } else {
@@ -777,9 +807,8 @@ fn process_event(app: &mut Application, evt: Event) {
                 }
 
                 // cursor down on cached files view
-                2 => {                    
-                    if app.cached_files.len() > 0 && 
-                       app.sel_index_files < app.cached_files.len() - 1 {
+                2 => {
+                    if app.cached_files.len() > 0 && app.sel_index_files < app.cached_files.len() - 1 {
                         if app.sel_index_files > 0 {
                             app.sel_index_files += 1;
                         } else {
@@ -789,15 +818,14 @@ fn process_event(app: &mut Application, evt: Event) {
                 }
 
                 _ => { /* Do nothing */ }
-            }                             
+            }
         }
 
         Event::Key(Key::PageUp) => {
             match app.tab_index {
                 // Page up on main view
                 0 => {
-                    if app.tracked_processes.len() > 0 && 
-                       app.sel_index_processes < app.tracked_processes.len() - 1 {
+                    if app.tracked_processes.len() > 0 && app.sel_index_processes < app.tracked_processes.len() - 1 {
                         if app.sel_index_processes > 0 {
                             app.sel_index_processes += 80;
                         } else {
@@ -807,9 +835,8 @@ fn process_event(app: &mut Application, evt: Event) {
                 }
 
                 // Page up on events view
-                1 => {                    
-                    if app.events.len() > 0 && 
-                       app.sel_index_events < app.events.len() - 1 {
+                1 => {
+                    if app.events.len() > 0 && app.sel_index_events < app.events.len() - 1 {
                         if app.sel_index_events > 0 {
                             app.sel_index_events += 80;
                         } else {
@@ -819,15 +846,14 @@ fn process_event(app: &mut Application, evt: Event) {
                 }
 
                 _ => { /* Do nothing */ }
-            }                             
+            }
         }
 
         Event::Key(Key::PageDown) => {
             match app.tab_index {
                 // Page down on main view
                 0 => {
-                    if app.tracked_processes.len() > 0 && 
-                       app.sel_index_processes < app.tracked_processes.len() - 1 {
+                    if app.tracked_processes.len() > 0 && app.sel_index_processes < app.tracked_processes.len() - 1 {
                         if app.sel_index_processes > 0 {
                             app.sel_index_processes += 80;
                         } else {
@@ -837,9 +863,8 @@ fn process_event(app: &mut Application, evt: Event) {
                 }
 
                 // Page down on events view
-                1 => {                    
-                    if app.events.len() > 0 && 
-                       app.sel_index_events < app.events.len() - 1 {
+                1 => {
+                    if app.events.len() > 0 && app.sel_index_events < app.events.len() - 1 {
                         if app.sel_index_events > 0 {
                             app.sel_index_events += 1;
                         } else {
@@ -849,7 +874,7 @@ fn process_event(app: &mut Application, evt: Event) {
                 }
 
                 _ => { /* Do nothing */ }
-            }                             
+            }
         }
 
         // Navigate through tabs
@@ -861,8 +886,7 @@ fn process_event(app: &mut Application, evt: Event) {
             }
         }
 
-        Event::Key(Key::Right) | 
-        Event::Key(Key::Char('\t')) => {
+        Event::Key(Key::Right) | Event::Key(Key::Char('\t')) => {
             if app.tab_index < 4 {
                 app.tab_index += 1;
             } else {
@@ -876,11 +900,11 @@ fn process_event(app: &mut Application, evt: Event) {
         }
 
         Event::Key(Key::Char(' ')) => {
-            //     
+            //
         }
 
-        _ => {}                
-    }          
+        _ => {}
+    }
 }
 
 /// Print help message on how to use this command
@@ -928,7 +952,7 @@ pub fn main() {
 
     // TODO: Implement a suitable logger that integrates well into the TUI
     logger::init().expect("Could not initialize the logging subsystem!");
-    
+
     trace!("Startup");
 
     // parses the command line
@@ -942,7 +966,7 @@ pub fn main() {
 
     // Decide what to do
     if let Some(command) = config.matches.subcommand_name() {
-        match command {            
+        match command {
             "help" => {
                 print_help(&mut config_c);
             }
@@ -963,8 +987,9 @@ pub fn main() {
     trace!("Exit");
 }
 
-pub fn now() -> String {    
-    Local::now().with_timezone(&Local)
+pub fn now() -> String {
+    Local::now()
+        .with_timezone(&Local)
         .format(constants::DATETIME_FORMAT_DEFAULT)
         .to_string()
 }

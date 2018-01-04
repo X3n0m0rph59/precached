@@ -57,9 +57,9 @@ use nix::sys::signal;
 use std::env;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::channel;
-use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
 use syslog::{Facility, Severity};
@@ -217,7 +217,7 @@ fn print_disabled_plugins_notice(globals: &mut Globals) {
 
 /// Process daemon internal events
 fn process_internal_events(globals: &mut Globals, manager: &Manager) {
-    let mut globals_c = globals.clone();    
+    let mut globals_c = globals.clone();
 
     while let Some(internal_event) = globals.event_queue.pop_front() {
         {
@@ -469,7 +469,7 @@ fn main() {
     // print_disabled_hooks_notice(&mut globals);
 
     // Initialize the IPC interface, used by e.g. `precachedtop`
-    let mut ipc_server = ipc::IpcServer::new();    
+    let mut ipc_server = ipc::IpcServer::new();
     match ipc_server.init(&mut globals, &manager) {
         Ok(_) => {
             info!("Successfuly initialized the IPC interface");
@@ -504,7 +504,6 @@ fn main() {
         })
         .unwrap();
 
-
     // spawn the IPC event loop thread
     let queue_c = globals.ipc_event_queue.clone();
     let manager_c = manager.clone();
@@ -523,11 +522,9 @@ fn main() {
 
                 // we got an event, try to lock the shared data structure...
                 match queue_c.write() {
-                    Ok(mut queue) => {
-                        match event {
-                            Err(e) => error!("Invalid IPC request: {}", e),
-                            Ok(event) => ipc_server.process_messages(&event, &mut queue, &manager_c)
-                        }
+                    Ok(mut queue) => match event {
+                        Err(e) => error!("Invalid IPC request: {}", e),
+                        Ok(event) => ipc_server.process_messages(&event, &mut queue, &manager_c),
                     },
 
                     Err(e) => {
@@ -543,7 +540,7 @@ fn main() {
     // ... on the main thread again
     'MAIN_LOOP: loop {
         trace!("Main thread going to sleep...");
-        
+
         // NOTE: Blocking call
         // wait for the event loop thread to submit an event
         // or up to n msecs until a timeout occurs
@@ -615,13 +612,11 @@ fn main() {
 
         // Dispatch procmon events
         match event {
-            Some(e) => {
-                process_procmon_event(&e, &mut globals, &mut manager)
-            },
-            
+            Some(e) => process_procmon_event(&e, &mut globals, &mut manager),
+
             None => { /* We woke up because of a timeout, just do nothing */ }
-        };        
-        
+        };
+
         // Dispatch daemon internal events
         process_internal_events(&mut globals, &manager);
 

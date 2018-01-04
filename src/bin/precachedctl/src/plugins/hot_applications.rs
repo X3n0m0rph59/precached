@@ -163,8 +163,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
 
             println!(
                 "{} histogram entries examined, {} missing I/O trace logs",
-                index,
-                errors
+                index, errors
             );
         }
     }
@@ -281,8 +280,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
                     println!(
                         "{} histogram entries examined, {} missing I/O trace logs",
-                        index,
-                        errors
+                        index, errors
                     );
                 }
             }

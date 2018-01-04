@@ -18,10 +18,11 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate lazy_static;
 extern crate libc;
 extern crate threadpool;
-extern crate lazy_static;
 
+use constants;
 use events;
 use events::EventType;
 use globals::*;
@@ -39,10 +40,9 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::sync::mpsc::{channel, Sender};
 use util;
-use constants;
 
 static NAME: &str = "iotrace_prefetcher";
 static DESCRIPTION: &str = "Replay file operations previously recorded by an I/O tracer";
@@ -80,7 +80,7 @@ impl IOtracePrefetcher {
         let mut thread_states = vec![];
 
         for _ in 0..constants::NUM_PREFETCHER_THREADS {
-            thread_states.push(Arc::new(RwLock::new(ThreadState::Uninitialized))); 
+            thread_states.push(Arc::new(RwLock::new(ThreadState::Uninitialized)));
         }
 
         IOtracePrefetcher {
@@ -177,9 +177,11 @@ impl IOtracePrefetcher {
         already_prefetched
     }
 
-    fn unmap_files(io_trace: &[iotrace::TraceLogEntry], 
-                   our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>, 
-                   thread_state: &mut Arc<RwLock<ThreadState>>) -> Vec<PathBuf> {
+    fn unmap_files(
+        io_trace: &[iotrace::TraceLogEntry],
+        our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>,
+        thread_state: &mut Arc<RwLock<ThreadState>>,
+    ) -> Vec<PathBuf> {
         let mut result = vec![];
 
         for entry in io_trace {
@@ -192,16 +194,16 @@ impl IOtracePrefetcher {
                         {
                             *(thread_state.write().unwrap()) = ThreadState::UnmappingFile(file.clone());
                         }
-                        
+
                         let mapping_c = mapping.clone();
 
                         if util::free_mapping(mapping) {
                             info!("Successfuly unmapped file: {:?}", file);
                             result.push(mapping_c.filename);
 
-                            // {
-                            //         *(thread_state.write().unwrap()) = ThreadState::Idle;
-                            // }
+                        // {
+                        //         *(thread_state.write().unwrap()) = ThreadState::Idle;
+                        // }
                         } else {
                             error!("Could not unmap file: {:?}", file);
                         }
@@ -218,13 +220,16 @@ impl IOtracePrefetcher {
         result
     }
 
-    fn prefetch_statx_metadata(io_trace: &[iotrace::TraceLogEntry], static_blacklist: &[PathBuf], 
-                               thread_state: &mut Arc<RwLock<ThreadState>>) {
+    fn prefetch_statx_metadata(
+        io_trace: &[iotrace::TraceLogEntry],
+        static_blacklist: &[PathBuf],
+        thread_state: &mut Arc<RwLock<ThreadState>>,
+    ) {
         for entry in io_trace {
             match entry.operation {
                 iotrace::IOOperation::Open(ref file, ref _fd) => {
                     trace!("Prefetching metadata for: {:?}", file);
-                    
+
                     {
                         *(thread_state.write().unwrap()) = ThreadState::PrefetchingFileMetadata(file.clone());
                     }
@@ -422,8 +427,7 @@ impl IOtracePrefetcher {
 
                             prefetch_pool.execute(move || {
                                 // submit memory freeing work to an idle thread
-                                let unmapped_files = Self::unmap_files(&trace_log, &our_mapped_files_c, 
-                                                                       &mut thread_state);
+                                let unmapped_files = Self::unmap_files(&trace_log, &our_mapped_files_c, &mut thread_state);
 
                                 sc.lock().unwrap().send(unmapped_files).unwrap();
                             })
@@ -490,8 +494,7 @@ impl IOtracePrefetcher {
 
                             prefetch_pool.execute(move || {
                                 // submit prefetching work to an idle thread
-                                Self::prefetch_statx_metadata(&trace_log, &static_blacklist_c, 
-                                                              &mut thread_state);
+                                Self::prefetch_statx_metadata(&trace_log, &static_blacklist_c, &mut thread_state);
                             })
                         }
                     }
@@ -697,7 +700,7 @@ impl hook::Hook for IOtracePrefetcher {
                     let mut s = s.write().unwrap();
                     *s = ThreadState::Idle;
                 }
-            },
+            }
 
             _ => {
                 // Ignore all other events
