@@ -193,7 +193,7 @@ fn setup_signal_handlers() {
 /// Print a license header to the console
 fn print_license_header() {
     println!(
-        "precached Copyright (C) 2017 the precached team
+        "precached Copyright (C) 2017-2018 the precached team
 This program comes with ABSOLUTELY NO WARRANTY;
 This is free software, and you are welcome to redistribute it
 under certain conditions.
