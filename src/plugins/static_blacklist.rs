@@ -74,7 +74,7 @@ impl StaticBlacklist {
             .clone()
             .unwrap()
             .blacklist
-            .unwrap_or(vec![]);
+            .unwrap_or_else(|| vec![]);
 
         result.append(&mut blacklist);
 
@@ -90,7 +90,7 @@ impl StaticBlacklist {
             .clone()
             .unwrap()
             .program_blacklist
-            .unwrap_or(vec![]);
+            .unwrap_or_else(|| vec![]);
 
         result.append(&mut blacklist);
 
@@ -147,7 +147,7 @@ impl StaticBlacklist {
                 if gs_opt.is_none() {
                     // construct a glob set at the first iteration
                     let mut builder = GlobSetBuilder::new();
-                    for p in self.program_blacklist.iter() {
+                    for p in &self.program_blacklist {
                         builder.add(Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap());
                     }
                     let set = builder.build().unwrap();

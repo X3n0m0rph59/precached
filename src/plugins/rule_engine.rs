@@ -25,6 +25,7 @@ use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::vfs_stat_cache::VFSStatCache;
+use plugins::notifications::Notifications;
 use rules;
 use std::any::Any;
 use std::path::{Path, PathBuf};
@@ -65,8 +66,8 @@ impl RuleEngine {
     fn rule_action_log(&self, event: &rules::Event, rule: &rules::RuleEntry, _globals: &mut Globals, _manager: &Manager) {
         trace!("Rule Action: Log");
 
-        let message = match event {
-            &rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
+        let message = match *event {
+            rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
                 // We are being invoked through `process_user_login_event(..)`
                 // So we have valid `user` and `home_dir` parameters
                 match rules::get_param_value(&rule.params, "Message") {
@@ -80,10 +81,10 @@ impl RuleEngine {
                     Ok(val) => {
                         let home_dir_str = &home_dir.to_string_lossy().to_string();
                         let message = Self::expand_variables(
-                            val,
+                            &val,
                             &[
-                                (&"$user".to_string(), &user),
-                                (&"$home_dir".to_string(), &home_dir_str),
+                                (&"$user".to_string(), user),
+                                (&"$home_dir".to_string(), home_dir_str),
                             ],
                         );
 
@@ -92,7 +93,7 @@ impl RuleEngine {
                 }
             }
 
-            &_ => {
+            _ => {
                 match rules::get_param_value(&rule.params, "Message") {
                     Err(_e) => {
                         // Default text is the name of the event
@@ -138,15 +139,66 @@ impl RuleEngine {
     }
 
     /// Implements the `Notify` rule action
-    fn rule_action_notify(&self, _event: &rules::Event, _rule: &rules::RuleEntry, _globals: &mut Globals, _manager: &Manager) {
+    fn rule_action_notify(&self, event: &rules::Event, rule: &rules::RuleEntry, _globals: &mut Globals, manager: &Manager) {
         trace!("Rule Action: Notify");
 
-        // TODO: Implement this!
+        let message = match *event {
+            rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
+                // We are being invoked through `process_user_login_event(..)`
+                // So we have valid `user` and `home_dir` parameters
+                match rules::get_param_value(&rule.params, "Message") {
+                    Err(e) => {
+                        error!("Invalid message specified: '{}'", e);
+
+                        // Default text is the name of the event
+                        format!("{:?}", event)
+                    }
+
+                    Ok(val) => {
+                        let home_dir_str = &home_dir.to_string_lossy().to_string();
+                        let message = Self::expand_variables(
+                            &val,
+                            &[
+                                (&"$user".to_string(), user),
+                                (&"$home_dir".to_string(), home_dir_str),
+                            ],
+                        );
+
+                        message
+                    }
+                }
+            }
+
+            _ => {
+                match rules::get_param_value(&rule.params, "Message") {
+                    Err(_e) => {
+                        // Default text is the name of the event
+                        format!("{:?}", event)
+                    }
+
+                    Ok(val) => val,
+                }
+            }
+        };
+
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("notifications")) {
+            None => {
+                warn!("Plugin not loaded: 'notifications', skipped");
+            }
+            Some(p) => {
+                let p = p.read().unwrap();
+                let notifications = p.as_any().downcast_ref::<Notifications>().unwrap();
+
+                notifications.notify(&message);
+            }
+        }
     }
 
     /// Perform variable expansion in strings
-    fn expand_variables(param: String, vars: &[(&String, &String)]) -> String {
-        let mut result = param.clone();
+    fn expand_variables(param: &str, vars: &[(&String, &String)]) -> String {
+        let mut result = String::from(param);
 
         for var in vars.iter() {
             result = result.replace(var.0, var.1);
@@ -159,8 +211,8 @@ impl RuleEngine {
     fn rule_action_cache_dir_recursive(&self, event: &rules::Event, rule: &rules::RuleEntry, globals: &mut Globals, manager: &Manager) {
         trace!("Rule Action: CacheDirRecursive");
 
-        match event {
-            &rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
+        match *event {
+            rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
                 // We are being invoked through `process_user_login_event(..)`
                 // So we have valid `user` and `home_dir` parameters
                 match rules::get_param_value(&rule.params, "Directory") {
@@ -171,10 +223,10 @@ impl RuleEngine {
                     Ok(val) => {
                         let home_dir_str = &home_dir.to_string_lossy().to_string();
                         let path = Self::expand_variables(
-                            val,
+                            &val,
                             &[
-                                (&"$user".to_string(), &user),
-                                (&"$home_dir".to_string(), &home_dir_str),
+                                (&"$user".to_string(), user),
+                                (&"$home_dir".to_string(), home_dir_str),
                             ],
                         );
 
@@ -197,7 +249,7 @@ impl RuleEngine {
                 }
             }
 
-            &_ => {}
+            _ => {}
         }
     }
 
@@ -216,8 +268,6 @@ impl RuleEngine {
             }
 
             rules::Action::Notify => {
-                /* TODO: Implement this! */
-
                 self.rule_action_notify(event, rule, globals, manager);
             }
 
@@ -242,8 +292,6 @@ impl RuleEngine {
             }
 
             rules::Action::Notify => {
-                /* TODO: Implement this! */
-
                 self.rule_action_notify(event, rule, globals, manager);
             }
 
@@ -268,8 +316,6 @@ impl RuleEngine {
             }
 
             rules::Action::Notify => {
-                /* TODO: Implement this! */
-
                 self.rule_action_notify(event, rule, globals, manager);
             }
 
@@ -279,31 +325,35 @@ impl RuleEngine {
         }
     }
 
-    pub fn process_event(&self, event: rules::Event, globals: &mut Globals, manager: &Manager) {
+    /// Main event processing function of the rule engine
+    /// Handles "native" events of the rule engine, as well as procmon- and internal events
+    pub fn process_event(&self, event: &rules::Event, globals: &mut Globals, manager: &Manager) {
         trace!("Processing event: {:?}", event);
 
-        for rule_file in self.rule_files.iter() {
+        for rule_file in &self.rule_files {
             if rule_file.metadata.enabled {
-                for rule in rule_file.rules.iter() {
+                for rule in &rule_file.rules {
                     // Compare for equality without comparing parameters of enums
                     if util::variant_eq(&rule.event, &event) {
-                        match event {
-                            // rules events
+                        match *event {
+                            // rules "native" events
                             rules::Event::Noop => {
                                 trace!("Noop: {:?}", event);
                             }
 
                             rules::Event::Timer => {
-                                self.process_timer_event(&event, &rule, globals, manager);
+                                self.process_timer_event(event, rule, globals, manager);
                             }
 
                             rules::Event::UserLogin(..) => {
-                                self.process_user_login_event(&event, &rule, globals, manager);
+                                self.process_user_login_event(event, rule, globals, manager);
                             }
 
-                            // InternalEvent events
+                            // procmon events (via rule hook)
+
+                            // InternalEvent events (via rule event bridge)
                             rules::Event::Ping => {
-                                self.process_ping_event(&event, &rule, globals, manager);
+                                self.process_ping_event(event, rule, globals, manager);
                             }
 
                             _ => { /* Do nothing */ }
@@ -314,6 +364,7 @@ impl RuleEngine {
         }
     }
 
+    /// Load and process all .rules Files from the `/etc/precached/rules.d` config directory
     pub fn load_rules(&mut self, _globals: &mut Globals, _manager: &Manager) {
         let rules_path = Path::new(constants::RULES_DIR);
 
@@ -321,13 +372,20 @@ impl RuleEngine {
 
         util::walk_directories(&[rules_path.to_path_buf()], &mut |path| {
             if path.to_string_lossy().contains(".rules") {
-                match rules::RuleFile::from_file(&path) {
+                match rules::RuleFile::from_file(path) {
                     Err(e) => {
                         error!("Could not load rules file {:?}: {}", path, e);
                     }
 
                     Ok(rule_file) => {
-                        info!("Successfuly loaded rules '{}'", rule_file.metadata.name);
+                        if rule_file.metadata.enabled {
+                            info!("Successfuly loaded rules '{}'", rule_file.metadata.name);
+                        } else {
+                            info!(
+                                "Successfuly loaded rules '{}' (disabled)",
+                                rule_file.metadata.name
+                            );
+                        }
 
                         self.rule_files.push(rule_file);
                     }
@@ -369,7 +427,7 @@ impl Plugin for RuleEngine {
 
             events::EventType::Ping => {
                 // Fire timer event
-                self.process_event(rules::Event::Timer, globals, manager);
+                self.process_event(&rules::Event::Timer, globals, manager);
             }
 
             _ => {

@@ -84,7 +84,7 @@ impl IOtraceLogCache {
                 let config = globals.config.config_file.clone().unwrap();
                 let iotrace_dir = config
                     .state_dir
-                    .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
+                    .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
                 let iotrace_dir = iotrace_dir.join(constants::IOTRACE_DIR);
                 let abs_path = iotrace_dir.join(&filename);
 
@@ -132,7 +132,7 @@ impl IOtraceLogCache {
         let config = globals.config.config_file.clone().unwrap();
         let iotrace_dir = config
             .state_dir
-            .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
+            .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
         let iotrace_dir = iotrace_dir.join(constants::IOTRACE_DIR);
         let abs_path = iotrace_dir.join(filename);
 

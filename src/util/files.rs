@@ -146,12 +146,10 @@ pub fn remove_file(filename: &Path, dry_run: bool) -> io::Result<()> {
 
     if !dry_run {
         fs::remove_file(filename)
+    } else if let Err(result) = fs::metadata(filename) {
+        Err(result)
     } else {
-        if let Err(result) = fs::metadata(filename) {
-            Err(result)
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 }
 
@@ -162,7 +160,7 @@ pub fn is_filename_valid(filename: &Path) -> bool {
         return false;
     }
 
-    return true;
+    true
 }
 
 /// Validates `filename`. Check if it is a valid regular file identified by an absolute path
@@ -176,7 +174,7 @@ pub fn is_file_valid(filename: &Path) -> bool {
         return false;
     }
 
-    return true;
+    true
 }
 
 /// Returns `true` if `filename` matches a pattern in `pattern`, otherwise returns `false`.
@@ -187,6 +185,7 @@ pub fn is_file_blacklisted(filename: &Path, pattern: &[PathBuf]) -> bool {
             error!("Could not lock a shared data structure! {}", e);
             false
         }
+
         Ok(mut gs_opt) => {
             if gs_opt.is_none() {
                 // construct a glob set at the first iteration

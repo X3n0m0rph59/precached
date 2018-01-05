@@ -32,7 +32,7 @@ use std::collections::HashMap;
 use std::sync::mpsc::channel;
 
 static NAME: &str = "rule_hook";
-static DESCRIPTION: &str = "Custom rules actions for precached";
+static DESCRIPTION: &str = "Support rule actions for the rule matching engine";
 
 /// Register this hook implementation with the system
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
@@ -54,11 +54,11 @@ impl RuleHook {
 
 impl hook::Hook for RuleHook {
     fn register(&mut self) {
-        info!("Registered Hook: 'Custom Rules Hook'");
+        info!("Registered Hook: 'Rule Engine Hook'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Hook: 'Custom Rules Hook'");
+        info!("Unregistered Hook: 'Rule Engine Hook'");
     }
 
     fn get_name(&self) -> &'static str {

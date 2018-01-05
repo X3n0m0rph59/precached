@@ -75,7 +75,7 @@ impl VFSStatCache {
                 let manager_c = manager.clone();
 
                 thread_pool.submit_work(move || {
-                    util::walk_directories(&paths_c, &mut |ref path| {
+                    util::walk_directories(&paths_c, &mut |path| {
                         if !Self::check_available_memory(&globals_c, &manager_c) {
                             info!("Available memory exhausted, stopping statx() caching!");
                             return;
@@ -153,7 +153,7 @@ impl VFSStatCache {
                 let p = p.read().unwrap();
                 let static_blacklist = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-                if util::is_file_blacklisted(&filename, static_blacklist.get_blacklist()) {
+                if util::is_file_blacklisted(filename, static_blacklist.get_blacklist()) {
                     return false;
                 }
             }

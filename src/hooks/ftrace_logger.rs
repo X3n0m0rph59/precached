@@ -122,12 +122,10 @@ impl FtraceLogger {
 
                             if let Some(process) = process_tracker.get_process(pid) {
                                 comm = process.comm.clone();
-                            } else {
-                                if let Ok(process) = Process::new(pid) {
-                                    comm = process
-                                        .get_comm()
-                                        .unwrap_or_else(|_| String::from("<not available>"));
-                                }
+                            } else if let Ok(process) = Process::new(pid) {
+                                comm = process
+                                    .get_comm()
+                                    .unwrap_or_else(|_| String::from("<not available>"));
                             }
 
                             // NOTE: We have to use `lock()` here instead of `try_lock()`
@@ -228,7 +226,7 @@ impl FtraceLogger {
                         }
                     }
 
-                    return true;
+                    true
                 },
                 globals,
             ) {

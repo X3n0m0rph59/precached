@@ -23,10 +23,10 @@ extern crate serde_json;
 
 use chrono::{DateTime, Local, TimeZone, Utc};
 use globals::*;
-use inotify::EventMaskWrapper;
 use procmon;
 use std::path::PathBuf;
 use std::time::Instant;
+use inotify::EventMaskWrapper;
 
 /// Daemon internal events
 #[derive(Debug, Clone)]

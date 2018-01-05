@@ -21,9 +21,10 @@
 extern crate sys_info;
 
 use chrono::Utc;
+use std::fs;
 use std::fs::File;
 use std::io;
-use std::io::{BufReader, Error, ErrorKind};
+use std::io::{BufReader, BufWriter, Error, ErrorKind};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -31,13 +32,18 @@ use std::str::FromStr;
 /// Events that may appear in a .rules file
 #[derive(Debug, Clone, PartialEq)]
 pub enum Event {
-    // Rule Events
+    // Rule Engine "native" Events
     /// No-operation, placeholder
     Noop,
     /// Timer event
     Timer,
     /// User login event
     UserLogin(Option<String>, Option<PathBuf>),
+
+    // Map procmon events
+    Fork,
+    Exec,
+    Exit,
 
     // Map most InternalEvents
     /// occurs every n seconds
@@ -51,13 +57,13 @@ pub enum Event {
     /// advice to plugins to do janitorial tasks now
     DoHousekeeping,
     /// low level event sent by the inotify subsystem when a registered watch fires
-    InotifyEvent,
+    InotifyEvent(Option<PathBuf>),
     /// advice to plugins that an I/O trace log needs to be optimized asap
-    OptimizeIOTraceLog,
+    OptimizeIOTraceLog(Option<PathBuf>),
     /// high level event that gets sent after an I/O trace log file has been created
-    IoTraceLogCreated,
+    IoTraceLogCreated(Option<PathBuf>),
     /// high level event that gets sent after an I/O trace log file has been removed
-    IoTraceLogRemoved,
+    IoTraceLogRemoved(Option<PathBuf>),
     /// advice to plugins to gather statistics and performance metrics
     GatherStatsAndMetrics,
     /// occurs *after* the daemon has successfuly reloaded its configuration
@@ -92,14 +98,8 @@ pub enum Event {
     LeaveIdle,
 }
 
-// impl PartialEq for Event {
-//     fn eq(&self, other: &Event) -> bool {
-//         util::variant_eq(self, other)
-//     }
-// }
-
 /// Actions that may appear in a .rules file
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Action {
     /// No-operation, does nothing
     Noop,
@@ -193,12 +193,15 @@ impl RuleFile {
                     "!version" => {
                         version = Some(value);
                     }
+
                     "!enabled" => {
                         enabled = Some(value);
                     }
+
                     "!name" => {
                         name = Some(value);
                     }
+
                     "!description" => {
                         description = Some(value);
                     }
@@ -255,7 +258,7 @@ impl RuleFile {
             line_counter += 1;
         }
 
-        // If we come here we either dropped out because of an error,
+        // If we get to here we either dropped out because of an error,
         // or because of EOF of the .rules file
         if !metadata_valid {
             // Metadata parsing failed
@@ -286,19 +289,96 @@ impl RuleFile {
             Ok(result)
         }
     }
+
+    /// Set the header field `!Enabled` to `true` in .rules
+    /// file specified by `filename`
+    pub fn enable(filename: &Path) -> io::Result<()> {
+        Self::set_enabled_flag(filename, true)?;
+
+        Ok(())
+    }
+
+    /// Set the header field `!Enabled` to `false` in .rules
+    /// file specified by `filename`
+    pub fn disable(filename: &Path) -> io::Result<()> {
+        Self::set_enabled_flag(filename, false)?;
+
+        Ok(())
+    }
+
+    /// Set the header field `!Enabled` to `enable` in .rules
+    /// file specified by `filename`
+    fn set_enabled_flag(filename: &Path, enable: bool) -> io::Result<()> {
+        let f = File::open(filename)?;
+        let f = BufReader::new(f);
+
+        let tmp_filename = filename.with_extension("tmp");
+        let o = File::create(tmp_filename.clone())?;
+        let mut o = BufWriter::new(o);
+
+        let mut modified = false;
+
+        for line in f.lines() {
+            if line.is_err() {
+                // file or parser error, break out of loop
+                break;
+            }
+
+            let l = line.unwrap();
+            let l_trimmed = l.trim();
+
+            if l_trimmed.starts_with('!') {
+                // Metadata declarations start with an exclamation mark ('!')
+
+                // Metadata should have the format "!field:value"
+                let sp: Vec<&str> = l.split(':').collect();
+                let key = sp[0];
+
+                match key.to_lowercase().as_str() {
+                    "!enabled" => {
+                        o.write_all(format!("!Enabled: {}\n", enable).as_bytes())?;
+                        modified = true;
+                    }
+
+                    &_ => {
+                        o.write_all(format!("{}\n", l).as_bytes())?;
+                    }
+                }
+            } else {
+                // Write out non metadata lines
+                o.write_all(format!("{}\n", l).as_bytes())?;
+            }
+        }
+
+        fs::rename(tmp_filename, filename)?;
+
+        if !modified {
+            Err(Error::new(
+                ErrorKind::Other,
+                "Enabled/disabled state could not be modified!",
+            ))
+        } else {
+            Ok(())
+        }
+    }
 }
 
-/// Returns the value part named `param_name` of a 'key:value' formatted Vec `params`
-pub fn get_param_value(params: &Vec<String>, param_name: &str) -> Result<String, &'static str> {
+/// Returns the value part named `param_name` of a 'key:value' formatted slice `params`
+pub fn get_param_value(params: &[String], param_name: &str) -> Result<String, &'static str> {
     let mut result = String::new();
     let mut found = false;
 
     for p in params.iter() {
-        let pn: Vec<&str> = p.split(':').collect();
+        let pn: Vec<&str> = p.splitn(2, ':').collect();
 
         if pn.len() >= 2 {
             if pn[0] == param_name {
-                result = expand_macros(pn[1].to_string());
+                result = expand_macros(pn[1]);
+
+                // Filter out unwanted characters
+                result = result.replace("\"", "");
+                // result = result.trim().to_string();
+
                 found = true;
                 break;
             }
@@ -324,8 +404,8 @@ fn memory_statistics() -> sys_info::MemInfo {
 /// Currently supported macros are:
 ///   $meminfo: Insert memory statistics
 ///   $date: Insert current date and time (UTC)
-fn expand_macros(param: String) -> String {
-    let mut result = param.clone();
+fn expand_macros(param: &str) -> String {
+    let mut result = String::from(param);
 
     // Expand macro $meminfo
     if param.contains("$meminfo") {
@@ -352,6 +432,8 @@ fn parse_event(event: &str) -> Result<Event, String> {
 
         "UserLogin" => Ok(Event::UserLogin(None, None)),
 
+        // TODO: Procmon events
+
         // Internal Events
         "Ping" => Ok(Event::Ping),
 
@@ -363,13 +445,13 @@ fn parse_event(event: &str) -> Result<Event, String> {
 
         "DoHousekeeping" => Ok(Event::DoHousekeeping),
 
-        "InotifyEvent" => Ok(Event::InotifyEvent),
+        "InotifyEvent" => Ok(Event::InotifyEvent(None)),
 
-        "OptimizeIOTraceLog" => Ok(Event::OptimizeIOTraceLog),
+        "OptimizeIOTraceLog" => Ok(Event::OptimizeIOTraceLog(None)),
 
-        "IoTraceLogCreated" => Ok(Event::IoTraceLogCreated),
+        "IoTraceLogCreated" => Ok(Event::IoTraceLogCreated(None)),
 
-        "IoTraceLogRemoved" => Ok(Event::IoTraceLogRemoved),
+        "IoTraceLogRemoved" => Ok(Event::IoTraceLogRemoved(None)),
 
         "GatherStatsAndMetrics" => Ok(Event::GatherStatsAndMetrics),
 
@@ -403,16 +485,8 @@ fn parse_event(event: &str) -> Result<Event, String> {
     }
 }
 
-/// Parse the `Filter` part that may appear in a .rules file
-/// Processing is done in the plugin `rule_engine`
-fn parse_filter(filter: &str) -> Result<Vec<String>, String> {
-    let result: Vec<String> = filter.split(',').map(|v| v.to_string()).collect();
-
-    Ok(result)
-}
-
 /// Parse the `Action` part that may appear in a .rules file
-fn parse_action(action: &str) -> Result<Action, String> {
+pub fn parse_action(action: &str) -> Result<Action, String> {
     match action {
         "Noop" => Ok(Action::Noop),
 
@@ -426,21 +500,19 @@ fn parse_action(action: &str) -> Result<Action, String> {
     }
 }
 
-/// Recursive descending parser for .rules files, mid-layer
+/// Recursive descending parser for .rules files; mid-layer
 /// On success, returns a 4-tuple representing a "rule"
-fn parse_rule(rule: &[String]) -> Result<(Event, Vec<String>, Action, Vec<String>), String> {
+pub fn parse_rule(rule: &[String]) -> Result<(Event, Vec<String>, Action, Vec<String>), String> {
     let event = parse_event(rule[0].trim())?;
-    let filter = parse_filter(rule[1].trim())?;
+    let filter = tokenize_field(rule[1].trim());
     let action = parse_action(rule[2].trim())?;
-
-    let remainder: Vec<&String> = rule.iter().skip(3).collect();
-    let params = tokenize_parameters(&remainder);
+    let params = tokenize_field(rule[3].trim());
 
     Ok((event, filter, action, params))
 }
 
 /// Tokenizer suited for tokenizing .rules files
-fn tokenize(line: &String) -> Vec<String> {
+pub fn tokenize(line: &str) -> Vec<String> {
     let mut result = vec![];
 
     // flags to control the tokenizer
@@ -449,12 +521,12 @@ fn tokenize(line: &String) -> Vec<String> {
     let mut pushed_flag = false;
 
     let mut acc = String::new();
-    for c in line.chars() {
+    'LOOP: for c in line.chars() {
         match c {
             // Match Comments
             '#' => {
                 // Ignore rest of line
-                continue;
+                break 'LOOP;
             }
 
             // Match whitespace
@@ -463,7 +535,7 @@ fn tokenize(line: &String) -> Vec<String> {
 
                 if !string_flag {
                     let tmp = String::from(acc.trim());
-                    if tmp.len() > 0 {
+                    if !tmp.is_empty() {
                         result.push(tmp.clone());
                         acc.clear();
                     }
@@ -479,8 +551,10 @@ fn tokenize(line: &String) -> Vec<String> {
             }
 
             // Match string control characters
-            '"' => {
+            '\"' => {
                 string_flag = !string_flag;
+
+                acc.push(c);
 
                 if !string_flag {
                     pushed_flag = true;
@@ -488,16 +562,7 @@ fn tokenize(line: &String) -> Vec<String> {
                 }
             }
 
-            // Match separator characters
-            ',' => {
-                if !string_flag {
-                    pushed_flag = false;
-                    result.push(acc.clone());
-                    acc.clear();
-                }
-            }
-
-            // Match every other character
+            // Match other characters
             _ => {
                 pushed_flag = false;
                 acc.push(c);
@@ -512,8 +577,8 @@ fn tokenize(line: &String) -> Vec<String> {
     result
 }
 
-/// Tokenizer suited for tokenizing parameters in .rules files
-fn tokenize_parameters(params: &Vec<&String>) -> Vec<String> {
+/// Tokenizer suited for tokenizing fields of parameters in .rules files
+pub fn tokenize_field(params: &str) -> Vec<String> {
     let mut result = vec![];
 
     // flags to control the tokenizer
@@ -521,62 +586,162 @@ fn tokenize_parameters(params: &Vec<&String>) -> Vec<String> {
     let mut string_flag = false;
     let mut pushed_flag = false;
 
-    for line in params.iter() {
-        let mut acc = String::new();
-        for c in line.chars() {
-            match c {
-                // Match whitespace
-                // ' ' | '\t' => {
-                //     pushed_flag = false;
+    let p = String::from(params);
+    let mut acc = String::new();
+    'LOOP: for c in p.chars() {
+        match c {
+            // Match Comments
+            '#' => {
+                // Ignore rest of line
+                break 'LOOP;
+            }
 
-                //     if !string_flag {
-                //         let tmp = String::from(acc.trim());
-                //         if tmp.len() > 0 {
-                //             result.push(tmp.clone());
-                //             acc.clear();
-                //         }
-                //     } else {
-                //         acc.push(c);
-                //     }
-                // },
+            // Match colon (field separator)
+            ',' => {
+                pushed_flag = false;
 
-                // Match Line endings
-                '\n' => {
-                    pushed_flag = false;
-                    result.push(acc.clone());
-                }
-
-                // Match string control characters
-                '"' => {
-                    string_flag = !string_flag;
-
-                    if !string_flag {
-                        pushed_flag = true;
-                        result.push(acc.clone());
+                if !string_flag {
+                    // end of current paramater
+                    let tmp = String::from(acc.trim());
+                    if tmp.len() > 0 {
+                        result.push(tmp.clone());
+                        acc.clear();
                     }
-                }
-
-                // Match separator characters
-                // ',' | ':' => {
-                //     if !string_flag {
-                //         pushed_flag = false;
-                //         result.push(acc.clone());
-                //         acc.clear();
-                //     }
-                // }
-
-                // Match every other character
-                _ => {
-                    pushed_flag = false;
+                } else {
+                    // accept ',' as a valid char inside of a string
                     acc.push(c);
                 }
             }
-        }
 
-        if !pushed_flag {
-            result.push(acc.clone());
+            // Match string control characters
+            '\"' => {
+                string_flag = !string_flag;
+
+                acc.push(c);
+
+                if !string_flag {
+                    pushed_flag = true;
+                    result.push(acc.clone());
+                }
+            }
+
+            // Match Line endings
+            '\n' => {
+                pushed_flag = false;
+                result.push(acc.clone());
+            }
+
+            // Match other characters
+            _ => {
+                pushed_flag = false;
+                acc.push(c);
+            }
         }
     }
 
+    if !pushed_flag {
+        result.push(acc.clone());
+    }
+
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use rules::*;
+
+    #[test]
+    fn test_tokenize_field() {
+        let field = "Severity:Warn,Message:\"$date: User $user logged in, with '$home_dir'\"";
+        let result = tokenize_field(&field);
+
+        println!("{:?}", result);
+
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0], "Severity:Warn", "Invalid field element");
+        assert_eq!(
+            result[1],
+            "Message:\"$date: User $user logged in, with '$home_dir'\"",
+            "Invalid field element"
+        );
+    }
+
+    #[test]
+    fn test_tokenize() {
+        let rule =
+            "UserLogin		  Noop              Log                 Severity:Warn,Message:\"$date: User $user logged in, with '$home_dir'\"";
+        let result = tokenize(&rule);
+
+        println!("{:?}", result);
+
+        assert_eq!(result.len(), 4, "result needs to be a 4-tuple!");
+
+        assert_eq!(result[0], "UserLogin");
+        assert_eq!(result[1], "Noop");
+        assert_eq!(result[2], "Log");
+        assert_eq!(
+            result[3],
+            "Severity:Warn,Message:\"$date: User $user logged in, with '$home_dir'\""
+        );
+    }
+
+    #[test]
+    fn test_get_param_value_1() {
+        let rule = "UserLogin		  Noop              Log                 Severity:Warn,Message:\"User: $user logged in, with '$home_dir'\"";
+
+        let rule = tokenize(&rule);
+        println!("{:?}", rule);
+
+        let (event, filter, action, params) = parse_rule(&rule).unwrap();
+        println!("{:?}", params);
+
+        let result = get_param_value(&params, "Severity").unwrap();
+        println!("{:?}", result);
+        assert_eq!(result, "Warn");
+
+        let result = get_param_value(&params, "Message").unwrap();
+        println!("{:?}", result);
+        assert_eq!(result, "User: $user logged in, with '$home_dir'");
+    }
+
+    #[test]
+    fn test_get_param_value_2() {
+        let rule = "UserLogin		  Noop              Log                 Severity:Warn,Message:\"User: $user logged in, with '$home_dir'\" # trailing stuff";
+
+        let rule = tokenize(&rule);
+        println!("{:?}", rule);
+
+        let (event, filter, action, params) = parse_rule(&rule).unwrap();
+        println!("{:?}", params);
+
+        let result = get_param_value(&params, "Severity").unwrap();
+        println!("{:?}", result);
+        assert_eq!(result, "Warn");
+
+        let result = get_param_value(&params, "Message").unwrap();
+        println!("{:?}", result);
+        assert_eq!(result, "User: $user logged in, with '$home_dir'");
+    }
+
+    #[test]
+    fn test_get_param_value_3() {
+        let rule = "UserLogin		  Noop              Log                 Severity:Warn,Message:\"User: $user logged in, with '$home_dir'\" # trailing stuff";
+
+        let rule = tokenize(&rule);
+        println!("{:?}", rule);
+
+        let (event, filter, action, params) = parse_rule(&rule).unwrap();
+        println!("{:?}", params);
+
+        assert_eq!(event, Event::UserLogin(None, None));
+        assert_eq!(action, Action::Log);
+
+        let result = get_param_value(&params, "Severity").unwrap();
+        println!("{:?}", result);
+        assert_eq!(result, "Warn");
+
+        let result = get_param_value(&params, "Message").unwrap();
+        println!("{:?}", result);
+        assert_eq!(result, "User: $user logged in, with '$home_dir'");
+    }
 }

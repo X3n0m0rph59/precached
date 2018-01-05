@@ -186,7 +186,7 @@ impl IpcServer {
             Some(ref socket) => {
                 let manager = manager.clone();
 
-                let deserialized_data: IpcMessage = serde_json::from_str(&data).unwrap();
+                let deserialized_data: IpcMessage = serde_json::from_str(data).unwrap();
 
                 match deserialized_data.command {
                     IpcCommand::Connect => {
@@ -210,7 +210,7 @@ impl IpcServer {
                         info!("IPC client disconnected");
                     }
 
-                    IpcCommand::RequestTrackedProcesses => match Self::handle_request_tracked_processes(&socket, &manager) {
+                    IpcCommand::RequestTrackedProcesses => match Self::handle_request_tracked_processes(socket, &manager) {
                         Err(e) => {
                             error!("Error sending response: {}", e);
                         }
@@ -220,7 +220,7 @@ impl IpcServer {
                         }
                     },
 
-                    IpcCommand::RequestInFlightTracers => match Self::handle_request_inflight_tracers(&socket, &manager) {
+                    IpcCommand::RequestInFlightTracers => match Self::handle_request_inflight_tracers(socket, &manager) {
                         Err(e) => {
                             error!("Error sending response: {}", e);
                         }
@@ -230,7 +230,7 @@ impl IpcServer {
                         }
                     },
 
-                    IpcCommand::RequestPrefetchStatus => match Self::handle_request_prefetch_status(&socket, &manager) {
+                    IpcCommand::RequestPrefetchStatus => match Self::handle_request_prefetch_status(socket, &manager) {
                         Err(e) => {
                             error!("Error sending response: {}", e);
                         }
@@ -240,7 +240,7 @@ impl IpcServer {
                         }
                     },
 
-                    IpcCommand::RequestInternalEvents => match Self::handle_request_internal_events(&socket, queue, &manager) {
+                    IpcCommand::RequestInternalEvents => match Self::handle_request_internal_events(socket, queue, &manager) {
                         Err(e) => {
                             error!("Error sending response: {}", e);
                         }
@@ -250,7 +250,7 @@ impl IpcServer {
                         }
                     },
 
-                    IpcCommand::RequestCachedFiles => match Self::handle_request_cached_files(&socket, &manager) {
+                    IpcCommand::RequestCachedFiles => match Self::handle_request_cached_files(socket, &manager) {
                         Err(e) => {
                             error!("Error sending response: {}", e);
                         }
@@ -260,7 +260,7 @@ impl IpcServer {
                         }
                     },
 
-                    IpcCommand::RequestStatistics => match Self::handle_request_statistics(&socket, queue, &manager) {
+                    IpcCommand::RequestStatistics => match Self::handle_request_statistics(socket, queue, &manager) {
                         Err(e) => {
                             error!("Error sending response: {}", e);
                         }
@@ -353,7 +353,7 @@ impl IpcServer {
                 let mut iotrace_prefetcher = h.as_any().downcast_ref::<IOtracePrefetcher>().unwrap();
 
                 let mut v: Vec<ThreadState> = vec![];
-                for ref s in iotrace_prefetcher.thread_states.iter() {
+                for s in &iotrace_prefetcher.thread_states {
                     let val = s.read().unwrap();
                     v.push((*val).clone());
                 }
@@ -389,11 +389,7 @@ impl IpcServer {
                 let h = h.read().unwrap();
                 let mut iotrace_prefetcher = h.as_any().downcast_ref::<IOtracePrefetcher>().unwrap();
 
-                let v = iotrace_prefetcher
-                    .mapped_files
-                    .keys()
-                    .map(|v| v.clone())
-                    .collect();
+                let v = iotrace_prefetcher.mapped_files.keys().cloned().collect();
 
                 let cmd = IpcMessage::new(IpcCommand::SendCachedFiles(v));
                 let buf = serde_json::to_string(&cmd).unwrap();

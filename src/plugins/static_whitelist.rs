@@ -233,7 +233,7 @@ impl StaticWhitelist {
         }
 
         // Check if filename matches a blacklist rule
-        if util::is_file_blacklisted(filename, &static_blacklist) {
+        if util::is_file_blacklisted(filename, static_blacklist) {
             return false;
         }
 
@@ -326,14 +326,14 @@ impl Plugin for StaticWhitelist {
             }
             events::EventType::ConfigurationReloaded => {
                 let whitelist = match globals.config.config_file.clone() {
-                    Some(config_file) => config_file.whitelist.unwrap_or(vec![]),
+                    Some(config_file) => config_file.whitelist.unwrap_or_else(|| vec![]),
                     None => vec![],
                 };
 
                 self.whitelist = whitelist;
 
                 let program_whitelist = match globals.config.config_file.clone() {
-                    Some(config_file) => config_file.program_whitelist.unwrap_or(vec![]),
+                    Some(config_file) => config_file.program_whitelist.unwrap_or_else(|| vec![]),
                     None => vec![],
                 };
 

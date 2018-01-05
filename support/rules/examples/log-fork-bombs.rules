@@ -2,7 +2,7 @@
 !Version: 1.0
 !Enabled: false
 !Name: Log Fork Bombs
-!Description: Log Fork Bombs
+!Description: Log Fork Bombs to the syslog
 # =============================================================================
 # =============================================================================
 # Event-Name		    Filter		  Action	  Arguments

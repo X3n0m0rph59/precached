@@ -696,7 +696,7 @@ impl hook::Hook for IOtracePrefetcher {
         match event.event_type {
             events::EventType::EnterIdle => {
                 // when the system is idle, set thread states to idle too
-                for s in self.thread_states.iter_mut() {
+                for s in &mut self.thread_states {
                     let mut s = s.write().unwrap();
                     *s = ThreadState::Idle;
                 }

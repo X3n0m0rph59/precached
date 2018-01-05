@@ -16,6 +16,12 @@ _rulesctl() {
             completions)
                 cmd+="__completions"
                 ;;
+            disable)
+                cmd+="__disable"
+                ;;
+            enable)
+                cmd+="__enable"
+                ;;
             help)
                 cmd+="__help"
                 ;;
@@ -41,7 +47,7 @@ _rulesctl() {
 
     case "${cmd}" in
         rulesctl)
-            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status list show reload help completions  info"
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status list show enable disable reload help completions  info"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -66,6 +72,36 @@ _rulesctl() {
         
         rulesctl__completions)
             opts=" -h -V  --help --version  <SHELL> "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        rulesctl__disable)
+            opts=" -h -V  --help --version  <filename> "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        rulesctl__enable)
+            opts=" -h -V  --help --version  <filename> "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0

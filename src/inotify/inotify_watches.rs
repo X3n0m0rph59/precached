@@ -141,8 +141,8 @@ impl InotifyWatches {
     // }
 }
 
-/// Wrapper around inotify::EventMask to allow serialization
-#[derive(Debug, Clone)]
+/// Wrapper around `inotify::EventMask` to allow serialization
+#[derive(Debug, Clone, PartialEq)]
 pub struct EventMaskWrapper {
     pub event_mask: inotify::EventMask,
 }
@@ -267,7 +267,7 @@ impl<'de> Deserialize<'de> for EventMaskWrapper {
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["event_mask"];
+        const FIELDS: &[&'static str] = &["event_mask"];
         deserializer.deserialize_struct("EventMaskWrapper", FIELDS, EventMaskWrapperVisitor)
     }
 }

@@ -1,8 +1,8 @@
 max_width = 140
-reorder_imports = true
-fn_args_layout = "Block"
-array_layout = "Block"
-control_style = "Rfc"
-where_style = "Rfc"
-generics_indent = "Block"
-fn_call_style = "Block"
+# reorder_imports = true
+# fn_args_layout = "Block"
+# array_layout = "Block"
+# control_style = "Rfc"
+# where_style = "Rfc"
+# generics_indent = "Block"
+# fn_call_style = "Block"

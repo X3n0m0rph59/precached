@@ -58,9 +58,9 @@ use term::Attr;
 use term::color::*;
 
 mod util;
+mod iotrace;
 mod process;
 mod rules;
-mod iotrace;
 mod constants;
 mod clap_app;
 
@@ -259,7 +259,7 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
                     // Print in "tabular" format (the default)
                     table.add_row(Row::new(vec![
                         Cell::new(&format!("{}", idx + 1)),
-                        Cell::new(&path.file_name().unwrap().to_string_lossy()),
+                        Cell::new(&path.file_name().unwrap().to_string_lossy()).with_style(Attr::Bold),
                         Cell::new(&rule_file.metadata.name).with_style(Attr::Bold),
                         Cell::new(&rule_file.metadata.description),
                         Cell::new(&format!("{}", rule_file.metadata.enabled))
@@ -330,6 +330,44 @@ fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
     table.printstd();
 
     println!("\n{} rules examined", idx);
+}
+
+fn enable_rules(config: &Config, daemon_config: util::ConfigFile) {
+    let rules_path = Path::new(constants::RULES_DIR);
+
+    let matches = config.matches.subcommand_matches("enable").unwrap();
+    let filename = Path::new(matches.value_of("filename").unwrap());
+    let filename = rules_path.join(filename);
+
+    match rules::RuleFile::enable(&filename) {
+        Err(e) => {
+            error!("Could not enable rule file {:?}: {}", filename, e);
+        }
+
+        Ok(()) => {
+            println!("\nRules enabled successfuly, reloading configuration now");
+            daemon_reload(config, daemon_config);
+        }
+    }
+}
+
+fn disable_rules(config: &Config, daemon_config: util::ConfigFile) {
+    let rules_path = Path::new(constants::RULES_DIR);
+
+    let matches = config.matches.subcommand_matches("disable").unwrap();
+    let filename = Path::new(matches.value_of("filename").unwrap());
+    let filename = rules_path.join(filename);
+
+    match rules::RuleFile::disable(&filename) {
+        Err(e) => {
+            error!("Could not disable rule file {:?}: {}", filename, e);
+        }
+
+        Ok(()) => {
+            println!("\nRules disabled successfuly, reloading configuration now");
+            daemon_reload(config, daemon_config);
+        }
+    }
 }
 
 /// Instruct precached to reload its configuration and rules
@@ -423,6 +461,14 @@ fn main() {
 
             "show" | "info" => {
                 show_rules(&mut config_c, daemon_config);
+            }
+
+            "enable" => {
+                enable_rules(&mut config_c, daemon_config);
+            }
+
+            "disable" => {
+                disable_rules(&mut config_c, daemon_config);
             }
 
             "reload" => {

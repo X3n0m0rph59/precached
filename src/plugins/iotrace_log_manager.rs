@@ -71,7 +71,7 @@ impl IOtraceLogManager {
 
         let iotrace_dir = config
             .state_dir
-            .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
+            .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
         let filename = iotrace_dir
             .as_path()
@@ -94,7 +94,7 @@ impl IOtraceLogManager {
 
         let iotrace_dir = config
             .state_dir
-            .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
+            .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
         let filename = iotrace_dir
             .join(constants::IOTRACE_DIR)
@@ -110,7 +110,7 @@ impl IOtraceLogManager {
 
         let traces_path = state_dir.join(constants::IOTRACE_DIR);
 
-        try!(util::walk_directories(&vec![traces_path], &mut |path| {
+        try!(util::walk_directories(&[traces_path], &mut |path| {
             let io_trace_log = iotrace::IOTraceLog::from_file(path).unwrap();
 
             result.insert(PathBuf::from(path), io_trace_log);
@@ -225,7 +225,7 @@ impl IOtraceLogManager {
         let mut optimized = 0;
         let mut errors = 0;
 
-        match util::walk_directories(&vec![traces_path], &mut |path| {
+        match util::walk_directories(&[traces_path], &mut |path| {
             match iotrace::IOTraceLog::from_file(path) {
                 Err(e) => {
                     error!("Skipped invalid I/O trace file, file not readable: {}", e);
@@ -326,7 +326,7 @@ impl Plugin for IOtraceLogManager {
                             let config = globals.config.config_file.clone().unwrap();
                             let state_dir = config
                                 .state_dir
-                                .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
+                                .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
                             (*scheduler).schedule_job(move || {
                                 Self::prune_invalid_trace_logs(&state_dir.clone());

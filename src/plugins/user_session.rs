@@ -101,8 +101,7 @@ impl UserSession {
                 info!("User '{}' with id {} logged in!", u, uid);
 
                 let home_dir = Self::get_user_home_dir_from_id(uid).unwrap();
-                self.logged_in_users
-                    .insert(uid, PathBuf::from(home_dir.clone()));
+                self.logged_in_users.insert(uid, home_dir.clone());
 
                 // Notify rules engine of the login event
                 let pm = manager.plugin_manager.read().unwrap();
@@ -221,7 +220,7 @@ impl UserSession {
                     let manager_c = manager.clone();
 
                     thread_pool.submit_work(move || {
-                        util::walk_directories(&tracked_entries, &mut |ref path| {
+                        util::walk_directories(&tracked_entries, &mut |path| {
                             if !Self::check_available_memory(&globals_c, &manager_c) {
                                 info!("Available memory exhausted, stopping statx() caching!");
                                 return;
@@ -262,7 +261,7 @@ impl UserSession {
                 let p = p.read().unwrap();
                 let static_blacklist = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-                if util::is_file_blacklisted(&filename, static_blacklist.get_blacklist()) {
+                if util::is_file_blacklisted(filename, static_blacklist.get_blacklist()) {
                     return false;
                 }
             }

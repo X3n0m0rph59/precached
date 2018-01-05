@@ -58,6 +58,24 @@ _arguments -s -S -C \
 "1:: :_rulesctl__show_commands" \
 && ret=0
 ;;
+(enable)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_rulesctl__enable_commands" \
+&& ret=0
+;;
+(disable)
+_arguments -s -S -C \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+"1:: :_rulesctl__disable_commands" \
+&& ret=0
+;;
 (reload)
 _arguments -s -S -C \
 '-h[Prints help information]' \
@@ -94,7 +112,9 @@ _rulesctl_commands() {
         "status:Show the current status of the precached rules subsystem" \
 "list:List all available .rules files" \
 "show:Print information about a specific .rules file" \
-"reload:Tell precached to reload its configuration" \
+"enable:Enable a specific .rules file" \
+"disable:Disable a specific .rules file" \
+"reload:Tell precached to reload its configuration and .rules files" \
 "help:Display this short help text" \
 "completions:Generates completion scripts for your shell" \
     )
@@ -106,6 +126,20 @@ _rulesctl__completions_commands() {
         "SHELL:The shell to generate the script for" \
     )
     _describe -t commands 'rulesctl completions commands' commands "$@"
+}
+(( $+functions[_rulesctl__disable_commands] )) ||
+_rulesctl__disable_commands() {
+    local commands; commands=(
+        "FILENAME:The name of the .rules file to disable" \
+    )
+    _describe -t commands 'rulesctl disable commands' commands "$@"
+}
+(( $+functions[_rulesctl__enable_commands] )) ||
+_rulesctl__enable_commands() {
+    local commands; commands=(
+        "FILENAME:The name of the .rules file to enable" \
+    )
+    _describe -t commands 'rulesctl enable commands' commands "$@"
 }
 (( $+functions[_rulesctl__help_commands] )) ||
 _rulesctl__help_commands() {

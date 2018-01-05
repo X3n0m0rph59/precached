@@ -57,8 +57,8 @@ impl RuleEventBridge {
         Self::rule_engine_fire_event(event, globals, manager);
     }
 
-    /// Map `InternalEvent` to `rules::Event`
-    fn translate_event(&self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
+    /// Map most `InternalEvent` events to `rules::Event`
+    fn translate_event(&self, event: events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::Ping => {
                 Self::rule_engine_fire_event(rules::Event::Ping, globals, manager);
@@ -80,20 +80,32 @@ impl RuleEventBridge {
                 Self::rule_engine_fire_event(rules::Event::DoHousekeeping, globals, manager);
             }
 
-            events::EventType::InotifyEvent(ref _event_mask_wrapper, ref _path) => {
-                Self::rule_engine_fire_event(rules::Event::DoHousekeeping, globals, manager);
+            events::EventType::InotifyEvent(_event_mask_wrapper, path) => {
+                Self::rule_engine_fire_event(rules::Event::InotifyEvent(Some(path)), globals, manager);
             }
 
-            events::EventType::OptimizeIOTraceLog(ref _path) => {
-                Self::rule_engine_fire_event(rules::Event::OptimizeIOTraceLog, globals, manager);
+            events::EventType::OptimizeIOTraceLog(path) => {
+                Self::rule_engine_fire_event(
+                    rules::Event::OptimizeIOTraceLog(Some(path)),
+                    globals,
+                    manager,
+                );
             }
 
-            events::EventType::IoTraceLogCreated(ref _path) => {
-                Self::rule_engine_fire_event(rules::Event::IoTraceLogCreated, globals, manager);
+            events::EventType::IoTraceLogCreated(path) => {
+                Self::rule_engine_fire_event(
+                    rules::Event::IoTraceLogCreated(Some(path)),
+                    globals,
+                    manager,
+                );
             }
 
-            events::EventType::IoTraceLogRemoved(ref _path) => {
-                Self::rule_engine_fire_event(rules::Event::IoTraceLogRemoved, globals, manager);
+            events::EventType::IoTraceLogRemoved(path) => {
+                Self::rule_engine_fire_event(
+                    rules::Event::IoTraceLogRemoved(Some(path)),
+                    globals,
+                    manager,
+                );
             }
 
             events::EventType::GatherStatsAndMetrics => {
@@ -172,7 +184,7 @@ impl RuleEventBridge {
                 let p = p.read().unwrap();
                 let rule_engine = p.as_any().downcast_ref::<RuleEngine>().unwrap();
 
-                rule_engine.process_event(event, globals, manager);
+                rule_engine.process_event(&event, globals, manager);
             }
         };
     }
@@ -203,14 +215,8 @@ impl Plugin for RuleEventBridge {
     }
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
-        // Support matching on `InternalEvent`
-        self.translate_event(event, globals, manager);
-
-        match event.event_type {
-            _ => {
-                // Ignore all other events
-            }
-        }
+        // Support matching on `InternalEvent` in the rule engine
+        self.translate_event(event.clone(), globals, manager);
     }
 
     fn as_any(&self) -> &Any {

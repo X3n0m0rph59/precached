@@ -83,9 +83,31 @@ where
                 ),
         )
         .subcommand(
+            SubCommand::with_name("enable")
+                .setting(AppSettings::DeriveDisplayOrder)
+                .about("Enable a specific .rules file")
+                .arg(
+                    Arg::with_name("filename")
+                        .takes_value(true)
+                        .required(true)
+                        .help("The name of the .rules file to enable"),
+                ),
+        )
+        .subcommand(
+            SubCommand::with_name("disable")
+                .setting(AppSettings::DeriveDisplayOrder)
+                .about("Disable a specific .rules file")
+                .arg(
+                    Arg::with_name("filename")
+                        .takes_value(true)
+                        .required(true)
+                        .help("The name of the .rules file to disable"),
+                ),
+        )
+        .subcommand(
             SubCommand::with_name("reload")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Tell precached to reload its configuration"),
+                .about("Tell precached to reload its configuration and .rules files"),
         )
         .subcommand(
             SubCommand::with_name("help")

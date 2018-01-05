@@ -282,7 +282,7 @@ impl HotApplications {
 
         let iotrace_dir = config
             .state_dir
-            .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf())
+            .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf())
             .join(constants::IOTRACE_DIR);
 
         let app_histogram_c = self.app_histogram.clone();
@@ -293,7 +293,7 @@ impl HotApplications {
         let mut index = 0;
         let mut errors = 0;
 
-        for &mut (ref hash, ref _count, ref mut keep) in apps.iter_mut() {
+        for &mut (hash, _count, ref mut keep) in &mut apps {
             let iotrace = iotrace::IOTraceLog::from_file(&iotrace_dir.join(&format!("{}.trace", hash)));
 
             match iotrace {
@@ -358,7 +358,7 @@ impl HotApplications {
         let config = globals.config.config_file.clone().unwrap();
         let path = config
             .state_dir
-            .unwrap_or(Path::new(&String::from(".")).to_path_buf())
+            .unwrap_or_else(|| Path::new(&String::from(".")).to_path_buf())
             .join("hot_applications.state");
 
         util::write_text_file(&path, &serialized)?;
@@ -375,7 +375,7 @@ impl HotApplications {
         let config = globals.config.config_file.clone().unwrap();
         let path = config
             .state_dir
-            .unwrap_or(Path::new(&String::from(".")).to_path_buf())
+            .unwrap_or_else(|| Path::new(&String::from(".")).to_path_buf())
             .join("hot_applications.state");
 
         let text = util::read_compressed_text_file(&path)?;
@@ -439,7 +439,7 @@ impl Plugin for HotApplications {
 
             EventType::IdlePeriod | events::EventType::DoHousekeeping => {
                 if Instant::now() - self.last_housekeeping_performed > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS) {
-                    self.optimize_histogram(&globals, manager);
+                    self.optimize_histogram(globals, manager);
                     self.last_housekeeping_performed = Instant::now();
                 }
             }

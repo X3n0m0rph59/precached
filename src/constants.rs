@@ -104,7 +104,7 @@ pub const SWAP_RECOVERY_WINDOW: u64 = 5;
 /// Time in seconds that has to elapse before we signal "system memory freed"
 pub const MEM_FREED_RECOVERY_WINDOW: u64 = 5;
 
-/// Amount of memory that has to be freed for the signal "MemoryFreed" to be sent
+/// Amount of memory that has to be freed for the signal `MemoryFreed` to be sent
 pub const MEM_FREED_THRESHOLD: isize = 256 * 1024 * 1024; // 256 MiB
 
 /// Time in seconds that has to elapse before we signal "system enters idle period"

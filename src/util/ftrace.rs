@@ -511,7 +511,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
     active_tracers.retain(|_k, v| !v.trace_time_expired);
 }
 
-/// Read events from ftrace_pipe (ftrace main loop)
+/// Read events from `ftrace_pipe` (ftrace main loop)
 pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool, globals: &mut Globals) -> io::Result<()> {
     let config = globals.config.config_file.clone().unwrap();
     let iotrace_dir = config
