@@ -40,4 +40,5 @@ pub trait Plugin {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager);
 
     fn as_any(&self) -> &Any;
+    fn as_any_mut(&mut self) -> &mut Any;
 }

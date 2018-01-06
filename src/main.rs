@@ -311,7 +311,8 @@ fn setup_logging() -> Result<(), fern::InitError> {
             }
 
             out.finish(format_args!(
-                "{}:{}: {}",
+                "[{}] {}:{}: {}",
+                chrono::Local::now().format("%H:%M:%S"),
                 util::Level {
                     level: record.level(),
                 },

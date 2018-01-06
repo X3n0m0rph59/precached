@@ -44,7 +44,6 @@ use std::io::Result;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
-use std::time::{Duration, Instant};
 use storage;
 use util;
 
@@ -68,7 +67,6 @@ pub struct HotApplications {
     app_histogram: HashMap<String, usize>,
     /// Vector of currently cached apps
     cached_apps: Vec<String>,
-    last_housekeeping_performed: Instant,
 }
 
 impl HotApplications {
@@ -76,7 +74,6 @@ impl HotApplications {
         HotApplications {
             app_histogram: HashMap::new(),
             cached_apps: vec![],
-            last_housekeeping_performed: Instant::now(),
         }
     }
 
@@ -331,6 +328,10 @@ impl HotApplications {
         );
     }
 
+    pub fn do_housekeeping(&mut self, globals: &Globals, manager: &Manager) {
+        self.optimize_histogram(globals, manager);
+    }
+
     /// Load the previously saved internal state of our plugin
     pub fn load_state(&mut self, globals: &mut Globals, _manager: &Manager) {
         match Self::deserialize(globals) {
@@ -437,18 +438,17 @@ impl Plugin for HotApplications {
                 self.application_executed(event.pid);
             }
 
-            EventType::IdlePeriod | events::EventType::DoHousekeeping => {
-                if Instant::now() - self.last_housekeeping_performed > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS) {
-                    self.optimize_histogram(globals, manager);
-                    self.last_housekeeping_performed = Instant::now();
-                }
-            }
+            EventType::DoHousekeeping => { /* Handled by the plugin 'janitor' now */ }
 
             _ => { /* Do nothing */ }
         }
     }
 
     fn as_any(&self) -> &Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut Any {
         self
     }
 }

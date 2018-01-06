@@ -43,6 +43,7 @@ pub mod ftrace_messages;
 pub mod inotify_multiplexer;
 pub mod rule_engine;
 pub mod rule_event_bridge;
+pub mod janitor;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     inotify_multiplexer::register_plugin(globals, manager);
@@ -63,6 +64,7 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     rule_engine::register_plugin(globals, manager);
     rule_event_bridge::register_plugin(globals, manager);
     ftrace_messages::register_plugin(globals, manager);
+    janitor::register_plugin(globals, manager);
 }
 
 pub fn unregister_plugins(_globals: &mut Globals, manager: &mut Manager) {

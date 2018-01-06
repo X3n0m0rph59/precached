@@ -35,7 +35,6 @@ use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
 use std::path::{Path, PathBuf};
-use std::time::{Duration, Instant};
 use storage;
 use util;
 
@@ -54,15 +53,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug, Clone)]
-pub struct IOtraceLogManager {
-    last_housekeeping_performed: Instant,
-}
+pub struct IOtraceLogManager {}
 
 impl IOtraceLogManager {
     pub fn new() -> IOtraceLogManager {
-        IOtraceLogManager {
-            last_housekeeping_performed: Instant::now(),
-        }
+        IOtraceLogManager {}
     }
 
     // Returns the most recent I/O trace log for `hashval`.
@@ -271,6 +266,16 @@ impl IOtraceLogManager {
             );
         }
     }
+
+    pub fn do_housekeeping(&self, globals: &Globals, _manager: &Manager) {
+        let config = globals.config.config_file.clone().unwrap();
+        let state_dir = config
+            .state_dir
+            .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
+
+        Self::prune_invalid_trace_logs(&state_dir.clone());
+        Self::optimize_all_trace_logs(&state_dir.clone());
+    }
 }
 
 impl Plugin for IOtraceLogManager {
@@ -297,7 +302,7 @@ impl Plugin for IOtraceLogManager {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, _manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             EventType::OptimizeIOTraceLog(ref filename) => {
                 warn!("Optimizing: {:?}", filename);
@@ -306,6 +311,7 @@ impl Plugin for IOtraceLogManager {
                     Err(e) => {
                         error!("Could not lock the global task scheduler! {}", e);
                     }
+
                     Ok(mut scheduler) => {
                         let filename_c = filename.clone();
 
@@ -316,28 +322,8 @@ impl Plugin for IOtraceLogManager {
                 }
             }
 
-            EventType::IdlePeriod | EventType::DoHousekeeping => {
-                if Instant::now() - self.last_housekeeping_performed > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS) {
-                    match util::SCHEDULER.lock() {
-                        Err(e) => {
-                            error!("Could not lock the global task scheduler! {}", e);
-                        }
-                        Ok(mut scheduler) => {
-                            let config = globals.config.config_file.clone().unwrap();
-                            let state_dir = config
-                                .state_dir
-                                .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
+            EventType::DoHousekeeping => { /* Handled by the plugin 'janitor' now */ }
 
-                            (*scheduler).schedule_job(move || {
-                                Self::prune_invalid_trace_logs(&state_dir.clone());
-                                Self::optimize_all_trace_logs(&state_dir.clone());
-                            });
-
-                            self.last_housekeeping_performed = Instant::now();
-                        }
-                    }
-                }
-            }
             _ => {
                 // Ignore all other events
             }
@@ -345,6 +331,10 @@ impl Plugin for IOtraceLogManager {
     }
 
     fn as_any(&self) -> &Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut Any {
         self
     }
 }

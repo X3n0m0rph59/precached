@@ -66,7 +66,7 @@ pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2500;
 pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 250;
 
 /// Time that has to elapse before we may perform housekeeping again
-pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 10 * 60; // 10 Minutes
+pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 30 * 60; // 30 Minutes
 
 /// `Ping` event timer timeout
 pub const PING_INTERVAL_MILLIS: u64 = 2500;
