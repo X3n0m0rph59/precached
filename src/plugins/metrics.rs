@@ -53,8 +53,13 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug, Clone)]
 pub struct Metrics {
     mem_info_last: Option<MemInfo>,
+    mem_info_1: Option<MemInfo>,
     mem_info_5: Option<MemInfo>,
     mem_info_15: Option<MemInfo>,
+
+    last_mem_info_1_set_time: Instant,
+    last_mem_info_5_set_time: Instant,
+    last_mem_info_15_set_time: Instant,
 
     // event flags
     free_mem_low_watermark_event_sent: bool,
@@ -77,8 +82,13 @@ impl Metrics {
     pub fn new() -> Metrics {
         Metrics {
             mem_info_last: None,
+            mem_info_1: None,
             mem_info_5: None,
             mem_info_15: None,
+
+            last_mem_info_1_set_time: Instant::now(),
+            last_mem_info_5_set_time: Instant::now(),
+            last_mem_info_15_set_time: Instant::now(),
 
             // event flags
             free_mem_low_watermark_event_sent: false,
@@ -199,7 +209,6 @@ impl Metrics {
             self.available_mem_critical_event_sent = false;
         }
 
-        // *swap* events
         // assure that we always have a valid last mem_info
         if self.mem_info_last.is_none() {
             self.mem_info_last = Some(mem_info);
@@ -207,18 +216,38 @@ impl Metrics {
 
         let mem_info_last = self.mem_info_last.unwrap();
 
+        if self.last_mem_info_1_set_time.elapsed() > Duration::from_secs(1 * 60) {
+            self.mem_info_1 = Some(mem_info);
+
+            self.last_mem_info_1_set_time = Instant::now();
+        }
+
+        if self.last_mem_info_5_set_time.elapsed() > Duration::from_secs(5 * 60) {
+            self.mem_info_5 = Some(mem_info);
+
+            self.last_mem_info_5_set_time = Instant::now();
+        }
+
+        if self.last_mem_info_15_set_time.elapsed() > Duration::from_secs(15 * 60) {
+            self.mem_info_15 = Some(mem_info);
+
+            self.last_mem_info_15_set_time = Instant::now();
+        }
+
+        // *swap* events
         if (mem_info_last.swap_free as isize - mem_info.swap_free as isize) > 0 {
             self.recovered_from_swap_event_sent = false;
 
             self.last_swapped_time = Instant::now();
             events::queue_internal_event(EventType::SystemIsSwapping, globals);
         } else {
-            let duration_without_swapping = Instant::now() - self.last_swapped_time;
+            let duration_without_swapping = self.last_swapped_time.elapsed();;
 
             if duration_without_swapping >= Duration::from_secs(constants::SWAP_RECOVERY_WINDOW)
                 && self.recovered_from_swap_event_sent == false
             {
                 events::queue_internal_event(EventType::SystemRecoveredFromSwap, globals);
+
                 self.recovered_from_swap_event_sent = true;
             }
         }
@@ -229,25 +258,26 @@ impl Metrics {
 
             self.last_mem_freed_time = Instant::now();
         } else {
-            let duration_without_mem_freed = Instant::now() - self.last_mem_freed_time;
+            let duration_without_mem_freed = self.last_mem_freed_time.elapsed();
 
             if duration_without_mem_freed >= Duration::from_secs(constants::MEM_FREED_RECOVERY_WINDOW) {
                 if self.mem_freed_event_sent == false {
                     events::queue_internal_event(EventType::MemoryFreed, globals);
+
                     self.mem_freed_event_sent = true;
                 }
             }
         }
 
-        self.mem_info_last = Some(mem_info);
-
         let num_cpus = num_cpus::get();
 
         // Idle time tracking
         let sys = System::new();
-        if sys.load_average().unwrap().one <= num_cpus as f32 {
-            if self.enter_idle_event_sent == false {
+
+        if sys.load_average().unwrap().one <= (num_cpus / 2) as f32 {
+            if self.enter_idle_event_sent == false {                
                 events::queue_internal_event(EventType::EnterIdle, globals);
+
                 self.enter_idle_event_sent = true;
                 self.system_was_idle_at_least_once = true;
             }
@@ -289,6 +319,7 @@ impl Plugin for Metrics {
             events::EventType::GatherStatsAndMetrics => {
                 self.gather_metrics(globals, manager);
             }
+
             _ => {
                 // Ignore all other events
             }

@@ -56,6 +56,7 @@ pub const ZSTD_COMPRESSION_RATIO: i32 = 0; // 0 == auto select (default: 3),
 
 /// Thread niceness (main process)
 // pub const MAIN_THREAD_NICENESS: i32 = 10;
+
 /// Thread niceness (worker threads)
 pub const WORKER_THREAD_NICENESS: i32 = 4;
 

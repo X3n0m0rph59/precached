@@ -94,48 +94,60 @@ impl Plugin for Statistics {
             events::EventType::Ping => {
                 self.produce_report(globals, manager);
 
-                if Instant::now() - self.last_sys_activity >= Duration::from_secs(constants::IDLE_PERIOD_WINDOW) {
+                if self.last_sys_activity.elapsed() >= Duration::from_secs(constants::IDLE_PERIOD_WINDOW) {
                     events::queue_internal_event(events::EventType::IdlePeriod, globals)
                 }
             }
+
             events::EventType::FreeMemoryLowWatermark => {
                 info!("Statistics: Free memory: *Low*-Watermark reached");
             }
+
             events::EventType::FreeMemoryHighWatermark => {
                 info!("Statistics: Free memory: *High*-Watermark reached");
             }
+
             events::EventType::AvailableMemoryLowWatermark => {
                 info!("Statistics: Available memory: *Low*-Watermark reached");
             }
+
             events::EventType::AvailableMemoryHighWatermark => {
                 info!("Statistics: Available memory: *High*-Watermark reached");
             }
+
             events::EventType::MemoryFreed => {
                 info!("Statistics: Available memory: Memory freed");
             }
+
             events::EventType::AvailableMemoryCritical => {
                 info!("Statistics: Available memory: Memory exhausted!");
             }
+
             events::EventType::SystemIsSwapping => {
                 info!("Statistics: System is swapping!");
             }
+
             events::EventType::SystemRecoveredFromSwap => {
                 info!("Statistics: System recovered from swapping");
             }
+
             events::EventType::EnterIdle => {
                 info!("Statistics: System enters idle state");
             }
+
             events::EventType::IdlePeriod => if self.sys_left_idle_period {
                 info!("Statistics: System enters idle period. Priming stale caches now...");
                 events::queue_internal_event(events::EventType::PrimeCaches, globals);
                 self.sys_left_idle_period = false;
-            },
+            }
+
             events::EventType::LeaveIdle => {
                 info!("Statistics: System busy");
 
                 self.last_sys_activity = Instant::now();
                 self.sys_left_idle_period = true;
             }
+
             _ => {
                 // Ignore all other events
             }

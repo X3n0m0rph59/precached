@@ -371,7 +371,7 @@ impl RuleEngine {
         self.rule_files.clear();
 
         util::walk_directories(&[rules_path.to_path_buf()], &mut |path| {
-            if path.to_string_lossy().contains(".rules") {
+            if path.to_string_lossy().ends_with(".rules") {
                 match rules::RuleFile::from_file(path) {
                     Err(e) => {
                         error!("Could not load rules file {:?}: {}", path, e);
