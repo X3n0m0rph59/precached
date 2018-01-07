@@ -241,7 +241,7 @@ impl Metrics {
             self.last_swapped_time = Instant::now();
             events::queue_internal_event(EventType::SystemIsSwapping, globals);
         } else {
-            let duration_without_swapping = self.last_swapped_time.elapsed();;
+            let duration_without_swapping = self.last_swapped_time.elapsed();
 
             if duration_without_swapping >= Duration::from_secs(constants::SWAP_RECOVERY_WINDOW)
                 && self.recovered_from_swap_event_sent == false
@@ -275,7 +275,7 @@ impl Metrics {
         let sys = System::new();
 
         if sys.load_average().unwrap().one <= (num_cpus / 2) as f32 {
-            if self.enter_idle_event_sent == false {                
+            if self.enter_idle_event_sent == false {
                 events::queue_internal_event(EventType::EnterIdle, globals);
 
                 self.enter_idle_event_sent = true;

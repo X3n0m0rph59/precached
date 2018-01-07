@@ -49,6 +49,13 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct Janitor {
+    /// The janitor actually only runs if this is set to true
+    janitor_needs_to_run: bool,
+    /// Specifies whether the janitor was executed
+    /// at least once in the daemon process' lifetime
+    janitor_ran_once: bool,
+    /// Holds the time the precached daemon process was started
+    daemon_startup_time: Instant,
     /// The instant when we last performed janitorial tasks
     last_housekeeping_performed: Instant,
 }
@@ -56,8 +63,15 @@ pub struct Janitor {
 impl Janitor {
     pub fn new() -> Janitor {
         Janitor {
+            janitor_needs_to_run: true, // true, so we run after startup
+            janitor_ran_once: false,
+            daemon_startup_time: Instant::now(),
             last_housekeeping_performed: Instant::now(),
         }
+    }
+
+    pub fn schedule_run(&mut self) {
+        self.janitor_needs_to_run = true;
     }
 
     pub fn perform_housekeeping(globals: &Globals, manager: &Manager) {
@@ -148,7 +162,15 @@ impl Plugin for Janitor {
 
             // Periodically check if we should do housekeeping
             events::EventType::Ping => {
-                if self.last_housekeeping_performed.elapsed() > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS) {
+                // Check every n (ping) seconds whether:
+                // * If janitor_needs_to_run is set, "whether we need to run at all"
+                // * After daemon startup: We did not allready ran AND the delay time after daemon startup passed
+                // * The time MIN_HOUSEKEEPING_INTERVAL_SECS passed
+                if self.janitor_needs_to_run
+                    && (!self.janitor_ran_once
+                        && self.daemon_startup_time.elapsed() > Duration::from_secs(constants::HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS))
+                    || self.last_housekeeping_performed.elapsed() > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS)
+                {
                     match util::SCHEDULER.lock() {
                         Err(e) => {
                             error!("Could not lock the global task scheduler! {}", e);
@@ -163,6 +185,9 @@ impl Plugin for Janitor {
                             });
 
                             self.last_housekeeping_performed = Instant::now();
+                            self.janitor_ran_once = true;
+
+                            self.janitor_needs_to_run = false;
                         }
                     }
                 }
@@ -183,8 +208,14 @@ impl Plugin for Janitor {
                     });
 
                     self.last_housekeeping_performed = Instant::now();
+                    self.janitor_ran_once = true;
                 }
             },
+
+            events::EventType::OptimizeIOTraceLog(_) => {
+                // When an I/O trace log got created, we need to run at the next time slot
+                self.janitor_needs_to_run = true;
+            }
 
             _ => {
                 // Ignore all other events

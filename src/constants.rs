@@ -66,8 +66,11 @@ pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2500;
 /// Thread wait time (ftrace parser loop)
 pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 250;
 
+/// Time that has to elapse before we may perform housekeeping after the precached process' startup
+pub const HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS: u64 = 5 * 60; // 5 Minutes
+
 /// Time that has to elapse before we may perform housekeeping again
-pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 30 * 60; // 30 Minutes
+pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 60 * 60; // 60 Minutes
 
 /// `Ping` event timer timeout
 pub const PING_INTERVAL_MILLIS: u64 = 2500;

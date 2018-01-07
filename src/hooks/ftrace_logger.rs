@@ -97,6 +97,7 @@ impl FtraceLogger {
                             error!("Hook not loaded: 'process_tracker', skipped");
                             return false;
                         }
+
                         Some(h) => {
                             let h = h.read().unwrap();
                             let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
@@ -551,6 +552,7 @@ impl hook::Hook for FtraceLogger {
                         .unwrap(),
                 );
             }
+
             events::EventType::Shutdown => {
                 // TODO: This seems like an ugly hack, fix this!
                 //       Notify the ftrace thread that it shall terminate as soon as possible.
@@ -586,9 +588,11 @@ impl hook::Hook for FtraceLogger {
             procmon::EventType::Exec => {
                 self.trace_process_io_activity(event, globals, manager);
             }
+
             procmon::EventType::Exit => {
                 self.notify_process_exit(event, globals, manager);
             }
+
             _ => {
                 // trace!("Ignored process event");
             }

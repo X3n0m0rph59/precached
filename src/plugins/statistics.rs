@@ -139,7 +139,7 @@ impl Plugin for Statistics {
                 info!("Statistics: System enters idle period. Priming stale caches now...");
                 events::queue_internal_event(events::EventType::PrimeCaches, globals);
                 self.sys_left_idle_period = false;
-            }
+            },
 
             events::EventType::LeaveIdle => {
                 info!("Statistics: System busy");
