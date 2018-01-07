@@ -244,7 +244,7 @@ impl HotApplications {
     pub fn application_executed(&mut self, pid: libc::pid_t) {
         match Process::new(pid) {
             Err(e) => debug!(
-                "Could not update hot applications histogram for process with pid {}: {}",
+                "Process vanished while updating hot applications histogram for pid {}: {}",
                 pid, e
             ),
 
@@ -435,7 +435,9 @@ impl Plugin for HotApplications {
             }
 
             events::EventType::TrackedProcessChanged(ref event) => {
-                self.application_executed(event.pid);
+                if event.event_type == procmon::EventType::Exec {
+                    self.application_executed(event.pid);
+                }
             }
 
             EventType::DoHousekeeping => { /* Handled by the plugin 'janitor' now */ }

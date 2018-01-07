@@ -211,15 +211,16 @@ impl FtraceLogger {
                                                 _ => { /* Ignore other syscalls */ }
                                             }
                                         }
+
                                         Vacant(_k) => {
                                             // Our HashMap does not contain a "PerTracerData" for the process `pid`
                                             // that means that we didn't track this process from the beginning.
                                             // Either we lost a process creation event, or maybe it was started
                                             // before our daemon was running
-                                            debug!(
-                                                "Spurious trace log entry for untracked process '{}' with pid {} processed!",
-                                                comm, pid
-                                            );
+                                            // debug!(
+                                            //     "Spurious trace log entry for untracked process '{}' with pid {} processed!",
+                                            //     comm, pid
+                                            // );
                                         }
                                     }
                                 }
@@ -332,6 +333,7 @@ impl FtraceLogger {
                         "Could not take a lock on a shared data structure! Won't trace process '{}' with pid {}: {}",
                         comm, event.pid, e
                     ),
+
                     Ok(mut active_tracers) => {
                         // We successfuly acquired the lock
                         if active_tracers.contains_key(&event.pid) {
@@ -505,10 +507,12 @@ impl FtraceLogger {
                         }
                     }
                 } else {
-                    debug!(
-                        "Spurious process exit event for process with pid: {}",
-                        event.pid
-                    );
+                    // We got an event from a process that we didn't trace.
+                    // Maybe we lost an exit event or the process was created before us
+                    // debug!(
+                    //     "Spurious process exit event for process with pid: {}",
+                    //     event.pid
+                    // );
                 }
             }
         }

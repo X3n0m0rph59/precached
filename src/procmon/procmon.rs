@@ -31,7 +31,7 @@ pub struct ProcMon {
     nls: libc::int32_t,
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub enum EventType {
     Nothing,
     Fork,

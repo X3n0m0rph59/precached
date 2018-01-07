@@ -511,6 +511,17 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
     active_tracers.retain(|_k, v| !v.trace_time_expired);
 }
 
+/// Blacklist processes that may cause a feedback loop with ftrace,
+/// especially syslog-like daemons are prone to this problem
+fn trace_is_from_blacklisted_process(line: &str) -> bool {
+    let line = String::from(line);
+
+    // TODO: Add a configuration option to make this
+    //       tunable via .conf file by the end user
+    line.contains("precached") || line.contains("prefetch") || line.contains("worker") || line.contains("ftrace") || line.contains("ipc")
+        || line.contains("journal") || line.contains("syslog")
+}
+
 /// Read events from `ftrace_pipe` (ftrace main loop)
 pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool, globals: &mut Globals) -> io::Result<()> {
     let config = globals.config.config_file.clone().unwrap();
@@ -556,22 +567,35 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         }
 
         let data = String::from_utf8_lossy(&data);
+        let mut data_present = false;
 
         for l in data.lines() {
             let l = l.trim();
 
+            // indicates whether we got data in this iteration of the loop
+            data_present = false;
+
             // ignore invalid lines
             if l.is_empty() {
+                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
             // ignore the headers starting with a comment sign
             if l.starts_with('#') {
+                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
             // ignore "lost events" events
             if REGEX_FILTER.is_match(l) {
+                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                continue;
+            }
+
+            // bail out if the event is caused by a blacklisted process
+            if trace_is_from_blacklisted_process(l) {
+                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
@@ -592,6 +616,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                 && !fields[idx].contains("tracing_mark_write:")
             {
                 warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
+            } else {
+                data_present = true;
             }
 
             // ping event
@@ -816,7 +842,15 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // }
         }
 
-        // unsafe { libc::sched_yield(); }
+        if data_present {
+            unsafe {
+                libc::sched_yield();
+            }
+        } else {
+            // No data received in this iteration of the loop,
+            // wait a bit for new data to trickle in...
+            thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+        }
     }
 
     Ok(())

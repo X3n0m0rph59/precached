@@ -534,6 +534,7 @@ fn main() {
         })
         .unwrap();
 
+    util::insert_message_into_ftrace_stream(format!("precached started"));
     util::notify(&String::from("precached started!"), &manager);
 
     // ... on the main thread again
@@ -662,6 +663,7 @@ fn main() {
     // Clean up now
     trace!("Cleaning up...");
 
+    util::insert_message_into_ftrace_stream(format!("precached exiting"));
     util::notify(&String::from("precached terminating!"), &manager);
 
     #[allow(unused_must_use)]
