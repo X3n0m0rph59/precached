@@ -624,7 +624,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
         println!(
             "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
-            index, matching, errors
+            total, matching, errors
         );
     }
 }
@@ -697,7 +697,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
 
         println!(
             "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
-            index, matching, errors
+            total, matching, errors
         );
     }
 }
@@ -1214,6 +1214,8 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 /// Test all parts of the system
 fn perform_tracing_test(_config: &Config, _daemon_config: util::ConfigFile) {
     trace!("Performing I/O tracing test...");
+
+    error!("Not implemented!");
 
     // TODO:
     // create test files /tmp/{1..3}.test
