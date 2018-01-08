@@ -26,7 +26,7 @@ This rule stanza will periodically log the text 'Ping' with severity 'warn'
 to the syslog:
 ```
 # Event-Name		  Filter		  Action		  Arguments
-Ping		          Noop		    Log		      Severity:Warn 
+Ping		          Noop		    	  Log		      	  Severity:Warn 
 ```
 
 The full .rules file including metadata looks like this:
@@ -38,16 +38,16 @@ The full .rules file including metadata looks like this:
 !Description: A Simple Demo Rule
 # =============================================================================
 # =============================================================================
-# Event-Name		    Filter		  Action		  Arguments
-  Ping		          Noop		    Log		      Severity:Warn
+# Event-Name		    Filter		  Action	  Arguments
+  Ping		            Noop		  Log		  Severity:Warn
 # =============================================================================
 ```
 
 The following line will send a desktop notification to the first logged in user
 when a fork bomb has been detected:
 ```
-# Event-Name		    Filter		  Action		  Arguments
-ForkBombDetected    Noop        Notify      Noop
+# Event-Name		    Filter		  Action	  Arguments
+ForkBombDetected    	    Noop       		  Notify      	  Noop
 ```
 
 The full .rules file including metadata looks like this:
@@ -59,9 +59,9 @@ The full .rules file including metadata looks like this:
 !Description: Log Fork Bombs
 # =============================================================================
 # =============================================================================
-# Event-Name		    Filter		  Action		  Arguments
-  ForkBombDetected  Noop        Log         Severity:Warn
-  ForkBombDetected  Noop        Notify      Noop
+# Event-Name		    Filter		  Action	  Arguments
+  ForkBombDetected  	    Noop        	  Log         	  Severity:Warn
+  ForkBombDetected  	    Noop        	  Notify      	  Noop
 # =============================================================================
 ```
 
@@ -74,3 +74,12 @@ In the next cycle we plan to add a slew of new actions.
 ![rulesctl](/precached/images/rulesctl_02.png)
 
 The precached team
+
+
+## Article Updates
+
+This posting has been edited at: Mo Jan 8 07:20:00
+
+* Rewording
+* Fixed typos
+* Fixed Indentation
