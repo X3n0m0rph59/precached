@@ -59,7 +59,7 @@ pub type Uid = u32;
 
 #[derive(Debug, Clone)]
 pub struct UserSession {
-    pub logged_in_users: OrderMap<Uid, PathBuf>,    
+    pub logged_in_users: OrderMap<Uid, PathBuf>,
 }
 
 impl UserSession {
@@ -119,7 +119,7 @@ impl UserSession {
 
                 self.logged_in_users.remove(&uid);
 
-                 // Notify rules engine of the logout event
+                // Notify rules engine of the logout event
                 let pm = manager.plugin_manager.read().unwrap();
 
                 match pm.get_plugin_by_name(&String::from("rule_event_bridge")) {
@@ -131,11 +131,7 @@ impl UserSession {
                         let p = p.read().unwrap();
                         let rule_event_bridge = p.as_any().downcast_ref::<RuleEventBridge>().unwrap();
 
-                        rule_event_bridge.fire_event(
-                            rules::Event::UserLogout(Some(u)),
-                            globals,
-                            manager,
-                        );
+                        rule_event_bridge.fire_event(rules::Event::UserLogout(Some(u)), globals, manager);
                     }
                 };
             }
@@ -238,7 +234,7 @@ impl Plugin for UserSession {
             events::EventType::Startup => {
                 // TODO: Replace this hack with something better!
                 //       Assume that the first user will log in subsequently
-                self.user_logged_in(1000, globals, manager);                
+                self.user_logged_in(1000, globals, manager);
             }
 
             events::EventType::Ping => {

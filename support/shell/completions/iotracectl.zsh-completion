@@ -41,7 +41,7 @@ _arguments -s -S -C \
 '--executable+[Filter for executable name of the I/O trace]' \
 '-o+[Filter for optimization status of the I/O trace]: :(true false)' \
 '--optimized+[Filter for optimization status of the I/O trace]: :(true false)' \
-'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated)' \
+'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort+[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order+[Sort order]: :(asc ascending desc descending)' \
 '(-f --full -s --short -t --terse)--tabular[Use '\''tabular'\'' display format]' \
@@ -65,7 +65,7 @@ _arguments -s -S -C \
 '--executable+[Filter for executable name of the I/O trace]' \
 '-o+[Filter for optimization status of the I/O trace]: :(true false)' \
 '--optimized+[Filter for optimization status of the I/O trace]: :(true false)' \
-'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated)' \
+'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort+[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order+[Sort order]: :(asc ascending desc descending)' \
 '(-s --short)-f[Use '\''full'\'' display format]' \
@@ -86,7 +86,7 @@ _arguments -s -S -C \
 '--executable+[Filter for executable name of the I/O trace]' \
 '-o+[Filter for optimization status of the I/O trace]: :(true false)' \
 '--optimized+[Filter for optimization status of the I/O trace]: :(true false)' \
-'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated)' \
+'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort+[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order+[Sort order]: :(asc ascending desc descending)' \
 '(-s --short)-f[Use '\''full'\'' display format]' \
@@ -130,7 +130,7 @@ _arguments -s -S -C \
 '--executable+[Filter for executable name of the I/O trace]' \
 '-o+[Filter for optimization status of the I/O trace]: :(true false)' \
 '--optimized+[Filter for optimization status of the I/O trace]: :(true false)' \
-'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated)' \
+'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort+[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order+[Sort order]: :(asc ascending desc descending)' \
 '-n[Do not actually optimize anything, just pretend to]' \
@@ -149,7 +149,7 @@ _arguments -s -S -C \
 '--executable+[Filter for executable name of the I/O trace]' \
 '-o+[Filter for optimization status of the I/O trace]: :(true false)' \
 '--optimized+[Filter for optimization status of the I/O trace]: :(true false)' \
-'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated)' \
+'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort+[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order+[Sort order]: :(asc ascending desc descending)' \
 '-n[Do not actually remove anything, just pretend to]' \
@@ -168,7 +168,7 @@ _arguments -s -S -C \
 '--executable+[Filter for executable name of the I/O trace]' \
 '-o+[Filter for optimization status of the I/O trace]: :(true false)' \
 '--optimized+[Filter for optimization status of the I/O trace]: :(true false)' \
-'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated)' \
+'--flags+[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort+[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order+[Sort order]: :(asc ascending desc descending)' \
 '-n[Do not actually remove anything, just pretend to]' \

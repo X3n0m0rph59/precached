@@ -145,7 +145,7 @@ where
                         .takes_value(true)
                         .required(false)
                         .possible_values(&[
-                            "valid", "invalid", "fresh", "expired", "current", "outdated"
+                            "valid", "invalid", "fresh", "expired", "current", "outdated", "missing"
                         ])
                         .help("Filter for flags of the I/O trace"),
                 )
@@ -226,7 +226,7 @@ where
                         .takes_value(true)
                         .required(false)
                         .possible_values(&[
-                            "valid", "invalid", "fresh", "expired", "current", "outdated"
+                            "valid", "invalid", "fresh", "expired", "current", "outdated", "missing"
                         ])
                         .help("Filter for flags of the I/O trace"),
                 )
@@ -336,7 +336,7 @@ where
                         .takes_value(true)
                         .required(false)
                         .possible_values(&[
-                            "valid", "invalid", "fresh", "expired", "current", "outdated"
+                            "valid", "invalid", "fresh", "expired", "current", "outdated", "missing"
                         ])
                         .help("Filter for flags of the I/O trace"),
                 )
@@ -409,7 +409,7 @@ where
                         .takes_value(true)
                         .required(false)
                         .possible_values(&[
-                            "valid", "invalid", "fresh", "expired", "current", "outdated"
+                            "valid", "invalid", "fresh", "expired", "current", "outdated", "missing"
                         ])
                         .help("Filter for flags of the I/O trace"),
                 )

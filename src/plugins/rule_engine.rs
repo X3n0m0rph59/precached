@@ -379,7 +379,10 @@ impl RuleEngine {
 
                     Ok(rule_file) => {
                         if rule_file.metadata.enabled {
-                            info!("Successfuly loaded rules '{}' (enabled)", rule_file.metadata.name);
+                            info!(
+                                "Successfuly loaded rules '{}' (enabled)",
+                                rule_file.metadata.name
+                            );
                         } else {
                             info!(
                                 "Successfuly loaded rules '{}' (disabled)",

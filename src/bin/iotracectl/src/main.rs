@@ -211,6 +211,10 @@ fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::I
                 return true;
             }
 
+            if result.contains(&IOTraceLogFlag::MissingBinary) && value == "missing" {
+                return true;
+            }
+
             return false;
         }
     }
