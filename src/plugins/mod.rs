@@ -56,13 +56,12 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     iotrace_log_manager::register_plugin(globals, manager);
     // markov_log_manager::register_plugin(globals, manager);
     hot_applications::register_plugin(globals, manager);
-    user_session::register_plugin(globals, manager);
-    vfs_stat_cache::register_plugin(globals, manager);
-    // rule_plugin::register_plugin(globals, manager);
+    vfs_stat_cache::register_plugin(globals, manager);    
     // forkbomb_mitigation::register_plugin(globals, manager);
     notifications::register_plugin(globals, manager);
     rule_engine::register_plugin(globals, manager);
     rule_event_bridge::register_plugin(globals, manager);
+    user_session::register_plugin(globals, manager);
     ftrace_messages::register_plugin(globals, manager);
     janitor::register_plugin(globals, manager);
 }

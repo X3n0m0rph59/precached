@@ -112,23 +112,23 @@ impl RuleEngine {
 
             Ok(val) => match val.to_lowercase().as_str() {
                 "trace" => {
-                    trace!("{:?}", message);
+                    trace!("{}", message);
                 }
 
                 "debug" => {
-                    debug!("{:?}", message);
+                    debug!("{}", message);
                 }
 
                 "info" => {
-                    info!("{:?}", message);
+                    info!("{}", message);
                 }
 
                 "warn" => {
-                    warn!("{:?}", message);
+                    warn!("{}", message);
                 }
 
                 "error" => {
-                    error!("{:?}", message);
+                    error!("{}", message);
                 }
 
                 _ => {
@@ -379,7 +379,7 @@ impl RuleEngine {
 
                     Ok(rule_file) => {
                         if rule_file.metadata.enabled {
-                            info!("Successfuly loaded rules '{}'", rule_file.metadata.name);
+                            info!("Successfuly loaded rules '{}' (enabled)", rule_file.metadata.name);
                         } else {
                             info!(
                                 "Successfuly loaded rules '{}' (disabled)",
