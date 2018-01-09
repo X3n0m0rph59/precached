@@ -1,13 +1,14 @@
 # =============================================================================
 !Version: 1.0
-!Enabled: false
+!Enabled: true
 !Name: Cache Directories on Login
 !Description: Prime the caches on user login
 # =============================================================================
 # =============================================================================
 # Event-Name              Filter            Action      	Arguments
-  UserLogin		  Noop              Log                 Severity:Warn,Message:"User $user logged in! ($home_dir)"
-  UserLogin               Noop              CacheDirRecursive   Directory:"$home_dir/.gnome"
-  UserLogin               Noop              CacheDirRecursive   Directory:"$home_dir/.gnome2"
+  UserLogin		  Noop              Log                 Severity:Info,Message:"User $user logged in! Priming caches now..."
+  UserLogin               Noop              CacheDirRecursive   Directory:"$home_dir/.config"
   UserLogin               Noop              CacheDirRecursive   Directory:"$home_dir/.thumbnails"
+  UserLogin               Noop              CacheDirRecursive   Directory:"$home_dir/.cache"
+  UserLogin               Noop              CacheDirRecursive   Directory:"$home_dir/.local"
 # =============================================================================

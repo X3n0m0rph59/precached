@@ -2,7 +2,7 @@
 !Version: 1.0
 !Enabled: false
 !Name: Ping Logger
-!Description: A simple rule only for demonstration purposes
+!Description: A simple rule, only for demonstration purposes
 # =============================================================================
 # =============================================================================
 # Event-Name		    Filter		  Action	  Arguments

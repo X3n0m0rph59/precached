@@ -39,6 +39,8 @@ pub enum Event {
     Timer,
     /// User login event
     UserLogin(Option<String>, Option<PathBuf>),
+    /// User logout event
+    UserLogout(Option<String>),
 
     // Map procmon events
     Fork,

@@ -58,9 +58,9 @@ cp -a %{_builddir}/%{name}-%{version}/support/man/rulesctl.8 %{buildroot}/%{_man
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
 cp -a %{_builddir}/%{name}-%{version}/support/rules/README %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
-cp -a %{_builddir}/%{name}-%{version}/support/rules/examples/cache-on-login.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
-cp -a %{_builddir}/%{name}-%{version}/support/rules/examples/log-fork-bombs.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
-cp -a %{_builddir}/%{name}-%{version}/support/rules/examples/ping-logger.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
+cp -a %{_builddir}/%{name}-%{version}/support/rules/00-log-fork-bombs.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
+cp -a %{_builddir}/%{name}-%{version}/support/rules/10-cache-on-login.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
+cp -a %{_builddir}/%{name}-%{version}/support/rules/99-ping-logger.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.timer %{buildroot}/%{_unitdir}/

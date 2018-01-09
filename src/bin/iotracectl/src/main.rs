@@ -53,6 +53,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use term::Attr;
 use term::color::*;
+use iotrace::IOTraceLogFlag;
 
 mod util;
 mod process;
@@ -177,6 +178,40 @@ fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::I
                     return false;
                 },
             }
+        }
+    }
+
+    if matches.is_present("flags") {
+        if let Some(flags) = matches.value_of("flags") {
+            let (result, _err, _color) = util::get_io_trace_flags_and_err(io_trace);
+
+            let value = flags.to_lowercase();
+
+            if result.contains(&IOTraceLogFlag::Valid) && value == "valid" {
+                return true;
+            }
+
+            if result.contains(&IOTraceLogFlag::Invalid) && value == "invalid" {
+                return true;
+            }
+
+            if result.contains(&IOTraceLogFlag::Fresh) && value == "fresh" {
+                return true;
+            }
+
+            if result.contains(&IOTraceLogFlag::Expired) && value == "expired" {
+                return true;
+            }
+
+            if result.contains(&IOTraceLogFlag::Current) && value == "current" {
+                return true;
+            }
+
+            if result.contains(&IOTraceLogFlag::Outdated) && value == "outdated" {
+                return true;
+            }
+
+            return false;
         }
     }
 

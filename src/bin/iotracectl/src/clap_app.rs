@@ -140,6 +140,16 @@ where
                         .help("Filter for optimization status of the I/O trace"),
                 )
                 .arg(
+                    Arg::with_name("flags")
+                        .long("flags")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[
+                            "valid", "invalid", "fresh", "expired", "current", "outdated"
+                        ])
+                        .help("Filter for flags of the I/O trace"),
+                )
+                .arg(
                     Arg::with_name("sort")
                         .long("sort")
                         .takes_value(true)
@@ -209,6 +219,16 @@ where
                         .required(false)
                         .possible_values(&["true", "false"])
                         .help("Filter for optimization status of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("flags")
+                        .long("flags")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[
+                            "valid", "invalid", "fresh", "expired", "current", "outdated"
+                        ])
+                        .help("Filter for flags of the I/O trace"),
                 )
                 .arg(
                     Arg::with_name("sort")
@@ -311,6 +331,16 @@ where
                         .help("Filter for optimization status of the I/O trace"),
                 )
                 .arg(
+                    Arg::with_name("flags")
+                        .long("flags")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[
+                            "valid", "invalid", "fresh", "expired", "current", "outdated"
+                        ])
+                        .help("Filter for flags of the I/O trace"),
+                )
+                .arg(
                     Arg::with_name("sort")
                         .long("sort")
                         .takes_value(true)
@@ -372,6 +402,16 @@ where
                         .required(false)
                         .possible_values(&["true", "false"])
                         .help("Filter for optimization status of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("flags")
+                        .long("flags")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[
+                            "valid", "invalid", "fresh", "expired", "current", "outdated"
+                        ])
+                        .help("Filter for flags of the I/O trace"),
                 )
                 .arg(
                     Arg::with_name("sort")

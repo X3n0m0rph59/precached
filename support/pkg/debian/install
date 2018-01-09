@@ -1,7 +1,7 @@
 support/config/precached.conf etc/precached
-support/rules/examples/cache-on-login.rules etc/precached/rules.d
-support/rules/examples/ping-logger.rules etc/precached/rules.d
-support/rules/examples/log-fork-bombs.rules etc/precached/rules.d
+support/rules/00-log-fork-bombs.rules etc/precached/rules.d
+support/rules/10-cache-on-login.rules etc/precached/rules.d
+support/rules/99-ping-logger.rules etc/precached/rules.d
 support/systemd/precached.service lib/systemd/system
 support/systemd/precached-prime-caches.service lib/systemd/system
 support/systemd/precached-prime-caches.timer lib/systemd/system

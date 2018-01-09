@@ -42,7 +42,7 @@ use storage;
 use util;
 
 static NAME: &str = "user_session";
-static DESCRIPTION: &str = "Allow caching of statx() metadata of files in logged users /home";
+static DESCRIPTION: &str = "Detect user logins and send notification messages";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
@@ -59,34 +59,14 @@ pub type Uid = u32;
 
 #[derive(Debug, Clone)]
 pub struct UserSession {
-    pub logged_in_users: OrderMap<Uid, PathBuf>,
-    metadata_whitelist: Vec<PathBuf>,
-    memory_freed: bool,
+    pub logged_in_users: OrderMap<Uid, PathBuf>,    
 }
 
 impl UserSession {
-    pub fn new(globals: &Globals) -> UserSession {
+    pub fn new(_globals: &Globals) -> UserSession {
         UserSession {
             logged_in_users: OrderMap::new(),
-            metadata_whitelist: Self::get_file_whitelist(globals),
-            memory_freed: true,
         }
-    }
-
-    fn get_file_whitelist(globals: &Globals) -> Vec<PathBuf> {
-        let mut result = Vec::new();
-
-        let mut whitelist = globals
-            .config
-            .config_file
-            .clone()
-            .unwrap()
-            .user_home_metadata_whitelist
-            .unwrap();
-
-        result.append(&mut whitelist);
-
-        result
     }
 
     pub fn user_logged_in(&mut self, uid: Uid, globals: &mut Globals, manager: &Manager) {
@@ -126,7 +106,7 @@ impl UserSession {
         };
     }
 
-    pub fn user_logged_out(&mut self, uid: Uid, _globals: &mut Globals, _manager: &Manager) {
+    pub fn user_logged_out(&mut self, uid: Uid, globals: &mut Globals, manager: &Manager) {
         let user_name = Self::get_user_name_from_id(uid);
 
         match user_name {
@@ -138,6 +118,26 @@ impl UserSession {
                 info!("User '{}' with id {} logged out!", u, uid);
 
                 self.logged_in_users.remove(&uid);
+
+                 // Notify rules engine of the logout event
+                let pm = manager.plugin_manager.read().unwrap();
+
+                match pm.get_plugin_by_name(&String::from("rule_event_bridge")) {
+                    None => {
+                        warn!("Plugin not loaded: 'rule_event_bridge', skipped");
+                    }
+
+                    Some(p) => {
+                        let p = p.read().unwrap();
+                        let rule_event_bridge = p.as_any().downcast_ref::<RuleEventBridge>().unwrap();
+
+                        rule_event_bridge.fire_event(
+                            rules::Event::UserLogout(Some(u)),
+                            globals,
+                            manager,
+                        );
+                    }
+                };
             }
         }
     }
@@ -185,112 +185,6 @@ impl UserSession {
         }
 
         new_login
-    }
-
-    /// Walk all files and directories in the logged in users home directory
-    /// and call stat() on them, to prime the kernel's dentry caches
-    pub fn prime_statx_cache(&mut self, globals: &Globals, manager: &Manager) {
-        info!("Started reading of statx() metadata for logged in users /home directories...");
-
-        let mut logged_users_home_dirs: Vec<PathBuf> = self.logged_in_users
-            .values()
-            .map(|v| PathBuf::from(v))
-            .collect();
-
-        // last logged in user should come first
-        logged_users_home_dirs.reverse();
-
-        match util::PREFETCH_POOL.lock() {
-            Err(e) => warn!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
-            Ok(thread_pool) => {
-                for home_dir in logged_users_home_dirs {
-                    // Construct a Vec of paths taken from the .config file
-                    // `user_home_metadata_whitelist` section
-                    let tracked_entries: Vec<PathBuf> = self.metadata_whitelist
-                        .iter()
-                        .map(|f| home_dir.join(f))
-                        .collect();
-
-                    debug!("Recursively caching: {:?}", tracked_entries);
-
-                    let globals_c = globals.clone();
-                    let manager_c = manager.clone();
-
-                    thread_pool.submit_work(move || {
-                        util::walk_directories(&tracked_entries, &mut |path| {
-                            if !Self::check_available_memory(&globals_c, &manager_c) {
-                                info!("Available memory exhausted, stopping statx() caching!");
-                                return;
-                            }
-
-                            let _metadata = path.metadata();
-                        }).unwrap_or_else(|e| {
-                            error!(
-                                "Unhandled error occured during processing of files and directories! {}",
-                                e
-                            )
-                        });
-                    });
-                }
-
-                info!("Finished reading of statx() metadata for logged in users /home directories");
-            }
-        }
-    }
-
-    /// Helper function, that decides if we should subsequently stat() the
-    /// file `filename`. Verifies the validity of `filename`, and check if `filename`
-    /// is not blacklisted.
-    fn shall_we_cache_file(&self, filename: &Path, _globals: &Globals, manager: &Manager) -> bool {
-        // Check if filename is valid
-        if !util::is_filename_valid(filename) {
-            return false;
-        }
-
-        // Check if filename matches a blacklist rule
-        let pm = manager.plugin_manager.read().unwrap();
-
-        match pm.get_plugin_by_name(&String::from("static_blacklist")) {
-            None => {
-                warn!("Plugin not loaded: 'static_blacklist', skipped");
-            }
-            Some(p) => {
-                let p = p.read().unwrap();
-                let static_blacklist = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
-
-                if util::is_file_blacklisted(filename, static_blacklist.get_blacklist()) {
-                    return false;
-                }
-            }
-        }
-
-        // If we got here, everything seems to be allright
-        true
-    }
-
-    fn check_available_memory(_globals: &Globals, manager: &Manager) -> bool {
-        let mut result = true;
-
-        let pm = manager.plugin_manager.read().unwrap();
-
-        match pm.get_plugin_by_name(&String::from("metrics")) {
-            None => {
-                warn!("Plugin not loaded: 'metrics', skipped");
-            }
-            Some(p) => {
-                let p = p.read().unwrap();
-                let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
-
-                if metrics_plugin.get_available_mem_percentage() <= 1 {
-                    result = false;
-                }
-            }
-        }
-
-        result
     }
 
     fn get_user_name_from_id(uid: Uid) -> Result<String, ()> {
@@ -344,26 +238,11 @@ impl Plugin for UserSession {
             events::EventType::Startup => {
                 // TODO: Replace this hack with something better!
                 //       Assume that the first user will log in subsequently
-                self.user_logged_in(1000, globals, manager);
-                self.prime_statx_cache(globals, manager);
-            }
-
-            events::EventType::PrimeCaches => if self.memory_freed {
-                self.prime_statx_cache(globals, manager);
-
-                self.memory_freed = false;
-            },
-
-            events::EventType::MemoryFreed => {
-                self.memory_freed = true;
+                self.user_logged_in(1000, globals, manager);                
             }
 
             events::EventType::Ping => {
-                let new_logins = self.poll_logged_in_users(globals, manager);
-
-                if new_logins {
-                    self.prime_statx_cache(globals, manager);
-                }
+                self.poll_logged_in_users(globals, manager);
             }
 
             _ => {
