@@ -18,7 +18,6 @@ complete -c iotracectl -n "__fish_using_command iotracectl" -s v -d 'Sets the le
 complete -c iotracectl -n "__fish_using_command iotracectl" -s h -l help -d 'Prints help information'
 complete -c iotracectl -n "__fish_using_command iotracectl" -s V -l version -d 'Prints version information'
 complete -c iotracectl -n "__fish_using_command iotracectl" -f -a "status" -d 'Show the current status of the precached I/O tracing subsystem'
-complete -c iotracectl -n "__fish_using_command iotracectl" -f -a "top" -d 'Top/htop like display of in-flight I/O traces'
 complete -c iotracectl -n "__fish_using_command iotracectl" -f -a "list" -d 'List all available I/O traces'
 complete -c iotracectl -n "__fish_using_command iotracectl" -f -a "info" -d 'Print metadata information of specific I/O traces'
 complete -c iotracectl -n "__fish_using_command iotracectl" -f -a "dump" -d 'Dump I/O trace log entries (recorded I/O operations)'
@@ -32,13 +31,10 @@ complete -c iotracectl -n "__fish_using_command iotracectl" -f -a "completions" 
 complete -c iotracectl -n "__fish_using_command iotracectl status" -l tabular -d 'Use \'tabular\' display format'
 complete -c iotracectl -n "__fish_using_command iotracectl status" -s h -l help -d 'Prints help information'
 complete -c iotracectl -n "__fish_using_command iotracectl status" -s V -l version -d 'Prints version information'
-complete -c iotracectl -n "__fish_using_command iotracectl top" -s p -l hash -d 'Filter for the hash value of the I/O trace'
-complete -c iotracectl -n "__fish_using_command iotracectl top" -s e -l executable -d 'Filter for executable name of the I/O trace'
-complete -c iotracectl -n "__fish_using_command iotracectl top" -s h -l help -d 'Prints help information'
-complete -c iotracectl -n "__fish_using_command iotracectl top" -s V -l version -d 'Prints version information'
 complete -c iotracectl -n "__fish_using_command iotracectl list" -s p -l hash -d 'Filter for the hash value of the I/O trace'
 complete -c iotracectl -n "__fish_using_command iotracectl list" -s e -l executable -d 'Filter for executable name of the I/O trace'
 complete -c iotracectl -n "__fish_using_command iotracectl list" -s o -l optimized -d 'Filter for optimization status of the I/O trace' -r -f -a "true false"
+complete -c iotracectl -n "__fish_using_command iotracectl list" -l flags -d 'Filter for flags of the I/O trace' -r -f -a "valid invalid fresh expired current outdated"
 complete -c iotracectl -n "__fish_using_command iotracectl list" -l sort -d 'Sort entries by field' -r -f -a "executable hash date numfiles numioops iosize optimized"
 complete -c iotracectl -n "__fish_using_command iotracectl list" -l order -d 'Sort order' -r -f -a "asc ascending desc descending"
 complete -c iotracectl -n "__fish_using_command iotracectl list" -l tabular -d 'Use \'tabular\' display format'
@@ -50,6 +46,7 @@ complete -c iotracectl -n "__fish_using_command iotracectl list" -s V -l version
 complete -c iotracectl -n "__fish_using_command iotracectl info" -s p -l hash -d 'Filter for the hash value of the I/O trace'
 complete -c iotracectl -n "__fish_using_command iotracectl info" -s e -l executable -d 'Filter for executable name of the I/O trace'
 complete -c iotracectl -n "__fish_using_command iotracectl info" -s o -l optimized -d 'Filter for optimization status of the I/O trace' -r -f -a "true false"
+complete -c iotracectl -n "__fish_using_command iotracectl info" -l flags -d 'Filter for flags of the I/O trace' -r -f -a "valid invalid fresh expired current outdated"
 complete -c iotracectl -n "__fish_using_command iotracectl info" -l sort -d 'Sort entries by field' -r -f -a "executable hash date numfiles numioops iosize optimized"
 complete -c iotracectl -n "__fish_using_command iotracectl info" -l order -d 'Sort order' -r -f -a "asc ascending desc descending"
 complete -c iotracectl -n "__fish_using_command iotracectl info" -s f -l full -d 'Use \'full\' display format'
@@ -67,6 +64,7 @@ complete -c iotracectl -n "__fish_using_command iotracectl analyze" -s V -l vers
 complete -c iotracectl -n "__fish_using_command iotracectl optimize" -s p -l hash -d 'Filter for the hash value of the I/O trace'
 complete -c iotracectl -n "__fish_using_command iotracectl optimize" -s e -l executable -d 'Filter for executable name of the I/O trace'
 complete -c iotracectl -n "__fish_using_command iotracectl optimize" -s o -l optimized -d 'Filter for optimization status of the I/O trace' -r -f -a "true false"
+complete -c iotracectl -n "__fish_using_command iotracectl optimize" -l flags -d 'Filter for flags of the I/O trace' -r -f -a "valid invalid fresh expired current outdated"
 complete -c iotracectl -n "__fish_using_command iotracectl optimize" -l sort -d 'Sort entries by field' -r -f -a "executable hash date numfiles numioops iosize optimized"
 complete -c iotracectl -n "__fish_using_command iotracectl optimize" -l order -d 'Sort order' -r -f -a "asc ascending desc descending"
 complete -c iotracectl -n "__fish_using_command iotracectl optimize" -s n -l dry-run -d 'Do not actually optimize anything, just pretend to'
@@ -75,6 +73,7 @@ complete -c iotracectl -n "__fish_using_command iotracectl optimize" -s V -l ver
 complete -c iotracectl -n "__fish_using_command iotracectl remove" -s p -l hash -d 'Filter for the hash value of the I/O trace'
 complete -c iotracectl -n "__fish_using_command iotracectl remove" -s e -l executable -d 'Filter for executable name of the I/O trace'
 complete -c iotracectl -n "__fish_using_command iotracectl remove" -s o -l optimized -d 'Filter for optimization status of the I/O trace' -r -f -a "true false"
+complete -c iotracectl -n "__fish_using_command iotracectl remove" -l flags -d 'Filter for flags of the I/O trace' -r -f -a "valid invalid fresh expired current outdated"
 complete -c iotracectl -n "__fish_using_command iotracectl remove" -l sort -d 'Sort entries by field' -r -f -a "executable hash date numfiles numioops iosize optimized"
 complete -c iotracectl -n "__fish_using_command iotracectl remove" -l order -d 'Sort order' -r -f -a "asc ascending desc descending"
 complete -c iotracectl -n "__fish_using_command iotracectl remove" -s n -l dry-run -d 'Do not actually remove anything, just pretend to'

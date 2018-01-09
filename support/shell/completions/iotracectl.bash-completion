@@ -52,9 +52,6 @@ _iotracectl() {
             test__tracing)
                 cmd+="__test__tracing"
                 ;;
-            top)
-                cmd+="__top"
-                ;;
             *)
                 ;;
         esac
@@ -62,7 +59,7 @@ _iotracectl() {
 
     case "${cmd}" in
         iotracectl)
-            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status top list info dump analyze optimize remove clear help test-tracing completions  show  delete"
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status list info dump analyze optimize remove clear help test-tracing completions  show  delete"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -139,7 +136,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__delete)
-            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --sort --order  "
+            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -168,6 +165,10 @@ _iotracectl() {
                     ;;
                     -o)
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --flags)
+                    COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated" -- ${cur}))
                     return 0
                     ;;
                 --sort)
@@ -224,7 +225,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__info)
-            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --sort --order  "
+            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -253,6 +254,10 @@ _iotracectl() {
                     ;;
                     -o)
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --flags)
+                    COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated" -- ${cur}))
                     return 0
                     ;;
                 --sort)
@@ -271,7 +276,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__list)
-            opts=" -f -s -t -h -V -p -e -o  --tabular --full --short --terse --help --version --hash --executable --optimized --sort --order  "
+            opts=" -f -s -t -h -V -p -e -o  --tabular --full --short --terse --help --version --hash --executable --optimized --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -300,6 +305,10 @@ _iotracectl() {
                     ;;
                     -o)
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --flags)
+                    COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated" -- ${cur}))
                     return 0
                     ;;
                 --sort)
@@ -318,7 +327,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__optimize)
-            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --sort --order  "
+            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -347,6 +356,10 @@ _iotracectl() {
                     ;;
                     -o)
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --flags)
+                    COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated" -- ${cur}))
                     return 0
                     ;;
                 --sort)
@@ -365,7 +378,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__remove)
-            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --sort --order  "
+            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -394,6 +407,10 @@ _iotracectl() {
                     ;;
                     -o)
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --flags)
+                    COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated" -- ${cur}))
                     return 0
                     ;;
                 --sort)
@@ -412,7 +429,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__show)
-            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --sort --order  "
+            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -441,6 +458,10 @@ _iotracectl() {
                     ;;
                     -o)
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --flags)
+                    COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated" -- ${cur}))
                     return 0
                     ;;
                 --sort)
@@ -481,37 +502,6 @@ _iotracectl() {
             fi
             case "${prev}" in
                 
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-            return 0
-            ;;
-        iotracectl__top)
-            opts=" -h -V -p -e  --help --version --hash --executable  "
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-                return 0
-            fi
-            case "${prev}" in
-                
-                --hash)
-                    COMPREPLY=("<hash>")
-                    return 0
-                    ;;
-                    -p)
-                    COMPREPLY=("<hash>")
-                    return 0
-                    ;;
-                --executable)
-                    COMPREPLY=("<executable>")
-                    return 0
-                    ;;
-                    -e)
-                    COMPREPLY=("<executable>")
-                    return 0
-                    ;;
                 *)
                     COMPREPLY=()
                     ;;
