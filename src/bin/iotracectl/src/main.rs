@@ -36,6 +36,7 @@ extern crate prettytable;
 #[macro_use]
 extern crate serde_derive;
 extern crate term;
+extern crate term_size;
 extern crate toml;
 extern crate zstd;
 
@@ -51,6 +52,7 @@ use std::fs::read_dir;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::cmp::{max, min};
 use term::Attr;
 use term::color::*;
 use iotrace::IOTraceLogFlag;
@@ -280,13 +282,27 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
     } else
     /*if matches.is_present("tabular")*/
     {
+        let (w, _h) = term_size::dimensions().unwrap();
+
+        let max_len;
+        match w {
+            0...80 => {
+                max_len = 10;
+            }
+
+            81...132 => {
+                max_len = 20;
+            }
+
+            _ => {
+                max_len = 60;
+            }
+        }
+
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
             Cell::new_align(&format!("{}", index), Alignment::RIGHT),
-            Cell::new(&util::ellipsize_filename(&io_trace
-                .exe
-                .to_string_lossy()
-                .into_owned()))
+            Cell::new(&util::ellipsize_filename(&io_trace.exe.to_string_lossy().into_owned(), max_len).unwrap_or(String::from("<error>")))
                 .with_style(Attr::Bold),
             Cell::new(&io_trace.hash),
             Cell::new(&format_date(io_trace.created_at)),

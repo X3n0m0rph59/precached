@@ -32,6 +32,7 @@ use std::io::prelude::*;
 use std::path;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::cmp::{max, min};
 
 lazy_static! {
     pub static ref GLOB_SET: Arc<Mutex<Option<globset::GlobSet>>> = { Arc::new(Mutex::new(None)) };
@@ -234,23 +235,46 @@ pub fn is_directory(dirname: &Path) -> bool {
     dirname.is_dir()
 }
 
-/// Shortens a long path in `filename` by replacing components of it with an ellipsis "..." sequence
+/// Shortens a long path in `filename` by replacing components of it with an ellipsis "…" sequence
 /// Returns the shortened path
-pub fn ellipsize_filename(filename: &str) -> String {
-    let mut result = String::from("");
+pub fn ellipsize_filename(filename: &str, max_len: usize) -> Result<String, &'static str> {
+    if max_len < 6 {
+        Ok(String::from("<…>"))
+    } else if filename.len() > max_len {
+        let mut result = String::new();
 
-    const MAX_LEN: usize = 50;
-    const CUTOFF: usize = 10;
+        let cutoff = filename.len() as i64 - max_len as i64;
+        let max_len = min(filename.len() as i64 - 1, max_len as i64) as i64;
 
-    if filename.len() > MAX_LEN {
-        result.push_str(&filename[0..MAX_LEN / 2 - CUTOFF]);
-        result.push_str("...");
-        result.push_str(&filename[MAX_LEN / 2 + CUTOFF..]);
+        let lower_bound: i64 = max((max_len as i64 - 1) / 2 - cutoff / 2, 0 as i64);
+        let upper_bound: i64 = min(
+            (max_len as i64 - 1) / 2 + 1 + cutoff / 2,
+            filename.len() as i64 - 1 as i64,
+        );
+
+        if lower_bound < 0 {
+            return Err("Lower bound is < 0");
+        } else if lower_bound > filename.len() as i64 - 1 {
+            return Err("Lower bound is > filename.len()");
+        }
+
+        if upper_bound < 0 {
+            return Err("Upper bound is < 0");
+        } else if upper_bound > filename.len() as i64 - 1 {
+            return Err("Upper bound is > filename.len()");
+        }
+
+        let lower_bound: usize = lower_bound as usize;
+        let upper_bound: usize = upper_bound as usize;
+
+        result.push_str(&filename[..lower_bound]);
+        result.push_str("…");
+        result.push_str(&filename[upper_bound..]);
+
+        Ok(result)
     } else {
-        result += filename;
+        Ok(String::from(filename))
     }
-
-    result
 }
 
 /// Recursively enumerate files and directories in `dir`
@@ -297,4 +321,20 @@ where
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use util::files::*;
+
+    #[test]
+    fn test_ellipsize_filename() {
+        let filename = "/123/123/123";
+        
+        let result = ellipsize_filename(filename, 5).unwrap();
+        assert_eq!("<…>", result);
+
+        let result = ellipsize_filename(filename, 10).unwrap();
+        assert_eq!("/12…23/123", result);
+    }
 }
