@@ -1,6 +1,6 @@
 ---
 title: "Project Status Update #7"
-date:   2018-01-15 10:30:00
+date:   2018-01-14 03:50:00
 categories: status update
 ---
 
@@ -54,7 +54,7 @@ will be processed and finally be expanded to this equivalent:
 
 ```
 # Event-Name		  Filter		  Action		  Arguments
-UserLogin		  Noop              Log                 Severity:Warn,Message:"2018-01-15 08:59 User admin logged in! (/home/admin)"
+UserLogin		  Noop              Log                 Severity:Warn,Message:"2018-01-14 08:59 User admin logged in! (/home/admin)"
 UserLogin               Noop              CacheDirRecursive   Directory:"/home/admin/.gnome"
 ```
 
