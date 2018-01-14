@@ -26,7 +26,7 @@ override_dh_update_autotools_config:
 override_dh_auto_build:
 	export CARGO_HOME=".cargo"
 	export CARGO_TARGET_DIR="target/"
-	cargo build --all --release --verbose
+	cargo build --all --release --verbose --no-default-features
 
 override_dh_autoclean:
 	$(RM) -r target/
