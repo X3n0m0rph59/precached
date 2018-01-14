@@ -3,7 +3,3 @@ replace-with = "vendored-sources"
 
 [source.vendored-sources]
 directory = "vendor"
-
-[replace]
-sys-info = { version = "*", path = "vendor/" }
-threadpool = { version = "*", path = "vendor/" }

@@ -2,13 +2,13 @@ Source: precached
 Section: admin
 Priority: optional
 Maintainer: X3n0m0rph59 <x3n0m0rph59@gmail.com>
-Build-Depends: debhelper (>= 9),
-	       dh-systemd (>=1.5),
+Build-Depends: debhelper (>= 9.20160709),
+	       dh-systemd (>= 1.5),
 	       cargo (>= 0.23),
 	       libdbus-1-dev (>= 1.10),
 		   libzmq3-dev (>= 4.2)
 Depends: libzmq5 (>= 4.2)
-Standards-Version: 3.9.8
+Standards-Version: 4.1.2
 Homepage: https://x3n0m0rph59.github.io/precached/
 Vcs-Git: https://github.com/X3n0m0rph59/precached.git
 #Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/precached.git
