@@ -1,19 +1,20 @@
 %global shortcommit %(c=%{?committish}; echo ${c:0:7})
 
-Name:    precached
+OrigName: precached
+Name:    precached-git
 Version: 1.1.0
-Release: %{?shortcommit}.1
+Release: %{?shortcommit}.2
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
 
 
 # Source0: https://github.com/X3n0m0rph59/precached.git
-# Source0: https://github.com/X3n0m0rph59/%{name}/archive/master.tar.gz
-Source0: https://github.com/X3n0m0rph59/%{name}/archive/master/%{name}-%{shortcommit}.tar.gz
+# Source0: https://github.com/X3n0m0rph59/%{OrigName}/archive/master.tar.gz
+Source0: https://github.com/X3n0m0rph59/%{OrigName}/archive/master/%{OrigName}-%{shortcommit}.tar.gz
 
 
-BuildRoot: %{_tmppath}/%{name}-build
+BuildRoot: %{_tmppath}/%{OrigName}-build
 
 BuildRequires: systemd
 BuildRequires: dbus-devel
@@ -46,47 +47,47 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_mandir}/man5
 %{__mkdir_p} %{buildroot}%{_mandir}/man8
 %{__mkdir_p} %{buildroot}%{_datarootdir}/metainfo/
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}/rules.d/
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{OrigName}/
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{OrigName}/rules.d/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
-%{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/
-%{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{name}/iotrace/
-%{__mkdir_p} %{buildroot}%{_docdir}/%{name}/
+%{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/
+%{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/iotrace/
+%{__mkdir_p} %{buildroot}%{_docdir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/bash-completion/completions/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/zsh/site-functions/
-#%{__mkdir_p} %{buildroot}%{_datadir}/{name}/
-cp -a %{_builddir}/%{name}-%{version}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
-cp -a %{_builddir}/%{name}-%{version}/support/man/precached.rules.5 %{buildroot}/%{_mandir}/man5/
-cp -a %{_builddir}/%{name}-%{version}/support/man/iotracectl.8 %{buildroot}/%{_mandir}/man8/
-cp -a %{_builddir}/%{name}-%{version}/support/man/precachedctl.8 %{buildroot}/%{_mandir}/man8/
-cp -a %{_builddir}/%{name}-%{version}/support/man/precachedtop.8 %{buildroot}/%{_mandir}/man8/
-cp -a %{_builddir}/%{name}-%{version}/support/man/rulesctl.8 %{buildroot}/%{_mandir}/man8/
-cp -a %{_builddir}/%{name}-%{version}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
-cp -a %{_builddir}/%{name}-%{version}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{name}/
-cp -a %{_builddir}/%{name}-%{version}/support/rules/README %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
-cp -a %{_builddir}/%{name}-%{version}/support/rules/00-log-fork-bombs.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
-cp -a %{_builddir}/%{name}-%{version}/support/rules/10-cache-on-login.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
-cp -a %{_builddir}/%{name}-%{version}/support/rules/99-ping-logger.rules %{buildroot}/%{_sysconfdir}/%{name}/rules.d/
-cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
-cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.service %{buildroot}/%{_unitdir}/
-cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.timer %{buildroot}/%{_unitdir}/
-cp -a %{_builddir}/%{name}-%{version}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/
-cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
-cp -ra %{_builddir}/%{name}-%{version}/support/config/examples %{buildroot}/%{_docdir}/%{name}/
-cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/iotracectl
-cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedctl
-cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedtop.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedtop
-cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/rulesctl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/rulesctl
-cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_iotracectl
-cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedctl
-cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedtop.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedtop
-cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/rulesctl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_rulesctl
-install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
-install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
-install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
-install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedtop %{buildroot}%{_sbindir}/precachedtop
-install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/rulesctl %{buildroot}%{_sbindir}/rulesctl
+#%{__mkdir_p} %{buildroot}%{_datadir}/{OrigName}/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/man/precached.rules.5 %{buildroot}/%{_mandir}/man5/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/man/iotracectl.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/man/precachedctl.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/man/precachedtop.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/man/rulesctl.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{OrigName}/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/rules/README %{buildroot}/%{_sysconfdir}/%{OrigName}/rules.d/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/rules/00-log-fork-bombs.rules %{buildroot}/%{_sysconfdir}/%{OrigName}/rules.d/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/rules/10-cache-on-login.rules %{buildroot}/%{_sysconfdir}/%{OrigName}/rules.d/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/rules/99-ping-logger.rules %{buildroot}/%{_sysconfdir}/%{OrigName}/rules.d/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/systemd/precached-prime-caches.service %{buildroot}/%{_unitdir}/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/systemd/precached-prime-caches.timer %{buildroot}/%{_unitdir}/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
+cp -ra %{_builddir}/%{OrigName}-%{version}/support/config/examples %{buildroot}/%{_docdir}/%{OrigName}/
+cp -a %{_builddir}/%{OrigName}-%{version}/support/shell/completions/iotracectl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/iotracectl
+cp -a %{_builddir}/%{OrigName}-%{version}/support/shell/completions/precachedctl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedctl
+cp -a %{_builddir}/%{OrigName}-%{version}/support/shell/completions/precachedtop.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedtop
+cp -a %{_builddir}/%{OrigName}-%{version}/support/shell/completions/rulesctl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/rulesctl
+cp -a %{_builddir}/%{OrigName}-%{version}/support/shell/completions/iotracectl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_iotracectl
+cp -a %{_builddir}/%{OrigName}-%{version}/support/shell/completions/precachedctl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedctl
+cp -a %{_builddir}/%{OrigName}-%{version}/support/shell/completions/precachedtop.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedtop
+cp -a %{_builddir}/%{OrigName}-%{version}/support/shell/completions/rulesctl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_rulesctl
+install -Dp -m 0755 %{_builddir}/%{OrigName}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
+install -Dp -m 0755 %{_builddir}/%{OrigName}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
+install -Dp -m 0755 %{_builddir}/%{OrigName}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
+install -Dp -m 0755 %{_builddir}/%{OrigName}-%{version}/target/release/precachedtop %{buildroot}%{_sbindir}/precachedtop
+install -Dp -m 0755 %{_builddir}/%{OrigName}-%{version}/target/release/rulesctl %{buildroot}%{_sbindir}/rulesctl
 
 %post
 case "$1" in
@@ -96,10 +97,10 @@ case "$1" in
   # iotracectl clear > /dev/null 2>&1
   ;;
 esac
-%systemd_post %{name}.service
+%systemd_post %{OrigName}.service
 
 %preun
-%systemd_preun %{name}.service
+%systemd_preun %{OrigName}.service
 case "$1" in
   0)
   # we are being erased
@@ -109,7 +110,7 @@ case "$1" in
 esac
 
 %postun
-%systemd_postun_with_restart %{name}.service
+%systemd_postun_with_restart %{OrigName}.service
 
 %files
 %license LICENSE
@@ -120,13 +121,13 @@ esac
 %doc %{_mandir}/man8/precachedtop.8.gz
 %doc %{_mandir}/man8/rulesctl.8.gz
 %doc %{_mandir}/man8/precached.8.gz
-%dir %{_docdir}/%{name}/examples/
+%dir %{_docdir}/%{OrigName}/examples/
 %dir %{_datarootdir}/bash-completion/completions/
 %dir %{_datarootdir}/zsh/site-functions/
-%dir %{_sysconfdir}/%{name}/rules.d/
-# %docdir %{_docdir}/%{name}/examples/
-%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
-%config(noreplace) %{_sysconfdir}/%{name}/rules.d/
+%dir %{_sysconfdir}/%{OrigName}/rules.d/
+# %docdir %{_docdir}/%{OrigName}/examples/
+%config(noreplace) %{_sysconfdir}/%{OrigName}/%{OrigName}.conf
+%config(noreplace) %{_sysconfdir}/%{OrigName}/rules.d/
 %{_sbindir}/precached
 %{_sbindir}/precachedctl
 %{_sbindir}/iotracectl
@@ -137,8 +138,8 @@ esac
 %{_unitdir}/precached-prime-caches.timer
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/org.precached.precached1.conf
 %{_datarootdir}/metainfo/org.precache.precached.appdata.xml
-%{_sharedstatedir}/%{name}/
-%{_sharedstatedir}/%{name}/iotrace/
+%{_sharedstatedir}/%{OrigName}/
+%{_sharedstatedir}/%{OrigName}/iotrace/
 %{_datarootdir}/bash-completion/completions/iotracectl
 %{_datarootdir}/bash-completion/completions/precachedctl
 %{_datarootdir}/bash-completion/completions/precachedtop
@@ -147,10 +148,13 @@ esac
 %{_datarootdir}/zsh/site-functions/_precachedctl
 %{_datarootdir}/zsh/site-functions/_precachedtop
 %{_datarootdir}/zsh/site-functions/_rulesctl
-%{_docdir}/%{name}/examples/
-#%{_datadir}/%{name}/
+%{_docdir}/%{OrigName}/examples/
+#%{_datadir}/%{OrigName}/
 
 %changelog
+* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com>
+- rebuilt
+
 * Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-.1
 - rebuilt
 
