@@ -1,11 +1,12 @@
+%global shortcommit %(c=%{?committish}; echo ${c:0:7})
+
 Name:    precached
 Version: 1.1.0
-Release: %{?commit}.2
+Release: %{?shortcommit}.1
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
 
-%global shortcommit %(c=%{?commit}; echo ${c:0:7})
 
 # Source0: https://github.com/X3n0m0rph59/precached.git
 # Source0: https://github.com/X3n0m0rph59/%{name}/archive/master.tar.gz
@@ -35,7 +36,7 @@ system. Additionally it supports offline prefetching of the most often used
 programs while the system is idle.
 
 %prep
-%autosetup -n %{name}-%{commit}
+%autosetup -n %{name}
 
 %build
 cargo build --all --release --verbose
@@ -150,6 +151,9 @@ esac
 #%{_datadir}/%{name}/
 
 %changelog
+* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-.1
+- rebuilt
+
 * Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-.2
 - rebuilt
 
