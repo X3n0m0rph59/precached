@@ -1,18 +1,14 @@
 %global OrigName precached
-%global shortcommit %(c=%{?commit}; echo ${c:0:7})
 
 Name:    precached-git
 Version: 1.1.0
-Release: %{?snapinfo}.1
+Release: %{?dist}.1
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
 
-
 # Source0: https://github.com/X3n0m0rph59/precached.git
-# Source0: https://github.com/X3n0m0rph59/%{OrigName}/archive/master.tar.gz
-Source0: https://github.com/X3n0m0rph59/%{OrigName}/archive/master/%{OrigName}-%{shortcommit}.tar.gz
-
+Source0: https://github.com/X3n0m0rph59/%{OrigName}/archive/master.tar.gz
 
 BuildRoot: %{_tmppath}/%{OrigName}-build
 
