@@ -1,9 +1,9 @@
 %global OrigName precached
-%global shortcommit %(c=%{?committish}; echo ${c:0:7})
+%global shortcommit %(c=%{?commit}; echo ${c:0:7})
 
 Name:    precached-git
 Version: 1.1.0
-Release: %{?shortcommit}.3
+Release: %{?snapinfo}.1
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -152,18 +152,6 @@ esac
 #%{_datadir}/%{OrigName}/
 
 %changelog
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-.3
-- rebuilt
-
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com>
-- rebuilt
-
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-.1
-- rebuilt
-
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-.2
-- rebuilt
-
 * Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-.1
 - rebuilt
 
