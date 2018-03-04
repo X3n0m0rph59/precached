@@ -6,7 +6,7 @@ URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
 
 # Source0: https://github.com/X3n0m0rph59/precached.git
-Source0: https://github.com/X3n0m0rph59/%{name}/archive/master.tar.gz
+Source0: https://github.com/X3n0m0rph59/%{name}/archive/v1.0.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
