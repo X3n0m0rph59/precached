@@ -43,6 +43,11 @@
 ​  </provides>
 ​
 ​  <releases>
+	<release version="1.0.0" date="2018-03-04">
+​      <description>
+​        <p>Development release</p>
+​      </description>
+​    </release>
 ​    <release version="0.1.0" date="2017-10-12">
 ​      <description>
 ​        <p>Development release</p>
