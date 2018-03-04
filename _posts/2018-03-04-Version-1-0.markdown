@@ -1,0 +1,12 @@
+---
+title: "Version 1.0"
+date:   2018-03-04 15:30:00
+categories: release
+---
+
+# Version 1.0 has been tagged
+
+After exhaustive testing of all parts of precached in real-world usage, we
+tagged the 1.0 release.
+
+The precached team
