@@ -14,8 +14,8 @@ Homepage: https://x3n0m0rph59.github.io/precached/
 Vcs-Git: https://github.com/X3n0m0rph59/precached.git
 #Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/precached.git
 
-Package: precached
-Architecture: amd64 i386 ppc64el
+Package: precached-git
+Architecture: amd64 i386 ppc64el arm64 armel armhf
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Linux process monitor and pre-caching daemon
  Precached is written in Rust and utilizes the Linux netlink connector interface
