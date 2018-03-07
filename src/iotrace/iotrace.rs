@@ -224,8 +224,8 @@ impl IOTraceLog {
 
     /// Write the I/O trace log to disk
     pub fn save(&self, filename: &Path, allow_truncate: bool) -> io::Result<()> {
-        if (self.trace_log.len() > constants::MIN_TRACE_LOG_LENGTH && self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES)
-            || allow_truncate
+        if (self.trace_log.len() > constants::MIN_TRACE_LOG_LENGTH
+            && self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES) || allow_truncate
         {
             let serialized = serde_json::to_string_pretty(&self).unwrap();
             util::write_text_file(filename, &serialized)?;

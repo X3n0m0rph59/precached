@@ -168,7 +168,8 @@ impl Plugin for Janitor {
                 // * The time MIN_HOUSEKEEPING_INTERVAL_SECS passed
                 if self.janitor_needs_to_run
                     && (!self.janitor_ran_once
-                        && self.daemon_startup_time.elapsed() > Duration::from_secs(constants::HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS))
+                        && self.daemon_startup_time.elapsed()
+                            > Duration::from_secs(constants::HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS))
                     || self.last_housekeeping_performed.elapsed() > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS)
                 {
                     match util::SCHEDULER.lock() {

@@ -54,7 +54,13 @@ impl InotifyMultiplexer {
         InotifyMultiplexer {}
     }
 
-    pub fn multiplex_inotify_event(&mut self, event: &EventMaskWrapper, path: &PathBuf, globals: &mut Globals, _manager: &Manager) {
+    pub fn multiplex_inotify_event(
+        &mut self,
+        event: &EventMaskWrapper,
+        path: &PathBuf,
+        globals: &mut Globals,
+        _manager: &Manager,
+    ) {
         let event = event.event_mask;
 
         if event.contains(EventMask::CREATE) {

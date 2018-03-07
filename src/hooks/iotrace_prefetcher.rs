@@ -555,8 +555,11 @@ impl IOtracePrefetcher {
                                         let p = p.write().unwrap();
                                         let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
-                                        match iotrace_log_manager_plugin.get_trace_log(&exe_name.clone(), process_cmdline.clone(), globals)
-                                        {
+                                        match iotrace_log_manager_plugin.get_trace_log(
+                                            &exe_name.clone(),
+                                            process_cmdline.clone(),
+                                            globals,
+                                        ) {
                                             Err(e) => trace!("No I/O trace available: {}", e),
                                             Ok(io_trace) => {
                                                 info!(
@@ -573,7 +576,8 @@ impl IOtracePrefetcher {
                                                     }
                                                     Some(p) => {
                                                         let p = p.write().unwrap();
-                                                        let hot_applications_plugin = p.as_any().downcast_ref::<HotApplications>().unwrap();
+                                                        let hot_applications_plugin =
+                                                            p.as_any().downcast_ref::<HotApplications>().unwrap();
 
                                                         do_perform_prefetching =
                                                             !hot_applications_plugin.is_exe_cached(&exe_name, &process_cmdline);
@@ -605,7 +609,8 @@ impl IOtracePrefetcher {
                                                             let static_blacklist_plugin =
                                                                 p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-                                                            static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
+                                                            static_blacklist
+                                                                .append(&mut static_blacklist_plugin.get_blacklist().clone());
                                                         }
                                                     };
 

@@ -518,8 +518,8 @@ fn trace_is_from_blacklisted_process(line: &str) -> bool {
 
     // TODO: Add a configuration option to make this
     //       tunable via .conf file by the end user
-    line.contains("precached") || line.contains("prefetch") || line.contains("worker") || line.contains("ftrace") || line.contains("ipc")
-        || line.contains("journal") || line.contains("syslog")
+    line.contains("precached") || line.contains("prefetch") || line.contains("worker") || line.contains("ftrace")
+        || line.contains("ipc") || line.contains("journal") || line.contains("syslog")
 }
 
 /// Read events from `ftrace_pipe` (ftrace main loop)
@@ -693,7 +693,9 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // }
 
             // sys_open syscall
-            if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at")) && !l.contains("getnameprobe") {
+            if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at"))
+                && !l.contains("getnameprobe")
+            {
                 if fields.len() >= 1 {
                     // debug!("{:#?}", l);
 

@@ -330,7 +330,7 @@ mod tests {
     #[test]
     fn test_ellipsize_filename() {
         let filename = "/123/123/123";
-        
+
         let result = ellipsize_filename(filename, 5).unwrap();
         assert_eq!("<…>", result);
 

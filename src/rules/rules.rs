@@ -662,8 +662,7 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert_eq!(result[0], "Severity:Warn", "Invalid field element");
         assert_eq!(
-            result[1],
-            "Message:\"$date: User $user logged in, with '$home_dir'\"",
+            result[1], "Message:\"$date: User $user logged in, with '$home_dir'\"",
             "Invalid field element"
         );
     }

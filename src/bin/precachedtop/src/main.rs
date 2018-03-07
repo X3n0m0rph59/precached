@@ -71,14 +71,14 @@ use std::thread;
 use std::time::Duration;
 use term::Attr;
 use term::color::*;
-use termion::event::{Key, Event, MouseEvent};
-use termion::input::{TermRead, MouseTerminal};
+use termion::event::{Event, Key, MouseEvent};
+use termion::input::{MouseTerminal, TermRead};
 use termion::raw::IntoRawMode;
 use tui::Terminal;
 use tui::backend::{RawBackend, TermionBackend};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Borders, Block, List, Paragraph, SelectableList, Tabs, Widget};
+use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Widget};
 
 mod util;
 mod ipc;

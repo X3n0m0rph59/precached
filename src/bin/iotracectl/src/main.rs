@@ -302,8 +302,10 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
             Cell::new_align(&format!("{}", index), Alignment::RIGHT),
-            Cell::new(&util::ellipsize_filename(&io_trace.exe.to_string_lossy().into_owned(), max_len).unwrap_or(String::from("<error>")))
-                .with_style(Attr::Bold),
+            Cell::new(
+                &util::ellipsize_filename(&io_trace.exe.to_string_lossy().into_owned(), max_len)
+                    .unwrap_or(String::from("<error>")),
+            ).with_style(Attr::Bold),
             Cell::new(&io_trace.hash),
             Cell::new(&format_date(io_trace.created_at)),
             Cell::new_align(&format!("{}", io_trace.file_map.len()), Alignment::RIGHT),

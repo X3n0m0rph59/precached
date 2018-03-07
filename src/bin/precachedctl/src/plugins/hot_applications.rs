@@ -70,7 +70,8 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
         .expect("Configuration option 'state_dir' has not been specified!");
     let iotrace_path = PathBuf::from(path.join(constants::IOTRACE_DIR));
 
-    let text = util::read_compressed_text_file(&path.join("hot_applications.state")).expect("Could not read the compressed file!");
+    let text =
+        util::read_compressed_text_file(&path.join("hot_applications.state")).expect("Could not read the compressed file!");
 
     let reader = BufReader::new(text.as_bytes());
     let deserialized = serde_json::from_reader::<_, HashMap<String, usize>>(reader);
@@ -175,7 +176,8 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
         .expect("Configuration option 'state_dir' has not been specified!");
     let iotrace_path = PathBuf::from(path.join(constants::IOTRACE_DIR));
 
-    let text = util::read_compressed_text_file(&path.join("hot_applications.state")).expect("Could not read the compressed file!");
+    let text =
+        util::read_compressed_text_file(&path.join("hot_applications.state")).expect("Could not read the compressed file!");
 
     let reader = BufReader::new(text.as_bytes());
     let deserialized = serde_json::from_reader::<_, HashMap<String, usize>>(reader);

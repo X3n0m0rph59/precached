@@ -52,7 +52,7 @@ extern crate nix;
 extern crate toml;
 
 use ansi_term::Style;
-use log::{Log, Level};
+use log::{Level, Log};
 use nix::sys::signal;
 use std::env;
 use std::io;

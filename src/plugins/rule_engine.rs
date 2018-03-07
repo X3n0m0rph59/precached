@@ -208,7 +208,13 @@ impl RuleEngine {
     }
 
     /// Implements the `CacheDirRecursive` rule action
-    fn rule_action_cache_dir_recursive(&self, event: &rules::Event, rule: &rules::RuleEntry, globals: &mut Globals, manager: &Manager) {
+    fn rule_action_cache_dir_recursive(
+        &self,
+        event: &rules::Event,
+        rule: &rules::RuleEntry,
+        globals: &mut Globals,
+        manager: &Manager,
+    ) {
         trace!("Rule Action: CacheDirRecursive");
 
         match *event {

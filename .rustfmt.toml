@@ -1,4 +1,4 @@
-max_width = 140
+max_width = 130
 # reorder_imports = true
 # fn_args_layout = "Block"
 # array_layout = "Block"
