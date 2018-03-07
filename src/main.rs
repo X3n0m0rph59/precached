@@ -52,7 +52,7 @@ extern crate nix;
 extern crate toml;
 
 use ansi_term::Style;
-use log::{Log, LogLevel};
+use log::{Log, Level};
 use nix::sys::signal;
 use std::env;
 use std::io;
@@ -280,11 +280,11 @@ fn setup_logging() -> Result<(), fern::InitError> {
 
     let level_filter = match env::var("LOG_LEVEL") {
         Ok(val) => match val.to_lowercase().as_ref() {
-            "trace" => log::LogLevelFilter::Trace,
-            "debug" => log::LogLevelFilter::Debug,
-            "info" => log::LogLevelFilter::Info,
-            "warn" => log::LogLevelFilter::Warn,
-            "error" => log::LogLevelFilter::Error,
+            "trace" => log::LevelFilter::Trace,
+            "debug" => log::LevelFilter::Debug,
+            "info" => log::LevelFilter::Info,
+            "warn" => log::LevelFilter::Warn,
+            "error" => log::LevelFilter::Error,
             &_ => constants::DEFAULT_LOG_LEVEL,
         },
         _ => constants::DEFAULT_LOG_LEVEL,
@@ -296,8 +296,8 @@ fn setup_logging() -> Result<(), fern::InitError> {
         .format(move |out, _message, record| {
             let mut module_path = format!(
                 "{}:{}",
-                record.location().module_path().to_string(),
-                record.location().__line.to_string()
+                record.file().unwrap().to_string(),
+                record.line().unwrap().to_string()
             );
 
             let max_width = util::MAX_MODULE_WIDTH.load(Ordering::Relaxed);
@@ -327,11 +327,11 @@ fn setup_logging() -> Result<(), fern::InitError> {
     let syslog = fern::Dispatch::new()
         .format(move |_out, message, record| {
             let severity = match record.level() {
-                LogLevel::Trace => Severity::LOG_DEBUG,
-                LogLevel::Debug => Severity::LOG_DEBUG,
-                LogLevel::Info => Severity::LOG_INFO,
-                LogLevel::Warn => Severity::LOG_WARNING,
-                LogLevel::Error => Severity::LOG_ERR,
+                Level::Trace => Severity::LOG_DEBUG,
+                Level::Debug => Severity::LOG_DEBUG,
+                Level::Info => Severity::LOG_INFO,
+                Level::Warn => Severity::LOG_WARNING,
+                Level::Error => Severity::LOG_ERR,
             };
 
             match connection.send(severity, message) {

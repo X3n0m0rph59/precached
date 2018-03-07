@@ -18,11 +18,11 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate ordermap;
+extern crate indexmap;
 extern crate users;
 
-use self::ordermap::Entry::{Occupied, Vacant};
-use self::ordermap::OrderMap;
+use self::indexmap::IndexMap;
+use self::indexmap::map::Entry::{Occupied, Vacant};
 use self::users::*;
 use self::users::os::unix::UserExt;
 use events;
@@ -59,13 +59,13 @@ pub type Uid = u32;
 
 #[derive(Debug, Clone)]
 pub struct UserSession {
-    pub logged_in_users: OrderMap<Uid, PathBuf>,
+    pub logged_in_users: IndexMap<Uid, PathBuf>,
 }
 
 impl UserSession {
     pub fn new(_globals: &Globals) -> UserSession {
         UserSession {
-            logged_in_users: OrderMap::new(),
+            logged_in_users: IndexMap::new(),
         }
     }
 

@@ -19,22 +19,22 @@
 */
 
 use ansi_term::Color;
-use log::LogLevel;
+use log;
 use std::fmt;
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
 
 pub struct Level {
-    pub level: LogLevel,
+    pub level: log::Level,
 }
 
 impl fmt::Display for Level {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.level {
-            LogLevel::Trace => Color::Purple.paint("TRACE"),
-            LogLevel::Debug => Color::Blue.paint("DEBUG"),
-            LogLevel::Info => Color::Green.paint("INFO "),
-            LogLevel::Warn => Color::Yellow.paint("WARN "),
-            LogLevel::Error => Color::Red.paint("ERROR"),
+            log::Level::Trace => Color::Purple.paint("TRACE"),
+            log::Level::Debug => Color::Blue.paint("DEBUG"),
+            log::Level::Info => Color::Green.paint("INFO "),
+            log::Level::Warn => Color::Yellow.paint("WARN "),
+            log::Level::Error => Color::Red.paint("ERROR"),
         }.fmt(f)
     }
 }

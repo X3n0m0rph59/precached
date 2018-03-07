@@ -18,10 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate ordermap;
+extern crate indexmap;
 
-use self::ordermap::Entry::{Occupied, Vacant};
-use self::ordermap::OrderMap;
+use self::indexmap::IndexMap;
+use self::indexmap::map::Entry::{Occupied, Vacant};
 use super::plugin::Plugin;
 use events;
 use globals::*;
@@ -31,13 +31,13 @@ use std::sync::{Arc, RwLock};
 
 #[derive(Clone)]
 pub struct PluginManager {
-    pub plugins: Arc<RwLock<OrderMap<String, Arc<RwLock<Box<Plugin + Sync + Send>>>>>>,
+    pub plugins: Arc<RwLock<IndexMap<String, Arc<RwLock<Box<Plugin + Sync + Send>>>>>>,
 }
 
 impl PluginManager {
     pub fn new() -> PluginManager {
         PluginManager {
-            plugins: Arc::new(RwLock::new(OrderMap::new())),
+            plugins: Arc::new(RwLock::new(IndexMap::new())),
         }
     }
 

@@ -18,10 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate ordermap;
+extern crate indexmap;
 
-use self::ordermap::Entry::{Occupied, Vacant};
-use self::ordermap::OrderMap;
+use self::indexmap::IndexMap;
+use self::indexmap::map::Entry::{Occupied, Vacant};
 use super::hook::Hook;
 use events;
 use globals::*;
@@ -31,13 +31,13 @@ use std::sync::{Arc, RwLock};
 
 #[derive(Clone)]
 pub struct HookManager {
-    hooks: Arc<RwLock<OrderMap<String, Arc<RwLock<Box<Hook + Sync + Send>>>>>>,
+    hooks: Arc<RwLock<IndexMap<String, Arc<RwLock<Box<Hook + Sync + Send>>>>>>,
 }
 
 impl HookManager {
     pub fn new() -> HookManager {
         HookManager {
-            hooks: Arc::new(RwLock::new(OrderMap::new())),
+            hooks: Arc::new(RwLock::new(IndexMap::new())),
         }
     }
 

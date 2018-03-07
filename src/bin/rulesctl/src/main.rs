@@ -435,7 +435,7 @@ fn main() {
         print_license_header();
     }
 
-    pretty_env_logger::init().expect("Could not initialize the logging subsystem!");
+    pretty_env_logger::init(); //.expect("Could not initialize the logging subsystem!");
 
     trace!("Startup");
 

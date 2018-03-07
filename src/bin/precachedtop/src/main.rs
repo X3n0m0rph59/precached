@@ -71,15 +71,14 @@ use std::thread;
 use std::time::Duration;
 use term::Attr;
 use term::color::*;
-use termion::{clear, color, event};
-use termion::event::{Event, Key, MouseEvent};
-use termion::input::{MouseTerminal, TermRead};
+use termion::event::{Key, Event, MouseEvent};
+use termion::input::{TermRead, MouseTerminal};
 use termion::raw::IntoRawMode;
 use tui::Terminal;
-use tui::backend::TermionBackend;
+use tui::backend::{RawBackend, TermionBackend};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{border, Block, List, Paragraph, SelectableList, Tabs, Widget};
+use tui::widgets::{Borders, Block, List, Paragraph, SelectableList, Tabs, Widget};
 
 mod util;
 mod ipc;
@@ -260,10 +259,10 @@ impl Application {
             .margin(0)
             .render(terminal, &size, |ref mut terminal, chunks| {
                 Block::default()
-                    .borders(border::ALL)
+                    .borders(Borders::ALL)
                     .render(terminal, &size);
                 Tabs::default()
-                    .block(Block::default().borders(border::ALL).title("Tab Pages"))
+                    .block(Block::default().borders(Borders::ALL).title("Tab Pages"))
                     .titles(&[
                         "Overview",
                         "Events",
@@ -279,7 +278,7 @@ impl Application {
                 match app.tab_index {
                     0 => {
                         Block::default()
-                            .borders(border::ALL)
+                            .borders(Borders::ALL)
                             .render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Vertical)
@@ -309,7 +308,7 @@ impl Application {
                                 SelectableList::default()
                                     .block(
                                         Block::default()
-                                            .borders(border::ALL)
+                                            .borders(Borders::ALL)
                                             .title("Tracked Processes"),
                                     )
                                     .items(&items)
@@ -333,7 +332,7 @@ impl Application {
                                 }
 
                                 SelectableList::default()
-                                    .block(Block::default().borders(border::ALL)
+                                    .block(Block::default().borders(Borders::ALL)
                                     .title("Active Traces"))
                                     .items(&trace_items)
                                     // .select(self.sel_index_active_traces)
@@ -356,7 +355,7 @@ impl Application {
                                 }
 
                                 SelectableList::default()
-                                    .block(Block::default().borders(border::ALL)
+                                    .block(Block::default().borders(Borders::ALL)
                                     .title("Prefetcher Threads"))
                                     .items(&prefetcher)
                                     // .select(self.sel_index)
@@ -375,7 +374,7 @@ impl Application {
                                 events.reverse();
 
                                 SelectableList::default()
-                                    .block(Block::default().borders(border::ALL)
+                                    .block(Block::default().borders(Borders::ALL)
                                     .title("Events"))
                                     .items(&events)
                                     // .select(self.sel_index_events)
@@ -386,7 +385,7 @@ impl Application {
 
                     1 => {
                         Block::default()
-                            .borders(border::ALL)
+                            .borders(Borders::ALL)
                             .render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Horizontal)
@@ -405,7 +404,7 @@ impl Application {
                                 events.reverse();
 
                                 SelectableList::default()
-                                    .block(Block::default().borders(border::ALL).title("Events"))
+                                    .block(Block::default().borders(Borders::ALL).title("Events"))
                                     .items(&events)
                                     .select(self.sel_index_events)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -415,7 +414,7 @@ impl Application {
 
                     2 => {
                         Block::default()
-                            .borders(border::ALL)
+                            .borders(Borders::ALL)
                             .render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Horizontal)
@@ -429,7 +428,7 @@ impl Application {
                                     .collect();
 
                                 SelectableList::default()
-                                    .block(Block::default().borders(border::ALL).title("Cached Files"))
+                                    .block(Block::default().borders(Borders::ALL).title("Cached Files"))
                                     .items(&cached_files)
                                     .select(self.sel_index_files)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -439,7 +438,7 @@ impl Application {
 
                     3 => {
                         Block::default()
-                            .borders(border::ALL)
+                            .borders(Borders::ALL)
                             .render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Horizontal)
@@ -456,7 +455,7 @@ impl Application {
 
                     4 => {
                         Block::default()
-                            .borders(border::ALL)
+                            .borders(Borders::ALL)
                             .render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Horizontal)
@@ -512,7 +511,7 @@ fn do_request(socket: &zmq::Socket, command: ipc::IpcCommand) -> Result<ipc::Ipc
 
 /// The main loop
 fn main_loop(_config: &mut Config) {
-    let backend = TermionBackend::new().unwrap();
+    let backend = RawBackend::new().unwrap();
     let mut terminal = Terminal::new(backend).unwrap();
 
     terminal.clear().unwrap();
@@ -951,7 +950,7 @@ pub fn main() {
     // }
 
     // TODO: Implement a suitable logger that integrates well into the TUI
-    logger::init().expect("Could not initialize the logging subsystem!");
+    logger::init(); //.expect("Could not initialize the logging subsystem!");
 
     trace!("Startup");
 
