@@ -35,11 +35,6 @@ programs while the system is idle.
     $ cargo build --release
 ```
 
-### Notes
-
-This project is still in an early stage of development and you may
-possibly encounter some serious bugs.
-
 ### Why You may want to use precached
 
 Precached tries to tackle some of the long standing performance issues
@@ -60,7 +55,7 @@ amount of RAM) installed in your system, then you may see a performance
 improvement by using precached. The larger the speed difference between the
 CPU (fast) and the I/O subsystem (slow), the more you gain by running precached.
 
-### Don't use precached if
+#### Only marginal improvements by using precached if
 
 * You have a fast NVME SSD drive
 * You have less than ~2GBs of RAM installed
