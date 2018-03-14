@@ -569,8 +569,8 @@ fn main_loop(_config: &mut Config) {
                                 GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
                             }
                         }
-                };
-            }
+                    };
+                }
 
                 // Request current data
                 request!(socket, ipc::IpcCommand::RequestTrackedProcesses);

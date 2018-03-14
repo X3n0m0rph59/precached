@@ -32,6 +32,7 @@ pub fn daemonize(globals: globals::Globals) -> Result<(), DaemonizeError> {
 
     let daemonize = Daemonize::new()
         .pid_file(constants::DAEMON_PID_FILE)
+        .umask(0)
         .chown_pid_file(true)
         .working_directory("/tmp")
         .user(user.as_str())
