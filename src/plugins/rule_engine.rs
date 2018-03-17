@@ -200,7 +200,7 @@ impl RuleEngine {
     fn expand_variables(param: &str, vars: &[(&String, &String)]) -> String {
         let mut result = String::from(param);
 
-        for var in vars.iter() {
+        for var in vars {
             result = result.replace(var.0, var.1);
         }
 

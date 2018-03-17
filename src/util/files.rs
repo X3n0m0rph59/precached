@@ -18,6 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate rayon;
 extern crate globset;
 extern crate zstd;
 
@@ -33,6 +34,7 @@ use std::path;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::cmp::{max, min};
+use rayon::prelude::*;
 
 lazy_static! {
     pub static ref GLOB_SET: Arc<Mutex<Option<globset::GlobSet>>> = { Arc::new(Mutex::new(None)) };
@@ -299,6 +301,7 @@ pub fn walk_directories<F>(entries: &[PathBuf], cb: &mut F) -> io::Result<()>
 where
     F: FnMut(&Path),
 {
+    // TODO: Parallelize? Check ordering!
     for e in entries.iter() {
         let path = Path::new(e);
         if path.is_file() {

@@ -19,6 +19,7 @@
 */
 
 extern crate threadpool;
+extern crate num_cpus;
 
 use constants;
 use std::sync::Arc;
@@ -33,7 +34,7 @@ impl WorkerThreadPool {
     pub fn new() -> WorkerThreadPool {
         WorkerThreadPool {
             pool: threadpool::Builder::new()
-                .num_threads(4)
+                // .num_threads(4)
                 .thread_name(String::from("worker"))
                 .thread_scheduling_class(threadpool::SchedulingClass::Normal(
                     constants::WORKER_THREAD_NICENESS,
@@ -59,7 +60,8 @@ impl PrefetchThreadPool {
     pub fn new() -> PrefetchThreadPool {
         PrefetchThreadPool {
             pool: threadpool::Builder::new()
-                .num_threads(constants::NUM_PREFETCHER_THREADS)
+                // .num_threads(constants::NUM_PREFETCHER_THREADS)                
+                .num_threads(num_cpus::get())
                 .thread_name(String::from("prefetch"))
                 .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
                 .build(),

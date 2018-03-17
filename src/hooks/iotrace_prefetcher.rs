@@ -21,6 +21,7 @@
 extern crate lazy_static;
 extern crate libc;
 extern crate threadpool;
+extern crate num_cpus;
 
 use constants;
 use events;
@@ -79,7 +80,7 @@ impl IOtracePrefetcher {
     pub fn new() -> IOtracePrefetcher {
         let mut thread_states = vec![];
 
-        for _ in 0..constants::NUM_PREFETCHER_THREADS {
+        for _ in 0..num_cpus::get() {
             thread_states.push(Arc::new(RwLock::new(ThreadState::Uninitialized)));
         }
 

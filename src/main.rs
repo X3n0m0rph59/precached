@@ -48,6 +48,8 @@ extern crate log;
 extern crate serde_derive;
 extern crate syslog;
 
+extern crate crossbeam;
+extern crate rayon;
 extern crate nix;
 extern crate toml;
 

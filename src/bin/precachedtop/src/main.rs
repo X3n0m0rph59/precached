@@ -21,6 +21,7 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
+extern crate rayon;
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
@@ -79,6 +80,7 @@ use tui::backend::{RawBackend, TermionBackend};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Widget};
+use rayon::prelude::*;
 
 mod util;
 mod ipc;
@@ -297,7 +299,7 @@ impl Application {
                                 } else {
                                     // Render tracked processes
                                     items = self.tracked_processes
-                                        .iter()
+                                        .par_iter()
                                         .map(|v| {
                                             let v = v.clone();
                                             format!("{}\t{}", v.pid, v.comm)
@@ -323,7 +325,7 @@ impl Application {
                                 } else {
                                     // Render traced processes
                                     trace_items = self.active_traces
-                                        .iter()
+                                        .par_iter()
                                         .map(|v| {
                                             let v = v.clone();
                                             format!("{}\t{:?}", format_date(v.start_time), v.exe)
@@ -364,7 +366,7 @@ impl Application {
 
                                 // Render daemon internal events
                                 let mut events: Vec<String> = self.events
-                                    .iter()
+                                    .par_iter()
                                     .map(|v| {
                                         let v = v.clone();
                                         format!("{}\t{}", format_date(v.datetime), v.msg)
@@ -394,7 +396,7 @@ impl Application {
                             .render(terminal, &chunks[1], |terminal, chunks| {
                                 // Render daemon internal events
                                 let mut events: Vec<String> = self.events
-                                    .iter()
+                                    .par_iter()
                                     .map(|v| {
                                         let v = v.clone();
                                         format!("{}\t{}", format_date(v.datetime), v.msg)
@@ -423,7 +425,7 @@ impl Application {
                             .render(terminal, &chunks[1], |terminal, chunks| {
                                 // Render cached files
                                 let cached_files: Vec<String> = self.cached_files
-                                    .iter()
+                                    .par_iter()
                                     .map(|v| String::from(v.to_string_lossy()))
                                     .collect();
 

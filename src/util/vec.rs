@@ -18,7 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate rayon;
+
 use std::cmp::PartialEq;
+use rayon::prelude::*;
 
 pub trait Contains<T> {
     fn contains(&self, p: &T) -> bool;

@@ -23,6 +23,8 @@ zmq = { version = "*", git = "https://github.com/X3n0m0rph59/rust-zmq", branch =
 # zmq = { version = "*", path = "vendor/zmq" }
 chrono = { version = "0.4.0", features = ["serde", "rustc-serialize"] }
 chrono-tz = { version = "0.4.0", features = ["serde"] }
+crossbeam = "0.3.2"
+rayon = "1.0"
 log-panics = "2.0"
 indexmap = "1.0"
 time = "0.1.38"
@@ -31,7 +33,7 @@ users = "0.6.0"
 term_size = "0.3"
 libc = "0.2.36"
 nix = "0.10"
-num_cpus = "1.0"
+num_cpus = "1.8"
 log = "0.4"
 env_logger = "0.5.4"
 pretty_env_logger = "0.2.2"

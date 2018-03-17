@@ -21,6 +21,7 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
+extern crate rayon;
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;

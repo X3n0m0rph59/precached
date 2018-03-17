@@ -18,6 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate rayon;
 extern crate chrono;
 extern crate clap;
 extern crate lazy_static;
@@ -43,6 +44,7 @@ use std::path::{Path, PathBuf};
 use term::Attr;
 use term::color::*;
 use util;
+use rayon::prelude::*;
 
 /// Print help message on how to use this command
 pub fn print_help(config: &mut Config) {
@@ -82,14 +84,14 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
         }
 
         Ok(data) => {
-            let mut apps: Vec<(&String, &usize)> = data.iter().collect();
+            let mut apps: Vec<(&String, &usize)> = data.par_iter().collect();
 
             // Sort by count descending
             apps.sort_by(|a, b| b.1.cmp(a.1));
 
             if !show_all {
                 // Only show the top n entries
-                apps = apps.into_iter().take(20).collect();
+                apps = apps.into_par_iter().take(20).collect();
             }
 
             let mut pb = ProgressBar::new(apps.len() as u64);
@@ -189,7 +191,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
         Ok(data) => {
             // Tuple fields: (hash value, execution count, flag: 'keep this entry')
-            let mut apps: Vec<(&String, &usize, bool)> = data.iter().map(|(k, v)| (k, v, true)).collect();
+            let mut apps: Vec<(&String, &usize, bool)> = data.par_iter().map(|(k, v)| (k, v, true)).collect();
 
             let mut pb = ProgressBar::new(apps.len() as u64);
             pb.format(PROGRESS_BAR_INDICATORS);

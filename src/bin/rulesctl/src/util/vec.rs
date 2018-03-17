@@ -19,13 +19,14 @@
 */
 
 use std::cmp::PartialEq;
+use rayon::prelude::*;
 
 pub trait Contains<T> {
     fn contains(&self, p: &T) -> bool;
 }
 
-impl<T: PartialEq> Contains<T> for Vec<T> {
+impl<T: PartialEq + Sync> Contains<T> for Vec<T> {
     fn contains(&self, p: &T) -> bool {
-        self.iter().any(|e| e == p)
+        self.par_iter().any(|e| e == p)
     }
 }

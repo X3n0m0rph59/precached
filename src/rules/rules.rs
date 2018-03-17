@@ -18,6 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate rayon;
 extern crate sys_info;
 
 use chrono::Utc;
@@ -28,6 +29,7 @@ use std::io::{BufReader, BufWriter, Error, ErrorKind};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use rayon::prelude::*;
 
 /// Events that may appear in a .rules file
 #[derive(Debug, Clone, PartialEq)]

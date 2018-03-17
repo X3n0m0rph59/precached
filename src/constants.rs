@@ -115,7 +115,7 @@ pub const MEM_FREED_THRESHOLD: isize = 256 * 1024 * 1024; // 256 MiB
 pub const IDLE_PERIOD_WINDOW: u64 = 5;
 
 /// The size of the prefetcher thread pool
-pub const NUM_PREFETCHER_THREADS: usize = 4;
+// pub const NUM_PREFETCHER_THREADS: usize = 4;
 
 /// Maximum allowed size of a single file we are allowed to prefetch
 pub const MAX_ALLOWED_PREFETCH_SIZE: usize = 128 * 1024 * 1024; // 128 MiB

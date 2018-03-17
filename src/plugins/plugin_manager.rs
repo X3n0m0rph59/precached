@@ -18,6 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate rayon;
 extern crate indexmap;
 
 use self::indexmap::IndexMap;
@@ -28,6 +29,7 @@ use globals::*;
 use manager::*;
 use std::cell::RefCell;
 use std::sync::{Arc, RwLock};
+use rayon::prelude::*;
 
 #[derive(Clone)]
 pub struct PluginManager {

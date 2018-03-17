@@ -22,6 +22,7 @@ extern crate fnv;
 extern crate libc;
 extern crate serde;
 extern crate serde_json;
+extern crate rayon;
 
 use self::serde::Serialize;
 use constants;
@@ -46,6 +47,7 @@ use std::sync::Arc;
 use std::sync::mpsc::channel;
 use storage;
 use util;
+use rayon::prelude::*;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
@@ -89,7 +91,7 @@ impl HotApplications {
 
     /// Returns an ordered Vector of (&hash,&count) tuples in descending order of importance
     pub fn get_app_vec_ordered(&self) -> Vec<(&String, &usize)> {
-        let mut apps: Vec<(&String, &usize)> = self.app_histogram.iter().collect();
+        let mut apps: Vec<(&String, &usize)> = self.app_histogram.par_iter().collect();
         apps.sort_by(|a, b| b.1.cmp(a.1));
 
         apps
@@ -98,7 +100,7 @@ impl HotApplications {
     /// Returns an ordered Vector of (hash,count) tuples in ascending order of importance
     pub fn get_app_vec_ordered_reverse(&self) -> Vec<(String, usize)> {
         let mut apps: Vec<(String, usize)> = self.app_histogram
-            .iter()
+            .par_iter()
             .map(|(k, v)| ((*k).clone(), (*v)))
             .collect();
         apps.sort_by(|a, b| b.1.cmp(&a.1));
@@ -120,7 +122,7 @@ impl HotApplications {
                 let mut h = h.write().unwrap();
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
 
-                let mut apps: Vec<(&String, &usize)> = self.app_histogram.iter().collect();
+                let mut apps: Vec<(&String, &usize)> = self.app_histogram.par_iter().collect();
                 apps.sort_by(|a, b| b.1.cmp(a.1));
 
                 for (hash, _count) in apps {
@@ -285,7 +287,7 @@ impl HotApplications {
         let app_histogram_c = self.app_histogram.clone();
 
         // Tuple fields: (hash value, execution count, flag: 'keep this entry')
-        let mut apps: Vec<(&String, &usize, bool)> = app_histogram_c.iter().map(|(k, v)| (k, v, true)).collect();
+        let mut apps: Vec<(&String, &usize, bool)> = app_histogram_c.par_iter().map(|(k, v)| (k, v, true)).collect();
 
         let mut index = 0;
         let mut errors = 0;
