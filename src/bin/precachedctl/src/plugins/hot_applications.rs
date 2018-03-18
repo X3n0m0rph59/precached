@@ -87,7 +87,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
             let mut apps: Vec<(&String, &usize)> = data.par_iter().collect();
 
             // Sort by count descending
-            apps.sort_by(|a, b| b.1.cmp(a.1));
+            apps.par_sort_by(|a, b| b.1.cmp(a.1));
 
             if !show_all {
                 // Only show the top n entries
@@ -258,17 +258,10 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
             pb.finish_print("Saving state...");
 
-            // build a new HashMap, removing invalid entries
-            let mut t = HashMap::new();
-
-            for &(k, v, keep) in apps.iter() {
-                if keep {
-                    t.insert(k, v);
-                }
-            }
+            apps.retain(|&(_k, _v, keep)| keep);
 
             // Save optimized histogram
-            let serialized = serde_json::to_string_pretty(&t).unwrap();
+            let serialized = serde_json::to_string_pretty(&apps).unwrap();
 
             match util::write_text_file(&path.join("hot_applications.state"), &serialized) {
                 Err(e) => {

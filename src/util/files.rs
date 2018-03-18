@@ -195,7 +195,7 @@ pub fn is_file_blacklisted(filename: &Path, pattern: &[PathBuf]) -> bool {
                 let mut builder = GlobSetBuilder::new();
                 for p in pattern.iter() {
                     builder.add(Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap());
-                }
+                }                
                 let set = builder.build().unwrap();
 
                 *gs_opt = Some(set.clone());

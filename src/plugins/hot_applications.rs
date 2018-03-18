@@ -23,6 +23,7 @@ extern crate libc;
 extern crate serde;
 extern crate serde_json;
 extern crate rayon;
+extern crate crossbeam;
 
 use self::serde::Serialize;
 use constants;
@@ -43,10 +44,11 @@ use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::sync::mpsc::channel;
 use storage;
 use util;
+use crossbeam::scope;
 use rayon::prelude::*;
 
 static NAME: &str = "hot_applications";
@@ -89,21 +91,22 @@ impl HotApplications {
         self.cached_apps.contains(&format!("{}", hashval))
     }
 
-    /// Returns an ordered Vector of (&hash,&count) tuples in descending order of importance
+    /// Returns an ordered Vector of (&hash, &count) tuples in descending order of importance
     pub fn get_app_vec_ordered(&self) -> Vec<(&String, &usize)> {
         let mut apps: Vec<(&String, &usize)> = self.app_histogram.par_iter().collect();
-        apps.sort_by(|a, b| b.1.cmp(a.1));
+        apps.par_sort_by(|a, b| b.1.cmp(a.1));
 
         apps
     }
 
-    /// Returns an ordered Vector of (hash,count) tuples in ascending order of importance
+    /// Returns an ordered Vector of (hash, count) tuples in ascending order of importance
     pub fn get_app_vec_ordered_reverse(&self) -> Vec<(String, usize)> {
         let mut apps: Vec<(String, usize)> = self.app_histogram
             .par_iter()
             .map(|(k, v)| ((*k).clone(), (*v)))
             .collect();
-        apps.sort_by(|a, b| b.1.cmp(&a.1));
+            
+        apps.par_sort_by(|a, b| b.1.cmp(&a.1));
         apps.reverse();
 
         apps
@@ -122,8 +125,9 @@ impl HotApplications {
                 let mut h = h.write().unwrap();
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
 
-                let mut apps: Vec<(&String, &usize)> = self.app_histogram.par_iter().collect();
-                apps.sort_by(|a, b| b.1.cmp(a.1));
+                let app_histogram_c = self.app_histogram.clone();
+                let mut apps: Vec<(&String, &usize)> = app_histogram_c.par_iter().collect();
+                apps.par_sort_by(|a, b| b.1.cmp(a.1));
 
                 for (hash, _count) in apps {
                     if !Self::check_available_memory(globals, manager) {
@@ -311,14 +315,9 @@ impl HotApplications {
             index += 1;
         }
 
-        // build a new HashMap, removing invalid entries
-        let mut t = HashMap::new();
-
-        for &(k, v, keep) in apps.iter() {
-            if keep {
-                t.insert(k.clone(), v.clone());
-            }
-        }
+        // Remove invalid entries
+        apps.retain(|&(_k, _v, keep)| keep);
+        let t: HashMap<_,_> = apps.par_iter().map(|&(k, v, _keep)| (k.clone(), v.clone())).collect();
 
         // Apply and save optimized histogram
         self.app_histogram = t;

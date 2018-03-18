@@ -70,7 +70,7 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct IOtracePrefetcher {
-    pub mapped_files: HashMap<PathBuf, util::MemoryMapping>,
+    pub mapped_files: HashMap<PathBuf, Option<util::MemoryMapping>>,
     pub prefetched_programs: Vec<String>,
 
     pub thread_states: Vec<Arc<RwLock<ThreadState>>>,
@@ -94,13 +94,13 @@ impl IOtracePrefetcher {
 
     fn prefetch_data(
         io_trace: &[iotrace::TraceLogEntry],
-        our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>,
+        our_mapped_files: &HashMap<PathBuf, Option<util::MemoryMapping>>,
         prefetched_programs: &[String],
         // system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_blacklist: &[PathBuf],
         static_whitelist: &HashMap<PathBuf, util::MemoryMapping>,
         thread_state: &mut Arc<RwLock<ThreadState>>,
-    ) -> HashMap<PathBuf, util::MemoryMapping> {
+    ) -> HashMap<PathBuf, Option<util::MemoryMapping>> {
         let mut already_prefetched = HashMap::new();
         already_prefetched.reserve(io_trace.len());
 
@@ -131,20 +131,21 @@ impl IOtracePrefetcher {
                                 info!("Could not prefetch file: {:?}: {}", file, e);
 
                                 // inhibit further prefetching of that file
-                                // already_prefetched.insert(file.clone(), None);
+                                already_prefetched.insert(file.clone(), None);
 
                                 {
                                     *(thread_state.write().unwrap()) = ThreadState::Error(file.clone());
                                 }
                             }
+
                             Ok(mapping) => {
                                 trace!("Successfuly prefetched file: {:?}", file);
 
-                                already_prefetched.insert(file.clone(), mapping);
+                                already_prefetched.insert(file.clone(), Some(mapping));
 
-                                // {
-                                //     *(thread_state.write().unwrap()) = ThreadState::Idle;
-                                // }
+                                {
+                                    *(thread_state.write().unwrap()) = ThreadState::Idle;
+                                }
                             }
                         }
                     }
@@ -180,7 +181,7 @@ impl IOtracePrefetcher {
 
     fn unmap_files(
         io_trace: &[iotrace::TraceLogEntry],
-        our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>,
+        our_mapped_files: &HashMap<PathBuf, Option<util::MemoryMapping>>,
         thread_state: &mut Arc<RwLock<ThreadState>>,
     ) -> Vec<PathBuf> {
         let mut result = vec![];
@@ -195,18 +196,19 @@ impl IOtracePrefetcher {
                         {
                             *(thread_state.write().unwrap()) = ThreadState::UnmappingFile(file.clone());
                         }
+                        
+                        if let &Some(ref mapping) = mapping {
+                            let mapping_c = mapping.clone();
+                            if util::free_mapping(&mapping) {
+                                info!("Successfuly unmapped file: {:?}", file);
+                                result.push(mapping_c.filename);
 
-                        let mapping_c = mapping.clone();
-
-                        if util::free_mapping(mapping) {
-                            info!("Successfuly unmapped file: {:?}", file);
-                            result.push(mapping_c.filename);
-
-                        // {
-                        //         *(thread_state.write().unwrap()) = ThreadState::Idle;
-                        // }
-                        } else {
-                            error!("Could not unmap file: {:?}", file);
+                                {
+                                    *(thread_state.write().unwrap()) = ThreadState::Idle;
+                                }
+                            } else {
+                                error!("Could not unmap file: {:?}", file);
+                            }
                         }
                     } else {
                         // This need not be corruption of data structures but simply a missing file,
@@ -261,7 +263,7 @@ impl IOtracePrefetcher {
     fn shall_we_map_file(
         filename: &Path,
         static_blacklist: &[PathBuf],
-        our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>,
+        our_mapped_files: &HashMap<PathBuf, Option<util::MemoryMapping>>,
         prefetched_programs: &[String],
         // system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_whitelist: &HashMap<PathBuf, util::MemoryMapping>,
@@ -341,7 +343,7 @@ impl IOtracePrefetcher {
                         let max = prefetch_pool.max_count();
                         let count_total = io_trace.trace_log.len();
 
-                        let (sender, receiver): (Sender<HashMap<PathBuf, util::MemoryMapping>>, _) = channel();
+                        let (sender, receiver): (Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>, _) = channel();
 
                         for n in 0..max {
                             let sc = Mutex::new(sender.clone());
@@ -624,7 +626,7 @@ impl IOtracePrefetcher {
                                                     let count_total = io_trace.trace_log.len();
 
                                                     let (sender, receiver): (
-                                                        Sender<HashMap<PathBuf, util::MemoryMapping>>,
+                                                        Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>,
                                                         _,
                                                     ) = channel();
 
