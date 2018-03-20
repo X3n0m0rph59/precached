@@ -285,10 +285,10 @@ impl Application {
                         Group::default()
                             .direction(Direction::Vertical)
                             .sizes(&[
+                                Size::Percent(20),
                                 Size::Percent(25),
                                 Size::Percent(25),
-                                Size::Percent(15),
-                                Size::Percent(35),
+                                Size::Percent(30),
                             ])
                             .margin(0)
                             .render(terminal, &chunks[1], |terminal, chunks| {
