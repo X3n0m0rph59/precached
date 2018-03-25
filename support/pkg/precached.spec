@@ -46,7 +46,6 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{OrigName}/rules.d/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/system.d/
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/gdm/Init
 %{__mkdir_p} %{buildroot}%{_unitdir}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/iotrace/
@@ -72,7 +71,6 @@ cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.tim
 cp -a %{_builddir}/%{name}-%{version}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/
 cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -ra %{_builddir}/%{name}-%{version}/support/config/examples %{buildroot}/%{_docdir}/%{OrigName}/
-cp -a %{_builddir}/%{name}-%{version}/support/shell/scripts/gdm-init-script %{buildroot}/%{_sysconfdir}/gdm/Init/%{OrigName}
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/iotracectl
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedctl
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedtop.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedtop
@@ -126,7 +124,6 @@ esac
 # %docdir %{_docdir}/%{OrigName}/examples/
 %config(noreplace) %{_sysconfdir}/%{OrigName}/%{OrigName}.conf
 %config(noreplace) %{_sysconfdir}/%{OrigName}/rules.d/
-%config(noreplace) %{_sysconfdir}/gdm/Init/%{OrigName}
 %{_sbindir}/precached
 %{_sbindir}/precachedctl
 %{_sbindir}/iotracectl
