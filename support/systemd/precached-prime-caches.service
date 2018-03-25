@@ -2,13 +2,9 @@
 Description=Prime all caches now
 Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precached.conf(5)
 Requisite=precached.service
-After=graphical.target
 
 [Service]
 Environment=LOG_LEVEL=info
 ExecStart=/usr/sbin/precachedctl prime-caches-now
 Type=oneshot
 StandardOutput=journal
-
-[Install]
-WantedBy=graphical.target
