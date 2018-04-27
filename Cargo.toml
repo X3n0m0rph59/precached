@@ -57,9 +57,10 @@ dbus = "0.6.1"
 notify-rust = "3"
 tui = "0.2"
 termion = "1.5.1"
-term = "*"
+term = "0.5"
 pbr = "1.0.0"
-prettytable-rs = "^0.6"
+# prettytable-rs = "0.7"
+prettytable-rs = { version = "*", git = "https://github.com/Eijebong/prettytable-rs.git", branch = "term"}
 daemonize = "0.3.0"
 inotify = "0.5.0"
 clippy = { version = "*", optional = true }
