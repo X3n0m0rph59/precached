@@ -25,7 +25,7 @@ Conflicts: precached
 %global debug_package %{nil}
 
 %description
-Precached is written in Rust and utilizes the Linux netlink connector interface
+Precached is written in Rust and utilizes the Linux Netlink connector interface
 to monitor the system for process events. It can act upon such events via
 multiple means. E.g. it is able to pre-fault pages into memory, to speed up
 loading of programs and increase the perceived overall 'snappiness' of the

@@ -1,7 +1,7 @@
 # Precached - A Linux process monitor and pre-caching daemon
 [![Build Status](https://travis-ci.org/X3n0m0rph59/precached.svg?branch=master)](https://travis-ci.org/X3n0m0rph59/precached) [![Package Status](https://copr.fedorainfracloud.org/coprs/x3n0m0rph59/precached/package/precached/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/x3n0m0rph59/precached/package/precached/)
 
-Precached is written in Rust and utilizes the Linux netlink connector interface
+Precached is written in Rust and utilizes the Linux Netlink connector interface
 to monitor the system for process events. It can act upon such events via
 multiple means. E.g. it is able to pre-fault pages into memory, to speed up
 loading of programs and increase the perceived overall 'snappiness' of the
@@ -29,7 +29,7 @@ programs while the system is idle.
 #### Install from Source
 
 ```shell
-    $ git clone https://github.com/X3n0m0rph59/precached.git  
+    $ git clone https://github.com/X3n0m0rph59/precached.git
     $ cd precached/
     $ cargo build --release
 ```

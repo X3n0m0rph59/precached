@@ -82,10 +82,10 @@ pub const IO_TRACE_TIME_SECS: u64 = 12;
 pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
 
 /// The minimum length an I/O trace log must have for it to be saved/kept
-pub const MIN_TRACE_LOG_LENGTH: usize = 25;
+pub const MIN_TRACE_LOG_LENGTH: usize = 5;
 
 /// The minimum amount of data an I/O trace log must reference for it to be kept
-pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 32 * 1024 * 1024; // 32 MiB
+pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 8 * 1024 * 1024; // 8 MiB
 
 /// Upper threshold for free memory
 pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 100;
@@ -109,7 +109,7 @@ pub const SWAP_RECOVERY_WINDOW: u64 = 5;
 pub const MEM_FREED_RECOVERY_WINDOW: u64 = 5;
 
 /// Amount of memory that has to be freed for the signal `MemoryFreed` to be sent
-pub const MEM_FREED_THRESHOLD: isize = 256 * 1024 * 1024; // 256 MiB
+pub const MEM_FREED_THRESHOLD: isize = 64 * 1024 * 1024; // 64 MiB
 
 /// Time in seconds that has to elapse before we signal "system enters idle period"
 pub const IDLE_PERIOD_WINDOW: u64 = 5;

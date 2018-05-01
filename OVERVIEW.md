@@ -94,8 +94,8 @@ The following plugins are available for precached (as of 2018-01-04)
   * Rule Engine  (experimental/in development) - A rules based matching engine; executes actions when events are triggered
   * Rule Event Bridge (stable) - Convert daemon internal events to events used inside the rule matching engine
   * System Agent (not implemented/in development)
-  * User Session (experimental) - Cache metadata of files in logged user's home directories
-  * I/O Trace Log Cache (experimental) - mlock() .iotrace files into memory
+  * User Session (stable) - Cache metadata of files in logged user's home directories
+  * I/O Trace Log Cache (stable) - mlock() .iotrace files into memory
   * VFS Stat(x) Cache (stable) - Prime the kernel’s dentry caches by walking directories and stat()ing files
   * Static Blacklist (stable) - Blacklist files that shall not be accessed by the precached daemon
   * Static Whitelist (stable) - Force caching of files or applications into memory
