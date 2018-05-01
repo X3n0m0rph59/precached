@@ -75,7 +75,7 @@ pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 60 * 60; // 60 Minutes
 /// `Ping` event timer timeout
 pub const PING_INTERVAL_MILLIS: u64 = 2500;
 
-/// Duration that we trace a process' I/O activity
+/// Duration in seconds that we trace a process' I/O activity
 pub const IO_TRACE_TIME_SECS: u64 = 12;
 
 /// After how many days an I/O trace is flagged as expired
@@ -118,7 +118,7 @@ pub const IDLE_PERIOD_WINDOW: u64 = 5;
 // pub const NUM_PREFETCHER_THREADS: usize = 4;
 
 /// Maximum allowed size of a single file we are allowed to prefetch
-pub const MAX_ALLOWED_PREFETCH_SIZE: usize = 128 * 1024 * 1024; // 128 MiB
+pub const MAX_ALLOWED_PREFETCH_SIZE: usize = 256 * 1024 * 1024; // 256 MiB
 
 /// Initial gap width of console log output
 pub const INITIAL_MODULE_WIDTH: usize = 50;
