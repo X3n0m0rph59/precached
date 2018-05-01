@@ -61,10 +61,10 @@ pub const ZSTD_COMPRESSION_RATIO: i32 = 0; // 0 == auto select (default: 3),
 pub const WORKER_THREAD_NICENESS: i32 = 4;
 
 /// Thread wait time (main loop)
-pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2500;
+pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2000;
 
 /// Thread wait time (ftrace parser loop)
-pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 250;
+pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 200;
 
 /// Time that has to elapse before we may perform housekeeping after the precached process' startup
 pub const HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS: u64 = 5 * 60; // 5 Minutes
@@ -85,7 +85,7 @@ pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
 pub const MIN_TRACE_LOG_LENGTH: usize = 5;
 
 /// The minimum amount of data an I/O trace log must reference for it to be kept
-pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 8 * 1024 * 1024; // 8 MiB
+pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 1 * 1024 * 1024; // 1 MiB
 
 /// Upper threshold for free memory
 pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 100;
