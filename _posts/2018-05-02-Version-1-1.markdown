@@ -1,0 +1,17 @@
+---
+title: "Version 1.0"
+date:   2018-05-02 09:59:00
+categories: release
+---
+
+# Version 1.1 has been tagged
+
+We just tagged the 1.1 release!
+Some new and noteworthy features are:
+* Updated all dependencies to their current revisions
+* Fixed a bug that lead to missing color on 256 color terminals
+* Added support for more parallelism. We now iterate in parallel over selected data structures
+* Lowered the length and size parameters which I/O tracelogs must surpass for them to be stored.
+* Extended blacklists, don't create I/O traces for some shell commands
+
+The precached team
