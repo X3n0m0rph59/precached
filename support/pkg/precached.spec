@@ -1,8 +1,8 @@
 %global OrigName precached
 
 Name:    precached-git
-Version: 1.1.0
-Release: 24%{?dist}
+Version: 1.2.0
+Release: 0%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -148,72 +148,3 @@ esac
 #%{_datadir}/%{OrigName}/
 
 %changelog
-* Wed May 02 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-24
-- rebuilt
-
-* Wed May 02 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-23
-- rebuilt
-
-* Tue May 01 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-22
-- rebuilt
-
-* Tue May 01 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-21
-- rebuilt
-
-* Tue May 01 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-20
-- rebuilt
-
-* Fri Apr 27 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-19
-- rebuilt
-
-* Mon Apr 23 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-18
-- rebuilt
-
-* Mon Apr 23 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-17
-- rebuilt
-
-* Sun Mar 25 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-16
-- rebuilt
-
-* Sun Mar 25 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-15
-- rebuilt
-
-* Sun Mar 25 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-14
-- rebuilt
-
-* Tue Mar 20 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-13
-- rebuilt
-
-* Sun Mar 18 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-12
-- rebuilt
-
-* Sat Mar 17 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-11
-- rebuilt
-
-* Wed Mar 14 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-10
-- rebuilt
-
-* Wed Mar 07 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-9
-- rebuilt
-
-* Wed Mar 07 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-8
-- rebuilt
-
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-7
-- rebuilt
-
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-6
-- rebuilt
-
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-5
-- rebuilt
-
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-4
-- rebuilt
-
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-3
-- rebuilt
-
-* Sun Mar 04 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.1.0-2
-- rebuilt
-

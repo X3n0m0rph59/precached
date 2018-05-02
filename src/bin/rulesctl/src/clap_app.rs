@@ -28,7 +28,7 @@ where
     'a: 'b,
 {
     App::new("rulesctl")
-        .version("1.1.0")
+        .version("1.2.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
         .about("Manage rules of the precached daemon")
         .setting(AppSettings::GlobalVersion)
