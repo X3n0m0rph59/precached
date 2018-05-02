@@ -59,12 +59,12 @@ use nix::sys::signal;
 use std::env;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, RwLock, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::{Duration, Instant};
-use syslog::{Facility, Severity};
+use syslog::{Facility, Severity, Formatter3164};
 
 mod constants;
 
@@ -322,24 +322,25 @@ fn setup_logging() -> Result<(), fern::InitError> {
         })
         .chain(io::stdout());
 
-    // syslog::init(Facility::LOG_DAEMON, LogLevelFilter::Debug, Some("precached")).unwrap();
-    let mut connection = syslog::unix(Facility::LOG_DAEMON).unwrap();
-    connection.set_process_name(String::from("precached"));
-
+    
+    syslog::init(Facility::LOG_DAEMON, log::LevelFilter::Debug, Some("precached")).unwrap();    
+    
     let syslog = fern::Dispatch::new()
         .format(move |_out, message, record| {
-            let severity = match record.level() {
-                Level::Trace => Severity::LOG_DEBUG,
-                Level::Debug => Severity::LOG_DEBUG,
-                Level::Info => Severity::LOG_INFO,
-                Level::Warn => Severity::LOG_WARNING,
-                Level::Error => Severity::LOG_ERR,
-            };
+            let pid = nix::unistd::getpid();
+            let formatter = Formatter3164 { facility: Facility::LOG_DAEMON, 
+                                            hostname: None, 
+                                            process: "precached".into(), 
+                                            pid: pid.into() };
+            let mut connection = syslog::unix(formatter).unwrap();            
 
-            match connection.send(severity, message) {
-                Err(e) => error!("Syslog error: {}", e),
-                Ok(_) => { /* Do nothing */ }
-            }
+            match record.level() {
+                Level::Trace => connection.debug(message).unwrap(), // NOTE: map level Trace to Debug
+                Level::Debug => connection.debug(message).unwrap(),
+                Level::Info => connection.info(message).unwrap(),
+                Level::Warn => connection.warning(message).unwrap(),
+                Level::Error => connection.err(message).unwrap(),
+            };
         })
         .chain(console);
 
