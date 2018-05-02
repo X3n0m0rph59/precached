@@ -18,23 +18,23 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod vec;
-pub mod deref;
-pub mod utmpx;
 pub mod daemon;
+pub mod deref;
 pub mod files;
 pub mod mem;
 pub mod memory;
+pub mod notify;
 pub mod system;
 pub mod trace_event;
-pub mod notify;
+pub mod utmpx;
+pub mod vec;
 // pub mod ptrace;
 pub mod ftrace;
 pub mod iotrace;
 pub mod logger;
-pub mod thread_pool;
-pub mod thread;
 pub mod task_scheduler;
+pub mod thread;
+pub mod thread_pool;
 
 pub use self::daemon::*;
 pub use self::deref::*;

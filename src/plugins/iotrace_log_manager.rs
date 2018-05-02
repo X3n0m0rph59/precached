@@ -169,10 +169,7 @@ impl IOtraceLogManager {
         }
 
         if pruned < 1 {
-            debug!(
-                "{} I/O trace logs examined, no I/O trace logs needed to be pruned",
-                counter
-            );
+            debug!("{} I/O trace logs examined, no I/O trace logs needed to be pruned", counter);
         } else {
             debug!(
                 "{} I/O trace logs examined, {} stale logs pruned, {} errors occured",
@@ -194,10 +191,7 @@ impl IOtraceLogManager {
                 if !io_trace.trace_log_optimized {
                     match util::optimize_io_trace_log(filename, &mut io_trace, false) {
                         Err(e) => {
-                            error!(
-                                "Could not optimize I/O trace log for {:?}: {}",
-                                io_trace.exe, e
-                            );
+                            error!("Could not optimize I/O trace log for {:?}: {}", io_trace.exe, e);
 
                             // util::remove_file(&filename, true);
                         }
@@ -232,10 +226,7 @@ impl IOtraceLogManager {
                     if !io_trace.trace_log_optimized {
                         match util::optimize_io_trace_log(path, &mut io_trace, false) {
                             Err(e) => {
-                                error!(
-                                    "Could not optimize I/O trace log for {:?}: {}",
-                                    io_trace.exe, e
-                                );
+                                error!("Could not optimize I/O trace log for {:?}: {}", io_trace.exe, e);
 
                                 // util::remove_file(&filename, true);
                             }

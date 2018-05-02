@@ -20,8 +20,8 @@
 
 extern crate rayon;
 
-use std::cmp::PartialEq;
 use rayon::prelude::*;
+use std::cmp::PartialEq;
 
 pub trait Contains<T> {
     fn contains(&self, p: &T) -> bool;

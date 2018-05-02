@@ -18,15 +18,16 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate crossbeam;
 extern crate fnv;
 extern crate libc;
+extern crate rayon;
 extern crate serde;
 extern crate serde_json;
-extern crate rayon;
-extern crate crossbeam;
 
 use self::serde::Serialize;
 use constants;
+use crossbeam::scope;
 use events;
 use events::EventType;
 use globals;
@@ -38,18 +39,17 @@ use plugins::metrics::Metrics;
 use plugins::plugin::{Plugin, PluginDescription};
 use process::Process;
 use procmon;
+use rayon::prelude::*;
 use std::any::Any;
 use std::collections::HashMap;
 use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
 use std::path::Path;
-use std::sync::{Arc, RwLock};
 use std::sync::mpsc::channel;
+use std::sync::{Arc, RwLock};
 use storage;
 use util;
-use crossbeam::scope;
-use rayon::prelude::*;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
@@ -101,11 +101,8 @@ impl HotApplications {
 
     /// Returns an ordered Vector of (hash, count) tuples in ascending order of importance
     pub fn get_app_vec_ordered_reverse(&self) -> Vec<(String, usize)> {
-        let mut apps: Vec<(String, usize)> = self.app_histogram
-            .par_iter()
-            .map(|(k, v)| ((*k).clone(), (*v)))
-            .collect();
-            
+        let mut apps: Vec<(String, usize)> = self.app_histogram.par_iter().map(|(k, v)| ((*k).clone(), (*v))).collect();
+
         apps.par_sort_by(|a, b| b.1.cmp(&a.1));
         apps.reverse();
 
@@ -262,9 +259,7 @@ impl HotApplications {
                         hasher.write(&cmdline.clone().into_bytes());
                         let hashval = hasher.finish();
 
-                        let val = self.app_histogram
-                            .entry(format!("{}", hashval))
-                            .or_insert(0);
+                        let val = self.app_histogram.entry(format!("{}", hashval)).or_insert(0);
                         *val += 1;
                     } else {
                         // May happen for very short-lived processes
@@ -317,7 +312,7 @@ impl HotApplications {
 
         // Remove invalid entries
         apps.retain(|&(_k, _v, keep)| keep);
-        let t: HashMap<_,_> = apps.par_iter().map(|&(k, v, _keep)| (k.clone(), v.clone())).collect();
+        let t: HashMap<_, _> = apps.par_iter().map(|&(k, v, _keep)| (k.clone(), v.clone())).collect();
 
         // Apply and save optimized histogram
         self.app_histogram = t;

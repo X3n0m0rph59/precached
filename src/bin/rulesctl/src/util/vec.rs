@@ -18,8 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::cmp::PartialEq;
 use rayon::prelude::*;
+use std::cmp::PartialEq;
 
 pub trait Contains<T> {
     fn contains(&self, p: &T) -> bool;

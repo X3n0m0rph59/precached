@@ -20,8 +20,8 @@
 
 extern crate indexmap;
 
-use self::indexmap::IndexMap;
 use self::indexmap::map::Entry::{Occupied, Vacant};
+use self::indexmap::IndexMap;
 use super::hook::Hook;
 use events;
 use globals::*;

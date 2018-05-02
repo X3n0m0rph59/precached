@@ -25,7 +25,6 @@ extern crate serde;
 extern crate serde_json;
 extern crate zmq;
 
-use EXIT_NOW;
 use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
 use constants;
 use events;
@@ -38,13 +37,14 @@ use process;
 use std::collections::VecDeque;
 use std::fs::OpenOptions;
 use std::io;
-use std::io::Write;
 use std::io::prelude;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
+use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
+use EXIT_NOW;
 
 /// Represents a process
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -22,14 +22,14 @@ extern crate rayon;
 extern crate sys_info;
 
 use chrono::Utc;
+use rayon::prelude::*;
 use std::fs;
 use std::fs::File;
 use std::io;
-use std::io::{BufReader, BufWriter, Error, ErrorKind};
 use std::io::prelude::*;
+use std::io::{BufReader, BufWriter, Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use rayon::prelude::*;
 
 /// Events that may appear in a .rules file
 #[derive(Debug, Clone, PartialEq)]
@@ -357,10 +357,7 @@ impl RuleFile {
         fs::rename(tmp_filename, filename)?;
 
         if !modified {
-            Err(Error::new(
-                ErrorKind::Other,
-                "Enabled/disabled state could not be modified!",
-            ))
+            Err(Error::new(ErrorKind::Other, "Enabled/disabled state could not be modified!"))
         } else {
             Ok(())
         }

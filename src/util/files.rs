@@ -18,23 +18,23 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate rayon;
 extern crate globset;
+extern crate rayon;
 extern crate zstd;
 
 use self::globset::{Glob, GlobSetBuilder};
 use constants;
+use rayon::prelude::*;
 use std::cell::RefCell;
+use std::cmp::{max, min};
 use std::fs;
 use std::fs::OpenOptions;
 use std::io;
-use std::io::BufReader;
 use std::io::prelude::*;
+use std::io::BufReader;
 use std::path;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
-use std::cmp::{max, min};
-use rayon::prelude::*;
 
 lazy_static! {
     pub static ref GLOB_SET: Arc<Mutex<Option<globset::GlobSet>>> = { Arc::new(Mutex::new(None)) };
@@ -88,18 +88,9 @@ pub fn read_uncompressed_text_file(filename: &Path) -> io::Result<String> {
 /// Write `text` to the compressed file `filename`.
 /// This function transparently compresses the file using Zstd compression
 pub fn write_text_file(filename: &Path, text: &str) -> io::Result<()> {
-    let mut file = try!(
-        OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .create(true)
-            .open(filename)
-    );
+    let mut file = try!(OpenOptions::new().write(true).truncate(true).create(true).open(filename));
 
-    let compressed = zstd::encode_all(
-        BufReader::new(text.as_bytes()),
-        constants::ZSTD_COMPRESSION_RATIO,
-    ).unwrap();
+    let compressed = zstd::encode_all(BufReader::new(text.as_bytes()), constants::ZSTD_COMPRESSION_RATIO).unwrap();
     file.write_all(&compressed)?;
     // file.sync_data()?;
 
@@ -195,7 +186,7 @@ pub fn is_file_blacklisted(filename: &Path, pattern: &[PathBuf]) -> bool {
                 let mut builder = GlobSetBuilder::new();
                 for p in pattern.iter() {
                     builder.add(Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap());
-                }                
+                }
                 let set = builder.build().unwrap();
 
                 *gs_opt = Some(set.clone());
@@ -206,10 +197,7 @@ pub fn is_file_blacklisted(filename: &Path, pattern: &[PathBuf]) -> bool {
                 !matches.is_empty()
             } else {
                 // glob_set already available
-                let matches = gs_opt
-                    .clone()
-                    .unwrap()
-                    .matches(&filename.to_string_lossy().into_owned());
+                let matches = gs_opt.clone().unwrap().matches(&filename.to_string_lossy().into_owned());
 
                 !matches.is_empty()
             }
@@ -249,10 +237,7 @@ pub fn ellipsize_filename(filename: &str, max_len: usize) -> Result<String, &'st
         let max_len = min(filename.len() as i64 - 1, max_len as i64) as i64;
 
         let lower_bound: i64 = max((max_len as i64 - 1) / 2 - cutoff / 2, 0 as i64);
-        let upper_bound: i64 = min(
-            (max_len as i64 - 1) / 2 + 1 + cutoff / 2,
-            filename.len() as i64 - 1 as i64,
-        );
+        let upper_bound: i64 = min((max_len as i64 - 1) / 2 + 1 + cutoff / 2, filename.len() as i64 - 1 as i64);
 
         if lower_bound < 0 {
             return Err("Lower bound is < 0");

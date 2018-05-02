@@ -20,8 +20,8 @@
 
 extern crate lazy_static;
 extern crate libc;
-extern crate threadpool;
 extern crate num_cpus;
+extern crate threadpool;
 
 use constants;
 use events;
@@ -38,11 +38,11 @@ use plugins::static_whitelist::StaticWhitelist;
 use process::Process;
 use procmon;
 use std::any::Any;
-use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, RwLock};
 use std::sync::mpsc::{channel, Sender};
+use std::sync::{Arc, Mutex, RwLock};
 use util;
 
 static NAME: &str = "iotrace_prefetcher";
@@ -196,7 +196,7 @@ impl IOtracePrefetcher {
                         {
                             *(thread_state.write().unwrap()) = ThreadState::UnmappingFile(file.clone());
                         }
-                        
+
                         if let &Some(ref mapping) = mapping {
                             let mapping_c = mapping.clone();
                             if util::free_mapping(&mapping) {
@@ -343,7 +343,10 @@ impl IOtracePrefetcher {
                         let max = prefetch_pool.max_count();
                         let count_total = io_trace.trace_log.len();
 
-                        let (sender, receiver): (Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>, _) = channel();
+                        let (sender, receiver): (
+                            Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>,
+                            _,
+                        ) = channel();
 
                         for n in 0..max {
                             let sc = Mutex::new(sender.clone());
@@ -523,10 +526,7 @@ impl IOtracePrefetcher {
                 let mut process = process_tracker.get_process(event.pid);
 
                 match process {
-                    None => debug!(
-                        "Error during online prefetching! Process with pid {} vanished",
-                        event.pid
-                    ),
+                    None => debug!("Error during online prefetching! Process with pid {} vanished", event.pid),
 
                     Some(process) => {
                         let process_cmdline = process.get_cmdline().unwrap_or_else(|_| String::from(""));
@@ -534,18 +534,11 @@ impl IOtracePrefetcher {
 
                         match process.get_exe() {
                             Err(e) => {
-                                info!(
-                                    "Could not get process' executable name: {}, skipped prefetching!",
-                                    e
-                                );
+                                info!("Could not get process' executable name: {}, skipped prefetching!", e);
                             }
 
                             Ok(exe_name) => {
-                                trace!(
-                                    "Prefetching data for process '{}' with pid: {}",
-                                    process_comm,
-                                    event.pid
-                                );
+                                trace!("Prefetching data for process '{}' with pid: {}", process_comm, event.pid);
 
                                 let pm = manager.plugin_manager.read().unwrap();
 

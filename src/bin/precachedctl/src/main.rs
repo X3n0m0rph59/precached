@@ -21,9 +21,9 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-extern crate rayon;
 extern crate chrono;
 extern crate clap;
+extern crate rayon;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -45,25 +45,25 @@ use nix::libc::pid_t;
 use nix::sys::signal::*;
 use nix::unistd::*;
 use pbr::ProgressBar;
-use prettytable::Table;
 use prettytable::cell::Cell;
-use prettytable::format::*;
 use prettytable::format::Alignment;
+use prettytable::format::*;
 use prettytable::row::Row;
+use prettytable::Table;
 use std::collections::{HashMap, HashSet};
 use std::io;
-use std::io::BufReader;
 use std::io::prelude;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
-use term::Attr;
 use term::color::*;
+use term::Attr;
 
-mod plugins;
-mod util;
-mod process;
-mod iotrace;
-mod constants;
 mod clap_app;
+mod constants;
+mod iotrace;
+mod plugins;
+mod process;
+mod util;
 
 /// Unicode characters used for drawing the progress bar
 pub const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
@@ -120,18 +120,9 @@ fn default_table_format(config: &Config) -> TableFormat {
         FormatBuilder::new()
             .column_separator('|')
             .borders('|')
-            .separators(
-                &[LinePosition::Top],
-                LineSeparator::new('─', '┬', '┌', '┐'),
-            )
-            .separators(
-                &[LinePosition::Intern],
-                LineSeparator::new('─', '┼', '├', '┤'),
-            )
-            .separators(
-                &[LinePosition::Bottom],
-                LineSeparator::new('─', '┴', '└', '┘'),
-            )
+            .separators(&[LinePosition::Top], LineSeparator::new('─', '┬', '┌', '┐'))
+            .separators(&[LinePosition::Intern], LineSeparator::new('─', '┼', '├', '┤'))
+            .separators(&[LinePosition::Bottom], LineSeparator::new('─', '┴', '└', '┘'))
             .padding(1, 1)
             .build()
     } else {
@@ -292,9 +283,7 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
         &_ => Shell::Zsh,
     };
 
-    config
-        .clap
-        .gen_completions_to("precachedctl", shell, &mut io::stdout());
+    config.clap.gen_completions_to("precachedctl", shell, &mut io::stdout());
 }
 
 /// Program entrypoint
@@ -339,12 +328,7 @@ fn main() {
                 do_prime_caches(&config, daemon_config);
             }
 
-            "plugins" => if let Some(plugin) = config
-                .matches
-                .subcommand_matches("plugins")
-                .unwrap()
-                .subcommand_name()
-            {
+            "plugins" => if let Some(plugin) = config.matches.subcommand_matches("plugins").unwrap().subcommand_name() {
                 match plugin {
                     "hot-applications" => if let Some(subcommand) = config
                         .matches

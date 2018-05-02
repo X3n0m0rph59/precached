@@ -18,33 +18,33 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate rayon;
 extern crate chrono;
 extern crate clap;
 extern crate lazy_static;
 extern crate prettytable;
+extern crate rayon;
 extern crate serde_json;
 
-use {default_table_format, Config, PROGRESS_BAR_INDICATORS};
 use clap::{App, AppSettings, Arg, SubCommand};
 use constants;
 use iotrace;
 use pbr::ProgressBar;
-use prettytable::Table;
 use prettytable::cell::Cell;
-use prettytable::format::*;
 use prettytable::format::Alignment;
+use prettytable::format::*;
 use prettytable::row::Row;
+use prettytable::Table;
 use process;
+use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::io;
-use std::io::BufReader;
 use std::io::prelude;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
-use term::Attr;
 use term::color::*;
+use term::Attr;
 use util;
-use rayon::prelude::*;
+use {default_table_format, Config, PROGRESS_BAR_INDICATORS};
 
 /// Print help message on how to use this command
 pub fn print_help(config: &mut Config) {
@@ -164,10 +164,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
                 }
             }
 
-            println!(
-                "{} histogram entries examined, {} missing I/O trace logs",
-                index, errors
-            );
+            println!("{} histogram entries examined, {} missing I/O trace logs", index, errors);
         }
     }
 }
@@ -275,10 +272,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
                     table.printstd();
 
-                    println!(
-                        "{} histogram entries examined, {} missing I/O trace logs",
-                        index, errors
-                    );
+                    println!("{} histogram entries examined, {} missing I/O trace logs", index, errors);
                 }
             }
         }

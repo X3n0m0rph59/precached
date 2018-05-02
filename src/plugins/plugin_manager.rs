@@ -18,18 +18,18 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate rayon;
 extern crate indexmap;
+extern crate rayon;
 
-use self::indexmap::IndexMap;
 use self::indexmap::map::Entry::{Occupied, Vacant};
+use self::indexmap::IndexMap;
 use super::plugin::Plugin;
 use events;
 use globals::*;
 use manager::*;
+use rayon::prelude::*;
 use std::cell::RefCell;
 use std::sync::{Arc, RwLock};
-use rayon::prelude::*;
 
 #[derive(Clone)]
 pub struct PluginManager {
@@ -45,10 +45,10 @@ impl PluginManager {
 
     pub fn register_plugin(&self, mut plugin: Box<Plugin + Sync + Send>) {
         plugin.register();
-        self.plugins.write().unwrap().insert(
-            String::from(plugin.get_name()),
-            Arc::new(RwLock::new(plugin)),
-        );
+        self.plugins
+            .write()
+            .unwrap()
+            .insert(String::from(plugin.get_name()), Arc::new(RwLock::new(plugin)));
     }
 
     pub fn unregister_plugin(&self, name: &String) {

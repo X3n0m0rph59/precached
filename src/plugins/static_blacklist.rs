@@ -18,8 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate rayon;
 extern crate globset;
+extern crate rayon;
 
 use self::globset::{Glob, GlobSetBuilder};
 use events;
@@ -27,12 +27,12 @@ use globals::*;
 use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use rayon::prelude::*;
 use std::any::Any;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use storage;
 use util;
-use rayon::prelude::*;
 
 static NAME: &str = "static_blacklist";
 static DESCRIPTION: &str = "Statically blacklist files that shall not be cached";
@@ -127,10 +127,7 @@ impl StaticBlacklist {
                     !matches.is_empty()
                 } else {
                     // glob_set already available
-                    let matches = gs_opt
-                        .clone()
-                        .unwrap()
-                        .matches(&filename.to_string_lossy().into_owned());
+                    let matches = gs_opt.clone().unwrap().matches(&filename.to_string_lossy().into_owned());
 
                     !matches.is_empty()
                 }
@@ -162,10 +159,7 @@ impl StaticBlacklist {
                     !matches.is_empty()
                 } else {
                     // glob_set already available
-                    let matches = gs_opt
-                        .clone()
-                        .unwrap()
-                        .matches(&filename.to_string_lossy().into_owned());
+                    let matches = gs_opt.clone().unwrap().matches(&filename.to_string_lossy().into_owned());
 
                     !matches.is_empty()
                 }

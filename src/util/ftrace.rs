@@ -22,8 +22,8 @@ extern crate libc;
 extern crate regex;
 
 use self::regex::Regex;
-use super::{append, echo, mkdir, rmdir};
 use super::trace_event::*;
+use super::{append, echo, mkdir, rmdir};
 use chrono::{DateTime, Utc};
 use constants;
 use events;
@@ -97,9 +97,7 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     let c_str = unsafe { CString::from_vec_unchecked(filename.as_path().as_os_str().to_os_string().into_vec()) };
     let _result = unsafe { libc::open(c_str.as_ptr(), libc::O_NOCTTY) };
 
-    let filename = Path::new(TRACING_DIR)
-        .join("options")
-        .join("disable_on_free");
+    let filename = Path::new(TRACING_DIR).join("options").join("disable_on_free");
     echo(&filename, String::from("1"))?;
 
     // Set ftrace options
@@ -475,10 +473,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
             let mut comm = &v.trace_log.comm;
 
-            debug!(
-                "Tracing time expired for process '{}' with pid: {}",
-                comm, pid
-            );
+            debug!("Tracing time expired for process '{}' with pid: {}", comm, pid);
 
             v.trace_time_expired = true;
             v.trace_log.trace_stopped_at = Utc::now();
@@ -494,10 +489,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
                 ),
 
                 Ok(()) => {
-                    info!(
-                        "Successfuly saved I/O trace log for process '{}' with pid: {}",
-                        comm, pid
-                    );
+                    info!("Successfuly saved I/O trace log for process '{}' with pid: {}", comm, pid);
 
                     // schedule an optimization pass for the newly saved trace log
                     debug!("Queued an optimization request for {:?}", filename);
@@ -716,10 +708,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     let mut reset_filename = false;
                     match last_filename {
                         // Error may happen if the previous open* syscall failed
-                        None => trace!(
-                            "Could not get associated file name of the current trace event! '{}'",
-                            l
-                        ),
+                        None => trace!("Could not get associated file name of the current trace event! '{}'", l),
 
                         Some(ref c) => {
                             if !cb(
@@ -740,10 +729,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                         last_filename = None;
                     }
                 } else {
-                    error!(
-                        "Error while parsing current event from trace buffer! Event: '{}'",
-                        l
-                    );
+                    error!("Error while parsing current event from trace buffer! Event: '{}'", l);
                 }
             }
 
@@ -766,10 +752,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                         break 'LINE_LOOP; // callback returned false, exit requested
                     }
                 } else {
-                    error!(
-                        "Error while parsing current event from trace buffer! Event: '{}'",
-                        l
-                    );
+                    error!("Error while parsing current event from trace buffer! Event: '{}'", l);
                 }
             }
 
@@ -792,10 +775,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                         break 'LINE_LOOP; // callback returned false, exit requested
                     }
                 } else {
-                    error!(
-                        "Error while parsing current event from trace buffer! Event: '{}'",
-                        l
-                    );
+                    error!("Error while parsing current event from trace buffer! Event: '{}'", l);
                 }
             }
 

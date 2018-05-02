@@ -84,10 +84,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
         // Try to close the file descriptor
         unsafe { libc::close(fd) };
 
-        let custom_error = Error::new(
-            ErrorKind::Other,
-            "Maximum allowed file size for prefetching exceeded!",
-        );
+        let custom_error = Error::new(ErrorKind::Other, "Maximum allowed file size for prefetching exceeded!");
         Err(custom_error)
     } else {
         // Manually fault in all pages

@@ -179,10 +179,7 @@ impl IOTraceLog {
             // make the I/O trace contain an open and a read of the binary itself
             // since we will always miss that event in the tracer
             let first_entries = vec![
-                TraceLogEntry::new(
-                    IOOperation::Open(exe.clone(), 0),
-                    util::get_file_size(&exe).unwrap_or(0),
-                ),
+                TraceLogEntry::new(IOOperation::Open(exe.clone(), 0), util::get_file_size(&exe).unwrap_or(0)),
                 // TraceLogEntry::new(IOOperation::Read(0)),
             ];
 

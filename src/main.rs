@@ -49,8 +49,8 @@ extern crate serde_derive;
 extern crate syslog;
 
 extern crate crossbeam;
-extern crate rayon;
 extern crate nix;
+extern crate rayon;
 extern crate toml;
 
 use ansi_term::Style;
@@ -59,12 +59,12 @@ use nix::sys::signal;
 use std::env;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::channel;
+use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
-use syslog::{Facility, Severity, Formatter3164};
+use syslog::{Facility, Formatter3164, Severity};
 
 mod constants;
 
@@ -80,17 +80,17 @@ use procmon::ProcMon;
 mod events;
 use events::EventType;
 
-mod inotify;
-mod dbus;
-mod process;
 mod config;
-mod plugins;
+mod dbus;
 mod hooks;
+mod inotify;
 mod iotrace;
 mod ipc;
+mod plugins;
+mod process;
+mod rules;
 mod storage;
 mod util;
-mod rules;
 
 /// Global 'shall we exit now' flag
 static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -180,11 +180,7 @@ fn setup_signal_handlers() {
     }
 
     // Ignore SIGPIPE
-    let sig_action = signal::SigAction::new(
-        signal::SigHandler::SigIgn,
-        signal::SaFlags::empty(),
-        signal::SigSet::empty(),
-    );
+    let sig_action = signal::SigAction::new(signal::SigHandler::SigIgn, signal::SaFlags::empty(), signal::SigSet::empty());
 
     #[allow(unused_must_use)]
     unsafe {
@@ -206,10 +202,7 @@ under certain conditions.
 /// Shows which plugins have been disabled via the `disabled_plugins = [...]`
 /// parameter in the external text configuration file
 fn print_disabled_plugins_notice(globals: &mut Globals) {
-    info!(
-        "Disabled Plugins: {:?}",
-        storage::get_disabled_plugins(globals)
-    );
+    info!("Disabled Plugins: {:?}", storage::get_disabled_plugins(globals));
 }
 
 // Disabling of hooks is currently not supported
@@ -313,26 +306,25 @@ fn setup_logging() -> Result<(), fern::InitError> {
             out.finish(format_args!(
                 "[{}] {}:{}: {}",
                 chrono::Local::now().format("%H:%M:%S"),
-                util::Level {
-                    level: record.level(),
-                },
+                util::Level { level: record.level() },
                 Style::new().bold().paint(module_path),
                 record.args()
             ));
         })
         .chain(io::stdout());
 
-    
-    syslog::init(Facility::LOG_DAEMON, log::LevelFilter::Debug, Some("precached")).unwrap();    
-    
+    syslog::init(Facility::LOG_DAEMON, log::LevelFilter::Debug, Some("precached")).unwrap();
+
     let syslog = fern::Dispatch::new()
         .format(move |_out, message, record| {
             let pid = nix::unistd::getpid();
-            let formatter = Formatter3164 { facility: Facility::LOG_DAEMON, 
-                                            hostname: None, 
-                                            process: "precached".into(), 
-                                            pid: pid.into() };
-            let mut connection = syslog::unix(formatter).unwrap();            
+            let formatter = Formatter3164 {
+                facility: Facility::LOG_DAEMON,
+                hostname: None,
+                process: "precached".into(),
+                pid: pid.into(),
+            };
+            let mut connection = syslog::unix(formatter).unwrap();
 
             match record.level() {
                 Level::Trace => connection.debug(message).unwrap(), // NOTE: map level Trace to Debug
@@ -398,10 +390,7 @@ fn main() {
     match util::set_process_properties() {
         Ok(_) => info!("Process properties changed successfuly!"),
         Err(s) => {
-            error!(
-                "Error while changing the daemon's process properties: {}",
-                s
-            );
+            error!("Error while changing the daemon's process properties: {}", s);
             return;
         }
     }
@@ -547,9 +536,7 @@ fn main() {
         // NOTE: Blocking call
         // wait for the event loop thread to submit an event
         // or up to n msecs until a timeout occurs
-        let event = match receiver.recv_timeout(Duration::from_millis(
-            constants::EVENT_THREAD_TIMEOUT_MILLIS,
-        )) {
+        let event = match receiver.recv_timeout(Duration::from_millis(constants::EVENT_THREAD_TIMEOUT_MILLIS)) {
             Ok(result) => {
                 trace!("Main thread woken up to process a message...");
                 Some(result)

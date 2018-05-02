@@ -21,10 +21,10 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-extern crate rayon;
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
+extern crate rayon;
 #[macro_use]
 extern crate lazy_static;
 extern crate libc;
@@ -52,42 +52,42 @@ use nix::libc::pid_t;
 use nix::sys::signal::*;
 use nix::unistd::*;
 use pbr::ProgressBar;
-use prettytable::Table;
 use prettytable::cell::Cell;
-use prettytable::format::*;
 use prettytable::format::Alignment;
+use prettytable::format::*;
 use prettytable::row::Row;
+use prettytable::Table;
+use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::fs::OpenOptions;
 use std::io;
-use std::io::{stdin, stdout, Write};
+use std::io::prelude;
 use std::io::BufReader;
 use std::io::Read;
-use std::io::prelude;
+use std::io::{stdin, stdout, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use std::time::Duration;
-use term::Attr;
 use term::color::*;
+use term::Attr;
 use termion::event::{Event, Key, MouseEvent};
 use termion::input::{MouseTerminal, TermRead};
 use termion::raw::IntoRawMode;
-use tui::Terminal;
 use tui::backend::{RawBackend, TermionBackend};
 use tui::layout::{Direction, Group, Rect, Size};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Widget};
-use rayon::prelude::*;
+use tui::Terminal;
 
-mod util;
+mod clap_app;
+mod constants;
+mod iotrace;
 mod ipc;
 mod process;
-mod iotrace;
-mod constants;
-mod clap_app;
+mod util;
 
 /// Global 'shall we exit now' flag
 static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -223,22 +223,16 @@ impl Application {
             prefetch_stats: None,
 
             sel_index_events: 0,
-            events: vec![
-                EventListItem {
-                    datetime: Utc::now(),
-                    msg: String::from("<Beginning of Log>"),
-                },
-            ],
+            events: vec![EventListItem {
+                datetime: Utc::now(),
+                msg: String::from("<Beginning of Log>"),
+            }],
 
             sel_index_files: 0,
             cached_files: vec![],
 
             sel_index_statistics: 0,
-            statistics: vec![
-                StatisticsListItem {
-                    datetime: Utc::now(),
-                },
-            ],
+            statistics: vec![StatisticsListItem { datetime: Utc::now() }],
 
             info_style: Style::default().fg(Color::White),
             warning_style: Style::default().fg(Color::Yellow),
@@ -260,9 +254,7 @@ impl Application {
             .sizes(&[Size::Max(3), Size::Percent(90)])
             .margin(0)
             .render(terminal, &size, |ref mut terminal, chunks| {
-                Block::default()
-                    .borders(Borders::ALL)
-                    .render(terminal, &size);
+                Block::default().borders(Borders::ALL).render(terminal, &size);
                 Tabs::default()
                     .block(Block::default().borders(Borders::ALL).title("Tab Pages"))
                     .titles(&[
@@ -279,17 +271,10 @@ impl Application {
 
                 match app.tab_index {
                     0 => {
-                        Block::default()
-                            .borders(Borders::ALL)
-                            .render(terminal, &chunks[1]);
+                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Vertical)
-                            .sizes(&[
-                                Size::Percent(20),
-                                Size::Percent(25),
-                                Size::Percent(25),
-                                Size::Percent(30),
-                            ])
+                            .sizes(&[Size::Percent(20), Size::Percent(25), Size::Percent(25), Size::Percent(30)])
                             .margin(0)
                             .render(terminal, &chunks[1], |terminal, chunks| {
                                 let items: Vec<String>;
@@ -308,11 +293,7 @@ impl Application {
                                 }
 
                                 SelectableList::default()
-                                    .block(
-                                        Block::default()
-                                            .borders(Borders::ALL)
-                                            .title("Tracked Processes"),
-                                    )
+                                    .block(Block::default().borders(Borders::ALL).title("Tracked Processes"))
                                     .items(&items)
                                     .select(self.sel_index_processes)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -386,9 +367,7 @@ impl Application {
                     }
 
                     1 => {
-                        Block::default()
-                            .borders(Borders::ALL)
-                            .render(terminal, &chunks[1]);
+                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Horizontal)
                             .sizes(&[Size::Percent(100)])
@@ -415,9 +394,7 @@ impl Application {
                     }
 
                     2 => {
-                        Block::default()
-                            .borders(Borders::ALL)
-                            .render(terminal, &chunks[1]);
+                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Horizontal)
                             .sizes(&[Size::Percent(100)])
@@ -439,9 +416,7 @@ impl Application {
                     }
 
                     3 => {
-                        Block::default()
-                            .borders(Borders::ALL)
-                            .render(terminal, &chunks[1]);
+                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Horizontal)
                             .sizes(&[Size::Percent(100)])
@@ -449,16 +424,12 @@ impl Application {
                             .render(terminal, &chunks[1], |terminal, chunks| {
                                 Block::default().title("Stats").render(terminal, &chunks[0]);
 
-                                Paragraph::default()
-                                    .text("... Stats ...")
-                                    .render(terminal, &chunks[0]);
+                                Paragraph::default().text("... Stats ...").render(terminal, &chunks[0]);
                             });
                     }
 
                     4 => {
-                        Block::default()
-                            .borders(Borders::ALL)
-                            .render(terminal, &chunks[1]);
+                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
                         Group::default()
                             .direction(Direction::Horizontal)
                             .sizes(&[Size::Percent(100)])
@@ -560,12 +531,12 @@ fn main_loop(_config: &mut Config) {
                 }
 
                 macro_rules! request {
-                ($socket:ident, $command:expr) => {
-                    match do_request(&$socket, $command) {
+                    ($socket:ident, $command:expr) => {
+                        match do_request(&$socket, $command) {
                             Ok(data) => {
                                 GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
                                 tx.send(data).unwrap();
-                            },
+                            }
 
                             Err(_e) => {
                                 GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
@@ -720,9 +691,7 @@ fn process_message(app: &mut Application, msg: ipc::IpcMessage) {
         ipc::IpcCommand::SendStatistics(stats) => {
             let mut tmp = vec![];
             for e in stats {
-                let i = StatisticsListItem {
-                    datetime: e.datetime,
-                };
+                let i = StatisticsListItem { datetime: e.datetime };
                 tmp.push(i);
             }
 
@@ -940,9 +909,7 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
         &_ => Shell::Zsh,
     };
 
-    config
-        .clap
-        .gen_completions_to("precachedtop", shell, &mut io::stdout());
+    config.clap.gen_completions_to("precachedtop", shell, &mut io::stdout());
 }
 
 pub fn main() {

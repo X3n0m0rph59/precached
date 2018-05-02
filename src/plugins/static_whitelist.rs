@@ -30,9 +30,9 @@ use plugins::static_blacklist::StaticBlacklist;
 use std::any::Any;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::sync::mpsc::{channel, Sender};
 use storage;
 use util;
 
@@ -69,13 +69,7 @@ impl StaticWhitelist {
     fn get_file_whitelist(globals: &Globals) -> Vec<PathBuf> {
         let mut result = Vec::new();
 
-        let mut whitelist = globals
-            .config
-            .config_file
-            .clone()
-            .unwrap()
-            .whitelist
-            .unwrap();
+        let mut whitelist = globals.config.config_file.clone().unwrap().whitelist.unwrap();
 
         result.append(&mut whitelist);
 
@@ -85,13 +79,7 @@ impl StaticWhitelist {
     pub fn get_metadata_whitelist(&self, globals: &Globals) -> Vec<PathBuf> {
         let mut result = Vec::new();
 
-        let mut whitelist = globals
-            .config
-            .config_file
-            .clone()
-            .unwrap()
-            .metadata_whitelist
-            .unwrap();
+        let mut whitelist = globals.config.config_file.clone().unwrap().metadata_whitelist.unwrap();
 
         result.append(&mut whitelist);
 
@@ -101,13 +89,7 @@ impl StaticWhitelist {
     fn get_program_whitelist(globals: &Globals) -> Vec<String> {
         let mut result = Vec::new();
 
-        let mut program_whitelist = globals
-            .config
-            .config_file
-            .clone()
-            .unwrap()
-            .program_whitelist
-            .unwrap();
+        let mut program_whitelist = globals.config.config_file.clone().unwrap().program_whitelist.unwrap();
 
         result.append(&mut program_whitelist);
 
@@ -169,12 +151,7 @@ impl StaticWhitelist {
                                 }
                             }
                         }
-                    }).unwrap_or_else(|e| {
-                        error!(
-                            "Unhandled error occured during processing of files and directories! {}",
-                            e
-                        )
-                    });
+                    }).unwrap_or_else(|e| error!("Unhandled error occured during processing of files and directories! {}", e));
 
                     sc.lock().unwrap().send(mapped_files).unwrap();
                 });

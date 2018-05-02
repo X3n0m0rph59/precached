@@ -63,11 +63,7 @@ where
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about("Show the current status of the precached daemon")
-                .arg(
-                    Arg::with_name("long")
-                        .short("l")
-                        .help("Use long display format"),
-                ),
+                .arg(Arg::with_name("long").short("l").help("Use long display format")),
         )
         .subcommand(
             SubCommand::with_name("reload")

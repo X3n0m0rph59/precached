@@ -21,10 +21,10 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-extern crate rayon;
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
+extern crate rayon;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -46,24 +46,24 @@ use nix::libc::pid_t;
 use nix::sys::signal::*;
 use nix::unistd::*;
 use pbr::ProgressBar;
-use prettytable::Table;
 use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::row::Row;
+use prettytable::Table;
 use std::collections::HashSet;
 use std::fs::read_dir;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use term::Attr;
 use term::color::*;
+use term::Attr;
 
-mod util;
+mod clap_app;
+mod constants;
 mod iotrace;
 mod process;
 mod rules;
-mod constants;
-mod clap_app;
+mod util;
 
 /// Unicode characters used for drawing the progress bar
 const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
@@ -123,18 +123,9 @@ fn default_table_format(config: &Config) -> TableFormat {
         FormatBuilder::new()
             .column_separator('|')
             .borders('|')
-            .separators(
-                &[LinePosition::Top],
-                LineSeparator::new('─', '┬', '┌', '┐'),
-            )
-            .separators(
-                &[LinePosition::Intern],
-                LineSeparator::new('─', '┼', '├', '┤'),
-            )
-            .separators(
-                &[LinePosition::Bottom],
-                LineSeparator::new('─', '┴', '└', '┘'),
-            )
+            .separators(&[LinePosition::Top], LineSeparator::new('─', '┬', '┌', '┐'))
+            .separators(&[LinePosition::Intern], LineSeparator::new('─', '┼', '├', '┤'))
+            .separators(&[LinePosition::Bottom], LineSeparator::new('─', '┴', '└', '┘'))
             .padding(1, 1)
             .build()
     } else {
@@ -188,9 +179,7 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
         Cell::new(&"Daemon"),
         Cell::new(&format!("{}", is_precached_running))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(map_bool_to_color(
-                is_precached_running,
-            ))),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(is_precached_running))),
     ]));
 
     table.add_row(Row::new(vec![
@@ -199,9 +188,7 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
         Cell::new(&"Plugin"),
         Cell::new(&format!("{}", rules_engine_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(map_bool_to_color(
-                rules_engine_enabled,
-            ))),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(rules_engine_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
@@ -265,9 +252,7 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
                         Cell::new(&rule_file.metadata.description),
                         Cell::new(&format!("{}", rule_file.metadata.enabled))
                             .with_style(Attr::Bold)
-                            .with_style(Attr::ForegroundColor(map_bool_to_color(
-                                rule_file.metadata.enabled,
-                            ))),
+                            .with_style(Attr::ForegroundColor(map_bool_to_color(rule_file.metadata.enabled))),
                         Cell::new(&format!("{}", rule_file.metadata.version)),
                         Cell::new(&format!("{}", rule_file.rules.len())),
                     ]));
@@ -425,9 +410,7 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
         &_ => Shell::Zsh,
     };
 
-    config
-        .clap
-        .gen_completions_to("rulesctl", shell, &mut io::stdout());
+    config.clap.gen_completions_to("rulesctl", shell, &mut io::stdout());
 }
 
 /// Program entrypoint

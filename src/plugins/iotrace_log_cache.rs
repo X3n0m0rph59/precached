@@ -28,9 +28,9 @@ use plugins::plugin::PluginDescription;
 use std::any::Any;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::sync::mpsc::{channel, Sender};
 use storage;
 use util;
 
@@ -119,10 +119,7 @@ impl IOtraceLogCache {
                     self.mapped_files.insert(k, v);
                 }
 
-                info!(
-                    "Finished caching of single I/O trace log file {:?}",
-                    filename_c
-                );
+                info!("Finished caching of single I/O trace log file {:?}", filename_c);
             }
         }
     }
@@ -143,10 +140,7 @@ impl IOtraceLogCache {
             Some(mapping) => if !util::free_mapping(mapping) {
                 error!("Could not free cached I/O trace log {:?}", filename);
             } else {
-                info!(
-                    "Removed single I/O trace log file from cache: {:?}",
-                    filename
-                );
+                info!("Removed single I/O trace log file from cache: {:?}", filename);
             },
         }
     }
@@ -193,12 +187,7 @@ impl IOtraceLogCache {
                                 }
                             }
                         }
-                    }).unwrap_or_else(|e| {
-                        error!(
-                            "Unhandled error occured during processing of files and directories! {}",
-                            e
-                        )
-                    });
+                    }).unwrap_or_else(|e| error!("Unhandled error occured during processing of files and directories! {}", e));
 
                     sc.lock().unwrap().send(mapped_files).unwrap();
                 });

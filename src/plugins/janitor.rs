@@ -24,12 +24,12 @@ use events::EventType;
 use globals::*;
 use manager::*;
 // use hooks::process_tracker::ProcessTracker;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
 use plugins::hot_applications::HotApplications;
 use plugins::iotrace_log_manager::IOtraceLogManager;
-use std::time::{Duration, Instant};
+use plugins::plugin::Plugin;
+use plugins::plugin::PluginDescription;
 use std::any::Any;
+use std::time::{Duration, Instant};
 use storage;
 use util;
 

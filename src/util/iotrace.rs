@@ -22,8 +22,8 @@ extern crate libc;
 extern crate regex;
 extern crate term;
 
-use self::term::Attr;
 use self::term::color::*;
+use self::term::Attr;
 use chrono::{DateTime, Duration, Utc};
 use constants;
 use iotrace::*;

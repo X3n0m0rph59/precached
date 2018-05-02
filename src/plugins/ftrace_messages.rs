@@ -100,11 +100,7 @@ impl Plugin for FTraceMessages {
                 // self.insert_message(String::from("Startup: precached starting..."), globals, manager);
             }
             events::EventType::Shutdown => {
-                self.insert_message(
-                    String::from("Shutdown: precached terminating..."),
-                    globals,
-                    manager,
-                );
+                self.insert_message(String::from("Shutdown: precached terminating..."), globals, manager);
             }
             _ => {
                 // Ignore all other events

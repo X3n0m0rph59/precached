@@ -18,8 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod hook_manager;
 mod hook;
+mod hook_manager;
 
 pub use self::hook_manager::*;
 use globals::*;

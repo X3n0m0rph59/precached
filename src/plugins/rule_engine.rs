@@ -22,10 +22,10 @@ use constants;
 use events;
 use globals::*;
 use manager::*;
+use plugins::notifications::Notifications;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::vfs_stat_cache::VFSStatCache;
-use plugins::notifications::Notifications;
 use rules;
 use std::any::Any;
 use std::path::{Path, PathBuf};
@@ -82,10 +82,7 @@ impl RuleEngine {
                         let home_dir_str = &home_dir.to_string_lossy().to_string();
                         let message = Self::expand_variables(
                             &val,
-                            &[
-                                (&"$user".to_string(), user),
-                                (&"$home_dir".to_string(), home_dir_str),
-                            ],
+                            &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
                         );
 
                         message
@@ -158,10 +155,7 @@ impl RuleEngine {
                         let home_dir_str = &home_dir.to_string_lossy().to_string();
                         let message = Self::expand_variables(
                             &val,
-                            &[
-                                (&"$user".to_string(), user),
-                                (&"$home_dir".to_string(), home_dir_str),
-                            ],
+                            &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
                         );
 
                         message
@@ -230,10 +224,7 @@ impl RuleEngine {
                         let home_dir_str = &home_dir.to_string_lossy().to_string();
                         let path = Self::expand_variables(
                             &val,
-                            &[
-                                (&"$user".to_string(), user),
-                                (&"$home_dir".to_string(), home_dir_str),
-                            ],
+                            &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
                         );
 
                         let pm = manager.plugin_manager.read().unwrap();
@@ -385,15 +376,9 @@ impl RuleEngine {
 
                     Ok(rule_file) => {
                         if rule_file.metadata.enabled {
-                            info!(
-                                "Successfuly loaded rules '{}' (enabled)",
-                                rule_file.metadata.name
-                            );
+                            info!("Successfuly loaded rules '{}' (enabled)", rule_file.metadata.name);
                         } else {
-                            info!(
-                                "Successfuly loaded rules '{}' (disabled)",
-                                rule_file.metadata.name
-                            );
+                            info!("Successfuly loaded rules '{}' (disabled)", rule_file.metadata.name);
                         }
 
                         self.rule_files.push(rule_file);

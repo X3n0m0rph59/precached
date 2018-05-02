@@ -50,36 +50,21 @@ impl InotifyWatches {
             Ok(mut v) => {
                 // precached daemon main configuration file
                 let config_file_path = &globals.config.config_filename;
-                match v.add_watch(
-                    config_file_path,
-                    WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE,
-                ) {
+                match v.add_watch(config_file_path, WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE) {
                     Err(_) => {
-                        return Err(format!(
-                            "Failed to add inotify watch for: {:?}",
-                            config_file_path
-                        ));
+                        return Err(format!("Failed to add inotify watch for: {:?}", config_file_path));
                     }
 
                     Ok(_) => {
-                        debug!(
-                            "Successfuly added inotify watch for: {:?}",
-                            config_file_path
-                        );
+                        debug!("Successfuly added inotify watch for: {:?}", config_file_path);
                     }
                 }
 
                 // I/O traces directory and contents
                 let iotraces_path = Path::new(constants::STATE_DIR).join(constants::IOTRACE_DIR);
-                match v.add_watch(
-                    &iotraces_path,
-                    WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE,
-                ) {
+                match v.add_watch(&iotraces_path, WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE) {
                     Err(_) => {
-                        return Err(format!(
-                            "Failed to add inotify watch for: {:?}",
-                            iotraces_path
-                        ));
+                        return Err(format!("Failed to add inotify watch for: {:?}", iotraces_path));
                     }
 
                     Ok(_) => {
@@ -108,12 +93,7 @@ impl InotifyWatches {
 
                             Some(path) => {
                                 events::queue_internal_event(
-                                    EventType::InotifyEvent(
-                                        EventMaskWrapper {
-                                            event_mask: event.mask,
-                                        },
-                                        PathBuf::from(path),
-                                    ),
+                                    EventType::InotifyEvent(EventMaskWrapper { event_mask: event.mask }, PathBuf::from(path)),
                                     globals,
                                 );
                             }
@@ -149,9 +129,7 @@ pub struct EventMaskWrapper {
 
 impl EventMaskWrapper {
     pub fn new(event_mask: inotify::EventMask) -> EventMaskWrapper {
-        EventMaskWrapper {
-            event_mask: event_mask,
-        }
+        EventMaskWrapper { event_mask: event_mask }
     }
 }
 
@@ -233,8 +211,7 @@ impl<'de> Deserialize<'de> for EventMaskWrapper {
             where
                 V: SeqAccess<'de>,
             {
-                let event_mask: u32 = seq.next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(0, &self))?;
+                let event_mask: u32 = seq.next_element()?.ok_or_else(|| de::Error::invalid_length(0, &self))?;
 
                 let event_mask: inotify::EventMask = unsafe { mem::transmute(event_mask) };
 

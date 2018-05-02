@@ -85,27 +85,15 @@ impl RuleEventBridge {
             }
 
             events::EventType::OptimizeIOTraceLog(path) => {
-                Self::rule_engine_fire_event(
-                    rules::Event::OptimizeIOTraceLog(Some(path)),
-                    globals,
-                    manager,
-                );
+                Self::rule_engine_fire_event(rules::Event::OptimizeIOTraceLog(Some(path)), globals, manager);
             }
 
             events::EventType::IoTraceLogCreated(path) => {
-                Self::rule_engine_fire_event(
-                    rules::Event::IoTraceLogCreated(Some(path)),
-                    globals,
-                    manager,
-                );
+                Self::rule_engine_fire_event(rules::Event::IoTraceLogCreated(Some(path)), globals, manager);
             }
 
             events::EventType::IoTraceLogRemoved(path) => {
-                Self::rule_engine_fire_event(
-                    rules::Event::IoTraceLogRemoved(Some(path)),
-                    globals,
-                    manager,
-                );
+                Self::rule_engine_fire_event(rules::Event::IoTraceLogRemoved(Some(path)), globals, manager);
             }
 
             events::EventType::GatherStatsAndMetrics => {

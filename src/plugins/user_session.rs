@@ -21,10 +21,10 @@
 extern crate indexmap;
 extern crate users;
 
-use self::indexmap::IndexMap;
 use self::indexmap::map::Entry::{Occupied, Vacant};
-use self::users::*;
+use self::indexmap::IndexMap;
 use self::users::os::unix::UserExt;
+use self::users::*;
 use events;
 use events::EventType;
 use globals::*;
@@ -95,11 +95,7 @@ impl UserSession {
                         let p = p.read().unwrap();
                         let rule_event_bridge = p.as_any().downcast_ref::<RuleEventBridge>().unwrap();
 
-                        rule_event_bridge.fire_event(
-                            rules::Event::UserLogin(Some(u), Some(home_dir)),
-                            globals,
-                            manager,
-                        );
+                        rule_event_bridge.fire_event(rules::Event::UserLogin(Some(u), Some(home_dir)), globals, manager);
                     }
                 };
             }

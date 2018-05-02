@@ -20,7 +20,6 @@
 
 extern crate libc;
 
-use EXIT_NOW;
 use constants;
 use events;
 use events::EventType;
@@ -35,16 +34,17 @@ use plugins::static_blacklist::StaticBlacklist;
 use process::Process;
 use procmon;
 use std::any::Any;
-use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 use util;
 use util::Contains;
+use EXIT_NOW;
 
 static NAME: &str = "ftrace_logger";
 static DESCRIPTION: &str = "Trace processes using ftrace and log their filesystem activity";
@@ -73,9 +73,7 @@ pub struct FtraceLogger {
 
 impl FtraceLogger {
     pub fn new() -> FtraceLogger {
-        FtraceLogger {
-            tracer_thread: None,
-        }
+        FtraceLogger { tracer_thread: None }
     }
 
     /// Thread entrypoint/main function of the "ftrace thread"
@@ -124,9 +122,7 @@ impl FtraceLogger {
                             if let Some(process) = process_tracker.get_process(pid) {
                                 comm = process.comm.clone();
                             } else if let Ok(process) = Process::new(pid) {
-                                comm = process
-                                    .get_comm()
-                                    .unwrap_or_else(|_| String::from("<not available>"));
+                                comm = process.get_comm().unwrap_or_else(|_| String::from("<not available>"));
                             }
 
                             // NOTE: We have to use `lock()` here instead of `try_lock()`
@@ -312,9 +308,7 @@ impl FtraceLogger {
                     comm = process.comm.clone();
                     exe = process.get_exe();
                 } else if let Ok(process) = Process::new(event.pid) {
-                    comm = process
-                        .get_comm()
-                        .unwrap_or_else(|_| String::from("<not available>"));
+                    comm = process.get_comm().unwrap_or_else(|_| String::from("<not available>"));
                     exe = process.get_exe();
                 }
 
@@ -364,19 +358,12 @@ impl FtraceLogger {
                                                 "Could not enable ftrace for process '{}' with pid {}: {}",
                                                 comm, event.pid, e
                                             ),
-                                            Ok(()) => trace!(
-                                                "Enabled ftrace for process '{}' with pid {}",
-                                                comm,
-                                                event.pid
-                                            ),
+                                            Ok(()) => trace!("Enabled ftrace for process '{}' with pid {}", comm, event.pid),
                                         }
                                     }
                                 }
                             } else {
-                                info!(
-                                    "We already have a valid I/O trace log for process with pid: {}",
-                                    event.pid
-                                );
+                                info!("We already have a valid I/O trace log for process with pid: {}", event.pid);
                             }
                         } else {
                             info!(
@@ -497,11 +484,7 @@ impl FtraceLogger {
                                         comm, event.pid, e
                                     ),
 
-                                    Ok(()) => trace!(
-                                        "Disabled ftrace for process '{}' with pid {}",
-                                        comm,
-                                        event.pid
-                                    ),
+                                    Ok(()) => trace!("Disabled ftrace for process '{}' with pid {}", comm, event.pid),
                                 }
                             }
                         }

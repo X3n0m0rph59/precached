@@ -18,32 +18,32 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod plugin_manager;
 pub mod plugin;
+pub mod plugin_manager;
 
 pub use self::plugin_manager::*;
 use globals::*;
 use manager::*;
 
 // pub mod system_agent;
-pub mod vfs_stat_cache;
 pub mod iotrace_log_cache;
+pub mod iotrace_log_manager;
 pub mod static_blacklist;
 pub mod static_whitelist;
-pub mod iotrace_log_manager;
+pub mod vfs_stat_cache;
 // pub mod markov_log_manager;
 pub mod hot_applications;
-pub mod user_session;
-pub mod statistics;
 pub mod metrics;
 pub mod notifications;
+pub mod statistics;
+pub mod user_session;
 // pub mod forkbomb_mitigation;
 // pub mod rule_plugin;
 pub mod ftrace_messages;
 pub mod inotify_multiplexer;
+pub mod janitor;
 pub mod rule_engine;
 pub mod rule_event_bridge;
-pub mod janitor;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     inotify_multiplexer::register_plugin(globals, manager);

@@ -94,12 +94,8 @@ impl hook::Hook for ProcessTracker {
 
                     Ok(process) => {
                         // add process to tracking map
-                        self.get_tracked_processes()
-                            .insert(event.pid, process.clone());
-                        info!(
-                            "Now tracking process '{}' pid: {}",
-                            process.comm, process.pid
-                        );
+                        self.get_tracked_processes().insert(event.pid, process.clone());
+                        info!("Now tracking process '{}' pid: {}", process.comm, process.pid);
 
                         events::queue_internal_event(EventType::TrackedProcessChanged(event_c), globals);
                     }
@@ -111,10 +107,7 @@ impl hook::Hook for ProcessTracker {
                 match process {
                     None => {}
                     Some(process) => {
-                        info!(
-                            "Removed tracked process '{}' with pid: {}",
-                            process.comm, process.pid
-                        );
+                        info!("Removed tracked process '{}' with pid: {}", process.comm, process.pid);
                         events::queue_internal_event(EventType::TrackedProcessChanged(event_c), globals);
                     }
                 }

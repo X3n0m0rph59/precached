@@ -18,8 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate threadpool;
 extern crate num_cpus;
+extern crate threadpool;
 
 use constants;
 use std::sync::Arc;

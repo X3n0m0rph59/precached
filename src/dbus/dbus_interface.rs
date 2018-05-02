@@ -22,8 +22,8 @@ extern crate dbus;
 extern crate lazy_static;
 extern crate libc;
 
-use self::dbus::{tree, BusType, Connection, Path};
 use self::dbus::tree::{Access, EmitsChangedSignal, Interface, MTFn, MethodErr, Signal};
+use self::dbus::{tree, BusType, Connection, Path};
 use constants;
 use events;
 use events::EventType;
@@ -40,8 +40,8 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::path;
 use std::result::Result;
-use std::sync::{Arc, Mutex};
 use std::sync::mpsc;
+use std::sync::{Arc, Mutex};
 use storage;
 
 pub fn create_dbus_interface(_globals: &mut Globals, _manager: &mut Manager) -> DBUSInterface {
@@ -78,9 +78,7 @@ impl ProcessStats {
         ProcessStats {
             path: format!("/Process/{}", pid).into(),
             process: process.clone(),
-            comm: process
-                .get_comm()
-                .unwrap_or_else(|_| String::from("<not available>")),
+            comm: process.get_comm().unwrap_or_else(|_| String::from("<not available>")),
             pid: pid,
         }
     }
@@ -237,11 +235,7 @@ fn create_io_trace_stats_tree(
     let mut tree = f.tree(());
 
     for l in io_trace_logs {
-        tree = tree.add(
-            f.object_path(l.path.clone(), l.clone())
-                .introspectable()
-                .add(iface.clone()),
-        );
+        tree = tree.add(f.object_path(l.path.clone(), l.clone()).introspectable().add(iface.clone()));
     }
 
     tree
@@ -254,11 +248,7 @@ fn create_process_stats_tree(
     let f = tree::Factory::new_fn();
     let mut tree = f.tree(());
     for p in processes {
-        tree = tree.add(
-            f.object_path(p.path.clone(), p.clone())
-                .introspectable()
-                .add(iface.clone()),
-        );
+        tree = tree.add(f.object_path(p.path.clone(), p.clone()).introspectable().add(iface.clone()));
     }
     tree
 }

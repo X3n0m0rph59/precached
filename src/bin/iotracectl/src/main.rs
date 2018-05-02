@@ -21,10 +21,10 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-extern crate rayon;
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
+extern crate rayon;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -43,26 +43,26 @@ extern crate zstd;
 
 use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use iotrace::IOTraceLogFlag;
 use pbr::ProgressBar;
-use prettytable::Table;
 use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::row::Row;
+use prettytable::Table;
+use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::fs::read_dir;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use std::cmp::{max, min};
-use term::Attr;
 use term::color::*;
-use iotrace::IOTraceLogFlag;
+use term::Attr;
 
-mod util;
-mod process;
-mod iotrace;
-mod constants;
 mod clap_app;
+mod constants;
+mod iotrace;
+mod process;
+mod util;
 
 /// Unicode characters used for drawing the progress bar
 const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
@@ -122,18 +122,9 @@ fn default_table_format(config: &Config) -> TableFormat {
         FormatBuilder::new()
             .column_separator('|')
             .borders('|')
-            .separators(
-                &[LinePosition::Top],
-                LineSeparator::new('─', '┬', '┌', '┐'),
-            )
-            .separators(
-                &[LinePosition::Intern],
-                LineSeparator::new('─', '┼', '├', '┤'),
-            )
-            .separators(
-                &[LinePosition::Bottom],
-                LineSeparator::new('─', '┴', '└', '┘'),
-            )
+            .separators(&[LinePosition::Top], LineSeparator::new('─', '┬', '┌', '┐'))
+            .separators(&[LinePosition::Intern], LineSeparator::new('─', '┼', '├', '┤'))
+            .separators(&[LinePosition::Bottom], LineSeparator::new('─', '┴', '└', '┘'))
             .padding(1, 1)
             .build()
     } else {
@@ -311,15 +302,10 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             Cell::new(&format_date(io_trace.created_at)),
             Cell::new_align(&format!("{}", io_trace.file_map.len()), Alignment::RIGHT),
             Cell::new_align(&format!("{}", io_trace.trace_log.len()), Alignment::RIGHT),
-            Cell::new_align(
-                &format!("{} KiB", io_trace.accumulated_size / 1024),
-                Alignment::RIGHT,
-            ),
+            Cell::new_align(&format!("{} KiB", io_trace.accumulated_size / 1024), Alignment::RIGHT),
             Cell::new(&format!("{}", io_trace.trace_log_optimized))
                 .with_style(Attr::Bold)
-                .with_style(Attr::ForegroundColor(map_bool_to_color(
-                    io_trace.trace_log_optimized,
-                ))),
+                .with_style(Attr::ForegroundColor(map_bool_to_color(io_trace.trace_log_optimized))),
             Cell::new(&format!("{}", flags))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(color)),
@@ -396,9 +382,7 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
         Cell::new(&"Hook"),
         Cell::new(&format!("{}", ftrace_logger_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(map_bool_to_color(
-                ftrace_logger_enabled,
-            ))),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(ftrace_logger_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
@@ -407,9 +391,7 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
         Cell::new(&"Hook"),
         Cell::new(&format!("{}", iotrace_prefetcher_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(map_bool_to_color(
-                iotrace_prefetcher_enabled,
-            ))),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(iotrace_prefetcher_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
@@ -418,9 +400,7 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
         Cell::new(&"Plugin"),
         Cell::new(&format!("{}", iotrace_log_manager_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(map_bool_to_color(
-                iotrace_log_manager_enabled,
-            ))),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(iotrace_log_manager_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
@@ -429,9 +409,7 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
         Cell::new(&"Plugin"),
         Cell::new(&format!("{}", iotrace_log_cache_enabled))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(map_bool_to_color(
-                iotrace_log_cache_enabled,
-            ))),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(iotrace_log_cache_enabled))),
     ]));
 
     table.printstd();
@@ -530,12 +508,7 @@ where
         pb.inc();
         index += 1;
     }) {
-        Err(e) => {
-            return Err(format!(
-                "Error during enumeration of I/O trace log files: {}",
-                e
-            ))
-        }
+        Err(e) => return Err(format!("Error during enumeration of I/O trace log files: {}", e)),
         _ => { /* Do nothing */ }
     }
 
@@ -604,12 +577,7 @@ where
             if sort_order == SortOrder::Ascending {
                 result.sort_by(|a, b| a.0.trace_log_optimized.cmp(&b.0.trace_log_optimized));
             } else {
-                result.sort_by(|a, b| {
-                    a.0
-                        .trace_log_optimized
-                        .cmp(&b.0.trace_log_optimized)
-                        .reverse()
-                });
+                result.sort_by(|a, b| a.0.trace_log_optimized.cmp(&b.0.trace_log_optimized).reverse());
             }
         }
     }
@@ -771,12 +739,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let mut matching = 0;
     let mut errors = 0;
 
-    let hash = config
-        .matches
-        .subcommand_matches("dump")
-        .unwrap()
-        .value_of("hash")
-        .unwrap();
+    let hash = config.matches.subcommand_matches("dump").unwrap().value_of("hash").unwrap();
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -1008,11 +971,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     pb.format(PROGRESS_BAR_INDICATORS);
     pb.message("Optimizing I/O trace log files: ");
 
-    let dry_run = config
-        .matches
-        .subcommand_matches("optimize")
-        .unwrap()
-        .is_present("dryrun");
+    let dry_run = config.matches.subcommand_matches("optimize").unwrap().is_present("dryrun");
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -1108,11 +1067,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     pb.format(PROGRESS_BAR_INDICATORS);
     pb.message("Removing I/O trace log files: ");
 
-    let dry_run = config
-        .matches
-        .subcommand_matches("remove")
-        .unwrap()
-        .is_present("dryrun");
+    let dry_run = config.matches.subcommand_matches("remove").unwrap().is_present("dryrun");
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -1196,11 +1151,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let mut matching = 0;
     let mut errors = 0;
 
-    let dry_run = config
-        .matches
-        .subcommand_matches("clear")
-        .unwrap()
-        .is_present("dryrun");
+    let dry_run = config.matches.subcommand_matches("clear").unwrap().is_present("dryrun");
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -1331,9 +1282,7 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
         &_ => Shell::Zsh,
     };
 
-    config
-        .clap
-        .gen_completions_to("iotracectl", shell, &mut io::stdout());
+    config.clap.gen_completions_to("iotracectl", shell, &mut io::stdout());
 }
 
 /// Program entrypoint

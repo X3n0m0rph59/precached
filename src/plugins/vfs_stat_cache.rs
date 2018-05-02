@@ -82,12 +82,7 @@ impl VFSStatCache {
                         }
 
                         let _metadata = path.metadata();
-                    }).unwrap_or_else(|e| {
-                        error!(
-                            "Unhandled error occured during processing of files and directories! {}",
-                            e
-                        )
-                    });
+                    }).unwrap_or_else(|e| error!("Unhandled error occured during processing of files and directories! {}", e));
                 });
 
                 info!("Finished reading of statx() metadata for whitelisted files");
@@ -120,12 +115,7 @@ impl VFSStatCache {
                         }
 
                         let _metadata = path.metadata();
-                    }).unwrap_or_else(|e| {
-                        error!(
-                            "Unhandled error occured during processing of files and directories! {}",
-                            e
-                        )
-                    });
+                    }).unwrap_or_else(|e| error!("Unhandled error occured during processing of files and directories! {}", e));
                 });
 
                 info!("Finished reading of statx() metadata for whitelisted files");

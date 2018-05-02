@@ -64,15 +64,13 @@ where
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about("Show the current status of the precached I/O tracing subsystem")
-                .arg(
-                    Arg::with_name("tabular")
+                .arg(Arg::with_name("tabular")
                             .long("tabular")
                             // .short("t")
                             // .conflicts_with("full")
                             // .conflicts_with("short")
                             // .conflicts_with("terse")
-                            .help("Use 'tabular' display format"),
-                ),
+                            .help("Use 'tabular' display format")),
         )
         .subcommand(
             SubCommand::with_name("list")
@@ -144,9 +142,7 @@ where
                         .long("flags")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&[
-                            "valid", "invalid", "fresh", "expired", "current", "outdated", "missing"
-                        ])
+                        .possible_values(&["valid", "invalid", "fresh", "expired", "current", "outdated", "missing"])
                         .help("Filter for flags of the I/O trace"),
                 )
                 .arg(
@@ -154,15 +150,7 @@ where
                         .long("sort")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&[
-                            "executable",
-                            "hash",
-                            "date",
-                            "numfiles",
-                            "numioops",
-                            "iosize",
-                            "optimized",
-                        ])
+                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
                         .default_value("date")
                         .help("Sort entries by field"),
                 )
@@ -225,9 +213,7 @@ where
                         .long("flags")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&[
-                            "valid", "invalid", "fresh", "expired", "current", "outdated", "missing"
-                        ])
+                        .possible_values(&["valid", "invalid", "fresh", "expired", "current", "outdated", "missing"])
                         .help("Filter for flags of the I/O trace"),
                 )
                 .arg(
@@ -235,15 +221,7 @@ where
                         .long("sort")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&[
-                            "executable",
-                            "hash",
-                            "date",
-                            "numfiles",
-                            "numioops",
-                            "iosize",
-                            "optimized",
-                        ])
+                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
                         .default_value("date")
                         .help("Sort entries by field"),
                 )
@@ -335,9 +313,7 @@ where
                         .long("flags")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&[
-                            "valid", "invalid", "fresh", "expired", "current", "outdated", "missing"
-                        ])
+                        .possible_values(&["valid", "invalid", "fresh", "expired", "current", "outdated", "missing"])
                         .help("Filter for flags of the I/O trace"),
                 )
                 .arg(
@@ -345,15 +321,7 @@ where
                         .long("sort")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&[
-                            "executable",
-                            "hash",
-                            "date",
-                            "numfiles",
-                            "numioops",
-                            "iosize",
-                            "optimized",
-                        ])
+                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
                         .default_value("date")
                         .help("Sort entries by field"),
                 )
@@ -408,9 +376,7 @@ where
                         .long("flags")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&[
-                            "valid", "invalid", "fresh", "expired", "current", "outdated", "missing"
-                        ])
+                        .possible_values(&["valid", "invalid", "fresh", "expired", "current", "outdated", "missing"])
                         .help("Filter for flags of the I/O trace"),
                 )
                 .arg(
@@ -418,15 +384,7 @@ where
                         .long("sort")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&[
-                            "executable",
-                            "hash",
-                            "date",
-                            "numfiles",
-                            "numioops",
-                            "iosize",
-                            "optimized",
-                        ])
+                        .possible_values(&["executable", "hash", "date", "numfiles", "numioops", "iosize", "optimized"])
                         .default_value("date")
                         .help("Sort entries by field"),
                 )

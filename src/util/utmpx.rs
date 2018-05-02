@@ -72,25 +72,21 @@ pub fn get_utmpx() -> Vec<UtmpxRecord> {
 
         let _ = file.seek(SeekFrom::Current(2));
 
-        let ut_pid = file.read_i32::<LittleEndian>()
-            .expect("Could not read ut_pid");
+        let ut_pid = file.read_i32::<LittleEndian>().expect("Could not read ut_pid");
 
         // let _ = file.seek(SeekFrom::Current(2));
 
         let mut ut_line: [u8; 32] = [0u8; 32];
-        file.read_exact(&mut ut_line)
-            .expect("Could not read ut_line");
+        file.read_exact(&mut ut_line).expect("Could not read ut_line");
 
         let mut ut_id: [u8; 4] = [0u8; 4];
         file.read_exact(&mut ut_id).expect("Could not read ut_id");
 
         let mut ut_user: [u8; 32] = [0u8; 32];
-        file.read_exact(&mut ut_user)
-            .expect("Could not read ut_user");
+        file.read_exact(&mut ut_user).expect("Could not read ut_user");
 
         let mut ut_host: [u8; 256] = [0u8; 256];
-        file.read_exact(&mut ut_host)
-            .expect("Could not read ut_host");
+        file.read_exact(&mut ut_host).expect("Could not read ut_host");
 
         // 330 bytes until here
 
