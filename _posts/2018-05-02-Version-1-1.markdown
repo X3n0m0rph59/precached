@@ -1,5 +1,5 @@
 ---
-title: "Version 1.0"
+title: "Version 1.1"
 date:   2018-05-02 09:59:00
 categories: release
 ---
