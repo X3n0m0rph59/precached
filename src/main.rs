@@ -31,10 +31,12 @@
 #![allow(unused_imports)]
 #![allow(unused_must_use)]
 
+#[macro_use]
+extern crate log;
+extern crate pretty_env_logger;
 extern crate ansi_term;
 extern crate chrono;
-extern crate fern;
-extern crate log_panics;
+// extern crate log_panics;
 
 #[macro_use]
 extern crate daemonize;
@@ -42,8 +44,6 @@ extern crate daemonize;
 extern crate enum_primitive;
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate log;
 #[macro_use]
 extern crate serde_derive;
 extern crate syslog;
@@ -54,7 +54,7 @@ extern crate rayon;
 extern crate toml;
 
 use ansi_term::Style;
-use log::{Level, Log};
+use log::{Level, Log, LevelFilter};
 use nix::sys::signal;
 use std::env;
 use std::io;
@@ -246,108 +246,13 @@ fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager:
     m.dispatch_event(event, globals, manager);
 }
 
-fn setup_logging() -> Result<(), fern::InitError> {
-    let base_config = fern::Dispatch::new();
-    // base_config.level(log::LogLevelFilter::Info);
-    //.level_for("", log::LogLevelFilter::Info)
-
-    // let file_config = fern::Dispatch::new()
-    //     .format(|out, message, record| {
-    //         out.finish(format_args!(
-    //             "{}[{}][{}] {}",
-    //             chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
-    //             record.target(),
-    //             record.level(),
-    //             message
-    //         ))
-    //     })
-    //     .chain(fern::log_file("precached.log")?);
-
-    // let stdout_config = fern::Dispatch::new()
-    //     .format(|out, message, record| {
-    //         out.finish(format_args!("[{}][{}][{}] {}",
-    //                                 chrono::Local::now().format("%H:%M"),
-    //                                 record.target(),
-    //                                 record.level(),
-    //                                 message))
-    //     })
-    //     .chain(io::stdout());
-
-    let level_filter = match env::var("LOG_LEVEL") {
-        Ok(val) => match val.to_lowercase().as_ref() {
-            "trace" => log::LevelFilter::Trace,
-            "debug" => log::LevelFilter::Debug,
-            "info" => log::LevelFilter::Info,
-            "warn" => log::LevelFilter::Warn,
-            "error" => log::LevelFilter::Error,
-            &_ => constants::DEFAULT_LOG_LEVEL,
-        },
-        _ => constants::DEFAULT_LOG_LEVEL,
-    };
-
-    util::MAX_MODULE_WIDTH.store(constants::INITIAL_MODULE_WIDTH, Ordering::Relaxed);
-
-    let console = fern::Dispatch::new()
-        .format(move |out, _message, record| {
-            let mut module_path = format!(
-                "{}:{}",
-                record.file().unwrap().to_string(),
-                record.line().unwrap().to_string()
-            );
-
-            let max_width = util::MAX_MODULE_WIDTH.load(Ordering::Relaxed);
-            if max_width > module_path.len() {
-                let diff = max_width - module_path.len();
-                module_path.extend(std::iter::repeat(' ').take(diff));
-            } else {
-                util::MAX_MODULE_WIDTH.store(module_path.len(), Ordering::Relaxed);
-            }
-
-            out.finish(format_args!(
-                "[{}] {}:{}: {}",
-                chrono::Local::now().format("%H:%M:%S"),
-                util::Level { level: record.level() },
-                Style::new().bold().paint(module_path),
-                record.args()
-            ));
-        })
-        .chain(io::stdout());
-
-    syslog::init(Facility::LOG_DAEMON, log::LevelFilter::Debug, Some("precached")).unwrap();
-
-    let syslog = fern::Dispatch::new()
-        .format(move |_out, message, record| {
-            let pid = nix::unistd::getpid();
-            let formatter = Formatter3164 {
-                facility: Facility::LOG_DAEMON,
-                hostname: None,
-                process: "precached".into(),
-                pid: pid.into(),
-            };
-            let mut connection = syslog::unix(formatter).unwrap();
-
-            match record.level() {
-                Level::Trace => connection.debug(message).unwrap(), // NOTE: map level Trace to Debug
-                Level::Debug => connection.debug(message).unwrap(),
-                Level::Info => connection.info(message).unwrap(),
-                Level::Warn => connection.warning(message).unwrap(),
-                Level::Error => connection.err(message).unwrap(),
-            };
-        })
-        .chain(console);
-
-    base_config.chain(syslog).level(level_filter).apply()?;
-
-    Ok(())
-}
-
 /// Program entrypoint
 fn main() {
     // Initialize panic handler
     // log_panics::init();
 
-    // Initialize logging subsystem
-    setup_logging().expect("Could not initialize the logging subsystem!");
+    // Initialize logging subsystem    
+    pretty_env_logger::init();
 
     if unsafe { nix::libc::isatty(0) } == 1 {
         print_license_header();

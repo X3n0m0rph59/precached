@@ -109,13 +109,13 @@ impl Metrics {
     }
 
     pub fn get_available_mem_percentage(&self) -> u8 {
-        let mem_info = sys_info::mem_info().unwrap();
+        let mem_info = sys_info::mem_info().expect("Could not fetch memory status information!");
 
         (mem_info.avail * 100 / mem_info.total) as u8
     }
 
     pub fn get_free_mem_percentage(&self) -> u8 {
-        let mem_info = sys_info::mem_info().unwrap();
+        let mem_info = sys_info::mem_info().expect("Could not fetch memory status information!");
 
         (mem_info.free * 100 / mem_info.total) as u8
     }
@@ -123,7 +123,7 @@ impl Metrics {
     pub fn gather_metrics(&mut self, globals: &mut Globals, _manager: &Manager) {
         trace!("Gathering global performance metrics...");
 
-        let mem_info = sys_info::mem_info().unwrap();
+        let mem_info = sys_info::mem_info().expect("Could not fetch memory status information!");
         debug!("{:?}", mem_info);
 
         let available_mem_critical_threshold = globals
