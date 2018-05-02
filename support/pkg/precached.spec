@@ -1,6 +1,6 @@
 %global OrigName precached
 
-Name:    precached-git
+Name:    precached
 Version: 1.1.0
 Release: 27%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
