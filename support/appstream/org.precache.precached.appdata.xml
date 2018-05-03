@@ -38,6 +38,7 @@
 ​    <binary>precachedctl</binary>
 ​    <binary>precachedtop</binary>
 ​    <binary>iotracectl</binary>
+​    <binary>rulesctl</binary>
 
 		<dbus type="system">org.precached.precached1</dbus>
 ​  </provides>
@@ -48,8 +49,13 @@
 ​        <p>Development release</p>
 ​      </description>
 ​    </release>
+	<release version="1.1.0" date="2018-05-02">
+​      <description>
+​        <p>Stable release</p>
+​      </description>
+​    </release>
 ​  </releases>
 
-	<developer_name>precached Team</developer_name>
-	<update_contact>x3n0m0rph59@gmail.com</update_contact>
+  <developer_name>precached Team</developer_name>
+  <update_contact>x3n0m0rph59@gmail.com</update_contact>
 ​</component>
