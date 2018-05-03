@@ -172,7 +172,7 @@ impl IOtraceLogManager {
             debug!("{} I/O trace logs examined, no I/O trace logs needed to be pruned", counter);
         } else {
             debug!(
-                "{} I/O trace logs examined, {} stale logs pruned, {} errors occured",
+                "{} I/O trace logs examined, {} stale logs pruned, {} errors occurred",
                 counter, pruned, errors
             );
         }
@@ -197,7 +197,7 @@ impl IOtraceLogManager {
                         }
 
                         Ok(_) => {
-                            info!("I/O trace log optimized succesfuly!");
+                            info!("I/O trace log optimized successfully!");
                         }
                     }
                 }
@@ -252,7 +252,7 @@ impl IOtraceLogManager {
             );
         } else {
             info!(
-                "{} I/O trace logs examined, {} logs optimized, {} errors occured",
+                "{} I/O trace logs examined, {} logs optimized, {} errors occurred",
                 counter, optimized, errors
             );
         }

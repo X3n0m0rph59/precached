@@ -85,7 +85,7 @@ pub enum IpcCommand {
     Pong,
 
     Connect,
-    ConnectedSuccessfuly,
+    ConnectedSuccessfully,
     Close,
 
     RequestTrackedProcesses,
@@ -192,7 +192,7 @@ impl IpcServer {
                     IpcCommand::Connect => {
                         info!("IPC client connected");
 
-                        let cmd = IpcMessage::new(IpcCommand::ConnectedSuccessfuly);
+                        let cmd = IpcMessage::new(IpcCommand::ConnectedSuccessfully);
                         let buf = serde_json::to_string(&cmd).unwrap();
 
                         match socket.send(&buf, 0) {
@@ -201,7 +201,7 @@ impl IpcServer {
                             }
 
                             Ok(()) => {
-                                trace!("Successfuly sent reply");
+                                trace!("Successfully sent reply");
                             }
                         }
                     }
@@ -216,7 +216,7 @@ impl IpcServer {
                         }
 
                         Ok(()) => {
-                            trace!("Successfuly sent reply");
+                            trace!("Successfully sent reply");
                         }
                     },
 
@@ -226,7 +226,7 @@ impl IpcServer {
                         }
 
                         Ok(()) => {
-                            trace!("Successfuly sent reply");
+                            trace!("Successfully sent reply");
                         }
                     },
 
@@ -236,7 +236,7 @@ impl IpcServer {
                         }
 
                         Ok(()) => {
-                            trace!("Successfuly sent reply");
+                            trace!("Successfully sent reply");
                         }
                     },
 
@@ -246,7 +246,7 @@ impl IpcServer {
                         }
 
                         Ok(()) => {
-                            trace!("Successfuly sent reply");
+                            trace!("Successfully sent reply");
                         }
                     },
 
@@ -256,7 +256,7 @@ impl IpcServer {
                         }
 
                         Ok(()) => {
-                            trace!("Successfuly sent reply");
+                            trace!("Successfully sent reply");
                         }
                     },
 
@@ -266,7 +266,7 @@ impl IpcServer {
                         }
 
                         Ok(()) => {
-                            trace!("Successfuly sent reply");
+                            trace!("Successfully sent reply");
                         }
                     },
 

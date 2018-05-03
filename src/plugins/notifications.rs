@@ -108,7 +108,7 @@ impl Notifications {
                 Err(e) => {
                     warn!("Could not send a notification to the primary user's desktop! {}", e);
                 },
-                _ => { /* Successfuly displayed the notification, just do nothing */ }
+                _ => { /* Successfully displayed the notification, just do nothing */ }
             }*/
 
         // Command::new("/usr/bin/notify-send")

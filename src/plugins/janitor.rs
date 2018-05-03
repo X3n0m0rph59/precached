@@ -164,7 +164,7 @@ impl Plugin for Janitor {
             events::EventType::Ping => {
                 // Check every n (ping) seconds whether:
                 // * If janitor_needs_to_run is set, "whether we need to run at all"
-                // * After daemon startup: We did not allready ran AND the delay time after daemon startup passed
+                // * After daemon startup: We did not already ran AND the delay time after daemon startup passed
                 // * The time MIN_HOUSEKEEPING_INTERVAL_SECS passed
                 if self.janitor_needs_to_run
                     && (!self.janitor_ran_once

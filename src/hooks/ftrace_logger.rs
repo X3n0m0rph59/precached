@@ -141,7 +141,7 @@ impl FtraceLogger {
                                     // Lock succeeded
                                     match active_tracers.entry(pid) {
                                         Occupied(mut tracer_data) => {
-                                            // We successfuly found tracer data for process `pid`
+                                            // We successfully found tracer data for process `pid`
                                             // Add an event record to the I/O trace log of that process
                                             let iotrace_log = &mut tracer_data.get_mut().trace_log;
                                             match event.syscall {
@@ -443,7 +443,7 @@ impl FtraceLogger {
                     match ACTIVE_TRACERS.lock() {
                         Err(e) => warn!("Could not take a lock on a shared data structure! {}", e),
                         Ok(mut active_tracers) => {
-                            // We successfuly acquired the lock
+                            // We successfully acquired the lock
                             if !active_tracers.contains_key(&event.pid) {
                                 // We received an "exit" event for a process that we didn't track (or don't track anymore)
                                 // This may happen if we noticed the demise of a process that was started before our daemon,
@@ -550,7 +550,7 @@ impl hook::Hook for FtraceLogger {
                 //         trace!("Joining ftrace log parser thread...");
                 //         match f.join() {
                 //             Err(_) => { error!("Could not join the ftrace log parser thread!") },
-                //             Ok(()) => { trace!("Sucessfully joined the ftrace log parser thread!") },
+                //             Ok(()) => { trace!("Successfully joined the ftrace log parser thread!") },
                 //         }
                 //     }
                 // }
@@ -558,7 +558,7 @@ impl hook::Hook for FtraceLogger {
                 // Undo the operations done on daemon startup to set up the system to use ftrace
                 match util::disable_ftrace_tracing() {
                     Err(e) => error!("Could not disable the Linux ftrace subsystem! {}", e),
-                    Ok(()) => trace!("Sucessfully disabled the Linux ftrace subsystem!"),
+                    Ok(()) => trace!("Successfully disabled the Linux ftrace subsystem!"),
                 }
             }
             _ => { /* Ignore other events */ }

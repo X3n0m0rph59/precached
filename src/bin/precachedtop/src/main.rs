@@ -245,7 +245,7 @@ impl Application {
     where
         B: tui::backend::Backend,
     {
-        // trace!("Rendering startet...");
+        // trace!("Rendering started...");
 
         let size = app.size;
 
@@ -628,14 +628,14 @@ fn main_loop(_config: &mut Config) {
     terminal.show_cursor().unwrap();
 
     if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
-        println!("Could not connect to the precached daemon! Please verifiy that precached is running, and that you have valid access rights to connect!");
+        println!("Could not connect to the precached daemon! Please verify that precached is running, and that you have valid access rights to connect!");
     }
 }
 
 fn process_message(app: &mut Application, msg: ipc::IpcMessage) {
     match msg.command {
         ipc::IpcCommand::Connect => {
-            info!("IPC connected succesfuly!");
+            info!("IPC connected successfully!");
         }
 
         ipc::IpcCommand::SendTrackedProcesses(processes) => {

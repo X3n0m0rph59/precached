@@ -99,7 +99,7 @@ static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 static RELOAD_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Global '`SIG_USR1` received' flag
-/// SUGUSR1 is curently mapped to the `DoHousekeeping` event
+/// SUGUSR1 is currently mapped to the `DoHousekeeping` event
 static SIG_USR1: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Global '`SIG_USR2` received' flag
@@ -264,14 +264,14 @@ fn main() {
 
     // Parse external configuration file
     match storage::parse_config_file(&mut globals) {
-        Ok(_) => info!("Successfuly parsed configuration file!"),
+        Ok(_) => info!("Successfully parsed configuration file!"),
         Err(s) => {
             error!("Error in configuration file: {}", s);
             return;
         }
     }
 
-    // Check if we are able to run precache
+    // Check if we are able to run precached
     // (verify system for conformance)
     match util::check_system() {
         Ok(_) => info!("System check passed!"),
@@ -281,10 +281,10 @@ fn main() {
         }
     }
 
-    // If we get here, the check if we are able to run precache succeeded
+    // If we get here, the check if we are able to run precached succeeded
     // Now reconfigure the system (e.g. tune sysctl parameters)
     match util::prepare_system_config() {
-        Ok(_) => info!("System configuration applied successfuly!"),
+        Ok(_) => info!("System configuration applied successfully!"),
         Err(s) => {
             error!("System configuration FAILED: {}", s);
             return;
@@ -293,7 +293,7 @@ fn main() {
 
     // Now set process properties, like CPU and I/O scheduling class
     match util::set_process_properties() {
-        Ok(_) => info!("Process properties changed successfuly!"),
+        Ok(_) => info!("Process properties changed successfully!"),
         Err(s) => {
             error!("Error while changing the daemon's process properties: {}", s);
             return;
@@ -314,7 +314,7 @@ fn main() {
             }
 
             Ok(()) => {
-                trace!("Daemonized successfuly!");
+                trace!("Daemonized successfully!");
             }
         }
     }
@@ -339,7 +339,7 @@ fn main() {
         }
 
         _ => {
-            info!("Successfuly initialized inotify");
+            info!("Successfully initialized inotify");
         }
     }
 
@@ -352,7 +352,7 @@ fn main() {
         }
 
         _ => {
-            info!("Successfuly initialized dbus interface");
+            info!("Successfully initialized dbus interface");
         }
     }
 
@@ -368,7 +368,7 @@ fn main() {
     let mut ipc_server = ipc::IpcServer::new();
     match ipc_server.init(&mut globals, &manager) {
         Ok(_) => {
-            info!("Successfuly initialized the IPC interface");
+            info!("Successfully initialized the IPC interface");
         }
 
         Err(s) => {
@@ -460,7 +460,7 @@ fn main() {
             // Parse external configuration file
             match storage::parse_config_file(&mut globals) {
                 Ok(_) => {
-                    info!("Successfuly parsed configuration!");
+                    info!("Successfully parsed configuration!");
                     events::queue_internal_event(EventType::ConfigurationReloaded, &mut globals);
                 }
                 Err(s) => {
@@ -539,7 +539,7 @@ fn main() {
     // main thread blocks here
     match handle.join() {
         Ok(_) => {
-            trace!("Successfuly joined the event loop thread!");
+            trace!("Successfully joined the event loop thread!");
         }
         Err(_) => {
             error!("Could not join the event loop thread!");
@@ -548,7 +548,7 @@ fn main() {
 
     // match handle_ipc.join() {
     //     Ok(_) => {
-    //         trace!("Successfuly joined the IPC event loop thread!");
+    //         trace!("Successfully joined the IPC event loop thread!");
     //     }
     //     Err(_) => {
     //         error!("Could not join the IPC event loop thread!");

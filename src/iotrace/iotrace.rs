@@ -49,10 +49,10 @@ pub enum IOOperation {
 
 /// An entry in an I/O trace log
 /// Holds the specific I/O operation with associated parameters,
-/// and a timestamp of when the operation occured
+/// and a timestamp of when the operation occurred
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TraceLogEntry {
-    /// The timestamp when the I/O operation occured
+    /// The timestamp when the I/O operation occurred
     pub timestamp: DateTime<Utc>,
     /// The kind of I/O operation
     pub operation: IOOperation,
@@ -239,7 +239,7 @@ impl IOTraceLog {
     }
 
     /// Add an I/O operation to the trace log
-    /// Perform neccessary mapping of file descriptors to file name
+    /// Perform necessary mapping of file descriptors to file name
     pub fn add_event(&mut self, op: IOOperation) {
         let operation = op.clone();
         let mut size = 0;

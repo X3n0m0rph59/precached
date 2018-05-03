@@ -649,7 +649,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         }
 
         println!(
-            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
+            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
             total, matching, errors
         );
     }
@@ -722,7 +722,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
         }
 
         println!(
-            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
+            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
             total, matching, errors
         );
     }
@@ -813,7 +813,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     index += 1;
 
     println!(
-        "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
+        "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
         index, matching, errors
     );
 }
@@ -939,7 +939,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     index += 1;
 
     println!(
-        "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occured",
+        "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
         index, matching, errors
     );
 }
@@ -1026,12 +1026,12 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
         if dry_run {
             println!(
-                "\nSummary: {} I/O trace log files processed, {} trace files would have been optimized, {} errors occured",
+                "\nSummary: {} I/O trace log files processed, {} trace files would have been optimized, {} errors occurred",
                 total, matching, errors
             );
         } else {
             println!(
-                "\nSummary: {} I/O trace log files processed, {} optimized, {} errors occured",
+                "\nSummary: {} I/O trace log files processed, {} optimized, {} errors occurred",
                 total, matching, errors
             );
         }
@@ -1124,12 +1124,12 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
         if dry_run {
             println!(
-                "\nSummary: {} I/O trace log files processed, {} trace files would have been removed, {} errors occured",
+                "\nSummary: {} I/O trace log files processed, {} trace files would have been removed, {} errors occurred",
                 total, matching, errors
             );
         } else {
             println!(
-                "\nSummary: {} I/O trace log files processed, {} removed, {} errors occured",
+                "\nSummary: {} I/O trace log files processed, {} removed, {} errors occurred",
                 total, matching, errors
             );
         }
@@ -1207,12 +1207,12 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
         if dry_run {
             println!(
-                "\nSummary: {} I/O trace log files processed, {} would have been removed, {} errors occured",
+                "\nSummary: {} I/O trace log files processed, {} would have been removed, {} errors occurred",
                 index, matching, errors
             );
         } else {
             println!(
-                "\nSummary: {} I/O trace log files processed, {} removed, {} errors occured",
+                "\nSummary: {} I/O trace log files processed, {} removed, {} errors occurred",
                 index, matching, errors
             );
         }

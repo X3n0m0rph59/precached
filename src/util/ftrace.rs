@@ -336,32 +336,32 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
 /// Try to completely reset the ftrace subsystem
 /// Returns `true` if everything went alright, `false` if at least one operation failed
 pub fn try_reset_ftrace_tracing() -> bool {
-    let mut error_occured = false;
+    let mut error_occurred = false;
 
     let filename = Path::new(TRACING_DIR).join("tracing_on");
     echo(&filename, String::from("0")).unwrap_or_else(|_| {
-        error_occured = true;
+        error_occurred = true;
         ()
     });
 
     let filename = Path::new(TRACING_DIR).join("set_event");
     echo(&filename, String::from(" ")).unwrap_or_else(|_| {
-        error_occured = true;
+        error_occurred = true;
         ()
     });
 
     rmdir(Path::new(TRACING_DIR)).unwrap_or_else(|_| {
-        error_occured = true;
+        error_occurred = true;
         ()
     });
 
     let filename = Path::new(TRACING_BASE_DIR).join("kprobe_events");
     echo(&filename, String::from(" ")).unwrap_or_else(|_| {
-        error_occured = true;
+        error_occurred = true;
         ()
     });
 
-    !error_occured
+    !error_occurred
 }
 
 /// Disable ftrace tracing on the system

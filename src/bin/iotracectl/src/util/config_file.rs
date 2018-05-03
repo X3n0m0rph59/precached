@@ -67,7 +67,7 @@ impl ConfigFile {
             Ok(conf) => conf,
             Err(e) => { 
                 error!("Syntax error in configuration file: {}", e);
-                panic!("Unrecoverable error occured!");
+                panic!("Unrecoverable error occurred!");
             }
         };
 

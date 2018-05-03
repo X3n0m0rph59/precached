@@ -96,7 +96,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
 
             Err(std::io::Error::last_os_error())
         } else {
-            trace!("Successfuly called readahead() for: {:?}", filename);
+            trace!("Successfully called readahead() for: {:?}", filename);
 
             // Call to readahead succeeded, now mmap() and mlock() if requested
 
@@ -117,7 +117,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
 
                 Err(std::io::Error::last_os_error())
             } else {
-                trace!("Successfuly called mmap() for: {:?}", filename);
+                trace!("Successfully called mmap() for: {:?}", filename);
 
                 // If we are on a 64 bit architecture
                 #[cfg(target_pointer_width = "64")]
@@ -147,7 +147,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
 
                     Err(std::io::Error::last_os_error())
                 } else {
-                    trace!("Successfuly called posix_fadvise() for: {:?}", filename);
+                    trace!("Successfully called posix_fadvise() for: {:?}", filename);
 
                     let result = unsafe {
                         libc::madvise(
@@ -163,7 +163,7 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
 
                         Err(std::io::Error::last_os_error())
                     } else {
-                        trace!("Successfuly called madvise() for: {:?}", filename);
+                        trace!("Successfully called madvise() for: {:?}", filename);
 
                         if with_mlock {
                             let result = unsafe { libc::mlock(addr as *mut libc::c_void, stat.st_size as usize) };
@@ -174,14 +174,14 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
 
                                 Err(std::io::Error::last_os_error())
                             } else {
-                                trace!("Successfuly called mlock() for: {:?}", filename);
+                                trace!("Successfully called mlock() for: {:?}", filename);
 
                                 let result = unsafe { libc::close(fd) };
 
                                 if result < 0 as libc::c_int {
                                     Err(std::io::Error::last_os_error())
                                 } else {
-                                    trace!("Successfuly called close() for: {:?}", filename);
+                                    trace!("Successfully called close() for: {:?}", filename);
 
                                     let mapping = MemoryMapping::new(filename, addr as usize, stat.st_size as usize);
                                     Ok(mapping)
@@ -220,7 +220,7 @@ pub fn prime_metadata_cache(filename: &Path) -> Result<()> {
     if result < 0 as libc::c_int {
         Err(std::io::Error::last_os_error())
     } else {
-        trace!("Successfuly called stat() for: {:?}", filename);
+        trace!("Successfully called stat() for: {:?}", filename);
         Ok(())
     }
 }

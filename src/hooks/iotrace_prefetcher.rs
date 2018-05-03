@@ -139,7 +139,7 @@ impl IOtracePrefetcher {
                             }
 
                             Ok(mapping) => {
-                                trace!("Successfuly prefetched file: {:?}", file);
+                                trace!("Successfully prefetched file: {:?}", file);
 
                                 already_prefetched.insert(file.clone(), Some(mapping));
 
@@ -200,7 +200,7 @@ impl IOtracePrefetcher {
                         if let &Some(ref mapping) = mapping {
                             let mapping_c = mapping.clone();
                             if util::free_mapping(&mapping) {
-                                info!("Successfuly unmapped file: {:?}", file);
+                                info!("Successfully unmapped file: {:?}", file);
                                 result.push(mapping_c.filename);
 
                                 {

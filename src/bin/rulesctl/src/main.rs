@@ -331,7 +331,7 @@ fn enable_rules(config: &Config, daemon_config: util::ConfigFile) {
         }
 
         Ok(()) => {
-            println!("\nRules enabled successfuly, reloading configuration now");
+            println!("\nRules enabled successfully, reloading configuration now");
             daemon_reload(config, daemon_config);
         }
     }
@@ -350,7 +350,7 @@ fn disable_rules(config: &Config, daemon_config: util::ConfigFile) {
         }
 
         Ok(()) => {
-            println!("\nRules disabled successfuly, reloading configuration now");
+            println!("\nRules disabled successfully, reloading configuration now");
             daemon_reload(config, daemon_config);
         }
     }

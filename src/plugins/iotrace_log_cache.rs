@@ -104,7 +104,7 @@ impl IOtraceLogCache {
                                 error!("Could not cache file {:?}: {}", filename, s);
                             }
                             Ok(r) => {
-                                trace!("Successfuly cached file {:?}", filename);
+                                trace!("Successfully cached file {:?}", filename);
                                 mapped_files.insert(abs_path.to_path_buf(), r);
                             }
                         }
@@ -182,12 +182,12 @@ impl IOtraceLogCache {
                                     error!("Could not cache file {:?}: {}", path, s);
                                 }
                                 Ok(r) => {
-                                    trace!("Successfuly cached file {:?}", path);
+                                    trace!("Successfully cached file {:?}", path);
                                     mapped_files.insert(path.to_path_buf(), r);
                                 }
                             }
                         }
-                    }).unwrap_or_else(|e| error!("Unhandled error occured during processing of files and directories! {}", e));
+                    }).unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
 
                     sc.lock().unwrap().send(mapped_files).unwrap();
                 });

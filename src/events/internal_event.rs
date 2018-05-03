@@ -52,7 +52,7 @@ pub enum EventType {
     IoTraceLogRemoved(PathBuf),
     /// advice to plugins to gather statistics and performance metrics
     GatherStatsAndMetrics,
-    /// occurs *after* the daemon has successfuly reloaded its configuration
+    /// occurs *after* the daemon has successfully reloaded its configuration
     ConfigurationReloaded,
     /// occurs when the state of a tracked process changed
     TrackedProcessChanged(procmon::Event),

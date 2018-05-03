@@ -70,7 +70,7 @@ pub enum Event {
     IoTraceLogRemoved(Option<PathBuf>),
     /// advice to plugins to gather statistics and performance metrics
     GatherStatsAndMetrics,
-    /// occurs *after* the daemon has successfuly reloaded its configuration
+    /// occurs *after* the daemon has successfully reloaded its configuration
     ConfigurationReloaded,
     /// occurs when the state of a tracked process changed
     TrackedProcessChanged,
@@ -238,7 +238,7 @@ impl RuleFile {
 
                 match parse_rule(&rule) {
                     Err(e) => {
-                        // error occured, break out of the loop
+                        // error occurred, break out of the loop
                         error_at_line = line_counter + 1;
                         ruleset_valid = false;
                         error_desc = e;
@@ -602,7 +602,7 @@ pub fn tokenize_field(params: &str) -> Vec<String> {
                 pushed_flag = false;
 
                 if !string_flag {
-                    // end of current paramater
+                    // end of current parameter
                     let tmp = String::from(acc.trim());
                     if tmp.len() > 0 {
                         result.push(tmp.clone());

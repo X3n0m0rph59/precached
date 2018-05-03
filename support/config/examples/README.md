@@ -14,7 +14,7 @@ all of your system files to stay resident in RAM.
 ### precached-lowmem-dynonly.conf
 
 Choose this configuration when you don't have much available RAM.
-It will only lock the most fequently mapped (used) files to RAM.
+It will only lock the most frequently mapped (used) files to RAM.
 
 ### precached-devel.conf
 

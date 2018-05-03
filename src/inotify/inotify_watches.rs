@@ -68,7 +68,7 @@ impl InotifyWatches {
                     }
 
                     Ok(_) => {
-                        debug!("Successfuly added inotify watch for: {:?}", iotraces_path);
+                        debug!("Successfully added inotify watch for: {:?}", iotraces_path);
                     }
                 }
 
