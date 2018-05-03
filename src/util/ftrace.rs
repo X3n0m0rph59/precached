@@ -489,7 +489,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
                 ),
 
                 Ok(()) => {
-                    info!("Successfuly saved I/O trace log for process '{}' with pid: {}", comm, pid);
+                    info!("Successfully saved I/O trace log for process '{}' with pid: {}", comm, pid);
 
                     // schedule an optimization pass for the newly saved trace log
                     debug!("Queued an optimization request for {:?}", filename);

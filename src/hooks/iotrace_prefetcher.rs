@@ -531,143 +531,136 @@ impl IOtracePrefetcher {
                     Some(process) => {
                         let process_cmdline = process.get_cmdline().unwrap_or_else(|_| String::from(""));
                         let process_comm = process.comm.clone();
+                        let process_exe = process.exe_name.clone();
+                        
+                        trace!("Prefetching data for process '{}' with pid: {}", process_comm, event.pid);
 
-                        match process.get_exe() {
-                            Err(e) => {
-                                info!("Could not get process' executable name: {}, skipped prefetching!", e);
+                        let pm = manager.plugin_manager.read().unwrap();
+
+                        match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
+                            None => {
+                                trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
                             }
 
-                            Ok(exe_name) => {
-                                trace!("Prefetching data for process '{}' with pid: {}", process_comm, event.pid);
+                            Some(p) => {
+                                let p = p.write().unwrap();
+                                let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
-                                let pm = manager.plugin_manager.read().unwrap();
+                                match iotrace_log_manager_plugin.get_trace_log(
+                                    &process_exe.clone(),
+                                    process_cmdline.clone(),
+                                    globals,
+                                ) {
+                                    Err(e) => trace!("No I/O trace available: {}", e),
+                                    Ok(io_trace) => {
+                                        info!(
+                                            "Found valid I/O trace log for process '{}' with pid: {}. Prefetching now...",
+                                            process_comm, event.pid
+                                        );
 
-                                match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
-                                    None => {
-                                        trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
-                                    }
+                                        let mut do_perform_prefetching = true;
 
-                                    Some(p) => {
-                                        let p = p.write().unwrap();
-                                        let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
+                                        match pm.get_plugin_by_name(&String::from("hot_applications")) {
+                                            None => {
+                                                /* Do nothing */
+                                                // trace!("Plugin not loaded: 'hot_applications', skipped");
+                                            }
+                                            Some(p) => {
+                                                let p = p.write().unwrap();
+                                                let hot_applications_plugin =
+                                                    p.as_any().downcast_ref::<HotApplications>().unwrap();
 
-                                        match iotrace_log_manager_plugin.get_trace_log(
-                                            &exe_name.clone(),
-                                            process_cmdline.clone(),
-                                            globals,
-                                        ) {
-                                            Err(e) => trace!("No I/O trace available: {}", e),
-                                            Ok(io_trace) => {
-                                                info!(
-                                                    "Found valid I/O trace log for process '{}' with pid: {}. Prefetching now...",
-                                                    process_comm, event.pid
-                                                );
+                                                do_perform_prefetching =
+                                                    !hot_applications_plugin.is_exe_cached(&process_exe, &process_cmdline);
+                                            }
+                                        };
 
-                                                let mut do_perform_prefetching = true;
+                                        if do_perform_prefetching {
+                                            let mut static_whitelist = HashMap::new();
+                                            match pm.get_plugin_by_name(&String::from("static_whitelist")) {
+                                                None => {
+                                                    trace!("Plugin not loaded: 'static_whitelist', skipped");
+                                                }
+                                                Some(p) => {
+                                                    let p = p.write().unwrap();
+                                                    let static_whitelist_plugin =
+                                                        p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
-                                                match pm.get_plugin_by_name(&String::from("hot_applications")) {
-                                                    None => {
-                                                        /* Do nothing */
-                                                        // trace!("Plugin not loaded: 'hot_applications', skipped");
-                                                    }
-                                                    Some(p) => {
-                                                        let p = p.write().unwrap();
-                                                        let hot_applications_plugin =
-                                                            p.as_any().downcast_ref::<HotApplications>().unwrap();
+                                                    static_whitelist = static_whitelist_plugin.get_mapped_files().clone();
+                                                }
+                                            };
 
-                                                        do_perform_prefetching =
-                                                            !hot_applications_plugin.is_exe_cached(&exe_name, &process_cmdline);
-                                                    }
-                                                };
+                                            let mut static_blacklist = Vec::<PathBuf>::new();
+                                            match pm.get_plugin_by_name(&String::from("static_blacklist")) {
+                                                None => {
+                                                    trace!("Plugin not loaded: 'static_blacklist', skipped");
+                                                }
+                                                Some(p) => {
+                                                    let p = p.write().unwrap();
+                                                    let static_blacklist_plugin =
+                                                        p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-                                                if do_perform_prefetching {
-                                                    let mut static_whitelist = HashMap::new();
-                                                    match pm.get_plugin_by_name(&String::from("static_whitelist")) {
-                                                        None => {
-                                                            trace!("Plugin not loaded: 'static_whitelist', skipped");
-                                                        }
-                                                        Some(p) => {
-                                                            let p = p.write().unwrap();
-                                                            let static_whitelist_plugin =
-                                                                p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
+                                                    static_blacklist
+                                                        .append(&mut static_blacklist_plugin.get_blacklist().clone());
+                                                }
+                                            };
 
-                                                            static_whitelist = static_whitelist_plugin.get_mapped_files().clone();
-                                                        }
-                                                    };
+                                            let our_mapped_files = self.mapped_files.clone();
+                                            let prefetched_programs = self.prefetched_programs.clone();
 
-                                                    let mut static_blacklist = Vec::<PathBuf>::new();
-                                                    match pm.get_plugin_by_name(&String::from("static_blacklist")) {
-                                                        None => {
-                                                            trace!("Plugin not loaded: 'static_blacklist', skipped");
-                                                        }
-                                                        Some(p) => {
-                                                            let p = p.write().unwrap();
-                                                            let static_blacklist_plugin =
-                                                                p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+                                            // distribute prefetching work evenly across the prefetcher threads
+                                            let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
+                                            let max = prefetch_pool.max_count();
+                                            let count_total = io_trace.trace_log.len();
 
-                                                            static_blacklist
-                                                                .append(&mut static_blacklist_plugin.get_blacklist().clone());
-                                                        }
-                                                    };
+                                            let (sender, receiver): (
+                                                Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>,
+                                                _,
+                                            ) = channel();
 
-                                                    let our_mapped_files = self.mapped_files.clone();
-                                                    let prefetched_programs = self.prefetched_programs.clone();
+                                            for n in 0..max {
+                                                let sc = Mutex::new(sender.clone());
 
-                                                    // distribute prefetching work evenly across the prefetcher threads
-                                                    let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
-                                                    let max = prefetch_pool.max_count();
-                                                    let count_total = io_trace.trace_log.len();
+                                                // calculate slice bounds for each thread
+                                                let low = (count_total / max) * n;
+                                                let high = (count_total / max) * n + (count_total / max);
 
-                                                    let (sender, receiver): (
-                                                        Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>,
-                                                        _,
-                                                    ) = channel();
+                                                let trace_log = io_trace.trace_log[low..high].to_vec();
 
-                                                    for n in 0..max {
-                                                        let sc = Mutex::new(sender.clone());
+                                                let our_mapped_files_c = our_mapped_files.clone();
+                                                // let system_mapped_files_c = system_mapped_files_histogram.clone();
+                                                let prefetched_programs_c = prefetched_programs.clone();
+                                                let static_blacklist_c = static_blacklist.clone();
+                                                let static_whitelist_c = static_whitelist.clone();
 
-                                                        // calculate slice bounds for each thread
-                                                        let low = (count_total / max) * n;
-                                                        let high = (count_total / max) * n + (count_total / max);
+                                                let mut thread_state = self.thread_states[n].clone();
 
-                                                        let trace_log = io_trace.trace_log[low..high].to_vec();
+                                                // submit prefetching work to an idle thread
+                                                prefetch_pool.execute(move || {
+                                                    let mapped_files = Self::prefetch_data(
+                                                        &trace_log,
+                                                        &our_mapped_files_c,
+                                                        &prefetched_programs_c,
+                                                        // &system_mapped_files_c,
+                                                        &static_blacklist_c,
+                                                        &static_whitelist_c,
+                                                        &mut thread_state,
+                                                    );
 
-                                                        let our_mapped_files_c = our_mapped_files.clone();
-                                                        // let system_mapped_files_c = system_mapped_files_histogram.clone();
-                                                        let prefetched_programs_c = prefetched_programs.clone();
-                                                        let static_blacklist_c = static_blacklist.clone();
-                                                        let static_whitelist_c = static_whitelist.clone();
+                                                    sc.lock().unwrap().send(mapped_files).unwrap();
+                                                })
+                                            }
 
-                                                        let mut thread_state = self.thread_states[n].clone();
-
-                                                        // submit prefetching work to an idle thread
-                                                        prefetch_pool.execute(move || {
-                                                            let mapped_files = Self::prefetch_data(
-                                                                &trace_log,
-                                                                &our_mapped_files_c,
-                                                                &prefetched_programs_c,
-                                                                // &system_mapped_files_c,
-                                                                &static_blacklist_c,
-                                                                &static_whitelist_c,
-                                                                &mut thread_state,
-                                                            );
-
-                                                            sc.lock().unwrap().send(mapped_files).unwrap();
-                                                        })
-                                                    }
-
-                                                    for _ in 0..max {
-                                                        // blocking call; wait for worker thread(s)
-                                                        let mapped_files = receiver.recv().unwrap();
-                                                        for (k, v) in mapped_files {
-                                                            self.mapped_files.insert(k, v);
-                                                        }
-                                                    }
-                                                } else {
-                                                    // executable is already cached by "hot apps"
-                                                    info!("Skipped prefetching, files are already cached!");
+                                            for _ in 0..max {
+                                                // blocking call; wait for worker thread(s)
+                                                let mapped_files = receiver.recv().unwrap();
+                                                for (k, v) in mapped_files {
+                                                    self.mapped_files.insert(k, v);
                                                 }
                                             }
+                                        } else {
+                                            // executable is already cached by "hot apps"
+                                            info!("Skipped prefetching, files are already cached!");
                                         }
                                     }
                                 }

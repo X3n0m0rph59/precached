@@ -25,6 +25,7 @@ extern crate regex;
 use self::regex::*;
 use std::ffi::OsStr;
 use std::io;
+use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use util;
 
@@ -55,6 +56,14 @@ pub struct Process {
     ///       as it had been, when the process was created.
     ///       If you want the comm as of now, use `Process::get_comm()`.
     pub comm: String,
+
+    /// Holds the `exe_name` (name of the executable image file) of the process
+    ///
+    /// NOTE: This is not dynamically fetched (see above)
+    pub exe_name: PathBuf,
+
+    // Is the process alive or has it vanished?
+    pub is_dead: bool,
 }
 
 impl Process {
@@ -63,10 +72,27 @@ impl Process {
         let filename = Path::new(&tmp);
         let comm = &String::from(util::read_uncompressed_text_file(filename)?.trim());
 
-        Ok(Process {
-            pid: pid,
-            comm: comm.clone(),
-        })
+        let tmp = format!("/proc/{}/exe", pid);
+        let filename = Path::new(&tmp);
+        let mut buffer: [u8; 8192] = [0; 8192];
+        let result = nix::fcntl::readlink(filename, &mut buffer);
+
+        let process = match result {
+            Err(_e) => return Err(io::Error::new(ErrorKind::Other, "Could not get process' executable name")),
+
+            Ok(r) =>  {
+                let exe_name = PathBuf::from(r.to_str().unwrap().trim());
+
+                Process {
+                    pid: pid,
+                    comm: comm.clone(),
+                    exe_name: exe_name.clone(),
+                    is_dead: false,
+                }
+            }
+        };
+
+        Ok(process)
     }
 
     pub fn get_mapped_files(&self) -> io::Result<Vec<String>> {

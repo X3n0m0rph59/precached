@@ -43,6 +43,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 use util;
+use util::ftrace;
 use util::Contains;
 use EXIT_NOW;
 
@@ -329,7 +330,7 @@ impl FtraceLogger {
                     ),
 
                     Ok(mut active_tracers) => {
-                        // We successfuly acquired the lock
+                        // We successfully acquired the lock
                         if active_tracers.contains_key(&event.pid) {
                             // We received a trace request multiple times for process `event.pid`.
                             // It is already being traced by us.
@@ -365,11 +366,6 @@ impl FtraceLogger {
                             } else {
                                 info!("We already have a valid I/O trace log for process with pid: {}", event.pid);
                             }
-                        } else {
-                            info!(
-                                "Error creating trace log for process with pid: {}, the process vanished",
-                                event.pid
-                            );
                         }
                     }
                 }
@@ -473,7 +469,7 @@ impl FtraceLogger {
                                     Vacant(_k) => {
                                         // NOTE: We can only ever get here because of race conditions.
                                         //       This should and can not happen if our threading model is sound
-                                        error!("Internal error occured! Currupted data structures detected.");
+                                        error!("Internal error occurred! Corrupted data structures detected.");
                                     }
                                 };
 
@@ -521,7 +517,7 @@ impl hook::Hook for FtraceLogger {
                 // Set up the system to use ftrace
                 match util::enable_ftrace_tracing() {
                     Err(e) => error!("Could not enable the Linux ftrace subsystem! {}", e),
-                    Ok(()) => trace!("Sucessfuly enabled the Linux ftrace subsystem!"),
+                    Ok(()) => trace!("Successfully enabled the Linux ftrace subsystem!"),
                 }
 
                 // Start the thread that reads events from the Linux ftrace ringbuffer
@@ -554,7 +550,7 @@ impl hook::Hook for FtraceLogger {
                 //         trace!("Joining ftrace log parser thread...");
                 //         match f.join() {
                 //             Err(_) => { error!("Could not join the ftrace log parser thread!") },
-                //             Ok(()) => { trace!("Sucessfuly joined the ftrace log parser thread!") },
+                //             Ok(()) => { trace!("Sucessfully joined the ftrace log parser thread!") },
                 //         }
                 //     }
                 // }
@@ -562,7 +558,7 @@ impl hook::Hook for FtraceLogger {
                 // Undo the operations done on daemon startup to set up the system to use ftrace
                 match util::disable_ftrace_tracing() {
                     Err(e) => error!("Could not disable the Linux ftrace subsystem! {}", e),
-                    Ok(()) => trace!("Sucessfuly disabled the Linux ftrace subsystem!"),
+                    Ok(()) => trace!("Sucessfully disabled the Linux ftrace subsystem!"),
                 }
             }
             _ => { /* Ignore other events */ }

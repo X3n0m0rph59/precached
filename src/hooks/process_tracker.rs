@@ -58,8 +58,16 @@ impl ProcessTracker {
         self.tracked_processes.get(&pid)
     }
 
+    pub fn get_process_mut(&mut self, pid: libc::pid_t) -> Option<&mut Process> {
+        self.tracked_processes.get_mut(&pid)
+    }
+
     pub fn get_tracked_processes(&mut self) -> &mut HashMap<libc::pid_t, Process> {
         &mut self.tracked_processes
+    }
+
+    pub fn prune_zombies(&mut self) {
+        self.tracked_processes.retain(|_k, v| !v.is_dead );
     }
 }
 
@@ -76,8 +84,15 @@ impl hook::Hook for ProcessTracker {
         NAME
     }
 
-    fn internal_event(&mut self, _event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
-        // trace!("Skipped internal event (not handled)");
+    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
+        match event.event_type {
+            events::EventType::Ping => {
+                trace!("Pruning zombie processes now");
+                self.prune_zombies();
+            }
+
+            _ => { /* Do nothing */ }
+        }
     }
 
     fn process_event(&mut self, event: &procmon::Event, globals: &mut Globals, _manager: &Manager) {
@@ -103,15 +118,19 @@ impl hook::Hook for ProcessTracker {
             }
 
             procmon::EventType::Exit => {
-                let process = self.get_tracked_processes().remove(&event.pid);
+                let mut process = self.get_tracked_processes().get_mut(&event.pid);
+                
                 match process {
                     None => {}
-                    Some(process) => {
-                        info!("Removed tracked process '{}' with pid: {}", process.comm, process.pid);
+                    Some(ref mut process) => {
+                        // process.is_dead = true;
+                        info!("Marked tracked process '{}' with pid: {} for removal", process.comm, process.pid);
+
                         events::queue_internal_event(EventType::TrackedProcessChanged(event_c), globals);
                     }
                 }
             }
+
             _ => {
                 // trace!("Ignored process event");
             }
