@@ -224,7 +224,7 @@ impl IOTraceLog {
         if (self.trace_log.len() > constants::MIN_TRACE_LOG_LENGTH
             && self.accumulated_size > constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES) || allow_truncate
         {
-            let serialized = serde_json::to_string_pretty(&self).unwrap();
+            let serialized = try!(serde_json::to_string_pretty(&self));
             util::write_text_file(filename, &serialized)?;
 
             Ok(())

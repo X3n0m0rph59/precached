@@ -63,7 +63,13 @@ impl ConfigFile {
         }
 
         // TODO: Implement field validation
-        let result: ConfigFile = toml::from_str(&s).unwrap();
+        let result: ConfigFile = match toml::from_str(&s) {
+            Ok(conf) => conf,
+            Err(e) => { 
+                error!("Syntax error in configuration file: {}", e);
+                panic!("Unrecoverable error occured!");
+            }
+        };
 
         Ok(result)
     }
