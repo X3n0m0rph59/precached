@@ -25,6 +25,7 @@ investigating the possibility to move the offline prefetch phase somewhat furthe
 into the startup process to achieve even faster boot times (delayed prefetching).
 
 ## Specifications of *System No. 1*:
+
 ```
   ~7 year old laptop running Fedora Core 27
   Dual Core Intel CPU
@@ -39,10 +40,10 @@ into the startup process to achieve even faster boot times (delayed prefetching)
 |LibreOffice Calc |19   |4        |4        |
 |Firefox 57       |15   |4        |3.5      |
 
-_Application load times on first run after bootup_
-
+Application load times on first run after bootup_
 
 ## Specifications of *System No. 2*:
+
 ```
   ~5 year old laptop running Fedora Core 27
   Quad Core Intel CPU
@@ -57,8 +58,7 @@ _Application load times on first run after bootup_
 |LibreOffice Calc |6.5  |3        |3        |
 |Firefox 57       |7    |3.5      |3        |
 
-_Application load times on first run after bootup_
-
+Application load times on first run after bootup_
 
 Stay tuned for more benchmarks to come!
 

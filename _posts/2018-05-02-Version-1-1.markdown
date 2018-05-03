@@ -13,7 +13,7 @@ Some new and noteworthy features are:
 * Source code cleanups and formatting using `cargo fmt`
 * Fixed a bug that lead to missing color on 256 color terminals
 * Added support for more parallelism. We now iterate over selected data structures in parallel
-* Lowered the length and size parameters which I/O tracelogs must surpass for them to be stored
+* Lowered the length and size parameters which I/O trace logs must surpass for them to be stored
 * Extended blacklists, don't create I/O traces for some shell commands
 
 The precached team

@@ -63,7 +63,7 @@ UserLogin               Noop              CacheDirRecursive   Directory:"/home/a
 * Janitor: A janitor for precached that handles all house keeping tasks
 * Rule Engine: Learned a few new features like variable and macro expansion (see above)
 * Rule Event Bridge: Serves as a gateway between precached internals and the rule engine
-* User Session: The caching related code, mainly the caching-of-directories-on-user-login feature has been superseeded by a .rule file
+* User Session: The caching related code, mainly the caching-of-directories-on-user-login feature has been superseded by a .rule file
 
 
 The precached team

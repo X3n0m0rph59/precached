@@ -15,7 +15,7 @@ and there happened a lot of new feature development in the meantime.
 The last two weeks largely revolved around the implementation of the I/O tracing
 and prefetching subsystems. Both are now in a working albeit experimental state.
 The precached daemon gained the ability to perform syscall tracing of other
-processes' I/O activity, utilising the Linux ftrace subsystem. It logs the
+processes' I/O activity, utilizing the Linux ftrace subsystem. It logs the
 performed syscalls to an "I/O trace log" file, and later replays this pre-recorded
 actions to prime the system's caches. In theory, this may improve the responsiveness
 of your computer by no longer making the workload I/O bound but making it CPU bound
@@ -35,17 +35,19 @@ We also do support a preliminary form of offline prefetching by listing the path
 of the program binaries of which dependent files shall be kept in memory in the
 `/etc/precached/precached.conf` file. Precached will then try to keep all files
 in memory, that are referenced by the I/O trace log of that program.
+
 ```
 program_whitelist = [
  "/usr/lib64/libreoffice/program/soffice.bin",
 ]
 ```
+
 This snippet will keep LibreOffice (the binary and all dependent files)
 cached in ram
 
 There are two newly written companion executables:
-  * iotracectl - manage I/O trace log files
-  * precachedctl - manage the daemon process
+* iotracectl - manage I/O trace log files
+* precachedctl - manage the daemon process
 
 I/O trace log files may be managed by the `iotracectl` tool. It currently
 supports these subcommands:
@@ -81,10 +83,11 @@ supports these subcommands:
 ![iotracectl analyze](/precached/images/iotracectl_03.png)
 
 ## List of new and noteworthy plugins:
-  * ftrace logger: Log I/O syscalls of processes to an I/O trace log file
-  * iotrace prefetcher: Online prefetching of files during startup of a program
-  * static whitelist (extended): Offline prefetching of files when the system is idle
-  * system metrics
+
+* ftrace logger: Log I/O syscalls of processes to an I/O trace log file
+* iotrace prefetcher: Online prefetching of files during startup of a program
+* static whitelist (extended): Offline prefetching of files when the system is idle
+* system metrics
 
 In a first round of testing, it has been shown that online prefetching has a
 moderate effect on application startup times. Offline prefetching yielded a much
@@ -97,7 +100,6 @@ implement offline prefetching of application files using a prefetcher based on
 markov chains that will supplement the "manual whitelisting" approach.
 
 The precached team
-
 
 ## Article Updates
 

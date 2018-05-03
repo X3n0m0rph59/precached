@@ -19,15 +19,16 @@ memory of our precached process.
 *Prototype of precached running on Linux*
 
 ## TODO List (non-exhaustive):
-	* Implement ceiling on mlocked() memory
-	* Implement VFS statx() caching (pre-read file metadata)
-	* Possibly implement fork-bomb mitigation
-	* Implement a persistence layer
-	* Prime caches on daemon startup
-	* Systemd init scripts
-	* External configuration support (/etc/precached/)
-	* Daemonization support
-	* Implement the DBUS interface
-	* Write a nice CLI tool to control the daemon
-	* And write a precached GUI in GTK+
-	* And much more...
+
+* Implement ceiling on mlocked() memory
+* Implement VFS statx() caching (pre-read file metadata)
+* Possibly implement fork-bomb mitigation
+* Implement a persistence layer
+* Prime caches on daemon startup
+* Systemd init scripts
+* External configuration support (/etc/precached/)
+* Daemonization support
+* Implement the DBUS interface
+* Write a nice CLI tool to control the daemon
+* And write a precached GUI in GTK+
+* And much more...

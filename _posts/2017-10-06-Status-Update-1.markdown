@@ -9,7 +9,7 @@ categories: status update
 From this day on, we would like to give you a bi-monthly project status update!
 
 The precached project is now nearly two weeks in existence.
-We achieved much in this short timespan, but there is still a long way ahead of
+We achieved much in this short time span, but there is still a long way ahead of
 us, of course.
 
 ## What has been achieved
@@ -45,7 +45,6 @@ speed gain of file prefetching will be diminished by a huge amount.
 We will go down the ftrace route now...
 
 The precached team
-
 
 ## Article Updates
 
