@@ -6,7 +6,6 @@ Wants=local-fs.target
 After=local-fs.target
 
 [Service]
-Environment=RUST_LOG=info
 ExecStart=/usr/sbin/precached -c /etc/precached/precached.conf
 ExecReload=/usr/sbin/precachedctl reload
 ExecStop=/usr/sbin/precachedctl stop

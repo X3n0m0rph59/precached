@@ -5,7 +5,6 @@ Requisite=precached.service
 After=graphical.target
 
 [Service]
-Environment=RUST_LOG=info
 ExecStart=/usr/sbin/precachedctl prime-caches-now
 Type=oneshot
 StandardOutput=journal

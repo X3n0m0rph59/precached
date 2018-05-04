@@ -3,25 +3,33 @@ appenders:
   stdout:
     kind: console
     encoder:
-      pattern: "{d(%Y-%m-%d %H:%M:%S %Z)(utc)} {h({l})}: {M}:{L} - {m}{n}"
+      pattern: "{d(%Y-%m-%d %H:%M:%S %Z)} [{h({l})}]: {M}:{L} - {m}{n}"
+      
   syslog:
-    kind: syslog
+    kind: libc-syslog
     openlog:
       ident: precached
       option: LOG_PID | LOG_NDELAY | LOG_CONS
       facility: Daemon
-  logfile:
-    kind: file
-    path: "/var/log/precached.log"
+    level_map:
+      Error: LOG_CRIT
+      Warn: LOG_WARNING
+      Info: LOG_INFO
+      Debug: LOG_DEBUG
+      Trace: LOG_DEBUG
     encoder:
-      pattern: "{d(%Y-%m-%d %H:%M:%S %Z)(utc)} {l}: {M}:{L} - {m}{n}"
+      pattern: "{m}"
+
+  # logfile:
+  #   kind: file
+  #   path: "/var/log/precached.log"
+  #   encoder:
+  #     pattern: "{d(%Y-%m-%d %H:%M:%S %Z)} [{l}]: {M}:{L} - {m}{n}"
+
 root:
-  level: info
+  # level: info
+  level: debug
   appenders:
-    - stdout    
+    - stdout
     - syslog
-loggers:
-  logfile:
-    level: trace
-    appenders:
-      - logfile
+  # - logfile
