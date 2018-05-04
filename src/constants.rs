@@ -88,10 +88,10 @@ pub const MIN_TRACE_LOG_LENGTH: usize = 1;
 pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 4096; // 4 KiB
 
 /// Upper threshold for free memory
-pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 100;
+pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 90;
 
 /// Lower threshold for free memory
-pub const FREE_MEMORY_LOWER_THRESHOLD: u8 = 30;
+pub const FREE_MEMORY_LOWER_THRESHOLD: u8 = 70;
 
 /// Available memory critical threshold
 pub const AVAILABLE_MEMORY_CRITICAL_THRESHOLD: u8 = 85;
