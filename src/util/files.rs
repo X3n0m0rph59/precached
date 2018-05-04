@@ -90,7 +90,10 @@ pub fn read_uncompressed_text_file(filename: &Path) -> io::Result<String> {
 pub fn write_text_file(filename: &Path, text: &str) -> io::Result<()> {
     let mut file = try!(OpenOptions::new().write(true).truncate(true).create(true).open(filename));
 
-    let compressed = try!(zstd::encode_all(BufReader::new(text.as_bytes()), constants::ZSTD_COMPRESSION_RATIO));
+    let compressed = try!(zstd::encode_all(
+        BufReader::new(text.as_bytes()),
+        constants::ZSTD_COMPRESSION_RATIO
+    ));
     file.write_all(&compressed)?;
     // file.sync_data()?;
 

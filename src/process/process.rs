@@ -80,7 +80,7 @@ impl Process {
         let process = match result {
             Err(_e) => return Err(io::Error::new(ErrorKind::Other, "Could not get process' executable name")),
 
-            Ok(r) =>  {
+            Ok(r) => {
                 let exe_name = PathBuf::from(r.to_str().unwrap().trim());
 
                 Process {

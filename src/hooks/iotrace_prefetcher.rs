@@ -532,7 +532,7 @@ impl IOtracePrefetcher {
                         let process_cmdline = process.get_cmdline().unwrap_or_else(|_| String::from(""));
                         let process_comm = process.comm.clone();
                         let process_exe = process.exe_name.clone();
-                        
+
                         trace!("Prefetching data for process '{}' with pid: {}", process_comm, event.pid);
 
                         let pm = manager.plugin_manager.read().unwrap();
@@ -600,8 +600,7 @@ impl IOtracePrefetcher {
                                                     let static_blacklist_plugin =
                                                         p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-                                                    static_blacklist
-                                                        .append(&mut static_blacklist_plugin.get_blacklist().clone());
+                                                    static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
                                                 }
                                             };
 

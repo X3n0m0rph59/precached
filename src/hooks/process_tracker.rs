@@ -67,7 +67,7 @@ impl ProcessTracker {
     }
 
     pub fn prune_zombies(&mut self) {
-        self.tracked_processes.retain(|_k, v| !v.is_dead );
+        self.tracked_processes.retain(|_k, v| !v.is_dead);
     }
 }
 
@@ -119,12 +119,15 @@ impl hook::Hook for ProcessTracker {
 
             procmon::EventType::Exit => {
                 let mut process = self.get_tracked_processes().get_mut(&event.pid);
-                
+
                 match process {
                     None => {}
                     Some(ref mut process) => {
                         // process.is_dead = true;
-                        info!("Marked tracked process '{}' with pid: {} for removal", process.comm, process.pid);
+                        info!(
+                            "Marked tracked process '{}' with pid: {} for removal",
+                            process.comm, process.pid
+                        );
 
                         events::queue_internal_event(EventType::TrackedProcessChanged(event_c), globals);
                     }
