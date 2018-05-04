@@ -143,7 +143,7 @@ impl Process {
         let tmp = format!("/proc/{}/exe", self.pid);
         let filename = Path::new(&tmp);
 
-        let mut buffer: [u8; 4096] = [0; 4096];
+        let mut buffer: [u8; 8192] = [0; 8192];
         let result = nix::fcntl::readlink(filename, &mut buffer);
 
         match result {
