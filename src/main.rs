@@ -33,10 +33,11 @@
 
 #[macro_use]
 extern crate log;
-extern crate pretty_env_logger;
+extern crate log4rs;
+extern crate log4rs_syslog;
+extern crate syslog;
 extern crate ansi_term;
 extern crate chrono;
-// extern crate log_panics;
 
 #[macro_use]
 extern crate daemonize;
@@ -46,7 +47,6 @@ extern crate enum_primitive;
 extern crate lazy_static;
 #[macro_use]
 extern crate serde_derive;
-extern crate syslog;
 
 extern crate crossbeam;
 extern crate nix;
@@ -54,7 +54,6 @@ extern crate rayon;
 extern crate toml;
 
 use ansi_term::Style;
-use log::{Level, Log, LevelFilter};
 use nix::sys::signal;
 use std::env;
 use std::io;
@@ -64,6 +63,12 @@ use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
+use log::LevelFilter;
+use log4rs::append::file::FileAppender;
+use log4rs::append::console::ConsoleAppender;
+use log4rs_syslog::SyslogAppender;
+use log4rs::encode::pattern::PatternEncoder;
+use log4rs::config::{Appender, Config, Root};
 use syslog::{Facility, Formatter3164, Severity};
 
 mod constants;
@@ -246,13 +251,15 @@ fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager:
     m.dispatch_event(event, globals, manager);
 }
 
+fn initialize_logging() {
+    log4rs::init_file("/etc/precached/log4rs.yaml", Default::default())
+                    .expect("Could not initialize the logging subsystem!");
+}
+
 /// Program entrypoint
 fn main() {
-    // Initialize panic handler
-    // log_panics::init();
-
     // Initialize logging subsystem    
-    pretty_env_logger::init();
+    initialize_logging();
 
     if unsafe { nix::libc::isatty(0) } == 1 {
         print_license_header();

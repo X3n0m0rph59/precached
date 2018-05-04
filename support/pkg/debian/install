@@ -1,4 +1,5 @@
 support/config/precached.conf etc/precached
+support/config/log4rs.yaml etc/precached
 support/rules/00-log-fork-bombs.rules etc/precached/rules.d
 support/rules/10-cache-on-login.rules etc/precached/rules.d
 support/rules/99-ping-logger.rules etc/precached/rules.d

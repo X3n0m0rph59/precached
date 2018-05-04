@@ -50,6 +50,7 @@ package() {
   install -m 755 "target/release/rulesctl" "$pkgdir/usr/bin/"
 
   install -m 644 "support/config/precached.conf" "$pkgdir/etc/precached/"
+  install -m 644 "support/config/log4rs.yaml" "$pkgdir/etc/precached/"
   install -m 644 "support/rules/README" "$pkgdir/etc/precached/rules.d/"
   install -m 644 "support/rules/00-log-fork-bombs.rules" "$pkgdir/etc/precached/rules.d/"
   install -m 644 "support/rules/10-cache-on-login.rules" "$pkgdir/etc/precached/rules.d/"

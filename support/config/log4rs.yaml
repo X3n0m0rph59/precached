@@ -1,0 +1,27 @@
+refresh_rate: 30 seconds
+appenders:
+  stdout:
+    kind: console
+    encoder:
+      pattern: "{d(%Y-%m-%d %H:%M:%S %Z)(utc)} {h({l})}: {M}:{L} - {m}{n}"
+  syslog:
+    kind: syslog
+    openlog:
+      ident: precached
+      option: LOG_PID | LOG_NDELAY | LOG_CONS
+      facility: Daemon
+  logfile:
+    kind: file
+    path: "/var/log/precached.log"
+    encoder:
+      pattern: "{d(%Y-%m-%d %H:%M:%S %Z)(utc)} {l}: {M}:{L} - {m}{n}"
+root:
+  level: info
+  appenders:
+    - stdout    
+    - syslog
+loggers:
+  logfile:
+    level: trace
+    appenders:
+      - logfile
