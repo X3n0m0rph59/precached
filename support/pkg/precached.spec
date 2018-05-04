@@ -124,6 +124,7 @@ esac
 %dir %{_sysconfdir}/%{OrigName}/rules.d/
 # %docdir %{_docdir}/%{OrigName}/examples/
 %config(noreplace) %{_sysconfdir}/%{OrigName}/%{OrigName}.conf
+%config(noreplace) %{_sysconfdir}/%{OrigName}/log4rs.yaml
 %config(noreplace) %{_sysconfdir}/%{OrigName}/rules.d/
 %{_sbindir}/precached
 %{_sbindir}/precachedctl
