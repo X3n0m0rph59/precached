@@ -48,6 +48,7 @@ use std::io::Result;
 use std::path::Path;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, RwLock};
+use std::thread;
 use storage;
 use util;
 
@@ -121,26 +122,51 @@ impl HotApplications {
             Some(h) => {
                 let mut h = h.write().unwrap();
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
+                let mut iotrace_prefetcher_hook = iotrace_prefetcher_hook.clone();
 
                 let app_histogram_c = self.app_histogram.clone();
-                let mut apps: Vec<(&String, &usize)> = app_histogram_c.par_iter().collect();
-                apps.par_sort_by(|a, b| b.1.cmp(a.1));
+                let cached_apps_c = self.cached_apps.clone();
 
-                for (hash, _count) in apps {
-                    if !Self::check_available_memory(globals, manager) {
-                        info!("Available memory exhausted, stopping prefetching!");
-                        break;
-                    }
+                let globals_c = globals.clone();
+                let manager_c = manager.clone();
 
-                    if !self.cached_apps.contains(hash) {
-                        let hash_c = (*hash).clone();
+                let (tx, rx) = channel();
 
-                        debug!("Prefetching files for '{}'", hash);
-                        iotrace_prefetcher_hook.prefetch_data_by_hash(hash, globals, manager);
+                match util::POOL.lock() {
+                    Err(e) => warn!(
+                        "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                        e
+                    ),
 
-                        self.cached_apps.push(hash_c);
-                    } else {
-                        // trace!("Files for '{}' are already cached", hash);
+                    Ok(thread_pool) => {
+                        thread_pool.submit_work(move || {
+                            let mut cached_apps = cached_apps_c.clone();
+
+                            let mut apps: Vec<(&String, &usize)> = app_histogram_c.par_iter().collect();
+                            apps.par_sort_by(|a, b| b.1.cmp(a.1));
+
+                            for (hash, _count) in apps {
+                                if !Self::check_available_memory(&globals_c, &manager_c) {
+                                    info!("Available memory exhausted, stopping prefetching!");
+                                    break;
+                                }
+
+                                if !cached_apps.contains(hash) {
+                                    let hash_c = (*hash).clone();
+
+                                    debug!("Prefetching files for '{}'", hash);
+                                    iotrace_prefetcher_hook.prefetch_data_by_hash(hash, &globals_c, &manager_c);
+
+                                    cached_apps.push(hash_c);
+                                } else {
+                                    debug!("Files for '{}' are already cached", hash);
+                                }
+                            }
+
+                            tx.send(cached_apps);
+                        });
+
+                        self.cached_apps = rx.recv().unwrap();
                     }
                 }
             }
