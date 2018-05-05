@@ -18,38 +18,17 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod daemon;
-pub mod deref;
-pub mod files;
-pub mod mem;
-pub mod memory;
-pub mod notify;
-pub mod system;
-pub mod trace_event;
-pub mod utmpx;
-pub mod vec;
-// pub mod ptrace;
-pub mod sched;
-pub mod ftrace;
-pub mod iotrace;
-pub mod task_scheduler;
-pub mod thread;
-pub mod thread_pool;
+extern crate libc;
+extern crate nix;
 
-pub use self::daemon::*;
-pub use self::deref::*;
-pub use self::files::*;
-pub use self::ftrace::*;
-pub use self::iotrace::*;
-pub use self::mem::*;
-pub use self::memory::*;
-pub use self::notify::*;
-// pub use self::ptrace::*;
-pub use self::sched::*;
-pub use self::system::*;
-pub use self::task_scheduler::*;
-pub use self::thread::*;
-pub use self::thread_pool::*;
-pub use self::trace_event::*;
-pub use self::utmpx::*;
-pub use self::vec::*;
+/// Lock the calling thread to CPU `cpu_index`
+pub fn set_cpu_affinity(cpu_index: usize) -> Result<(), nix::Error> {
+    let pid = nix::unistd::Pid::from_raw(0);
+
+    let mut cpuset = nix::sched::CpuSet::new();
+    cpuset.set(cpu_index);
+
+    nix::sched::sched_setaffinity(pid, &cpuset)?;
+
+    Ok(())
+}
