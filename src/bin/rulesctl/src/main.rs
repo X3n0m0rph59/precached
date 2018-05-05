@@ -415,7 +415,7 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
 
 /// Program entrypoint
 fn main() {
-    if unsafe { nix::libc::isatty(0) } == 1 {
+    if unsafe { nix::libc::isatty(1) } == 1 {
         print_license_header();
     }
 

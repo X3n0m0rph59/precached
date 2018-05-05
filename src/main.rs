@@ -267,7 +267,7 @@ fn main() {
     // Initialize the logging subsystem
     initialize_logging();
 
-    if unsafe { nix::libc::isatty(0) } == 1 {
+    if unsafe { nix::libc::isatty(1) } == 1 {
         print_license_header();
     }
 
