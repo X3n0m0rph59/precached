@@ -18,10 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate nix;
 extern crate chrono;
 extern crate clap;
 extern crate lazy_static;
+extern crate nix;
 extern crate prettytable;
 extern crate rayon;
 extern crate serde_json;
@@ -200,7 +200,6 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
         Ok(data) => {
             // Tuple fields: (hash value, execution count, flag: 'keep this entry')
             let mut apps: Vec<(&String, &usize, bool)> = data.par_iter().map(|(k, v)| (k, v, true)).collect();
-
 
             let mut pb = ProgressBar::new(apps.len() as u64);
 
