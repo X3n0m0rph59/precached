@@ -914,7 +914,7 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
 
 pub fn main() {
     // License is displayed in `help` section
-    // if unsafe { nix::libc::isatty(0) } == 1 {
+    // if unsafe { nix::libc::isatty(1) } == 1 {
     //     print_license_header();
     // }
 

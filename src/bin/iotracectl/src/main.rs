@@ -468,6 +468,7 @@ fn parse_sort_order(matches: &clap::ArgMatches) -> SortOrder {
 fn get_io_traces_filtered_and_sorted<T>(
     config: &Config,
     daemon_config: util::ConfigFile,
+    display_progress: bool,
     pb: &mut ProgressBar<T>,
     subcommand: &String,
     sort_field: SortField,
@@ -476,7 +477,9 @@ fn get_io_traces_filtered_and_sorted<T>(
 where
     T: std::io::Write,
 {
-    pb.message("Examining I/O trace log files: ");
+    if display_progress {
+        pb.message("Examining I/O trace log files: ");
+    }
 
     let mut result = vec![];
 
@@ -505,7 +508,10 @@ where
             },
         }
 
-        pb.inc();
+        if display_progress {
+            pb.inc();
+        }
+
         index += 1;
     }) {
         Err(e) => return Err(format!("Error during enumeration of I/O trace log files: {}", e)),
@@ -513,7 +519,9 @@ where
     }
 
     // Sort result data set
-    pb.message("Sorting data set: ");
+    if display_progress {
+        pb.message("Sorting data set: ");
+    }
 
     match sort_field {
         SortField::None => { /* Do nothing */ }
@@ -595,20 +603,28 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     let count = read_dir(&traces_path).unwrap().count();
     let mut pb = ProgressBar::new(count as u64);
-    pb.format(PROGRESS_BAR_INDICATORS);
+
+    let display_progress = unsafe { nix::libc::isatty(1) == 1 };
+
+    if display_progress {
+        pb.format(PROGRESS_BAR_INDICATORS);
+    }
 
     let matches = config.matches.subcommand_matches("list").unwrap();
 
     let (result, total, matching, errors) = get_io_traces_filtered_and_sorted(
         config,
         daemon_config,
+        display_progress,
         &mut pb,
         &String::from("list"),
         parse_sort_field(&matches),
         parse_sort_order(&matches),
     ).unwrap();
 
-    pb.finish_println("\n");
+    if display_progress {
+        pb.finish_println("\n");
+    }
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -634,7 +650,9 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         index += 1;
     }
 
-    // pb.finish_println("\n");
+    if display_progress {
+        // pb.finish_println("\n");
+    }
 
     if total < 1 {
         println!("No I/O trace logs available");
@@ -689,20 +707,28 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
 
     let count = read_dir(&traces_path).unwrap().count();
     let mut pb = ProgressBar::new(count as u64);
-    pb.format(PROGRESS_BAR_INDICATORS);
+
+    let display_progress = unsafe { nix::libc::isatty(1) == 1 };
+
+    if display_progress {
+        pb.format(PROGRESS_BAR_INDICATORS);
+    }
 
     let matches = config.matches.subcommand_matches("info").unwrap();
 
     let (result, total, matching, errors) = get_io_traces_filtered_and_sorted(
         config,
         daemon_config,
+        display_progress,
         &mut pb,
         &String::from("info"),
         parse_sort_field(&matches),
         parse_sort_order(&matches),
     ).unwrap();
 
-    pb.finish_println("\n");
+    if display_progress {
+        pb.finish_println("\n");
+    }
 
     let mut index = 0;
     for (io_trace, path) in result {
@@ -710,7 +736,9 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
         index += 1;
     }
 
-    // pb.finish_println("\n");
+    if display_progress {
+        // pb.finish_println("\n");
+    }
 
     if total < 1 {
         println!("No I/O trace logs available");
@@ -954,13 +982,19 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     let count = read_dir(&traces_path).unwrap().count();
     let mut pb = ProgressBar::new(count as u64);
-    pb.format(PROGRESS_BAR_INDICATORS);
+
+    let display_progress = unsafe { nix::libc::isatty(1) == 1 };
+
+    if display_progress {
+        pb.format(PROGRESS_BAR_INDICATORS);
+    }
 
     let matches = config.matches.subcommand_matches("optimize").unwrap();
 
     let (result, total, matching, mut errors) = get_io_traces_filtered_and_sorted(
         config,
         daemon_config,
+        display_progress,
         &mut pb,
         &String::from("optimize"),
         parse_sort_field(&matches),
@@ -968,8 +1002,11 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     ).unwrap();
 
     let mut pb = ProgressBar::new(matching as u64);
-    pb.format(PROGRESS_BAR_INDICATORS);
-    pb.message("Optimizing I/O trace log files: ");
+
+    if display_progress {
+        pb.format(PROGRESS_BAR_INDICATORS);
+        pb.message("Optimizing I/O trace log files: ");
+    }
 
     let dry_run = config.matches.subcommand_matches("optimize").unwrap().is_present("dryrun");
 
@@ -1013,11 +1050,16 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             }
         }
 
-        pb.inc();
+        if display_progress {
+            pb.inc();
+        }
+
         index += 1;
     }
 
-    pb.finish_println("\n");
+    if display_progress {
+        pb.finish_println("\n");
+    }
 
     if total < 1 {
         println!("No I/O trace logs available");
@@ -1050,13 +1092,19 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     let count = read_dir(&traces_path).unwrap().count();
     let mut pb = ProgressBar::new(count as u64);
-    pb.format(PROGRESS_BAR_INDICATORS);
+
+    let display_progress = unsafe { nix::libc::isatty(1) == 1 };
+
+    if display_progress {
+        pb.format(PROGRESS_BAR_INDICATORS);
+    }
 
     let matches = config.matches.subcommand_matches("remove").unwrap();
 
     let (result, total, matching, mut errors) = get_io_traces_filtered_and_sorted(
         config,
         daemon_config,
+        display_progress,
         &mut pb,
         &String::from("remove"),
         parse_sort_field(&matches),
@@ -1064,8 +1112,11 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     ).unwrap();
 
     let mut pb = ProgressBar::new(matching as u64);
-    pb.format(PROGRESS_BAR_INDICATORS);
-    pb.message("Removing I/O trace log files: ");
+
+    if display_progress {
+        pb.format(PROGRESS_BAR_INDICATORS);
+        pb.message("Removing I/O trace log files: ");
+    }
 
     let dry_run = config.matches.subcommand_matches("remove").unwrap().is_present("dryrun");
 
@@ -1109,11 +1160,16 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             }
         }
 
-        pb.inc();
+        if display_progress {
+            pb.inc();
+        }
+
         index += 1;
     }
 
-    pb.finish_println("\n");
+    if display_progress {
+        pb.finish_println("\n");
+    }
 
     // pb.finish_println("\n");
 
@@ -1287,7 +1343,7 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
 
 /// Program entrypoint
 fn main() {
-    if unsafe { nix::libc::isatty(0) } == 1 {
+    if unsafe { nix::libc::isatty(1) } == 1 {
         print_license_header();
     }
 
