@@ -18,6 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+extern crate nix;
 extern crate chrono;
 extern crate clap;
 extern crate lazy_static;
@@ -95,8 +96,13 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
             }
 
             let mut pb = ProgressBar::new(apps.len() as u64);
-            pb.format(PROGRESS_BAR_INDICATORS);
-            pb.message("Examining I/O trace log files: ");
+
+            let display_progress = unsafe { nix::libc::isatty(1) == 1 };
+
+            if display_progress {
+                pb.format(PROGRESS_BAR_INDICATORS);
+                pb.message("Examining I/O trace log files: ");
+            }
 
             // Print in "tabular" format (the default)
             let mut table = prettytable::Table::new();
@@ -140,11 +146,16 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
                     }
                 }
 
-                pb.inc();
+                if display_progress {
+                    pb.inc();
+                }
+
                 index += 1;
             }
 
-            pb.finish_print("done");
+            if display_progress {
+                pb.finish_print("done");
+            }
 
             table.printstd();
 
@@ -190,9 +201,15 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
             // Tuple fields: (hash value, execution count, flag: 'keep this entry')
             let mut apps: Vec<(&String, &usize, bool)> = data.par_iter().map(|(k, v)| (k, v, true)).collect();
 
+
             let mut pb = ProgressBar::new(apps.len() as u64);
-            pb.format(PROGRESS_BAR_INDICATORS);
-            pb.message("Examining I/O trace log files: ");
+
+            let display_progress = unsafe { nix::libc::isatty(1) == 1 };
+
+            if display_progress {
+                pb.format(PROGRESS_BAR_INDICATORS);
+                pb.message("Examining I/O trace log files: ");
+            }
 
             // Print in "tabular" format (the default)
             let mut table = prettytable::Table::new();
@@ -249,11 +266,16 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
                     }
                 }
 
-                pb.inc();
+                if display_progress {
+                    pb.inc();
+                }
+
                 index += 1;
             }
 
-            pb.finish_print("Saving state...");
+            if display_progress {
+                pb.finish_print("Saving state...");
+            }
 
             apps.retain(|&(_k, _v, keep)| keep);
 
@@ -262,13 +284,17 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
             match util::write_text_file(&path.join("hot_applications.state"), &serialized) {
                 Err(e) => {
-                    pb.finish_print("failed");
+                    if display_progress {
+                        pb.finish_print("failed");
+                    }
 
                     error!("Could not save hot applications histogram! {}", e);
                 }
 
                 Ok(()) => {
-                    pb.finish_print("done");
+                    if display_progress {
+                        pb.finish_print("done");
+                    }
 
                     table.printstd();
 
