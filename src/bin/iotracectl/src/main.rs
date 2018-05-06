@@ -980,6 +980,16 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
     let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
+    let min_len = daemon_config
+            .clone()
+            .min_trace_log_length
+            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+
+    let min_prefetch_size = daemon_config
+            .clone()
+            .min_trace_log_prefetch_size
+            .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
+
     let count = read_dir(&traces_path).unwrap().count();
     let mut pb = ProgressBar::new(count as u64);
 
@@ -1024,7 +1034,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     for (mut io_trace, path) in result {
         let filename = String::from(path.to_string_lossy());
 
-        match util::optimize_io_trace_log(&path, &mut io_trace, dry_run) {
+        match util::optimize_io_trace_log(&path, &mut io_trace, min_len, min_prefetch_size, dry_run) {
             Err(_) => {
                 // Print in "tabular" format (the default)
                 table.add_row(Row::new(vec![

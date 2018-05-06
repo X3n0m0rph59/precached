@@ -114,16 +114,16 @@ impl IOtraceLogManager {
         Ok(result)
     }
 
-    fn shall_io_trace_be_pruned(io_trace: &iotrace::IOTraceLog) -> bool {
+    fn shall_io_trace_be_pruned(io_trace: &iotrace::IOTraceLog, min_len: usize, min_prefetch_size: u64) -> bool {
         let mut result = false;
 
         // prune short traces (length)
-        if io_trace.trace_log.len() < constants::MIN_TRACE_LOG_LENGTH {
+        if io_trace.trace_log.len() < min_len {
             result = true;
         }
 
         // prune short traces (amount of prefetched data)
-        if io_trace.accumulated_size < constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES {
+        if io_trace.accumulated_size < min_prefetch_size {
             result = true;
         }
 
@@ -137,7 +137,7 @@ impl IOtraceLogManager {
     }
 
     /// Prunes invalid I/O trace logs
-    pub fn prune_invalid_trace_logs(state_dir: &Path) {
+    pub fn prune_invalid_trace_logs(state_dir: &Path, min_len: usize, min_prefetch_size: u64) {
         debug!("Pruning invalid I/O trace logs...");
 
         let traces_path = state_dir.join(constants::IOTRACE_DIR);
@@ -153,7 +153,7 @@ impl IOtraceLogManager {
                     errors += 1;
                 }
 
-                Ok(io_trace) => if Self::shall_io_trace_be_pruned(&io_trace) {
+                Ok(io_trace) => if Self::shall_io_trace_be_pruned(&io_trace, min_len, min_prefetch_size) {
                     debug!("Pruning I/O trace log: {:?}", path);
 
                     util::remove_file(path, false);
@@ -178,7 +178,7 @@ impl IOtraceLogManager {
         }
     }
 
-    pub fn optimize_single_trace_log(filename: &Path) {
+    pub fn optimize_single_trace_log(filename: &Path, min_len: usize, min_prefetch_size: u64) {
         info!("Optimizing single I/O trace log {:?}", filename);
 
         match iotrace::IOTraceLog::from_file(filename) {
@@ -189,7 +189,7 @@ impl IOtraceLogManager {
             Ok(mut io_trace) => {
                 // Only optimize if the trace log is not optimized already
                 if !io_trace.trace_log_optimized {
-                    match util::optimize_io_trace_log(filename, &mut io_trace, false) {
+                    match util::optimize_io_trace_log(filename, &mut io_trace, min_len, min_prefetch_size, false) {
                         Err(e) => {
                             error!("Could not optimize I/O trace log for {:?}: {}", io_trace.exe, e);
 
@@ -205,7 +205,7 @@ impl IOtraceLogManager {
         }
     }
 
-    pub fn optimize_all_trace_logs(state_dir: &Path) {
+    pub fn optimize_all_trace_logs(state_dir: &Path, min_len: usize, min_prefetch_size: u64) {
         info!("Optimizing all I/O trace logs...");
 
         let traces_path = state_dir.join(constants::IOTRACE_DIR);
@@ -224,7 +224,7 @@ impl IOtraceLogManager {
                 Ok(mut io_trace) => {
                     // Only optimize if the trace log is not optimized already
                     if !io_trace.trace_log_optimized {
-                        match util::optimize_io_trace_log(path, &mut io_trace, false) {
+                        match util::optimize_io_trace_log(path, &mut io_trace, min_len, min_prefetch_size, false) {
                             Err(e) => {
                                 error!("Could not optimize I/O trace log for {:?}: {}", io_trace.exe, e);
 
@@ -264,8 +264,16 @@ impl IOtraceLogManager {
             .state_dir
             .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
-        Self::prune_invalid_trace_logs(&state_dir.clone());
-        Self::optimize_all_trace_logs(&state_dir.clone());
+        let min_len = config
+            .min_trace_log_length
+            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+
+        let min_prefetch_size = config
+            .min_trace_log_prefetch_size
+            .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
+
+        Self::prune_invalid_trace_logs(&state_dir.clone(), min_len, min_prefetch_size);
+        Self::optimize_all_trace_logs(&state_dir.clone(), min_len, min_prefetch_size);
     }
 }
 
@@ -293,7 +301,7 @@ impl Plugin for IOtraceLogManager {
         // do nothing
     }
 
-    fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
+    fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             EventType::OptimizeIOTraceLog(ref filename) => {
                 warn!("Optimizing: {:?}", filename);
@@ -306,8 +314,18 @@ impl Plugin for IOtraceLogManager {
                     Ok(mut scheduler) => {
                         let filename_c = filename.clone();
 
+                        let config = globals.config.config_file.clone().unwrap();
+
+                        let min_len = config
+                            .min_trace_log_length
+                            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+
+                        let min_prefetch_size = config
+                            .min_trace_log_prefetch_size
+                            .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
+
                         (*scheduler).schedule_job(move || {
-                            Self::optimize_single_trace_log(&filename_c);
+                            Self::optimize_single_trace_log(&filename_c, min_len, min_prefetch_size);
                         });
                     }
                 }

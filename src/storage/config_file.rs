@@ -79,8 +79,11 @@ pub fn parse_config_file(globals: &mut Globals) -> io::Result<()> {
 
     // TODO: Implement field validation
     let config_file: ConfigFile = match toml::from_str(&s) {
-        Err(_) => ConfigFile::default(),
-        Ok(res) => res,
+        Ok(conf) => conf,
+        Err(e) => {
+            error!("Syntax error in configuration file: {}", e);
+            panic!("Unrecoverable error occurred!");
+        }
     };
 
     globals.config.config_file = Some(config_file);

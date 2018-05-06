@@ -38,12 +38,6 @@ pub const CONFIG_FILE: &str = "/etc/precached/precached.conf";
 pub const ZSTD_COMPRESSION_RATIO: i32 = 0; // 0 == auto select (default: 3),
                                            // 1 == fastest, 9 == best compression
 
-/// The minimum length an I/O trace log must have for it to be saved/kept
-pub const MIN_TRACE_LOG_LENGTH: usize = 25;
-
-/// The minimum amount of data an I/O trace log must reference for it to be kept
-pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 32 * 1024 * 1024; // 32 MiB
-
 /// Default date and time format
 pub const DATETIME_FORMAT_DEFAULT: &str = "%Y-%m-%d %H:%M:%S";
 

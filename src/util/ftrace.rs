@@ -468,7 +468,7 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
 }
 
 /// Check for, and prune expired tracers; save their logs if valid
-fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData>, iotrace_dir: &Path, globals: &mut Globals) {
+fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData>, iotrace_dir: &Path, min_len: usize, min_prefetch_size: u64, globals: &mut Globals) {
     for (pid, v) in active_tracers.iter_mut() {
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
             let mut comm = &v.trace_log.comm;
@@ -482,7 +482,7 @@ fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData
                 .join(Path::new(&constants::IOTRACE_DIR))
                 .join(Path::new(&format!("{}.trace", v.trace_log.hash)));
 
-            match v.trace_log.save(&filename, false) {
+            match v.trace_log.save(&filename, min_len, min_prefetch_size, false) {
                 Err(e) => error!(
                     "Error while saving the I/O trace log for process '{}' with pid: {}. {}",
                     comm, pid, e
@@ -521,6 +521,14 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         .state_dir
         .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
+    let min_len = config
+        .min_trace_log_length
+        .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+
+    let min_prefetch_size = config
+        .min_trace_log_prefetch_size
+        .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
+
     let filename = Path::new(TRACING_DIR).join("trace_pipe");
     let mut trace_pipe = try!(OpenOptions::new().read(true).open(&filename));
 
@@ -544,7 +552,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         match hooks::ftrace_logger::ACTIVE_TRACERS.lock() {
             Err(e) => trace!("Could not take a lock on a shared data structure! {}", e),
             Ok(mut active_tracers) => {
-                check_expired_tracers(&mut active_tracers, &iotrace_dir, globals);
+                check_expired_tracers(&mut active_tracers, &iotrace_dir, min_len, min_prefetch_size, globals);
             }
         }
 

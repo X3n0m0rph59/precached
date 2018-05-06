@@ -35,7 +35,7 @@ use util;
 /// Optimizes an I/O trace log. Keep only valid trace log entries that actually
 /// contribute to a faster program startup time. Remove trace log entries that
 /// are invalid, duplicate, or which referenced files do not exist anymore
-pub fn optimize_io_trace_log(filename: &Path, io_trace: &mut iotrace::IOTraceLog, _dry_run: bool) -> Result<()> {
+pub fn optimize_io_trace_log(filename: &Path, io_trace: &mut iotrace::IOTraceLog, min_len: usize, min_prefetch_size: u64, _dry_run: bool) -> Result<()> {
     trace!("Optimizing I/O trace log...");
 
     let mut optimized_trace_log = Vec::<TraceLogEntry>::new();
@@ -74,7 +74,7 @@ pub fn optimize_io_trace_log(filename: &Path, io_trace: &mut iotrace::IOTraceLog
     io_trace.accumulated_size = size;
     io_trace.trace_log_optimized = true;
 
-    io_trace.save(filename, true)?;
+    io_trace.save(filename, min_len, min_prefetch_size, true)?;
 
     Ok(())
 }

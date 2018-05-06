@@ -24,12 +24,15 @@ extern crate toml;
 use std::io;
 use std::path::{Path, PathBuf};
 use util;
+use constants;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ConfigFile {
     pub user: Option<String>,
     pub group: Option<String>,
     pub worker_threads: Option<String>,
+    pub min_trace_log_length: Option<usize>,
+    pub min_trace_log_prefetch_size: Option<u64>,
     pub state_dir: Option<PathBuf>,
     pub whitelist: Option<Vec<PathBuf>>,
     pub blacklist: Option<Vec<PathBuf>>,
@@ -44,6 +47,8 @@ impl Default for ConfigFile {
             user: Some(String::from("root")),
             group: Some(String::from("root")),
             worker_threads: Some(String::from("auto")),
+            min_trace_log_length: Some(constants::MIN_TRACE_LOG_LENGTH),
+            min_trace_log_prefetch_size: Some(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES),
             state_dir: Some(Path::new("/var/lib/precached/").to_path_buf()),
             whitelist: Some(vec![PathBuf::new()]),
             blacklist: Some(vec![PathBuf::new()]),
