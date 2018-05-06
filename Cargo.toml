@@ -112,3 +112,8 @@ path = "src/bin/precachedtop/src/main.rs"
 name = "rulesctl"
 path = "src/bin/rulesctl/src/main.rs"
 # build = "src/bin/rulesctl/build.rs"
+
+[[bin]]
+name = "debugtool"
+path = "src/bin/debugtool/src/main.rs"
+# build = "src/bin/rulesctl/build.rs"
