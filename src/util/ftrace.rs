@@ -468,7 +468,13 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
 }
 
 /// Check for, and prune expired tracers; save their logs if valid
-fn check_expired_tracers(active_tracers: &mut HashMap<libc::pid_t, PerTracerData>, iotrace_dir: &Path, min_len: usize, min_prefetch_size: u64, globals: &mut Globals) {
+fn check_expired_tracers(
+    active_tracers: &mut HashMap<libc::pid_t, PerTracerData>,
+    iotrace_dir: &Path,
+    min_len: usize,
+    min_prefetch_size: u64,
+    globals: &mut Globals,
+) {
     for (pid, v) in active_tracers.iter_mut() {
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
             let mut comm = &v.trace_log.comm;
@@ -521,9 +527,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         .state_dir
         .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
-    let min_len = config
-        .min_trace_log_length
-        .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+    let min_len = config.min_trace_log_length.unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
 
     let min_prefetch_size = config
         .min_trace_log_prefetch_size

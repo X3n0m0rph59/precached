@@ -264,9 +264,7 @@ impl IOtraceLogManager {
             .state_dir
             .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
-        let min_len = config
-            .min_trace_log_length
-            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+        let min_len = config.min_trace_log_length.unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
 
         let min_prefetch_size = config
             .min_trace_log_prefetch_size
@@ -316,9 +314,7 @@ impl Plugin for IOtraceLogManager {
 
                         let config = globals.config.config_file.clone().unwrap();
 
-                        let min_len = config
-                            .min_trace_log_length
-                            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+                        let min_len = config.min_trace_log_length.unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
 
                         let min_prefetch_size = config
                             .min_trace_log_prefetch_size

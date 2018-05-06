@@ -981,14 +981,14 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
     let min_len = daemon_config
-            .clone()
-            .min_trace_log_length
-            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+        .clone()
+        .min_trace_log_length
+        .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
 
     let min_prefetch_size = daemon_config
-            .clone()
-            .min_trace_log_prefetch_size
-            .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
+        .clone()
+        .min_trace_log_prefetch_size
+        .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
 
     let count = read_dir(&traces_path).unwrap().count();
     let mut pb = ProgressBar::new(count as u64);

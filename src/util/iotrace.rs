@@ -27,24 +27,33 @@ use self::term::Attr;
 use chrono::{DateTime, Duration, Utc};
 use constants;
 use iotrace::*;
+use std::collections::HashMap;
 use std::fs;
 use std::io::Result;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use util;
 
 /// Optimizes an I/O trace log. Keep only valid trace log entries that actually
 /// contribute to a faster program startup time. Remove trace log entries that
 /// are invalid, duplicate, or which referenced files do not exist anymore
-pub fn optimize_io_trace_log(filename: &Path, io_trace: &mut iotrace::IOTraceLog, min_len: usize, min_prefetch_size: u64, _dry_run: bool) -> Result<()> {
+pub fn optimize_io_trace_log(
+    filename: &Path,
+    io_trace: &mut iotrace::IOTraceLog,
+    min_len: usize,
+    min_prefetch_size: u64,
+    _dry_run: bool,
+) -> Result<()> {
     trace!("Optimizing I/O trace log...");
 
     let mut optimized_trace_log = Vec::<TraceLogEntry>::new();
+    let mut optimized_file_map = HashMap::<PathBuf, usize>::new();
     let mut size = 0;
 
     let mut already_opened = vec![];
 
     for e in &io_trace.trace_log {
         let entry = e.clone();
+        let mut current_file = None;
 
         match e.operation {
             IOOperation::Open(ref filename, ref _fd) => {
@@ -59,6 +68,8 @@ pub fn optimize_io_trace_log(filename: &Path, io_trace: &mut iotrace::IOTraceLog
                 } else {
                     already_opened.push(filename.clone());
                 }
+
+                current_file = Some(PathBuf::from(filename));
             }
             _ => { /* Ignore others */ }
         }
@@ -66,10 +77,18 @@ pub fn optimize_io_trace_log(filename: &Path, io_trace: &mut iotrace::IOTraceLog
         // All tests passed successfully, append `e` to the optimized trace log
         size += entry.size;
         optimized_trace_log.push(entry);
+
+        if let Some(filename) = current_file {
+            let val = optimized_file_map.entry(filename).or_insert(0);
+            *val += 1;
+        }
     }
 
     io_trace.trace_log.clear();
     io_trace.trace_log.append(&mut optimized_trace_log);
+
+    // io_trace.file_map.clear();
+    io_trace.file_map = optimized_file_map;
 
     io_trace.accumulated_size = size;
     io_trace.trace_log_optimized = true;

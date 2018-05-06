@@ -21,10 +21,10 @@
 extern crate serde;
 extern crate toml;
 
+use constants;
 use std::io;
 use std::path::{Path, PathBuf};
 use util;
-use constants;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ConfigFile {
