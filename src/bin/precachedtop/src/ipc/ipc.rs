@@ -74,7 +74,7 @@ pub enum IpcCommand {
     Pong,
 
     Connect,
-    ConnectedSuccessfuly,
+    ConnectedSuccessfully,
     Close,
 
     RequestTrackedProcesses,

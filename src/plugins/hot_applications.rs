@@ -345,7 +345,7 @@ impl HotApplications {
         self.save_state(globals, manager);
 
         info!(
-            "Successfuly optimized hot applications histogram! Examined: {}, removed: {} entries.",
+            "Successfully optimized hot applications histogram! Examined: {}, removed: {} entries.",
             index, errors
         );
     }
