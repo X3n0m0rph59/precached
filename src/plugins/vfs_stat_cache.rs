@@ -64,7 +64,7 @@ impl VFSStatCache {
         info!("Started reading of statx() metadata...");
 
         match util::PREFETCH_POOL.lock() {
-            Err(e) => warn!(
+            Err(e) => error!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e
             ),
@@ -98,7 +98,7 @@ impl VFSStatCache {
         let tracked_entries = self.get_globally_tracked_entries(globals, manager);
 
         match util::PREFETCH_POOL.lock() {
-            Err(e) => warn!(
+            Err(e) => error!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e
             ),

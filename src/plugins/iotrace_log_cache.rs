@@ -70,7 +70,7 @@ impl IOtraceLogCache {
         let sc = Mutex::new(sender.clone());
 
         match util::PREFETCH_POOL.lock() {
-            Err(e) => warn!(
+            Err(e) => error!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e
             ),
@@ -155,7 +155,7 @@ impl IOtraceLogCache {
         let sc = Mutex::new(sender.clone());
 
         match util::PREFETCH_POOL.lock() {
-            Err(e) => warn!(
+            Err(e) => error!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e
             ),

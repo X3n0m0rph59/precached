@@ -530,7 +530,7 @@ fn main() {
 
         // Let the task scheduler run it's queued jobs
         match util::SCHEDULER.try_lock() {
-            Err(e) => warn!(
+            Err(e) => error!(
                 "Could not take a lock on the global task scheduler! Postponing work until later. {}",
                 e
             ),

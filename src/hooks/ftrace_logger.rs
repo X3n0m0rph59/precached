@@ -131,7 +131,7 @@ impl FtraceLogger {
                             match ACTIVE_TRACERS.lock() {
                                 Err(e) => {
                                     // Lock failed
-                                    warn!(
+                                    error!(
                                         "Could not take a lock on a shared data structure! Lost an I/O trace event! {}",
                                         e
                                     );
@@ -233,7 +233,7 @@ impl FtraceLogger {
             }
 
             if EXIT_NOW.load(Ordering::Relaxed) {
-                trace!("Leaving the ftrace event loop...");
+                debug!("Leaving the ftrace event loop...");
                 break 'FTRACE_EVENT_LOOP;
             } else {
                 // If we get here, the ftrace parser thread likely crashed
@@ -315,16 +315,16 @@ impl FtraceLogger {
 
                 // Check if the program is blacklisted
                 if let Ok(exe) = exe {
-                    info!("Path: {:?}", exe);
+                    trace!("Executable Path: {:?}", exe);
 
                     if Self::is_program_blacklisted(&exe, globals, manager) {
-                        warn!("Program {:?} is blacklisted, not generating trace!", exe);
+                        info!("Program {:?} is blacklisted, will not generate an I/O trace log file!", exe);
                         return;
                     }
                 }
 
                 match ACTIVE_TRACERS.lock() {
-                    Err(e) => warn!(
+                    Err(e) => error!(
                         "Could not take a lock on a shared data structure! Won't trace process '{}' with pid {}: {}",
                         comm, event.pid, e
                     ),
@@ -441,7 +441,7 @@ impl FtraceLogger {
                     // NOTE: We have to use `lock()` here instead of `try_lock()`
                     //       because we don't want to miss "exit" events in any case
                     match ACTIVE_TRACERS.lock() {
-                        Err(e) => warn!("Could not take a lock on a shared data structure! {}", e),
+                        Err(e) => error!("Could not take a lock on a shared data structure! {}", e),
                         Ok(mut active_tracers) => {
                             // We successfully acquired the lock
                             if !active_tracers.contains_key(&event.pid) {

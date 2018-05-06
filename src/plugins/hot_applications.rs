@@ -133,7 +133,7 @@ impl HotApplications {
                 let (tx, rx) = channel();
 
                 match util::POOL.lock() {
-                    Err(e) => warn!(
+                    Err(e) => error!(
                         "Could not take a lock on a shared data structure! Postponing work until later. {}",
                         e
                     ),
@@ -147,7 +147,7 @@ impl HotApplications {
 
                             for (hash, _count) in apps {
                                 if !Self::check_available_memory(&globals_c, &manager_c) {
-                                    info!("Available memory exhausted, stopping prefetching!");
+                                    warn!("Available memory exhausted, stopping prefetching!");
                                     break;
                                 }
 

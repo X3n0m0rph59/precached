@@ -67,7 +67,7 @@ impl TaskScheduler {
 
         // NOTE: Block here until we have got the lock
         match util::POOL.lock() {
-            Err(e) => warn!(
+            Err(e) => error!(
                 "Could not take a lock on a shared data structure! Postponing work until later. {}",
                 e
             ),

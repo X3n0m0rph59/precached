@@ -128,7 +128,7 @@ impl IOtracePrefetcher {
                         match util::cache_file(file, true) {
                             Err(e) => {
                                 // I/O trace log maybe needs to be optimized.
-                                info!("Could not prefetch file: {:?}: {}", file, e);
+                                warn!("Could not prefetch file: {:?}: {}", file, e);
 
                                 // inhibit further prefetching of that file
                                 already_prefetched.insert(file.clone(), None);
@@ -526,7 +526,7 @@ impl IOtracePrefetcher {
                 let mut process = process_tracker.get_process(event.pid);
 
                 match process {
-                    None => debug!("Error during online prefetching! Process with pid {} vanished", event.pid),
+                    None => debug!("Process with pid {} vanished during prefetching", event.pid),
 
                     Some(process) => {
                         let process_cmdline = process.get_cmdline().unwrap_or_else(|_| String::from(""));
