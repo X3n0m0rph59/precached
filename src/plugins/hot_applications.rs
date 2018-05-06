@@ -154,12 +154,12 @@ impl HotApplications {
                                 if !cached_apps.contains(hash) {
                                     let hash_c = (*hash).clone();
 
-                                    debug!("Prefetching files for '{}'", hash);
+                                    debug!("Prefetching files for hash: '{}'", hash);
                                     iotrace_prefetcher_hook.prefetch_data_by_hash(hash, &globals_c, &manager_c);
 
                                     cached_apps.push(hash_c);
                                 } else {
-                                    debug!("Files for '{}' are already cached", hash);
+                                    debug!("Files for hash '{}' are already cached", hash);
                                 }
                             }
 
@@ -194,7 +194,7 @@ impl HotApplications {
                     }
 
                     if self.cached_apps.contains(&hashval) {
-                        debug!("Unmapping files for '{}'", hashval);
+                        debug!("Unmapping files for hash '{}'", hashval);
                         iotrace_prefetcher_hook.free_memory_by_hash(&hashval, globals, manager);
 
                         // remove hashval from cached_apps vec
