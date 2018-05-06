@@ -59,7 +59,7 @@ impl Config {
                 Arg::with_name("foreground")
                     .short("f")
                     .long("foreground")
-                    .help("Stay in foreground (do not daemonize)"),
+                    .help("Stay in the foreground (do not daemonize)"),
             )
             .get_matches();
 
