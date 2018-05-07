@@ -30,7 +30,7 @@ where
     App::new("debugtool")
         .version("1.2.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
-        .about("precached debugging tool")
+        .about("Debugging tool for precached")
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
         .arg(

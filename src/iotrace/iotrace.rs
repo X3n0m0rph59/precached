@@ -178,7 +178,10 @@ impl IOTraceLog {
 
             // make the I/O trace contain an open and a read of the binary itself
             // since we will always miss that event in the tracer
-            let first_entries = vec![
+            let mut initial_file_map = HashMap::new();
+            initial_file_map.insert(exe.clone(), 1);
+
+            let initial_trace_log = vec![
                 TraceLogEntry::new(IOOperation::Open(exe.clone(), 0), util::get_file_size(&exe).unwrap_or(0)),
                 // TraceLogEntry::new(IOOperation::Read(0)),
             ];
@@ -190,8 +193,8 @@ impl IOTraceLog {
                 cmdline: cmdline,
                 created_at: Utc::now(),
                 trace_stopped_at: Utc::now(),
-                file_map: HashMap::new(),
-                trace_log: first_entries,
+                file_map: initial_file_map,
+                trace_log: initial_trace_log,
                 accumulated_size: util::get_file_size(&exe).unwrap_or(0),
                 trace_log_optimized: false,
             })

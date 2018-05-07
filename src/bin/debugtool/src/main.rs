@@ -60,7 +60,6 @@ mod clap_app;
 mod constants;
 mod util;
 
-
 /// Unicode characters used for drawing the progress bar
 const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
 
@@ -123,13 +122,9 @@ fn print_usage(config: &mut Config) {
     println!("");
 }
 
-fn print_system_status(_config: &Config) {
+fn print_system_status(_config: &Config) {}
 
-}
-
-fn perform_tracing_test(_config: &Config) {
-
-}
+fn perform_tracing_test(_config: &Config) {}
 
 /// Generate shell completions
 fn generate_completions(config: &mut Config) {
