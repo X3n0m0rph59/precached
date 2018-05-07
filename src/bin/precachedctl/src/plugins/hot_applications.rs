@@ -175,7 +175,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
                 }
             }
 
-            println!("{} histogram entries examined, {} missing I/O trace logs", index, errors);
+            println!("\n{} histogram entries examined, {} missing I/O trace logs", index, errors);
         }
     }
 }
@@ -283,7 +283,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
                         pb.finish_print("failed");
                     }
 
-                    error!("Could not save hot applications histogram! {}", e);
+                    error!("\nCould not save hot applications histogram! {}", e);
                 }
 
                 Ok(()) => {
@@ -293,7 +293,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
                     table.printstd();
 
-                    println!("{} histogram entries examined, {} missing I/O trace logs", index, errors);
+                    println!("\n{} histogram entries examined, {} missing I/O trace logs", index, errors);
                 }
             }
         }
