@@ -197,11 +197,10 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
             error!("Histogram of hot applications could not be loaded! {}", e);
         }
 
-        Ok(data) => {
-            // Tuple fields: (hash value, execution count, flag: 'keep this entry')
-            let mut apps: Vec<(&String, &usize, bool)> = data.par_iter().map(|(k, v)| (k, v, true)).collect();
+        Ok(data) => {                        
+            let mut apps_map = HashMap::<String, usize>::new();
 
-            let mut pb = ProgressBar::new(apps.len() as u64);
+            let mut pb = ProgressBar::new(data.len() as u64);
 
             let display_progress = unsafe { nix::libc::isatty(1) == 1 };
 
@@ -225,13 +224,12 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
             let mut index = 0;
             let mut errors = 0;
 
-            for &mut (ref hash, ref count, ref mut keep) in apps.iter_mut() {
+            for (hash, count) in data.iter() {
                 let iotrace = iotrace::IOTraceLog::from_file(&iotrace_path.join(&format!("{}.trace", hash)));
 
                 match iotrace {
                     Err(_) => {
-                        // I/O trace is invalid, remove this hot_applications entry
-                        *keep = false;
+                        // I/O trace is invalid, remove (don't keep) this hot_applications entry
 
                         table.add_row(Row::new(vec![
                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
@@ -248,7 +246,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
                     Ok(iotrace) => {
                         // I/O trace is valid, keep this hot_applications entry
-                        *keep = true;
+                        apps_map.insert((*hash).clone(), *count);
 
                         let filename = String::from(iotrace.exe.to_string_lossy());
 
@@ -274,12 +272,10 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
             if display_progress {
                 pb.finish_print("Saving state...");
-            }
+            }            
 
-            apps.retain(|&(_k, _v, keep)| keep);
-
-            // Save optimized histogram
-            let serialized = serde_json::to_string_pretty(&apps).unwrap();
+            // Save optimized histogram            
+            let serialized = serde_json::to_string_pretty(&apps_map).unwrap();
 
             match util::write_text_file(&path.join("hot_applications.state"), &serialized) {
                 Err(e) => {
