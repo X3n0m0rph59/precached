@@ -131,6 +131,7 @@ esac
 %config(noreplace) %{_sysconfdir}/%{OrigName}/log4rs.yaml
 %config(noreplace) %{_sysconfdir}/%{OrigName}/rules.d/
 %{_sbindir}/precached
+%{_sbindir}/precached-debugtool
 %{_sbindir}/precachedctl
 %{_sbindir}/iotracectl
 %{_sbindir}/rulesctl
