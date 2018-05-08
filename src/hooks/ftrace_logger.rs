@@ -137,25 +137,27 @@ impl FtraceLogger {
                                     );
                                     return true;
                                 }
+
                                 Ok(mut active_tracers) => {
                                     // Lock succeeded
                                     match active_tracers.entry(pid) {
                                         Occupied(mut tracer_data) => {
+                                            // trace!("Found tracer_data");
+
                                             // We successfully found tracer data for process `pid`
                                             // Add an event record to the I/O trace log of that process
                                             let iotrace_log = &mut tracer_data.get_mut().trace_log;
                                             match event.syscall {
                                                 util::SysCall::Open(ref filename, fd) => {
-                                                    trace!(
+                                                    warn!(
                                                         "Process: '{}' with pid {} opened file: {:?} fd: {}",
-                                                        comm,
-                                                        pid,
-                                                        filename,
-                                                        fd
+                                                        comm, pid, filename, fd
                                                     );
 
                                                     if !Self::is_file_blacklisted(filename, &mut globals_c, &manager_c) {
                                                         iotrace_log.add_event(IOOperation::Open(filename.clone(), fd));
+                                                    } else {
+                                                        // trace!("File is blacklisted!");
                                                     }
                                                 }
 
@@ -210,14 +212,43 @@ impl FtraceLogger {
                                         }
 
                                         Vacant(_k) => {
-                                            // Our HashMap does not contain a "PerTracerData" for the process `pid`
-                                            // that means that we didn't track this process from the beginning.
-                                            // Either we lost a process creation event, or maybe it was started
-                                            // before our daemon was running
-                                            // debug!(
-                                            //     "Spurious trace log entry for untracked process '{}' with pid {} processed!",
-                                            //     comm, pid
-                                            // );
+                                            // Our HashMap does not currently contain a "PerTracerData" for the
+                                            // process `pid`. That means that we didn't track this process from
+                                            // the beginning. Either we lost a process creation event, or maybe
+                                            // it was started before our daemon was running
+
+                                            warn!(
+                                                "Spurious trace log entry for untracked process '{}' with pid {} processed!",
+                                                comm, pid
+                                            );
+
+                                            // // Add the previously untracked process
+                                            // if let Ok(_result) = Self::shall_new_tracelog_be_created(pid, &mut globals_c, manager) {
+                                            //     // Begin tracing the process `pid`.
+                                            //     // Construct the "PerTracerData" and a companion IOTraceLog
+                                            //     match iotrace::IOTraceLog::new(pid) {
+                                            //         Err(e) => {
+                                            //             info!("Process vanished during tracing! {}", e);
+                                            //         }
+
+                                            //         Ok(iotrace_log) => {
+                                            //             let tracer_data = util::PerTracerData::new(iotrace_log);
+                                            //             let comm = tracer_data.trace_log.comm.clone();
+
+                                            //             active_tracers.insert(pid, tracer_data);
+
+                                            //             // Tell ftrace to deliver events for process `event.pid`, from now on
+                                            //             match util::trace_process_io_ftrace(pid) {
+                                            //                 Err(e) => error!("Could not enable ftrace for process '{}' with pid {}: {}", comm, pid, e),
+                                            //                 Ok(()) => trace!("Enabled ftrace for process '{}' with pid {}", comm, pid),
+                                            //             }
+                                            //         }
+                                            //     }
+
+                                            //     info!("Now tracking previously untracked process '{}' with pid: {}", comm, pid);
+                                            // } else {
+                                            //     error!("Could not add tracking entry for process with pid: {}", pid);
+                                            // }
                                         }
                                     }
                                 }
@@ -238,13 +269,13 @@ impl FtraceLogger {
             } else {
                 // If we get here, the ftrace parser thread likely crashed
                 // try to restart it, so continue to the top of the loop...
-                warn!("ftrace parser thread terminated, restarting now!");
+                warn!("Ftrace parser thread terminated, restarting now!");
             }
         }
 
         // If we got here we returned false from the above "event handler" closure and the
         // underlying read loop terminated. So we will terminate the ftrace thread now.
-        info!("ftrace parser thread terminating now!");
+        info!("Ftrace parser thread terminating now!");
     }
 
     fn is_file_blacklisted(filename: &Path, _globals: &mut Globals, manager: &Manager) -> bool {
@@ -517,7 +548,7 @@ impl hook::Hook for FtraceLogger {
                 // Set up the system to use ftrace
                 match util::enable_ftrace_tracing() {
                     Err(e) => error!("Could not enable the Linux ftrace subsystem! {}", e),
-                    Ok(()) => trace!("Successfully enabled the Linux ftrace subsystem!"),
+                    Ok(()) => info!("Successfully enabled the Linux ftrace subsystem!"),
                 }
 
                 // Start the thread that reads events from the Linux ftrace ringbuffer
@@ -528,6 +559,7 @@ impl hook::Hook for FtraceLogger {
                     thread::Builder::new()
                         .name(String::from("ftrace"))
                         .spawn(move || {
+                            util::set_cpu_affinity(0);
                             util::set_realtime_priority();
 
                             Self::ftrace_trace_log_parser(&mut globals_c, &manager_c);
@@ -558,7 +590,7 @@ impl hook::Hook for FtraceLogger {
                 // Undo the operations done on daemon startup to set up the system to use ftrace
                 match util::disable_ftrace_tracing() {
                     Err(e) => error!("Could not disable the Linux ftrace subsystem! {}", e),
-                    Ok(()) => trace!("Successfully disabled the Linux ftrace subsystem!"),
+                    Ok(()) => info!("Successfully disabled the Linux ftrace subsystem!"),
                 }
             }
             _ => { /* Ignore other events */ }

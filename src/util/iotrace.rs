@@ -59,6 +59,7 @@ pub fn optimize_io_trace_log(
             IOOperation::Open(ref filename, ref _fd) => {
                 // Check if filename is a (valid) file
                 if !util::is_file(filename) {
+                    // error!("Not a valid file!");
                     continue;
                 }
 

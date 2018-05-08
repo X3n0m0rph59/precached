@@ -197,7 +197,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
             error!("Histogram of hot applications could not be loaded! {}", e);
         }
 
-        Ok(data) => {                        
+        Ok(data) => {
             let mut apps_map = HashMap::<String, usize>::new();
 
             let mut pb = ProgressBar::new(data.len() as u64);
@@ -272,9 +272,9 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
             if display_progress {
                 pb.finish_print("Saving state...");
-            }            
+            }
 
-            // Save optimized histogram            
+            // Save optimized histogram
             let serialized = serde_json::to_string_pretty(&apps_map).unwrap();
 
             match util::write_text_file(&path.join("hot_applications.state"), &serialized) {

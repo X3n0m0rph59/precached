@@ -51,8 +51,12 @@ use prettytable::Table;
 use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::fs::read_dir;
+use std::fs::File;
 use std::io;
+use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::thread;
+use std::time;
 use term::color::*;
 use term::Attr;
 
@@ -122,9 +126,34 @@ fn print_usage(config: &mut Config) {
     println!("");
 }
 
+/// Print a status summary of the system
 fn print_system_status(_config: &Config) {}
 
-fn perform_tracing_test(_config: &Config) {}
+/// Access file `p`
+fn touch_file(p: &Path) -> io::Result<()> {
+    info!("Accessing file: {:?}", p);
+
+    let mut file = File::create(p)?;
+
+    let data: [u8; 8192] = [0xFF; 8192];
+    file.write(&data)?;
+
+    Ok(())
+}
+
+/// Test the creation of I/O trace logs
+fn perform_tracing_test(_config: &Config) {
+    info!("Commencing file access...");
+
+    for f in 1..100 {
+        touch_file(Path::new(&format!("/tmp/file{}.tmp", f))).expect("Could not touch a file!");
+        // thread::sleep(time::Duration::from_millis(10));
+    }
+
+    info!("Finished accessing files");
+
+    // thread::sleep(time::Duration::from_millis(2000));
+}
 
 /// Generate shell completions
 fn generate_completions(config: &mut Config) {
@@ -138,7 +167,9 @@ fn generate_completions(config: &mut Config) {
         &_ => Shell::Zsh,
     };
 
-    config.clap.gen_completions_to("debugtool", shell, &mut io::stdout());
+    config
+        .clap
+        .gen_completions_to("precached-debugtool", shell, &mut io::stdout());
 }
 
 /// Program entrypoint

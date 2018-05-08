@@ -60,6 +60,7 @@ cp -a %{_builddir}/%{name}-%{version}/support/man/precachedctl.8 %{buildroot}/%{
 cp -a %{_builddir}/%{name}-%{version}/support/man/precachedtop.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/man/rulesctl.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.8 %{buildroot}/%{_mandir}/man8/
+cp -a %{_builddir}/%{name}-%{version}/support/man/precached-debugtool.8 %{buildroot}/%{_mandir}/man8/
 cp -a %{_builddir}/%{name}-%{version}/support/config/precached.conf %{buildroot}/%{_sysconfdir}/%{OrigName}/
 cp -a %{_builddir}/%{name}-%{version}/support/config/log4rs.yaml %{buildroot}/%{_sysconfdir}/%{OrigName}/
 cp -a %{_builddir}/%{name}-%{version}/support/rules/README %{buildroot}/%{_sysconfdir}/%{OrigName}/rules.d/
@@ -80,11 +81,13 @@ cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.zsh-c
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedctl
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedtop.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedtop
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/rulesctl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_rulesctl
+cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precached-debugtool.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precached-debugtool
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedtop %{buildroot}%{_sbindir}/precachedtop
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/rulesctl %{buildroot}%{_sbindir}/rulesctl
+install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached-debugtool %{buildroot}%{_sbindir}/precached-debugtool
 
 %post
 case "$1" in
@@ -117,6 +120,7 @@ esac
 %doc %{_mandir}/man8/precachedctl.8.gz
 %doc %{_mandir}/man8/precachedtop.8.gz
 %doc %{_mandir}/man8/rulesctl.8.gz
+%doc %{_mandir}/man8/precached-debugtool.8.gz
 %doc %{_mandir}/man8/precached.8.gz
 %dir %{_docdir}/%{OrigName}/examples/
 %dir %{_datarootdir}/bash-completion/completions/
@@ -131,6 +135,7 @@ esac
 %{_sbindir}/iotracectl
 %{_sbindir}/rulesctl
 %{_sbindir}/precachedtop
+%{_sbindir}/precached-debugtool
 %{_unitdir}/precached.service
 %{_unitdir}/precached-prime-caches.service
 %{_unitdir}/precached-prime-caches.timer
@@ -142,10 +147,12 @@ esac
 %{_datarootdir}/bash-completion/completions/precachedctl
 %{_datarootdir}/bash-completion/completions/precachedtop
 %{_datarootdir}/bash-completion/completions/rulesctl
+%{_datarootdir}/bash-completion/completions/precached-debugtool
 %{_datarootdir}/zsh/site-functions/_iotracectl
 %{_datarootdir}/zsh/site-functions/_precachedctl
 %{_datarootdir}/zsh/site-functions/_precachedtop
 %{_datarootdir}/zsh/site-functions/_rulesctl
+%{_datarootdir}/zsh/site-functions/_precached-debugtool
 %{_docdir}/%{OrigName}/examples/
 #%{_datadir}/%{OrigName}/
 

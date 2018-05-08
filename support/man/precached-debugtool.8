@@ -1,0 +1,28 @@
+.\" Manpage for precached-debugtool.
+.TH man 8 "08 May 2018" "1.0" "precached-debugtool man page"
+.SH NAME
+ precached-debugtool - Debug tool for precached
+.SH SYNOPSIS
+ precached-debugtool [FLAGS] [OPTIONS] [SUBCOMMAND]
+.SH DESCRIPTION
+ Debug aide for the precached daemon
+.SH FLAGS
+ -a, --ascii      Produce ASCII output (default) instead of using Unicode for line drawing
+ -u, --unicode    Produce Unicode output instead of using ASCII (default) for line drawing
+ -v               Sets the level of output verbosity
+ -h, --help       Prints help information
+ -V, --version    Prints version information
+.SH OPTIONS
+ -c, --config <file>  The precached config file to use [default: /etc/precached/precached.conf]
+.SH SUBCOMMANDS 
+ help      Display this short help text
+
+
+ precached-debugtool
+
+.SH SEE ALSO
+ iotracectl(8), precachedctl(8), precachedtop(8), precached(8), precached.conf(5), precached.rules(5)
+.SH BUGS
+ No known bugs.
+.SH AUTHOR
+ X3n0m0rph59 <x3n0m0rph59@gmail.com>

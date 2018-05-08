@@ -123,12 +123,12 @@ impl hook::Hook for ProcessTracker {
                 match process {
                     None => {}
                     Some(ref mut process) => {
-                        // process.is_dead = true;
+                        process.is_dead = true;
+
                         info!(
                             "Marked tracked process '{}' with pid: {} for removal",
                             process.comm, process.pid
                         );
-
                         events::queue_internal_event(EventType::TrackedProcessChanged(event_c), globals);
                     }
                 }
