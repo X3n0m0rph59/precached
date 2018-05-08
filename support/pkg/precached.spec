@@ -77,6 +77,7 @@ cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.bash-
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedctl
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedtop.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precachedtop
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/rulesctl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/rulesctl
+cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precached-debugtool.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/precached-debugtool
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/iotracectl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_iotracectl
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedctl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedctl
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedtop.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precachedtop
