@@ -1,0 +1,116 @@
+#compdef precached-debugtool
+
+autoload -U is-at-least
+
+_precached-debugtool() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" \
+'-c+[The precached config file to use]' \
+'--config=[The precached config file to use]' \
+'-a[Produce ASCII output (default) instead of using Unicode for line drawing]' \
+'--ascii[Produce ASCII output (default) instead of using Unicode for line drawing]' \
+'-u[Produce Unicode output instead of using ASCII (default) for line drawing]' \
+'--unicode[Produce Unicode output instead of using ASCII (default) for line drawing]' \
+'*-v[Sets the level of output verbosity]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_precached-debugtool_commands" \
+"*::: :->precached-debugtool" \
+&& ret=0
+    case $state in
+    (precached-debugtool)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:precached-debugtool-command-$line[1]:"
+        case $line[1] in
+            (status)
+_arguments "${_arguments_options[@]}" \
+'--tabular[Use '\''tabular'\'' display format]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(test-tracing)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(completions)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':SHELL -- The shell to generate the script for:(bash fish zsh)' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+}
+
+(( $+functions[_precached-debugtool_commands] )) ||
+_precached-debugtool_commands() {
+    local commands; commands=(
+        "status:Show the current status of the precached daemon" \
+"help:Display this short help text" \
+"test-tracing:Test the I/O tracing subsystem of precached" \
+"completions:Generates completion scripts for your shell" \
+    )
+    _describe -t commands 'precached-debugtool commands' commands "$@"
+}
+(( $+functions[_precached-debugtool__completions_commands] )) ||
+_precached-debugtool__completions_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'precached-debugtool completions commands' commands "$@"
+}
+(( $+functions[_precached-debugtool__help_commands] )) ||
+_precached-debugtool__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'precached-debugtool help commands' commands "$@"
+}
+(( $+functions[_precached-debugtool__status_commands] )) ||
+_precached-debugtool__status_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'precached-debugtool status commands' commands "$@"
+}
+(( $+functions[_precached-debugtool__test-tracing_commands] )) ||
+_precached-debugtool__test-tracing_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'precached-debugtool test-tracing commands' commands "$@"
+}
+
+_precached-debugtool "$@"
