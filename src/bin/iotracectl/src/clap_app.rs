@@ -421,11 +421,6 @@ where
                 .about("Display this short help text"),
         )
         .subcommand(
-            SubCommand::with_name("test-tracing")
-                .setting(AppSettings::DeriveDisplayOrder)
-                .about("Test the I/O tracing subsystem of precached"),
-        )
-        .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
                 .about("Generates completion scripts for your shell")

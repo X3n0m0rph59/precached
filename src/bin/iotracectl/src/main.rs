@@ -1285,37 +1285,6 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     }
 }
 
-/// Verify that I/O tracing works as expected
-/// Test all parts of the system
-fn perform_tracing_test(_config: &Config, _daemon_config: util::ConfigFile) {
-    trace!("Performing I/O tracing test...");
-
-    error!("Not implemented!");
-
-    // TODO:
-    // create test files /tmp/{1..3}.test
-
-    // fork()
-
-    // open test files
-
-    // read files
-
-    // open test files in reverse order
-
-    // read files
-
-    // Exit
-
-    // waitpid()
-
-    // find iotrace of test process
-
-    // Verify
-
-    trace!("Test finished");
-}
-
 /// Print help message on how to use this command
 fn print_help(config: &mut Config) {
     // println!("NOTE: Usage information: iotracectl --help");
@@ -1407,10 +1376,6 @@ fn main() {
 
             "help" => {
                 print_help(&mut config_c);
-            }
-
-            "test-tracing" => {
-                perform_tracing_test(&config, daemon_config.clone());
             }
 
             "completions" => {
