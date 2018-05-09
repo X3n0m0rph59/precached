@@ -81,11 +81,18 @@ where
             SubCommand::with_name("test-tracing")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about("Test the I/O tracing subsystem of precached")
-                .arg(Arg::with_name("sleep")
+                .arg(
+                    Arg::with_name("sleep")
                             .long("sleep")
                             .short("s")
                             // .conflicts_with("...")
-                            .help("Sleep after touching each file")),
+                            .help("Sleep after touching each file"),
+                ),
+        )
+        .subcommand(
+            SubCommand::with_name("cleanup")
+                .setting(AppSettings::DeriveDisplayOrder)
+                .about("Cleanup all files created during testing"),
         )
         .subcommand(
             SubCommand::with_name("completions")

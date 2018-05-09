@@ -13,6 +13,9 @@ _precached-debugtool() {
                 cmd="precached-debugtool"
                 ;;
             
+            cleanup)
+                cmd+="__cleanup"
+                ;;
             completions)
                 cmd+="__completions"
                 ;;
@@ -32,7 +35,7 @@ _precached-debugtool() {
 
     case "${cmd}" in
         precached-debugtool)
-            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status help test-tracing completions"
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status help test-tracing cleanup completions"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -55,6 +58,21 @@ _precached-debugtool() {
             return 0
             ;;
         
+        precached__debugtool__cleanup)
+            opts=" -h -V  --help --version  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
         precached__debugtool__completions)
             opts=" -h -V  --help --version  <SHELL> "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then

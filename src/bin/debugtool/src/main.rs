@@ -50,6 +50,8 @@ use prettytable::row::Row;
 use prettytable::Table;
 use std::cmp::{max, min};
 use std::collections::HashSet;
+use std::env;
+use std::fs;
 use std::fs::read_dir;
 use std::fs::File;
 use std::io;
@@ -57,7 +59,6 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::thread;
 use std::time;
-use std::env;
 use term::color::*;
 use term::Attr;
 
@@ -67,6 +68,11 @@ mod util;
 
 /// Unicode characters used for drawing the progress bar
 const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
+
+lazy_static! {
+    static ref NUM_FILES: u32 = 100;
+    static ref PATH: PathBuf = PathBuf::from("/tmp");
+}
 
 /// Runtime configuration for debugtool
 #[derive(Clone)]
@@ -152,9 +158,9 @@ fn perform_tracing_test(config: &Config) {
     if do_sleep {
         thread::sleep(time::Duration::from_millis(2000));
     }
-    
-    for f in 1..100 {
-        touch_file(Path::new(&format!("/tmp/file{}.tmp", f))).expect("Could not touch a file!");
+
+    for f in 1..(*NUM_FILES) {
+        touch_file(&PATH.join(Path::new(&format!("file{}.tmp", f)))).expect("Could not touch a file!");
 
         if do_sleep {
             thread::sleep(time::Duration::from_millis(10));
@@ -166,6 +172,19 @@ fn perform_tracing_test(config: &Config) {
     if do_sleep {
         thread::sleep(time::Duration::from_millis(2000));
     }
+}
+
+/// Cleanup our created files
+fn cleanup(_config: &Config) {
+    info!("Commencing cleanup...");
+
+    // let matches = config.matches.subcommand_matches("cleanup").unwrap();
+
+    for f in 1..(*NUM_FILES) {
+        fs::remove_file(&PATH.join(Path::new(&format!("file{}.tmp", f)))).expect("Could not remove a file!");
+    }
+
+    info!("Finished cleanup");
 }
 
 /// Generate shell completions
@@ -180,7 +199,9 @@ fn generate_completions(config: &mut Config) {
         &_ => Shell::Zsh,
     };
 
-    config.clap.gen_completions_to("precached-debugtool", shell, &mut io::stdout());
+    config
+        .clap
+        .gen_completions_to("precached-debugtool", shell, &mut io::stdout());
 }
 
 /// Program entrypoint
@@ -192,9 +213,9 @@ fn main() {
     // Enforce tracing level output logs by default,
     // but may be overridden by user
     match env::var("RUST_LOG") {
-        Ok(_) => { /* Do nothing */ },
+        Ok(_) => { /* Do nothing */ }
         Err(_) => {
-            env::set_var("RUST_LOG", "trace");            
+            env::set_var("RUST_LOG", "trace");
         }
     }
 
@@ -224,6 +245,10 @@ fn main() {
 
             "test-tracing" => {
                 perform_tracing_test(&config);
+            }
+
+            "cleanup" => {
+                cleanup(&config);
             }
 
             "completions" => {
