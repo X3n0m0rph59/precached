@@ -57,6 +57,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::thread;
 use std::time;
+use std::env;
 use term::color::*;
 use term::Attr;
 
@@ -145,14 +146,16 @@ fn touch_file(p: &Path) -> io::Result<()> {
 fn perform_tracing_test(_config: &Config) {
     info!("Commencing file access...");
 
+    thread::sleep(time::Duration::from_millis(2000));
+    
     for f in 1..100 {
         touch_file(Path::new(&format!("/tmp/file{}.tmp", f))).expect("Could not touch a file!");
-        // thread::sleep(time::Duration::from_millis(10));
+        thread::sleep(time::Duration::from_millis(10));
     }
 
     info!("Finished accessing files");
 
-    // thread::sleep(time::Duration::from_millis(2000));
+    thread::sleep(time::Duration::from_millis(2000));
 }
 
 /// Generate shell completions
@@ -167,15 +170,21 @@ fn generate_completions(config: &mut Config) {
         &_ => Shell::Zsh,
     };
 
-    config
-        .clap
-        .gen_completions_to("precached-debugtool", shell, &mut io::stdout());
+    config.clap.gen_completions_to("precached-debugtool", shell, &mut io::stdout());
 }
 
 /// Program entrypoint
 fn main() {
     if unsafe { nix::libc::isatty(1) } == 1 {
         print_license_header();
+    }
+
+    // Enforce tracing output, but may be overridden by user
+    match env::var("RUST_LOG") {
+        Ok(_) => { /* Do nothing */ },
+        Err(_) => {
+            env::set_var("RUST_LOG", "trace");            
+        }
     }
 
     pretty_env_logger::init(); //.expect("Could not initialize the logging subsystem!");

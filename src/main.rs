@@ -20,7 +20,7 @@
 
 //! # precached - A Linux process monitor and pre-caching daemon
 //!
-//! Precached utilizes the Linux netlink connector interface to
+//! Precached utilizes the Linux Netlink connector interface to
 //! monitor the system for process events. It can act upon
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system

@@ -515,13 +515,15 @@ fn trace_is_from_blacklisted_process(line: &str) -> bool {
     let line = String::from(line);
 
     if line.contains("precached-debugtool") {
-        // explicitly allow the precached-debugtool process
+        // explicitly allow the `precached-debugtool` process
         false
     } else {
         // TODO: Add a configuration option to make this
         //       tunable via .conf file by the end user
-        line.contains("precached") || line.contains("prefetch") || line.contains("worker") || line.contains("ftrace")
-            || line.contains("ipc") || line.contains("journal") || line.contains("syslog")
+        line.contains("precached") || line.contains("prefetch") || 
+        line.contains("worker") || line.contains("ftrace") ||
+        line.contains("ipc") || line.contains("journal") || 
+        line.contains("syslog")
     }
 }
 

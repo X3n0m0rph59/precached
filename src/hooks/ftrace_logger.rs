@@ -139,6 +139,8 @@ impl FtraceLogger {
                                 }
 
                                 Ok(mut active_tracers) => {
+                                    let mut add_tracer = false;
+
                                     // Lock succeeded
                                     match active_tracers.entry(pid) {
                                         Occupied(mut tracer_data) => {
@@ -222,33 +224,40 @@ impl FtraceLogger {
                                                 comm, pid
                                             );
 
-                                            // // Add the previously untracked process
-                                            // if let Ok(_result) = Self::shall_new_tracelog_be_created(pid, &mut globals_c, manager) {
-                                            //     // Begin tracing the process `pid`.
-                                            //     // Construct the "PerTracerData" and a companion IOTraceLog
-                                            //     match iotrace::IOTraceLog::new(pid) {
-                                            //         Err(e) => {
-                                            //             info!("Process vanished during tracing! {}", e);
-                                            //         }
+                                            add_tracer = true;
+                                        }
+                                    }
 
-                                            //         Ok(iotrace_log) => {
-                                            //             let tracer_data = util::PerTracerData::new(iotrace_log);
-                                            //             let comm = tracer_data.trace_log.comm.clone();
+                                    // Late-add tracers for processes for which we somehow 
+                                    // missed their creation event, e.g. when precached daemon
+                                    // was started after the creation of the process
+                                    if add_tracer {
+                                        // // Add the previously untracked process
+                                        if let Ok(_result) = Self::shall_new_tracelog_be_created(pid, &mut globals_c, manager) {
+                                            // Begin tracing the process `pid`.
+                                            // Construct the "PerTracerData" and a companion IOTraceLog
+                                            match iotrace::IOTraceLog::new(pid) {
+                                                Err(e) => {
+                                                    info!("Process vanished during tracing! {}", e);
+                                                }
 
-                                            //             active_tracers.insert(pid, tracer_data);
+                                                Ok(iotrace_log) => {
+                                                    let tracer_data = util::PerTracerData::new(iotrace_log);
+                                                    let comm = tracer_data.trace_log.comm.clone();
 
-                                            //             // Tell ftrace to deliver events for process `event.pid`, from now on
-                                            //             match util::trace_process_io_ftrace(pid) {
-                                            //                 Err(e) => error!("Could not enable ftrace for process '{}' with pid {}: {}", comm, pid, e),
-                                            //                 Ok(()) => trace!("Enabled ftrace for process '{}' with pid {}", comm, pid),
-                                            //             }
-                                            //         }
-                                            //     }
+                                                    active_tracers.insert(pid, tracer_data);
 
-                                            //     info!("Now tracking previously untracked process '{}' with pid: {}", comm, pid);
-                                            // } else {
-                                            //     error!("Could not add tracking entry for process with pid: {}", pid);
-                                            // }
+                                                    // Tell ftrace to deliver events for process `event.pid`, from now on
+                                                    match util::trace_process_io_ftrace(pid) {
+                                                        Err(e) => error!("Could not enable ftrace for process '{}' with pid {}: {}", comm, pid, e),
+                                                        Ok(()) => trace!("Enabled ftrace for process '{}' with pid {}", comm, pid),
+                                                    }
+                                                }
+                                            }
+
+                                            info!("Added previously untracked process '{}' with pid: {}", comm, pid);
+                                        } else {
+                                            error!("Could not add tracking entry for process with pid: {}", pid);
                                         }
                                     }
                                 }
