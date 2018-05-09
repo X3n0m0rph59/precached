@@ -98,7 +98,7 @@ impl Process {
     pub fn get_mapped_files(&self) -> io::Result<Vec<String>> {
         let tmp = format!("/proc/{}/maps", self.pid);
         let filename = Path::new(&tmp);
-        let maps = try!(util::get_lines_from_file(filename));
+        let maps = util::get_lines_from_file(filename)?;
 
         let result = maps.into_iter()
             .filter_map(|l| {
@@ -116,7 +116,7 @@ impl Process {
     pub fn get_mappings(&self) -> io::Result<Vec<Mapping>> {
         let tmp = format!("/proc/{}/maps", self.pid);
         let filename = Path::new(&tmp);
-        let maps = try!(util::get_lines_from_file(filename));
+        let maps = util::get_lines_from_file(filename)?;
 
         let result = maps.into_iter()
             .filter_map(|l| {

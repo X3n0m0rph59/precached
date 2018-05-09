@@ -171,7 +171,7 @@ fn create_iface(
         //     })
         //     .on_set(|i, m| {
         //         let dev: &Arc<ProcessStats> = m.path.get_data();
-        //         let b: bool = try!(i.read());
+        //         let b: bool = i.read()?;
         //         if b && dev.checking.get() {
         //             return Err(MethodErr::failed(&"Device currently under check, cannot bring online"))
         //         }

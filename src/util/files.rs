@@ -42,7 +42,7 @@ lazy_static! {
 
 /// Returns a `Vec<String>` containing all the lines of the text file `filename`
 pub fn get_lines_from_file(filename: &Path) -> io::Result<Vec<String>> {
-    let file = try!(OpenOptions::new().read(true).open(filename));
+    let file = OpenOptions::new().read(true).open(filename)?;
 
     let mut result = vec![];
 
@@ -65,7 +65,7 @@ pub fn get_lines_from_file(filename: &Path) -> io::Result<Vec<String>> {
 /// Read the compressed text file `filename`.
 /// This function transparently decompresses Zstd compressed text files
 pub fn read_compressed_text_file(filename: &Path) -> io::Result<String> {
-    let file = try!(OpenOptions::new().read(true).open(filename));
+    let file = OpenOptions::new().read(true).open(filename)?;
 
     let decompressed = zstd::decode_all(BufReader::new(file)).unwrap();
     let result = String::from_utf8(decompressed).unwrap();
@@ -76,7 +76,7 @@ pub fn read_compressed_text_file(filename: &Path) -> io::Result<String> {
 /// Read the uncompressed text file `filename`.
 /// This function does *not* perform transparent de-compression
 pub fn read_uncompressed_text_file(filename: &Path) -> io::Result<String> {
-    let file = try!(OpenOptions::new().read(true).open(filename));
+    let file = OpenOptions::new().read(true).open(filename)?;
 
     let mut result = String::new();
     let mut reader = BufReader::new(file);
@@ -88,12 +88,12 @@ pub fn read_uncompressed_text_file(filename: &Path) -> io::Result<String> {
 /// Write `text` to the compressed file `filename`.
 /// This function transparently compresses the file using Zstd compression
 pub fn write_text_file(filename: &Path, text: &str) -> io::Result<()> {
-    let mut file = try!(OpenOptions::new().write(true).truncate(true).create(true).open(filename));
+    let mut file = OpenOptions::new().write(true).truncate(true).create(true).open(filename)?;
 
-    let compressed = try!(zstd::encode_all(
+    let compressed = zstd::encode_all(
         BufReader::new(text.as_bytes()),
         constants::ZSTD_COMPRESSION_RATIO
-    ));
+    )?;
     file.write_all(&compressed)?;
     // file.sync_data()?;
 
@@ -116,7 +116,7 @@ pub fn rmdir(dirname: &Path) -> io::Result<()> {
 
 /// Echo (rewrite) `text` + "\n" to the file `filename`
 pub fn echo(filename: &Path, text: String) -> io::Result<()> {
-    let mut file = try!(OpenOptions::new().write(true).append(false).open(filename));
+    let mut file = OpenOptions::new().write(true).append(false).open(filename)?;
 
     let mut buffer = text;
     buffer.push_str("\n");
@@ -128,7 +128,7 @@ pub fn echo(filename: &Path, text: String) -> io::Result<()> {
 
 /// Echo (append) `text` + "\n" to the file `filename`
 pub fn append(filename: &Path, mut text: String) -> io::Result<()> {
-    let mut file = try!(OpenOptions::new().write(true).append(true).open(filename));
+    let mut file = OpenOptions::new().write(true).append(true).open(filename)?;
 
     text.push_str("\n");
 

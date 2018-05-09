@@ -105,11 +105,11 @@ impl IOtraceLogManager {
 
         let traces_path = state_dir.join(constants::IOTRACE_DIR);
 
-        try!(util::walk_directories(&[traces_path], &mut |path| {
+        util::walk_directories(&[traces_path], &mut |path| {
             let io_trace_log = iotrace::IOTraceLog::from_file(path).unwrap();
 
             result.insert(PathBuf::from(path), io_trace_log);
-        }));
+        })?;
 
         Ok(result)
     }

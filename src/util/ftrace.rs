@@ -429,7 +429,7 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
     let mut result = HashMap::new();
 
     let filename = Path::new(TRACING_DIR).join("printk_formats");
-    let printk_formats = try!(OpenOptions::new().read(true).open(&filename));
+    let printk_formats = OpenOptions::new().read(true).open(&filename)?;
 
     let mut printk_formats_reader = BufReader::new(printk_formats);
 
@@ -539,7 +539,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
 
     let filename = Path::new(TRACING_DIR).join("trace_pipe");
-    let mut trace_pipe = try!(OpenOptions::new().read(true).open(&filename));
+    let mut trace_pipe = OpenOptions::new().read(true).open(&filename)?;
 
     // filled in with `getnameprobe` kprobe event data
     let mut last_filename = None;

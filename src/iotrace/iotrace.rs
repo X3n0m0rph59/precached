@@ -167,9 +167,9 @@ impl IOTraceLog {
         if process.is_ok() {
             let process = process.unwrap();
 
-            let exe = try!(process.get_exe());
-            let comm = try!(process.get_comm());
-            let cmdline = try!(process.get_cmdline());
+            let exe = process.get_exe()?;
+            let comm = process.get_comm()?;
+            let cmdline = process.get_cmdline()?;
 
             let mut hasher = fnv::FnvHasher::default();
             hasher.write(&exe.to_string_lossy().into_owned().into_bytes());
@@ -225,7 +225,7 @@ impl IOTraceLog {
     /// Write the I/O trace log to disk
     pub fn save(&self, filename: &Path, min_len: usize, min_prefetch_size: u64, allow_truncate: bool) -> io::Result<()> {
         if (self.trace_log.len() >= min_len && self.accumulated_size >= min_prefetch_size) || allow_truncate {
-            let serialized = try!(serde_json::to_string_pretty(&self));
+            let serialized = serde_json::to_string_pretty(&self)?;
             util::write_text_file(filename, &serialized)?;
 
             Ok(())
