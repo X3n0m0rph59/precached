@@ -49,7 +49,7 @@ _iotracectl() {
             status)
                 cmd+="__status"
                 ;;
-            test__tracing)
+            test-tracing)
                 cmd+="__test__tracing"
                 ;;
             *)
@@ -67,11 +67,11 @@ _iotracectl() {
             case "${prev}" in
                 
                 --config)
-                    COMPREPLY=("<file>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -c)
-                    COMPREPLY=("<file>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 *)
@@ -91,11 +91,11 @@ _iotracectl() {
             case "${prev}" in
                 
                 --hash)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -p)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 *)
@@ -144,19 +144,19 @@ _iotracectl() {
             case "${prev}" in
                 
                 --hash)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -p)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --executable)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -e)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --optimized)
@@ -195,11 +195,11 @@ _iotracectl() {
             case "${prev}" in
                 
                 --hash)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -p)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 *)
@@ -233,19 +233,19 @@ _iotracectl() {
             case "${prev}" in
                 
                 --hash)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -p)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --executable)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -e)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --optimized)
@@ -284,19 +284,19 @@ _iotracectl() {
             case "${prev}" in
                 
                 --hash)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -p)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --executable)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -e)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --optimized)
@@ -335,19 +335,19 @@ _iotracectl() {
             case "${prev}" in
                 
                 --hash)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -p)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --executable)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -e)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --optimized)
@@ -386,19 +386,19 @@ _iotracectl() {
             case "${prev}" in
                 
                 --hash)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -p)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --executable)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -e)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --optimized)
@@ -437,19 +437,19 @@ _iotracectl() {
             case "${prev}" in
                 
                 --hash)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -p)
-                    COMPREPLY=("<hash>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --executable)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -e)
-                    COMPREPLY=("<executable>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 --optimized)

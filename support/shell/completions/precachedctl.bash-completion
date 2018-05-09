@@ -16,13 +16,13 @@ _precachedctl() {
             completions)
                 cmd+="__completions"
                 ;;
-            do__housekeeping)
+            do-housekeeping)
                 cmd+="__do__housekeeping"
                 ;;
             help)
                 cmd+="__help"
                 ;;
-            hot__applications)
+            hot-applications)
                 cmd+="__hot__applications"
                 ;;
             housekeeping)
@@ -37,16 +37,16 @@ _precachedctl() {
             plugins)
                 cmd+="__plugins"
                 ;;
-            prime__caches)
+            prime-caches)
                 cmd+="__prime__caches"
                 ;;
-            prime__caches__now)
+            prime-caches-now)
                 cmd+="__prime__caches__now"
                 ;;
             reload)
                 cmd+="__reload"
                 ;;
-            reload__config)
+            reload-config)
                 cmd+="__reload__config"
                 ;;
             show)
@@ -79,11 +79,11 @@ _precachedctl() {
             case "${prev}" in
                 
                 --config)
-                    COMPREPLY=("<file>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -c)
-                    COMPREPLY=("<file>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 *)

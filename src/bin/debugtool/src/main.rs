@@ -143,19 +143,29 @@ fn touch_file(p: &Path) -> io::Result<()> {
 }
 
 /// Test the creation of I/O trace logs
-fn perform_tracing_test(_config: &Config) {
+fn perform_tracing_test(config: &Config) {
     info!("Commencing file access...");
 
-    thread::sleep(time::Duration::from_millis(2000));
+    let matches = config.matches.subcommand_matches("test-tracing").unwrap();
+    let do_sleep = matches.is_present("sleep");
+
+    if do_sleep {
+        thread::sleep(time::Duration::from_millis(2000));
+    }
     
     for f in 1..100 {
         touch_file(Path::new(&format!("/tmp/file{}.tmp", f))).expect("Could not touch a file!");
-        thread::sleep(time::Duration::from_millis(10));
+
+        if do_sleep {
+            thread::sleep(time::Duration::from_millis(10));
+        }
     }
 
     info!("Finished accessing files");
 
-    thread::sleep(time::Duration::from_millis(2000));
+    if do_sleep {
+        thread::sleep(time::Duration::from_millis(2000));
+    }
 }
 
 /// Generate shell completions
@@ -179,7 +189,8 @@ fn main() {
         print_license_header();
     }
 
-    // Enforce tracing output, but may be overridden by user
+    // Enforce tracing level output logs by default,
+    // but may be overridden by user
     match env::var("RUST_LOG") {
         Ok(_) => { /* Do nothing */ },
         Err(_) => {

@@ -54,6 +54,8 @@ _arguments "${_arguments_options[@]}" \
 ;;
 (test-tracing)
 _arguments "${_arguments_options[@]}" \
+'-s[Sleep after touching each file]' \
+'--sleep[Sleep after touching each file]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \

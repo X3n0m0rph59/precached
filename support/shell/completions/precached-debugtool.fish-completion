@@ -13,6 +13,7 @@ complete -c precached-debugtool -n "__fish_seen_subcommand_from status" -s h -l 
 complete -c precached-debugtool -n "__fish_seen_subcommand_from status" -s V -l version -d 'Prints version information'
 complete -c precached-debugtool -n "__fish_seen_subcommand_from help" -s h -l help -d 'Prints help information'
 complete -c precached-debugtool -n "__fish_seen_subcommand_from help" -s V -l version -d 'Prints version information'
+complete -c precached-debugtool -n "__fish_seen_subcommand_from test-tracing" -s s -l sleep -d 'Sleep after touching each file'
 complete -c precached-debugtool -n "__fish_seen_subcommand_from test-tracing" -s h -l help -d 'Prints help information'
 complete -c precached-debugtool -n "__fish_seen_subcommand_from test-tracing" -s V -l version -d 'Prints version information'
 complete -c precached-debugtool -n "__fish_seen_subcommand_from completions" -s h -l help -d 'Prints help information'

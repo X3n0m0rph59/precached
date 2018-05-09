@@ -101,7 +101,7 @@ _precached-debugtool() {
             return 0
             ;;
         precached__debugtool__test__tracing)
-            opts=" -h -V  --help --version  "
+            opts=" -s -h -V  --sleep --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0

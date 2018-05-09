@@ -1,27 +1,38 @@
 #compdef precachedtop
 
+autoload -U is-at-least
+
 _precachedtop() {
     typeset -A opt_args
+    typeset -a _arguments_options
     local ret=1
 
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
     local context curcontext="$curcontext" state line
-    _arguments -s -S -C \
+    _arguments "${_arguments_options[@]}" \
 '-c+[The precached config file to use]' \
-'--config+[The precached config file to use]' \
+'--config=[The precached config file to use]' \
 '*-v[Sets the level of output verbosity]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_precachedtop_commands" \
-"*:: :->precachedtop" \
+":: :_precachedtop_commands" \
+"*::: :->precachedtop" \
 && ret=0
     case $state in
     (precachedtop)
-        curcontext="${curcontext%:*:*}:precachedtop-command-$words[1]:"
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:precachedtop-command-$line[1]:"
         case $line[1] in
             (help)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -29,12 +40,12 @@ _arguments -s -S -C \
 && ret=0
 ;;
 (completions)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_precachedtop__completions_commands" \
+':SHELL -- The shell to generate the script for:(bash fish zsh)' \
 && ret=0
 ;;
         esac
@@ -53,7 +64,7 @@ _precachedtop_commands() {
 (( $+functions[_precachedtop__completions_commands] )) ||
 _precachedtop__completions_commands() {
     local commands; commands=(
-        "SHELL:The shell to generate the script for" \
+        
     )
     _describe -t commands 'precachedtop completions commands' commands "$@"
 }

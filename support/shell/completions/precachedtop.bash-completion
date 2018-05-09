@@ -34,11 +34,11 @@ _precachedtop() {
             case "${prev}" in
                 
                 --config)
-                    COMPREPLY=("<file>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                     -c)
-                    COMPREPLY=("<file>")
+                    COMPREPLY=($(compgen -f ${cur}))
                     return 0
                     ;;
                 *)

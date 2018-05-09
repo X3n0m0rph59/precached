@@ -80,7 +80,12 @@ where
         .subcommand(
             SubCommand::with_name("test-tracing")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Test the I/O tracing subsystem of precached"),
+                .about("Test the I/O tracing subsystem of precached")
+                .arg(Arg::with_name("sleep")
+                            .long("sleep")
+                            .short("s")
+                            // .conflicts_with("...")
+                            .help("Sleep after touching each file")),
         )
         .subcommand(
             SubCommand::with_name("completions")

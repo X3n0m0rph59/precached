@@ -1,13 +1,22 @@
 #compdef rulesctl
 
+autoload -U is-at-least
+
 _rulesctl() {
     typeset -A opt_args
+    typeset -a _arguments_options
     local ret=1
 
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
     local context curcontext="$curcontext" state line
-    _arguments -s -S -C \
+    _arguments "${_arguments_options[@]}" \
 '-c+[The precached config file to use]' \
-'--config+[The precached config file to use]' \
+'--config=[The precached config file to use]' \
 '-a[Produce ASCII output (default) instead of using Unicode for line drawing]' \
 '--ascii[Produce ASCII output (default) instead of using Unicode for line drawing]' \
 '-u[Produce Unicode output instead of using ASCII (default) for line drawing]' \
@@ -17,15 +26,17 @@ _rulesctl() {
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_rulesctl_commands" \
-"*:: :->rulesctl" \
+":: :_rulesctl_commands" \
+"*::: :->rulesctl" \
 && ret=0
     case $state in
     (rulesctl)
-        curcontext="${curcontext%:*:*}:rulesctl-command-$words[1]:"
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:rulesctl-command-$line[1]:"
         case $line[1] in
             (status)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -33,7 +44,7 @@ _arguments -s -S -C \
 && ret=0
 ;;
 (list)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -41,43 +52,43 @@ _arguments -s -S -C \
 && ret=0
 ;;
 (info)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_rulesctl__show_commands" \
+':filename -- The name of the .rules file to show:_files' \
 && ret=0
 ;;
 (show)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_rulesctl__show_commands" \
+':filename -- The name of the .rules file to show:_files' \
 && ret=0
 ;;
 (enable)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_rulesctl__enable_commands" \
+':filename -- The name of the .rules file to enable:_files' \
 && ret=0
 ;;
 (disable)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_rulesctl__disable_commands" \
+':filename -- The name of the .rules file to disable:_files' \
 && ret=0
 ;;
 (reload)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -85,7 +96,7 @@ _arguments -s -S -C \
 && ret=0
 ;;
 (help)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -93,12 +104,12 @@ _arguments -s -S -C \
 && ret=0
 ;;
 (completions)
-_arguments -s -S -C \
+_arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-"1:: :_rulesctl__completions_commands" \
+':SHELL -- The shell to generate the script for:(bash fish zsh)' \
 && ret=0
 ;;
         esac
@@ -123,21 +134,21 @@ _rulesctl_commands() {
 (( $+functions[_rulesctl__completions_commands] )) ||
 _rulesctl__completions_commands() {
     local commands; commands=(
-        "SHELL:The shell to generate the script for" \
+        
     )
     _describe -t commands 'rulesctl completions commands' commands "$@"
 }
 (( $+functions[_rulesctl__disable_commands] )) ||
 _rulesctl__disable_commands() {
     local commands; commands=(
-        "FILENAME:The name of the .rules file to disable" \
+        
     )
     _describe -t commands 'rulesctl disable commands' commands "$@"
 }
 (( $+functions[_rulesctl__enable_commands] )) ||
 _rulesctl__enable_commands() {
     local commands; commands=(
-        "FILENAME:The name of the .rules file to enable" \
+        
     )
     _describe -t commands 'rulesctl enable commands' commands "$@"
 }
@@ -151,14 +162,14 @@ _rulesctl__help_commands() {
 (( $+functions[_info_commands] )) ||
 _info_commands() {
     local commands; commands=(
-        "FILENAME:The name of the .rules file to show" \
+        
     )
     _describe -t commands 'info commands' commands "$@"
 }
 (( $+functions[_rulesctl__info_commands] )) ||
 _rulesctl__info_commands() {
     local commands; commands=(
-        "FILENAME:The name of the .rules file to show" \
+        
     )
     _describe -t commands 'rulesctl info commands' commands "$@"
 }
@@ -179,7 +190,7 @@ _rulesctl__reload_commands() {
 (( $+functions[_rulesctl__show_commands] )) ||
 _rulesctl__show_commands() {
     local commands; commands=(
-        "FILENAME:The name of the .rules file to show" \
+        
     )
     _describe -t commands 'rulesctl show commands' commands "$@"
 }

@@ -514,8 +514,8 @@ fn check_expired_tracers(
 fn trace_is_from_blacklisted_process(line: &str) -> bool {
     let line = String::from(line);
 
-    if line.contains("precached-debugtool") {
-        // explicitly allow the `precached-debugtool` process
+    if line.contains("debugtool") {
+        // explicitly allow the precached `debugtool` process
         false
     } else {
         // TODO: Add a configuration option to make this
