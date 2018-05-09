@@ -228,7 +228,7 @@ impl FtraceLogger {
                                         }
                                     }
 
-                                    // Late-add tracers for processes for which we somehow 
+                                    // Late-add tracers for processes for which we somehow
                                     // missed their creation event, e.g. when precached daemon
                                     // was started after the creation of the process
                                     if add_tracer {
@@ -249,8 +249,13 @@ impl FtraceLogger {
 
                                                     // Tell ftrace to deliver events for process `event.pid`, from now on
                                                     match util::trace_process_io_ftrace(pid) {
-                                                        Err(e) => error!("Could not enable ftrace for process '{}' with pid {}: {}", comm, pid, e),
-                                                        Ok(()) => trace!("Enabled ftrace for process '{}' with pid {}", comm, pid),
+                                                        Err(e) => error!(
+                                                            "Could not enable ftrace for process '{}' with pid {}: {}",
+                                                            comm, pid, e
+                                                        ),
+                                                        Ok(()) => {
+                                                            trace!("Enabled ftrace for process '{}' with pid {}", comm, pid)
+                                                        }
                                                     }
                                                 }
                                             }

@@ -18,8 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::process::Command;
 use std::env;
+use std::process::Command;
 
 fn main() {
     // Create and package shell completions

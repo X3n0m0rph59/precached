@@ -520,10 +520,8 @@ fn trace_is_from_blacklisted_process(line: &str) -> bool {
     } else {
         // TODO: Add a configuration option to make this
         //       tunable via .conf file by the end user
-        line.contains("precached") || line.contains("prefetch") || 
-        line.contains("worker") || line.contains("ftrace") ||
-        line.contains("ipc") || line.contains("journal") || 
-        line.contains("syslog")
+        line.contains("precached") || line.contains("prefetch") || line.contains("worker") || line.contains("ftrace")
+            || line.contains("ipc") || line.contains("journal") || line.contains("syslog")
     }
 }
 
