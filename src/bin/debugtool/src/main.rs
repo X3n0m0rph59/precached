@@ -138,7 +138,7 @@ fn print_system_status(_config: &Config) {}
 
 /// Access file `p`
 fn touch_file(p: &Path) -> io::Result<()> {
-    info!("Accessing file: {:?}", p);
+    trace!("Accessing file: {:?}", p);
 
     let mut file = File::create(p)?;
 
@@ -160,10 +160,16 @@ fn perform_tracing_test(config: &Config) {
     }
 
     for f in 1..(*NUM_FILES) {
-        touch_file(&PATH.join(Path::new(&format!("file{}.tmp", f)))).expect("Could not touch a file!");
+        match touch_file(&PATH.join(Path::new(&format!("file{}.tmp", f)))) {
+            Ok(()) => {
+                if do_sleep {
+                    thread::sleep(time::Duration::from_millis(10));
+                }
+            },
 
-        if do_sleep {
-            thread::sleep(time::Duration::from_millis(10));
+            Err(e) => {
+                error!("Could not touch the file: {:?}", e);
+            }
         }
     }
 
@@ -181,7 +187,16 @@ fn cleanup(_config: &Config) {
     // let matches = config.matches.subcommand_matches("cleanup").unwrap();
 
     for f in 1..(*NUM_FILES) {
-        fs::remove_file(&PATH.join(Path::new(&format!("file{}.tmp", f)))).expect("Could not remove a file!");
+        let p = PATH.join(Path::new(&format!("file{}.tmp", f)));
+        trace!("Removing file: {:?}", p);
+
+        match fs::remove_file(&p) {
+            Ok(()) => { /* do nothing */ },
+
+            Err(e) => {
+                error!("Could not remove a file: {:?}", e);
+            }
+        }
     }
 
     info!("Finished cleanup");
