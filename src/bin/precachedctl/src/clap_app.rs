@@ -128,7 +128,7 @@ where
                 .arg(
                     Arg::with_name("SHELL")
                         .required(true)
-                        .possible_values(&["bash", "fish", "zsh"])
+                        .possible_values(&["bash", "fish", "zsh", "powershell"])
                         .help("The shell to generate the script for"),
                 ),
         )

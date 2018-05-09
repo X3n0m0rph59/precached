@@ -49,9 +49,6 @@ _iotracectl() {
             status)
                 cmd+="__status"
                 ;;
-            test-tracing)
-                cmd+="__test__tracing"
-                ;;
             *)
                 ;;
         esac
@@ -59,7 +56,7 @@ _iotracectl() {
 
     case "${cmd}" in
         iotracectl)
-            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status list info dump analyze optimize remove clear help test-tracing completions  show  delete"
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status list info dump analyze optimize remove clear help completions  show  delete"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -481,21 +478,6 @@ _iotracectl() {
             ;;
         iotracectl__status)
             opts=" -h -V  --tabular --help --version  "
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-                return 0
-            fi
-            case "${prev}" in
-                
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-            return 0
-            ;;
-        iotracectl__test__tracing)
-            opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0

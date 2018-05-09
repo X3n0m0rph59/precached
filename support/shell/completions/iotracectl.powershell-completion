@@ -1,0 +1,181 @@
+
+using namespace System.Management.Automation
+using namespace System.Management.Automation.Language
+
+Register-ArgumentCompleter -Native -CommandName 'iotracectl' -ScriptBlock {
+    param($wordToComplete, $commandAst, $cursorPosition)
+
+    $commandElements = $commandAst.CommandElements
+    $command = @(
+        'iotracectl'
+        for ($i = 1; $i -lt $commandElements.Count; $i++) {
+            $element = $commandElements[$i]
+            if ($element -isnot [StringConstantExpressionAst] -or
+                $element.StringConstantType -ne [StringConstantType]::BareWord -or
+                $element.Value.StartsWith('-')) {
+                break
+        }
+        $element.Value
+    }) -join ';'
+
+    $completions = @(switch ($command) {
+        'iotracectl' {
+            [CompletionResult]::new('-c', 'c', [CompletionResultType]::ParameterName, 'The precached config file to use')
+            [CompletionResult]::new('--config', 'config', [CompletionResultType]::ParameterName, 'The precached config file to use')
+            [CompletionResult]::new('-a', 'a', [CompletionResultType]::ParameterName, 'Produce ASCII output (default) instead of using Unicode for line drawing')
+            [CompletionResult]::new('--ascii', 'ascii', [CompletionResultType]::ParameterName, 'Produce ASCII output (default) instead of using Unicode for line drawing')
+            [CompletionResult]::new('-u', 'u', [CompletionResultType]::ParameterName, 'Produce Unicode output instead of using ASCII (default) for line drawing')
+            [CompletionResult]::new('--unicode', 'unicode', [CompletionResultType]::ParameterName, 'Produce Unicode output instead of using ASCII (default) for line drawing')
+            [CompletionResult]::new('-v', 'v', [CompletionResultType]::ParameterName, 'Sets the level of output verbosity')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('status', 'status', [CompletionResultType]::ParameterValue, 'Show the current status of the precached I/O tracing subsystem')
+            [CompletionResult]::new('list', 'list', [CompletionResultType]::ParameterValue, 'List all available I/O traces')
+            [CompletionResult]::new('info', 'info', [CompletionResultType]::ParameterValue, 'Print metadata information of specific I/O traces')
+            [CompletionResult]::new('dump', 'dump', [CompletionResultType]::ParameterValue, 'Dump I/O trace log entries (recorded I/O operations)')
+            [CompletionResult]::new('analyze', 'analyze', [CompletionResultType]::ParameterValue, 'Analyze I/O trace logs (check for missing files)')
+            [CompletionResult]::new('optimize', 'optimize', [CompletionResultType]::ParameterValue, 'Optimize I/O trace logs (optimize I/O operations)')
+            [CompletionResult]::new('remove', 'remove', [CompletionResultType]::ParameterValue, 'Remove I/O trace')
+            [CompletionResult]::new('clear', 'clear', [CompletionResultType]::ParameterValue, 'Completely clear all I/O traces and reset the precached I/O tracing subsystem')
+            [CompletionResult]::new('help', 'help', [CompletionResultType]::ParameterValue, 'Display this short help text')
+            [CompletionResult]::new('completions', 'completions', [CompletionResultType]::ParameterValue, 'Generates completion scripts for your shell')
+            break
+        }
+        'iotracectl;status' {
+            [CompletionResult]::new('--tabular', 'tabular', [CompletionResultType]::ParameterName, 'Use ''tabular'' display format')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;list' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Filter for the hash value of the I/O trace')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Filter for the hash value of the I/O trace')
+            [CompletionResult]::new('-e', 'e', [CompletionResultType]::ParameterName, 'Filter for executable name of the I/O trace')
+            [CompletionResult]::new('--executable', 'executable', [CompletionResultType]::ParameterName, 'Filter for executable name of the I/O trace')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'Filter for optimization status of the I/O trace')
+            [CompletionResult]::new('--optimized', 'optimized', [CompletionResultType]::ParameterName, 'Filter for optimization status of the I/O trace')
+            [CompletionResult]::new('--flags', 'flags', [CompletionResultType]::ParameterName, 'Filter for flags of the I/O trace')
+            [CompletionResult]::new('--sort', 'sort', [CompletionResultType]::ParameterName, 'Sort entries by field')
+            [CompletionResult]::new('--order', 'order', [CompletionResultType]::ParameterName, 'Sort order')
+            [CompletionResult]::new('--tabular', 'tabular', [CompletionResultType]::ParameterName, 'Use ''tabular'' display format')
+            [CompletionResult]::new('-f', 'f', [CompletionResultType]::ParameterName, 'Use ''full'' display format (list all fields)')
+            [CompletionResult]::new('--full', 'full', [CompletionResultType]::ParameterName, 'Use ''full'' display format (list all fields)')
+            [CompletionResult]::new('-s', 's', [CompletionResultType]::ParameterName, 'Use ''short'' display format (list important fields only)')
+            [CompletionResult]::new('--short', 'short', [CompletionResultType]::ParameterName, 'Use ''short'' display format (list important fields only)')
+            [CompletionResult]::new('-t', 't', [CompletionResultType]::ParameterName, 'Use ''terse'' display format (list executables only)')
+            [CompletionResult]::new('--terse', 'terse', [CompletionResultType]::ParameterName, 'Use ''terse'' display format (list executables only)')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;info' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Filter for the hash value of the I/O trace')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Filter for the hash value of the I/O trace')
+            [CompletionResult]::new('-e', 'e', [CompletionResultType]::ParameterName, 'Filter for executable name of the I/O trace')
+            [CompletionResult]::new('--executable', 'executable', [CompletionResultType]::ParameterName, 'Filter for executable name of the I/O trace')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'Filter for optimization status of the I/O trace')
+            [CompletionResult]::new('--optimized', 'optimized', [CompletionResultType]::ParameterName, 'Filter for optimization status of the I/O trace')
+            [CompletionResult]::new('--flags', 'flags', [CompletionResultType]::ParameterName, 'Filter for flags of the I/O trace')
+            [CompletionResult]::new('--sort', 'sort', [CompletionResultType]::ParameterName, 'Sort entries by field')
+            [CompletionResult]::new('--order', 'order', [CompletionResultType]::ParameterName, 'Sort order')
+            [CompletionResult]::new('-f', 'f', [CompletionResultType]::ParameterName, 'Use ''full'' display format')
+            [CompletionResult]::new('--full', 'full', [CompletionResultType]::ParameterName, 'Use ''full'' display format')
+            [CompletionResult]::new('-s', 's', [CompletionResultType]::ParameterName, 'Use ''short'' display format')
+            [CompletionResult]::new('--short', 'short', [CompletionResultType]::ParameterName, 'Use ''short'' display format')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;dump' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'The hash value of the I/O trace to dump')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'The hash value of the I/O trace to dump')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;analyze' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'The hash value of the I/O trace to analyze')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'The hash value of the I/O trace to analyze')
+            [CompletionResult]::new('--tabular', 'tabular', [CompletionResultType]::ParameterName, 'Use ''tabular'' display format')
+            [CompletionResult]::new('-t', 't', [CompletionResultType]::ParameterName, 'Use ''terse'' display format (list files only)')
+            [CompletionResult]::new('--terse', 'terse', [CompletionResultType]::ParameterName, 'Use ''terse'' display format (list files only)')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;optimize' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Filter for the hash value of the I/O trace')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Filter for the hash value of the I/O trace')
+            [CompletionResult]::new('-e', 'e', [CompletionResultType]::ParameterName, 'Filter for executable name of the I/O trace')
+            [CompletionResult]::new('--executable', 'executable', [CompletionResultType]::ParameterName, 'Filter for executable name of the I/O trace')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'Filter for optimization status of the I/O trace')
+            [CompletionResult]::new('--optimized', 'optimized', [CompletionResultType]::ParameterName, 'Filter for optimization status of the I/O trace')
+            [CompletionResult]::new('--flags', 'flags', [CompletionResultType]::ParameterName, 'Filter for flags of the I/O trace')
+            [CompletionResult]::new('--sort', 'sort', [CompletionResultType]::ParameterName, 'Sort entries by field')
+            [CompletionResult]::new('--order', 'order', [CompletionResultType]::ParameterName, 'Sort order')
+            [CompletionResult]::new('-n', 'n', [CompletionResultType]::ParameterName, 'Do not actually optimize anything, just pretend to')
+            [CompletionResult]::new('--dry-run', 'dry-run', [CompletionResultType]::ParameterName, 'Do not actually optimize anything, just pretend to')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;remove' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Filter for the hash value of the I/O trace')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Filter for the hash value of the I/O trace')
+            [CompletionResult]::new('-e', 'e', [CompletionResultType]::ParameterName, 'Filter for executable name of the I/O trace')
+            [CompletionResult]::new('--executable', 'executable', [CompletionResultType]::ParameterName, 'Filter for executable name of the I/O trace')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'Filter for optimization status of the I/O trace')
+            [CompletionResult]::new('--optimized', 'optimized', [CompletionResultType]::ParameterName, 'Filter for optimization status of the I/O trace')
+            [CompletionResult]::new('--flags', 'flags', [CompletionResultType]::ParameterName, 'Filter for flags of the I/O trace')
+            [CompletionResult]::new('--sort', 'sort', [CompletionResultType]::ParameterName, 'Sort entries by field')
+            [CompletionResult]::new('--order', 'order', [CompletionResultType]::ParameterName, 'Sort order')
+            [CompletionResult]::new('-n', 'n', [CompletionResultType]::ParameterName, 'Do not actually remove anything, just pretend to')
+            [CompletionResult]::new('--dry-run', 'dry-run', [CompletionResultType]::ParameterName, 'Do not actually remove anything, just pretend to')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;clear' {
+            [CompletionResult]::new('-n', 'n', [CompletionResultType]::ParameterName, 'Do not actually remove anything, just pretend to')
+            [CompletionResult]::new('--dry-run', 'dry-run', [CompletionResultType]::ParameterName, 'Do not actually remove anything, just pretend to')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;help' {
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;completions' {
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+    })
+
+    $completions.Where{ $_.CompletionText -like "$wordToComplete*" } |
+        Sort-Object -Property ListItemText
+}

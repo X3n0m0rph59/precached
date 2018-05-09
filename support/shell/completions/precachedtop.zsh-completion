@@ -45,7 +45,7 @@ _arguments "${_arguments_options[@]}" \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-':SHELL -- The shell to generate the script for:(bash fish zsh)' \
+':SHELL -- The shell to generate the script for:(bash fish zsh powershell)' \
 && ret=0
 ;;
         esac

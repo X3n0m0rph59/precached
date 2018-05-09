@@ -195,6 +195,7 @@ fn generate_completions(config: &mut Config) {
         "bash" => Shell::Bash,
         "fish" => Shell::Fish,
         "zsh" => Shell::Zsh,
+        "powershell" => Shell::PowerShell,
 
         &_ => Shell::Zsh,
     };

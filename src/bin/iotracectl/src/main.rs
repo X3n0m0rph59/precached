@@ -1313,6 +1313,7 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
         "bash" => Shell::Bash,
         "fish" => Shell::Fish,
         "zsh" => Shell::Zsh,
+        "powershell" => Shell::PowerShell,
 
         &_ => Shell::Zsh,
     };

@@ -208,21 +208,13 @@ _arguments "${_arguments_options[@]}" \
 '--version[Prints version information]' \
 && ret=0
 ;;
-(test-tracing)
-_arguments "${_arguments_options[@]}" \
-'-h[Prints help information]' \
-'--help[Prints help information]' \
-'-V[Prints version information]' \
-'--version[Prints version information]' \
-&& ret=0
-;;
 (completions)
 _arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-':SHELL -- The shell to generate the script for:(bash fish zsh)' \
+':SHELL -- The shell to generate the script for:(bash fish zsh powershell)' \
 && ret=0
 ;;
         esac
@@ -242,7 +234,6 @@ _iotracectl_commands() {
 "remove:Remove I/O trace" \
 "clear:Completely clear all I/O traces and reset the precached I/O tracing subsystem" \
 "help:Display this short help text" \
-"test-tracing:Test the I/O tracing subsystem of precached" \
 "completions:Generates completion scripts for your shell" \
     )
     _describe -t commands 'iotracectl commands' commands "$@"
@@ -344,13 +335,6 @@ _iotracectl__status_commands() {
         
     )
     _describe -t commands 'iotracectl status commands' commands "$@"
-}
-(( $+functions[_iotracectl__test-tracing_commands] )) ||
-_iotracectl__test-tracing_commands() {
-    local commands; commands=(
-        
-    )
-    _describe -t commands 'iotracectl test-tracing commands' commands "$@"
 }
 
 _iotracectl "$@"
