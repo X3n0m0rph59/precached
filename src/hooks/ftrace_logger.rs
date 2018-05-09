@@ -151,9 +151,12 @@ impl FtraceLogger {
                                             let iotrace_log = &mut tracer_data.get_mut().trace_log;
                                             match event.syscall {
                                                 util::SysCall::Open(ref filename, fd) => {
-                                                    warn!(
+                                                    trace!(
                                                         "Process: '{}' with pid {} opened file: {:?} fd: {}",
-                                                        comm, pid, filename, fd
+                                                        comm,
+                                                        pid,
+                                                        filename,
+                                                        fd
                                                     );
 
                                                     if !Self::is_file_blacklisted(filename, &mut globals_c, &manager_c) {

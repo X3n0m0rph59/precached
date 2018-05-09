@@ -32,6 +32,7 @@ use std::fs::OpenOptions;
 use std::io;
 use std::io::prelude::*;
 use std::io::BufReader;
+use std::io::ErrorKind;
 use std::path;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -67,10 +68,21 @@ pub fn get_lines_from_file(filename: &Path) -> io::Result<Vec<String>> {
 pub fn read_compressed_text_file(filename: &Path) -> io::Result<String> {
     let file = OpenOptions::new().read(true).open(filename)?;
 
-    let decompressed = zstd::decode_all(BufReader::new(file)).unwrap();
-    let result = String::from_utf8(decompressed).unwrap();
+    match zstd::decode_all(BufReader::new(file)) {
+        Ok(decompressed) => match String::from_utf8(decompressed) {
+            Ok(result) => Ok(result),
 
-    Ok(result)
+            Err(e) => {
+                error!("Could not decompress file {:?}: {}", filename, e);
+                Err(io::Error::new(ErrorKind::Other, e))
+            }
+        },
+
+        Err(e) => {
+            error!("Could not decompress file {:?}: {}", filename, e);
+            Err(io::Error::new(ErrorKind::Other, e))
+        }
+    }
 }
 
 /// Read the uncompressed text file `filename`.
