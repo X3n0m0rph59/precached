@@ -20,12 +20,10 @@
 
 use std::process::Command;
 use std::env;
-use std::path::Path;
-
 
 fn main() {
     // Create and package shell completions
-    let out_dir = env::var("OUT_DIR").unwrap();
+    let _out_dir = env::var("OUT_DIR").unwrap();
 
     Command::new("support/shell/gen-completions.sh").status().unwrap();
 }
