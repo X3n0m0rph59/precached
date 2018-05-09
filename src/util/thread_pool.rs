@@ -63,7 +63,7 @@ impl PrefetchThreadPool {
                 // .num_threads(constants::NUM_PREFETCHER_THREADS)                
                 .num_threads(num_cpus::get())
                 .thread_name(String::from("prefetch"))
-                .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
+                // .thread_scheduling_class(threadpool::SchedulingClass::Realtime)                
                 .spread_affinity(true)
                 .build(),
         }
