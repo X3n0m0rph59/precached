@@ -62,6 +62,7 @@ mod clap_app;
 mod constants;
 mod iotrace;
 mod process;
+mod profiles;
 mod rules;
 mod util;
 

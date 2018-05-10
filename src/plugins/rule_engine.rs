@@ -25,7 +25,9 @@ use manager::*;
 use plugins::notifications::Notifications;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use plugins::profiles::Profiles;
 use plugins::vfs_stat_cache::VFSStatCache;
+use profiles::SystemProfile;
 use rules;
 use std::any::Any;
 use std::path::{Path, PathBuf};
@@ -211,42 +213,59 @@ impl RuleEngine {
     ) {
         trace!("Rule Action: CacheDirRecursive");
 
-        match *event {
-            rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
-                // We are being invoked through `process_user_login_event(..)`
-                // So we have valid `user` and `home_dir` parameters
-                match rules::get_param_value(&rule.params, "Directory") {
-                    Err(e) => {
-                        error!("Invalid directory specified: '{}'", e);
-                    }
+        let pm = manager.plugin_manager.read().unwrap();
 
-                    Ok(val) => {
-                        let home_dir_str = &home_dir.to_string_lossy().to_string();
-                        let path = Self::expand_variables(
-                            &val,
-                            &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
-                        );
-
-                        let pm = manager.plugin_manager.read().unwrap();
-
-                        match pm.get_plugin_by_name(&String::from("vfs_stat_cache")) {
-                            None => {
-                                warn!("Plugin not loaded: 'vfs_stat_cache', skipped");
-                            }
-                            Some(p) => {
-                                let p = p.read().unwrap();
-                                let vfs_stat_cache = p.as_any().downcast_ref::<VFSStatCache>().unwrap();
-
-                                let paths = vec![PathBuf::from(&path)];
-
-                                vfs_stat_cache.prime_statx_cache(&paths, globals, manager);
-                            }
-                        }
-                    }
-                }
+        match pm.get_plugin_by_name(&String::from("profiles")) {
+            None => {
+                warn!("Plugin not loaded: 'profiles', skipped");
             }
 
-            _ => {}
+            Some(p) => {
+                let p = p.read().unwrap();
+                let mut profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
+
+                if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
+                    match *event {
+                        rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
+                            // We are being invoked through `process_user_login_event(..)`
+                            // So we have valid `user` and `home_dir` parameters
+                            match rules::get_param_value(&rule.params, "Directory") {
+                                Err(e) => {
+                                    error!("Invalid directory specified: '{}'", e);
+                                }
+
+                                Ok(val) => {
+                                    let home_dir_str = &home_dir.to_string_lossy().to_string();
+                                    let path = Self::expand_variables(
+                                        &val,
+                                        &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
+                                    );
+
+                                    let pm = manager.plugin_manager.read().unwrap();
+
+                                    match pm.get_plugin_by_name(&String::from("vfs_stat_cache")) {
+                                        None => {
+                                            warn!("Plugin not loaded: 'vfs_stat_cache', skipped");
+                                        }
+                                        Some(p) => {
+                                            let p = p.read().unwrap();
+                                            let vfs_stat_cache = p.as_any().downcast_ref::<VFSStatCache>().unwrap();
+
+                                            let paths = vec![PathBuf::from(&path)];
+
+                                            vfs_stat_cache.prime_statx_cache(&paths, globals, manager);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        _ => {}
+                    }
+                } else {
+                    warn!("Ignored 'CacheDirRecursive' rule action, current system profile does not allow prefetching");
+                }
+            }
         }
     }
 

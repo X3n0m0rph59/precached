@@ -19,11 +19,11 @@ _precached-trigger() {
             help)
                 cmd+="__help"
                 ;;
-            offline-prefetch)
-                cmd+="__offline__prefetch"
-                ;;
             status)
                 cmd+="__status"
+                ;;
+            transition-profile)
+                cmd+="__transition__profile"
                 ;;
             *)
                 ;;
@@ -32,7 +32,7 @@ _precached-trigger() {
 
     case "${cmd}" in
         precached-trigger)
-            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status help offline-prefetch completions"
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status help transition-profile completions"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -85,8 +85,8 @@ _precached-trigger() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        precached__trigger__offline__prefetch)
-            opts=" -h -V  --help --version  "
+        precached__trigger__status)
+            opts=" -h -V  --tabular --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -100,8 +100,8 @@ _precached-trigger() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        precached__trigger__status)
-            opts=" -h -V  --tabular --help --version  "
+        precached__trigger__transition__profile)
+            opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0

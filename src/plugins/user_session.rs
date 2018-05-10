@@ -227,12 +227,6 @@ impl Plugin for UserSession {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::Startup => {
-                // TODO: Replace this hack with something better!
-                //       Assume that the first user will log in subsequently
-                self.user_logged_in(1000, globals, manager);
-            }
-
             events::EventType::Ping => {
                 self.poll_logged_in_users(globals, manager);
             }

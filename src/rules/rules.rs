@@ -22,6 +22,7 @@ extern crate rayon;
 extern crate sys_info;
 
 use chrono::Utc;
+use profiles::SystemProfile;
 use rayon::prelude::*;
 use std::fs;
 use std::fs::File;
@@ -74,6 +75,10 @@ pub enum Event {
     ConfigurationReloaded,
     /// occurs when the state of a tracked process changed
     TrackedProcessChanged,
+    /// received a request to transition to the next system profile
+    TransitionToNextProfile,
+    /// the global system profile has changed
+    ProfileChanged(Option<SystemProfile>),
     /// sent by the fork bomb detector hook, when a fork() storm occurs
     ForkBombDetected,
 
@@ -459,6 +464,10 @@ fn parse_event(event: &str) -> Result<Event, String> {
         "ConfigurationReloaded" => Ok(Event::ConfigurationReloaded),
 
         "TrackedProcessChanged" => Ok(Event::TrackedProcessChanged),
+
+        "TransitionToNextProfile" => Ok(Event::TransitionToNextProfile),
+
+        "ProfileChanged" => Ok(Event::ProfileChanged(None)),
 
         "ForkBombDetected" => Ok(Event::ForkBombDetected),
 

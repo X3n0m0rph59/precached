@@ -26,8 +26,10 @@ use plugins::hot_applications::HotApplications;
 use plugins::metrics::Metrics;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use plugins::profiles::Profiles;
 use plugins::static_blacklist::StaticBlacklist;
 use plugins::static_whitelist::StaticWhitelist;
+use profiles::SystemProfile;
 use std::any::Any;
 use std::path::{Path, PathBuf};
 use storage;
@@ -268,10 +270,27 @@ impl Plugin for VFSStatCache {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::PrimeCaches => if self.memory_freed {
-                self.prime_statx_cache_for_top_iotraces(globals, manager);
-                self.prime_statx_cache_from_whitelist(globals, manager);
+                let pm = manager.plugin_manager.read().unwrap();
 
-                self.memory_freed = false;
+                match pm.get_plugin_by_name(&String::from("profiles")) {
+                    None => {
+                        warn!("Plugin not loaded: 'profiles', skipped");
+                    }
+
+                    Some(p) => {
+                        let p = p.read().unwrap();
+                        let mut profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
+
+                        if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
+                            self.prime_statx_cache_for_top_iotraces(globals, manager);
+                            self.prime_statx_cache_from_whitelist(globals, manager);
+
+                            self.memory_freed = false;
+                        } else {
+                            warn!("Ignored 'PrimeCaches' request, current system profile does not allow prefetching");
+                        }
+                    }
+                }
             },
 
             events::EventType::MemoryFreed => {

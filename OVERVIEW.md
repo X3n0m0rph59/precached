@@ -91,6 +91,7 @@ The following plugins are available for precached (as of 2018-05-10)
 * Metrics (stable) - Generate system metrics and deliver events based on them
 * Statistics (not implemented/in development) - Generate statistics using data from Metrics plugin
 * Notifications (in development) - Desktop notifications using D-BUS
+* System Profiles (experimental/in development) - Let precached transition between distinct profiles like e.g. BootUp, UpAndRunning
 * Rule Engine  (experimental/in development) - A rules based matching engine; executes actions when events are triggered
 * Rule Event Bridge (stable) - Convert daemon internal events to events used inside the rule matching engine
 * System Agent (not implemented/in development)

@@ -93,6 +93,7 @@ mod iotrace;
 mod ipc;
 mod plugins;
 mod process;
+mod profiles;
 mod rules;
 mod storage;
 mod util;
@@ -497,10 +498,10 @@ fn main() {
         // Check if we received a SIGUSR2 signal
         if SIG_USR2.load(Ordering::Relaxed) {
             SIG_USR2.store(false, Ordering::Relaxed);
-            warn!("Received SIGUSR2: Priming all caches now...");
+            warn!("Received SIGUSR2: Transitioning to next profile...");
 
             // Queue event
-            events::queue_internal_event(EventType::PrimeCaches, &mut globals);
+            events::queue_internal_event(EventType::TransitionToNextProfile, &mut globals);
         }
 
         // call the main loop hooks of the inotify subsystem and the dbus interface

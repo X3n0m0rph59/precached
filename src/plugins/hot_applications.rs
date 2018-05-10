@@ -37,8 +37,10 @@ use iotrace;
 use manager::*;
 use plugins::metrics::Metrics;
 use plugins::plugin::{Plugin, PluginDescription};
+use plugins::profiles::Profiles;
 use process::Process;
 use procmon;
+use profiles::SystemProfile;
 use rayon::prelude::*;
 use std::any::Any;
 use std::collections::HashMap;
@@ -73,7 +75,7 @@ pub struct HotApplications {
     /// Vector of currently cached apps
     cached_apps: Vec<String>,
     /// Ignore the first low watermark events until we have primed our caches
-    caches_already_primed: bool
+    caches_already_primed: bool,
 }
 
 impl HotApplications {
@@ -82,7 +84,7 @@ impl HotApplications {
             app_histogram: HashMap::new(),
             cached_apps: vec![],
 
-            caches_already_primed: false
+            caches_already_primed: false,
         }
     }
 
@@ -454,10 +456,23 @@ impl Plugin for HotApplications {
             }
 
             events::EventType::AvailableMemoryLowWatermark => {
-                if self.caches_already_primed {                   
-                    self.prefetch_data(globals, manager);
-                } else {
-                    warn!("Ignored low mem condition, not prefetching hot applications");
+                let pm = manager.plugin_manager.read().unwrap();
+
+                match pm.get_plugin_by_name(&String::from("profiles")) {
+                    None => {
+                        warn!("Plugin not loaded: 'profiles', skipped");
+                    }
+
+                    Some(p) => {
+                        let p = p.read().unwrap();
+                        let mut profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
+
+                        if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
+                            self.prefetch_data(globals, manager);
+                        } else {
+                            warn!("Ignored 'Low Memory' condition, current system profile does not allow prefetching");
+                        }
+                    }
                 }
             }
 
@@ -470,10 +485,23 @@ impl Plugin for HotApplications {
             }
 
             events::EventType::IdlePeriod => {
-                if self.caches_already_primed {                   
-                    self.prefetch_data(globals, manager);
-                } else {
-                    warn!("Ignored idle condition, not prefetching hot applications");
+                let pm = manager.plugin_manager.read().unwrap();
+
+                match pm.get_plugin_by_name(&String::from("profiles")) {
+                    None => {
+                        warn!("Plugin not loaded: 'profiles', skipped");
+                    }
+
+                    Some(p) => {
+                        let p = p.read().unwrap();
+                        let mut profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
+
+                        if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
+                            self.prefetch_data(globals, manager);
+                        } else {
+                            warn!("Ignored 'Idle' condition, current system profile does not allow prefetching");
+                        }
+                    }
                 }
             }
 

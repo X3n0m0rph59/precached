@@ -78,9 +78,9 @@ where
                 .about("Display this short help text"),
         )
         .subcommand(
-            SubCommand::with_name("offline-prefetch")
+            SubCommand::with_name("transition-profile")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Tell precached to commence offline-prefetch"),
+                .about("Tell precached to transition to the next profile"),
         )
         .subcommand(
             SubCommand::with_name("completions")

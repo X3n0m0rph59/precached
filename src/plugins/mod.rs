@@ -28,6 +28,7 @@ use manager::*;
 // pub mod system_agent;
 pub mod iotrace_log_cache;
 pub mod iotrace_log_manager;
+pub mod profiles;
 pub mod static_blacklist;
 pub mod static_whitelist;
 pub mod vfs_stat_cache;
@@ -47,6 +48,7 @@ pub mod rule_event_bridge;
 pub mod triggers;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
+    profiles::register_plugin(globals, manager);
     inotify_multiplexer::register_plugin(globals, manager);
     triggers::register_plugin(globals, manager);
     statistics::register_plugin(globals, manager);

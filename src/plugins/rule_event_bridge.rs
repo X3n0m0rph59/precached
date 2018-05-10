@@ -25,6 +25,7 @@ use manager::*;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use plugins::rule_engine::RuleEngine;
+use profiles::SystemProfile;
 use rules;
 use std::any::Any;
 use storage;
@@ -106,6 +107,14 @@ impl RuleEventBridge {
 
             events::EventType::TrackedProcessChanged(ref _event) => {
                 Self::rule_engine_fire_event(rules::Event::TrackedProcessChanged, globals, manager);
+            }
+
+            events::EventType::TransitionToNextProfile => {
+                Self::rule_engine_fire_event(rules::Event::TransitionToNextProfile, globals, manager);
+            }
+
+            events::EventType::ProfileChanged(profile) => {
+                Self::rule_engine_fire_event(rules::Event::ProfileChanged(Some(profile)), globals, manager);
             }
 
             events::EventType::ForkBombDetected => {

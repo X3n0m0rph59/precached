@@ -144,8 +144,8 @@ fn read_daemon_pid() -> io::Result<String> {
     util::read_uncompressed_text_file(&Path::new(constants::DAEMON_PID_FILE))
 }
 
-/// Instruct precached to commence housekeeping tasks
-fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
+/// Instruct precached to transition to the next profile
+fn transition_profile(_config: &Config, _daemon_config: util::ConfigFile) {
     match read_daemon_pid() {
         Err(_e) => {
             println!("precached is NOT running, did not send signal");
@@ -219,8 +219,8 @@ fn main() {
                 print_help(&mut config_c);
             }
 
-            "offline-prefetch" => {
-                do_prime_caches(&mut config_c, daemon_config);
+            "transition-profile" => {
+                transition_profile(&mut config_c, daemon_config);
             }
 
             "completions" => {

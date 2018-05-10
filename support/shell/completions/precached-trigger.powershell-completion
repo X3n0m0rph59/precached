@@ -33,7 +33,7 @@ Register-ArgumentCompleter -Native -CommandName 'precached-trigger' -ScriptBlock
             [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
             [CompletionResult]::new('status', 'status', [CompletionResultType]::ParameterValue, 'Show the current status of the precached daemon')
             [CompletionResult]::new('help', 'help', [CompletionResultType]::ParameterValue, 'Display this short help text')
-            [CompletionResult]::new('offline-prefetch', 'offline-prefetch', [CompletionResultType]::ParameterValue, 'Tell precached to commence offline-prefetch')
+            [CompletionResult]::new('transition-profile', 'transition-profile', [CompletionResultType]::ParameterValue, 'Tell precached to transition to the next profile')
             [CompletionResult]::new('completions', 'completions', [CompletionResultType]::ParameterValue, 'Generates completion scripts for your shell')
             break
         }
@@ -52,7 +52,7 @@ Register-ArgumentCompleter -Native -CommandName 'precached-trigger' -ScriptBlock
             [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
             break
         }
-        'precached-trigger;offline-prefetch' {
+        'precached-trigger;transition-profile' {
             [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
             [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
             [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')

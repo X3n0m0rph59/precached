@@ -25,6 +25,7 @@ use chrono::{DateTime, Local, TimeZone, Utc};
 use globals::*;
 use inotify::EventMaskWrapper;
 use procmon;
+use profiles::SystemProfile;
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -56,6 +57,10 @@ pub enum EventType {
     ConfigurationReloaded,
     /// occurs when the state of a tracked process changed
     TrackedProcessChanged(procmon::Event),
+    /// received a request to transition to the next system profile
+    TransitionToNextProfile,
+    /// the global system profile has changed
+    ProfileChanged(SystemProfile),
     /// sent by the fork bomb detector hook, when a fork() storm occurs
     ForkBombDetected,
 

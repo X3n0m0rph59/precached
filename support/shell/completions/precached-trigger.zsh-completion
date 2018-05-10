@@ -52,7 +52,7 @@ _arguments "${_arguments_options[@]}" \
 '--version[Prints version information]' \
 && ret=0
 ;;
-(offline-prefetch)
+(transition-profile)
 _arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
@@ -79,7 +79,7 @@ _precached-trigger_commands() {
     local commands; commands=(
         "status:Show the current status of the precached daemon" \
 "help:Display this short help text" \
-"offline-prefetch:Tell precached to commence offline-prefetch" \
+"transition-profile:Tell precached to transition to the next profile" \
 "completions:Generates completion scripts for your shell" \
     )
     _describe -t commands 'precached-trigger commands' commands "$@"
@@ -98,19 +98,19 @@ _precached-trigger__help_commands() {
     )
     _describe -t commands 'precached-trigger help commands' commands "$@"
 }
-(( $+functions[_precached-trigger__offline-prefetch_commands] )) ||
-_precached-trigger__offline-prefetch_commands() {
-    local commands; commands=(
-        
-    )
-    _describe -t commands 'precached-trigger offline-prefetch commands' commands "$@"
-}
 (( $+functions[_precached-trigger__status_commands] )) ||
 _precached-trigger__status_commands() {
     local commands; commands=(
         
     )
     _describe -t commands 'precached-trigger status commands' commands "$@"
+}
+(( $+functions[_precached-trigger__transition-profile_commands] )) ||
+_precached-trigger__transition-profile_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'precached-trigger transition-profile commands' commands "$@"
 }
 
 _precached-trigger "$@"
