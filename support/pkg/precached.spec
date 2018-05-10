@@ -89,9 +89,9 @@ cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precached-debug.
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
-install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedtop %{buildroot}%{_sbindir}/precachedtop
+install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedtop %{buildroot}%{_bindir}/precachedtop
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/rulesctl %{buildroot}%{_sbindir}/rulesctl
-install -Dp -m 4755 %{_builddir}/%{name}-%{version}/target/release/precached-trigger %{buildroot}%{_sbindir}/precached-trigger
+install -Dp -m 4755 %{_builddir}/%{name}-%{version}/target/release/precached-trigger %{buildroot}%{_bindir}/precached-trigger
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached-debug %{buildroot}%{_sbindir}/precached-debug
 
 %post
