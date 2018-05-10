@@ -31,7 +31,7 @@ use std::time::{Duration, Instant};
 use storage;
 
 static NAME: &str = "triggers";
-static DESCRIPTION: &str = "Support for action triggers";
+static DESCRIPTION: &str = "Support for Action Triggers";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
@@ -55,11 +55,11 @@ impl Triggers {
 
 impl Plugin for Triggers {
     fn register(&mut self) {
-        info!("Registered Plugin: 'Support for action triggers'");
+        info!("Registered Plugin: 'Support for Action Triggers'");
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Plugin: 'Support for action triggers'");
+        info!("Unregistered Plugin: 'Support for Action Triggers'");
     }
 
     fn get_name(&self) -> &'static str {

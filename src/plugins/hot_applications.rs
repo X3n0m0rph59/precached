@@ -72,8 +72,8 @@ pub struct HotApplications {
     app_histogram: HashMap<String, usize>,
     /// Vector of currently cached apps
     cached_apps: Vec<String>,
-    /// Ignore the first low watermark event
-    ignore_low_watermark_event: bool,
+    /// Ignore the first low watermark events until we have primed our caches
+    caches_already_primed: bool
 }
 
 impl HotApplications {
@@ -82,9 +82,7 @@ impl HotApplications {
             app_histogram: HashMap::new(),
             cached_apps: vec![],
 
-            /// Ignore the first low watermark event, that gets
-            /// triggered at the startup of the daemon
-            ignore_low_watermark_event: true,
+            caches_already_primed: false
         }
     }
 
@@ -160,7 +158,7 @@ impl HotApplications {
                                 if !cached_apps.contains(hash) {
                                     let hash_c = (*hash).clone();
 
-                                    debug!("Prefetching files for hash: '{}'", hash);
+                                    info!("Prefetching files for hash: '{}'", hash);
                                     iotrace_prefetcher_hook.prefetch_data_by_hash(hash, &globals_c, &manager_c);
 
                                     cached_apps.push(hash_c);
@@ -452,13 +450,14 @@ impl Plugin for HotApplications {
 
             events::EventType::PrimeCaches => {
                 self.prefetch_data(globals, manager);
+                self.caches_already_primed = true;
             }
 
             events::EventType::AvailableMemoryLowWatermark => {
-                if self.ignore_low_watermark_event {
-                    self.ignore_low_watermark_event = false;
-                } else {
+                if self.caches_already_primed {                   
                     self.prefetch_data(globals, manager);
+                } else {
+                    warn!("Ignored low mem condition, not prefetching hot applications");
                 }
             }
 
@@ -468,6 +467,14 @@ impl Plugin for HotApplications {
 
             events::EventType::SystemIsSwapping => {
                 self.free_memory(true, globals, manager);
+            }
+
+            events::EventType::IdlePeriod => {
+                if self.caches_already_primed {                   
+                    self.prefetch_data(globals, manager);
+                } else {
+                    warn!("Ignored idle condition, not prefetching hot applications");
+                }
             }
 
             events::EventType::TrackedProcessChanged(ref event) => {

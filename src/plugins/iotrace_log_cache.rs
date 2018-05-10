@@ -291,7 +291,7 @@ impl Plugin for IOtraceLogCache {
             }
 
             events::EventType::PrimeCaches => {
-                // self.cache_iotrace_log_files(globals, manager);
+                self.cache_iotrace_log_files(globals, manager);
             }
 
             events::EventType::IoTraceLogCreated(ref path) => {
