@@ -81,7 +81,7 @@ where
             SubCommand::with_name("offline-prefetch")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about("Tell precached to commence offline-prefetch"),
-        )                
+        )
         .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)

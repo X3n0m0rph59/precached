@@ -43,6 +43,9 @@ extern crate zstd;
 
 use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use nix::libc::pid_t;
+use nix::sys::signal::*;
+use nix::unistd::*;
 use pbr::ProgressBar;
 use prettytable::cell::Cell;
 use prettytable::format::*;
@@ -61,9 +64,6 @@ use std::thread;
 use std::time;
 use term::color::*;
 use term::Attr;
-use nix::libc::pid_t;
-use nix::sys::signal::*;
-use nix::unistd::*;
 
 mod clap_app;
 mod constants;
@@ -137,9 +137,7 @@ fn print_usage(config: &mut Config) {
 }
 
 /// Print a status summary of the system
-fn print_system_status(_config: &Config) {
-
-}
+fn print_system_status(_config: &Config) {}
 
 /// Read the pid of the precached daemon from the file `/run/precached.pid`
 fn read_daemon_pid() -> io::Result<String> {
@@ -179,9 +177,7 @@ fn generate_completions(config: &mut Config) {
         &_ => Shell::Zsh,
     };
 
-    config
-        .clap
-        .gen_completions_to("precached-trigger", shell, &mut io::stdout());
+    config.clap.gen_completions_to("precached-trigger", shell, &mut io::stdout());
 }
 
 /// Program entrypoint

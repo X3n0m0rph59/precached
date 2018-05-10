@@ -165,7 +165,7 @@ fn perform_tracing_test(config: &Config) {
                 if do_sleep {
                     thread::sleep(time::Duration::from_millis(10));
                 }
-            },
+            }
 
             Err(e) => {
                 error!("Could not touch the file: {:?}", e);
@@ -191,7 +191,7 @@ fn cleanup(_config: &Config) {
         trace!("Removing file: {:?}", p);
 
         match fs::remove_file(&p) {
-            Ok(()) => { /* do nothing */ },
+            Ok(()) => { /* do nothing */ }
 
             Err(e) => {
                 error!("Could not remove a file: {:?}", e);
@@ -215,9 +215,7 @@ fn generate_completions(config: &mut Config) {
         &_ => Shell::Zsh,
     };
 
-    config
-        .clap
-        .gen_completions_to("precached-debug", shell, &mut io::stdout());
+    config.clap.gen_completions_to("precached-debug", shell, &mut io::stdout());
 }
 
 /// Program entrypoint

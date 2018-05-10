@@ -45,14 +45,11 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug, Clone)]
-pub struct Triggers {
-   
-}
+pub struct Triggers {}
 
 impl Triggers {
     pub fn new() -> Triggers {
-        Triggers {            
-        }
+        Triggers {}
     }
 }
 

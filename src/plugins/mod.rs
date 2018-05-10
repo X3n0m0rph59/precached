@@ -41,10 +41,10 @@ pub mod user_session;
 // pub mod rule_plugin;
 pub mod ftrace_messages;
 pub mod inotify_multiplexer;
-pub mod triggers;
 pub mod janitor;
 pub mod rule_engine;
 pub mod rule_event_bridge;
+pub mod triggers;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     inotify_multiplexer::register_plugin(globals, manager);
