@@ -76,7 +76,7 @@ pub const MIN_HOUSEKEEPING_INTERVAL_SECS: u64 = 60 * 60; // 60 Minutes
 pub const PING_INTERVAL_MILLIS: u64 = 2500;
 
 /// Duration in seconds that we trace a process' I/O activity
-pub const IO_TRACE_TIME_SECS: u64 = 12;
+pub const IO_TRACE_TIME_SECS: u64 = 15;
 
 /// After how many days an I/O trace is flagged as expired
 pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
@@ -94,7 +94,7 @@ pub const FREE_MEMORY_UPPER_THRESHOLD: u8 = 90;
 pub const FREE_MEMORY_LOWER_THRESHOLD: u8 = 70;
 
 /// Available memory critical threshold
-pub const AVAILABLE_MEMORY_CRITICAL_THRESHOLD: u8 = 85;
+pub const AVAILABLE_MEMORY_CRITICAL_THRESHOLD: u8 = 90;
 
 /// Available memory threshold
 pub const AVAILABLE_MEMORY_UPPER_THRESHOLD: u8 = 80;

@@ -18,7 +18,7 @@ appenders:
       Debug: LOG_DEBUG
       Trace: LOG_DEBUG
     encoder:
-      pattern: "{m}"
+      pattern: "{M}:{L} - {m}"
 
   # logfile:
   #   kind: file
@@ -27,8 +27,7 @@ appenders:
   #     pattern: "{d(%Y-%m-%d %H:%M:%S %Z)} [{l}]: {M}:{L} - {m}{n}"
 
 root:
-  # level: info
-  level: debug
+  level: info
   appenders:
     - stdout
     - syslog
