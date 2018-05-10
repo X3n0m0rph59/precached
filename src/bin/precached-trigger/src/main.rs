@@ -206,7 +206,7 @@ fn main() {
     // load external text configuration
     let filename = Path::new(config.matches.value_of(String::from("config")).unwrap());
     trace!("Loading external configuration from {:?}", filename);
-    let _daemon_config = util::ConfigFile::from_file(&filename).unwrap_or_default();
+    let daemon_config = util::ConfigFile::from_file(&filename).unwrap_or_default();
 
     // Decide what to do
     if let Some(command) = config.matches.subcommand_name() {
@@ -220,7 +220,7 @@ fn main() {
             }
 
             "offline-prefetch" => {
-                generate_completions(&mut config_c);
+                do_prime_caches(&mut config_c, daemon_config);
             }
 
             "completions" => {

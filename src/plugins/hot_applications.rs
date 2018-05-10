@@ -72,6 +72,8 @@ pub struct HotApplications {
     app_histogram: HashMap<String, usize>,
     /// Vector of currently cached apps
     cached_apps: Vec<String>,
+    /// Ignore the first low watermark event
+    ignore_low_watermark_event: bool,
 }
 
 impl HotApplications {
@@ -79,6 +81,10 @@ impl HotApplications {
         HotApplications {
             app_histogram: HashMap::new(),
             cached_apps: vec![],
+
+            /// Ignore the first low watermark event, that gets
+            /// triggered at the startup of the daemon
+            ignore_low_watermark_event: true,
         }
     }
 
@@ -444,8 +450,16 @@ impl Plugin for HotApplications {
                 self.save_state(globals, manager);
             }
 
-            events::EventType::PrimeCaches | events::EventType::AvailableMemoryLowWatermark => {
+            events::EventType::PrimeCaches => {
                 self.prefetch_data(globals, manager);
+            }
+
+            events::EventType::AvailableMemoryLowWatermark => {
+                if self.ignore_low_watermark_event {
+                    self.ignore_low_watermark_event = false;
+                } else {
+                    self.prefetch_data(globals, manager);
+                }
             }
 
             events::EventType::AvailableMemoryCritical => {
