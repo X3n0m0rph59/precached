@@ -50,6 +50,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{OrigName}/
+%{__mkdir_p} %{buildroot}%{_datarootdir}/autostart/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/applications/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/icons/hicolor/scalable/apps/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/bash-completion/completions/
@@ -91,6 +92,7 @@ cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precached-debug.
 cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached-trigger.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -a %{_builddir}/%{name}-%{version}/support/desktop/precached-trigger.desktop %{buildroot}/%{_datarootdir}/applications/precached-trigger.desktop
 cp -a %{_builddir}/%{name}-%{version}/support/desktop/precached-trigger.desktop %{buildroot}/%{_datarootdir}/gdm/autostart/precached-trigger.desktop
+cp -a %{_builddir}/%{name}-%{version}/support/desktop/precached-trigger.desktop %{buildroot}/%{_datarootdir}/autostart/precached-trigger.desktop
 cp -a %{_builddir}/%{name}-%{version}/support/assets/precached.svg %{buildroot}/%{_datarootdir}/icons/hicolor/scalable/apps/precached-trigger.svg
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
@@ -160,6 +162,8 @@ esac
 %{_sharedstatedir}/%{OrigName}/
 %{_sharedstatedir}/%{OrigName}/iotrace/
 %{_datarootdir}/applications/precached-trigger.desktop
+%{_datarootdir}/gdm/autostart/precached-trigger.desktop
+%{_datarootdir}/autostart/precached-trigger.desktop
 %{_datarootdir}/icons/hicolor/scalable/apps/precached-trigger.svg
 %{_datarootdir}/bash-completion/completions/iotracectl
 %{_datarootdir}/bash-completion/completions/precachedctl
@@ -173,8 +177,6 @@ esac
 %{_datarootdir}/zsh/site-functions/_rulesctl
 %{_datarootdir}/zsh/site-functions/_precached-trigger
 %{_datarootdir}/zsh/site-functions/_precached-debug
-%{_datarootdir}/applications/precached-trigger.desktop
-%{_datarootdir}/gdm/autostart/precached-trigger.desktop
 %{_docdir}/%{OrigName}/examples/
 #%{_datadir}/%{OrigName}/
 
