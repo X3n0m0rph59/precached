@@ -51,6 +51,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/autostart/
+%{__mkdir_p} %{buildroot}%{_datarootdir}/gdm/autostart/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/applications/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/icons/hicolor/scalable/apps/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/bash-completion/completions/
