@@ -81,7 +81,7 @@ easily extend its functionality in the future.
 
 #### Available Plugins and Hooks
 
-The following plugins are available for precached (as of 2018-01-04)
+The following plugins are available for precached (as of 2018-05-10)
 
 * Inotify Multiplexer (stable) - Translate low level inotify events to daemon internal events
 * I/O Trace Log Manager (stable) - Manage I/O trace logs, optimizes new trace logs, and removes invalid ones
@@ -94,6 +94,7 @@ The following plugins are available for precached (as of 2018-01-04)
 * Rule Engine  (experimental/in development) - A rules based matching engine; executes actions when events are triggered
 * Rule Event Bridge (stable) - Convert daemon internal events to events used inside the rule matching engine
 * System Agent (not implemented/in development)
+* Triggers (not implemented/in development) - Trigger certain actions in precached by an unprivileged user
 * User Session (stable) - Cache metadata of files in logged user's home directories
 * I/O Trace Log Cache (stable) - mlock() .iotrace files into memory
 * VFS Stat(x) Cache (stable) - Prime the kernel’s dentry caches by walking directories and stat()ing files
