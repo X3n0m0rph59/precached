@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+​<!-- Copyright 2017-2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> -->
+​<component type="Application">
+​  <id>org.precache.precached-trigger</id>
+​  <metadata_license>FSFAP</metadata_license>
+​  <project_license>GPL-3.0+</project_license>
+​  <name>precached-trigger</name>
+​  <summary>Trigger certain actions in precached</summary>
+​
+​  <description>
+​    <p>
+		Trigger certain actions in precached
+​    </p>
+​  </description>
+​
+​  <launchable type="service">precached</launchable>
+​
+​  <screenshots>
+​    <screenshot type="default">
+​      <caption>precached project logo</caption>
+​      <image>https://x3n0m0rph59.github.io/precached/images/precached.png</image>
+​    </screenshot>
+​  </screenshots>
+​
+​  <url type="homepage">https://x3n0m0rph59.github.io/precached/</url>
+​  <project_group>precached</project_group>
+​
+​  <provides>
+​    <binary>precached-trigger</binary>
+​  </provides>
+​
+​  <releases>
+​    <release version="0.1.0" date="2018-05-10">
+​      <description>
+​        <p>Development release</p>
+​      </description>
+​    </release>
+​  </releases>
+
+	<developer_name>precached Team</developer_name>
+	<update_contact>x3n0m0rph59@gmail.com</update_contact>
+​</component>

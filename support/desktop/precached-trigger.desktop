@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=0.1.0
+Type=Application
+Name=precached-trigger
+Comment=Trigger offline-prefetch
+Categories=System;
+Terminal=true
+StartupNotify=false
+Exec=/usr/bin/precached-trigger offline-prefetch
+Icon=precached-trigger

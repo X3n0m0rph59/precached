@@ -50,6 +50,8 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{OrigName}/
+%{__mkdir_p} %{buildroot}%{_datarootdir}/applications/
+%{__mkdir_p} %{buildroot}%{_datarootdir}/icons/hicolor/scalable/apps/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/bash-completion/completions/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/zsh/site-functions/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{OrigName}/
@@ -86,6 +88,10 @@ cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precachedtop.zsh
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/rulesctl.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_rulesctl
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precached-trigger.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precached-trigger
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precached-debug.zsh-completion %{buildroot}/%{_datarootdir}/zsh/site-functions/_precached-debug
+cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached-trigger.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
+cp -a %{_builddir}/%{name}-%{version}/support/desktop/precached-trigger.desktop %{buildroot}/%{_datarootdir}/applications/precached-trigger.desktop
+cp -a %{_builddir}/%{name}-%{version}/support/desktop/precached-trigger.desktop %{buildroot}/%{_datarootdir}/gdm/autostart/precached-trigger.desktop
+cp -a %{_builddir}/%{name}-%{version}/support/assets/precached.svg %{buildroot}/%{_datarootdir}/icons/hicolor/scalable/apps/precached-trigger.svg
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
@@ -129,6 +135,8 @@ esac
 %doc %{_mandir}/man1/precachedtop.1.gz
 %doc %{_mandir}/man1/precached-trigger.1.gz
 %dir %{_docdir}/%{OrigName}/examples/
+%dir %{_datarootdir}/applications/
+%dir %{_datarootdir}/icons/hicolor/scalable/apps/
 %dir %{_datarootdir}/bash-completion/completions/
 %dir %{_datarootdir}/zsh/site-functions/
 %dir %{_sysconfdir}/%{OrigName}/rules.d/
@@ -148,8 +156,11 @@ esac
 %{_unitdir}/precached-prime-caches.timer
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/org.precached.precached1.conf
 %{_datarootdir}/metainfo/org.precache.precached.appdata.xml
+%{_datarootdir}/metainfo/org.precache.precached-trigger.appdata.xml
 %{_sharedstatedir}/%{OrigName}/
 %{_sharedstatedir}/%{OrigName}/iotrace/
+%{_datarootdir}/applications/precached-trigger.desktop
+%{_datarootdir}/icons/hicolor/scalable/apps/precached-trigger.svg
 %{_datarootdir}/bash-completion/completions/iotracectl
 %{_datarootdir}/bash-completion/completions/precachedctl
 %{_datarootdir}/bash-completion/completions/precachedtop
@@ -162,6 +173,8 @@ esac
 %{_datarootdir}/zsh/site-functions/_rulesctl
 %{_datarootdir}/zsh/site-functions/_precached-trigger
 %{_datarootdir}/zsh/site-functions/_precached-debug
+%{_datarootdir}/applications/precached-trigger.desktop
+%{_datarootdir}/gdm/autostart/precached-trigger.desktop
 %{_docdir}/%{OrigName}/examples/
 #%{_datadir}/%{OrigName}/
 
