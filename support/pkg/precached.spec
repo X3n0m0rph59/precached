@@ -137,11 +137,10 @@ esac
 %config(noreplace) %{_sysconfdir}/%{OrigName}/log4rs.yaml
 %config(noreplace) %{_sysconfdir}/%{OrigName}/rules.d/
 %{_sbindir}/precached
-%{_sbindir}/precached-debugtool
+%{_sbindir}/precached-debug
 %{_sbindir}/precachedctl
 %{_sbindir}/iotracectl
 %{_sbindir}/rulesctl
-%{_sbindir}/precached-debug
 %{_bindir}/precachedtop
 %attr(4755, root, root) %{_bindir}/precached-trigger
 %{_unitdir}/precached.service
