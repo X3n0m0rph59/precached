@@ -61,6 +61,9 @@ use std::thread;
 use std::time;
 use term::color::*;
 use term::Attr;
+use nix::libc::pid_t;
+use nix::sys::signal::*;
+use nix::unistd::*;
 
 mod clap_app;
 mod constants;
@@ -134,72 +137,33 @@ fn print_usage(config: &mut Config) {
 }
 
 /// Print a status summary of the system
-fn print_system_status(_config: &Config) {}
+fn print_system_status(_config: &Config) {
 
-/// Access file `p`
-fn touch_file(p: &Path) -> io::Result<()> {
-    trace!("Accessing file: {:?}", p);
-
-    let mut file = File::create(p)?;
-
-    let data: [u8; 8192] = [0xFF; 8192];
-    file.write(&data)?;
-
-    Ok(())
 }
 
-/// Test the creation of I/O trace logs
-fn perform_tracing_test(config: &Config) {
-    info!("Commencing file access...");
+/// Read the pid of the precached daemon from the file `/run/precached.pid`
+fn read_daemon_pid() -> io::Result<String> {
+    util::read_uncompressed_text_file(&Path::new(constants::DAEMON_PID_FILE))
+}
 
-    let matches = config.matches.subcommand_matches("test-tracing").unwrap();
-    let do_sleep = matches.is_present("sleep");
-
-    if do_sleep {
-        thread::sleep(time::Duration::from_millis(2000));
-    }
-
-    for f in 1..(*NUM_FILES) {
-        match touch_file(&PATH.join(Path::new(&format!("file{}.tmp", f)))) {
-            Ok(()) => {
-                if do_sleep {
-                    thread::sleep(time::Duration::from_millis(10));
+/// Instruct precached to commence housekeeping tasks
+fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
+    match read_daemon_pid() {
+        Err(_e) => {
+            println!("precached is NOT running, did not send signal");
+        }
+        Ok(pid_str) => {
+            let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
+            match kill(pid, SIGUSR2) {
+                Err(e) => {
+                    println!("Could not send signal! {}", e);
                 }
-            },
-
-            Err(e) => {
-                error!("Could not touch the file: {:?}", e);
+                Ok(()) => {
+                    println!("Success");
+                }
             }
         }
-    }
-
-    info!("Finished accessing files");
-
-    if do_sleep {
-        thread::sleep(time::Duration::from_millis(2000));
-    }
-}
-
-/// Cleanup our created files
-fn cleanup(_config: &Config) {
-    info!("Commencing cleanup...");
-
-    // let matches = config.matches.subcommand_matches("cleanup").unwrap();
-
-    for f in 1..(*NUM_FILES) {
-        let p = PATH.join(Path::new(&format!("file{}.tmp", f)));
-        trace!("Removing file: {:?}", p);
-
-        match fs::remove_file(&p) {
-            Ok(()) => { /* do nothing */ },
-
-            Err(e) => {
-                error!("Could not remove a file: {:?}", e);
-            }
-        }
-    }
-
-    info!("Finished cleanup");
+    };
 }
 
 /// Generate shell completions
@@ -217,7 +181,7 @@ fn generate_completions(config: &mut Config) {
 
     config
         .clap
-        .gen_completions_to("precached-debugtool", shell, &mut io::stdout());
+        .gen_completions_to("precached-trigger", shell, &mut io::stdout());
 }
 
 /// Program entrypoint
@@ -259,12 +223,8 @@ fn main() {
                 print_help(&mut config_c);
             }
 
-            "test-tracing" => {
-                perform_tracing_test(&config);
-            }
-
-            "cleanup" => {
-                cleanup(&config);
+            "offline-prefetch" => {
+                generate_completions(&mut config_c);
             }
 
             "completions" => {

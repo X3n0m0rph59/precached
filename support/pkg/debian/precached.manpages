@@ -3,6 +3,7 @@ support/man/precached.8
 support/man/precached.conf.5
 support/man/precached.rules.5
 support/man/precachedctl.8
-support/man/precachedtop.8
 support/man/rulesctl.8
-support/man/precached-debugtool.8
+support/man/precached-debug.8
+support/man/precachedtop.1
+support/man/precached-trigger.1

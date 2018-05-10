@@ -27,10 +27,10 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b>
 where
     'a: 'b,
 {
-    App::new("precached-debugtool")
+    App::new("precached-trigger")
         .version("1.2.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
-        .about("A debugging aide for precached")
+        .about("Trigger certain actions in precached")
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
         .arg(
@@ -78,22 +78,10 @@ where
                 .about("Display this short help text"),
         )
         .subcommand(
-            SubCommand::with_name("test-tracing")
+            SubCommand::with_name("offline-prefetch")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Test the I/O tracing subsystem of precached")
-                .arg(
-                    Arg::with_name("sleep")
-                            .long("sleep")
-                            .short("s")
-                            // .conflicts_with("...")
-                            .help("Sleep after touching each file"),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("cleanup")
-                .setting(AppSettings::DeriveDisplayOrder)
-                .about("Cleanup all files created during testing"),
-        )
+                .about("Tell precached to commence offline-prefetch"),
+        )                
         .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)

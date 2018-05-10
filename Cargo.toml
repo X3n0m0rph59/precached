@@ -114,6 +114,11 @@ path = "src/bin/rulesctl/src/main.rs"
 # build = "src/bin/rulesctl/build.rs"
 
 [[bin]]
-name = "precached-debugtool"
-path = "src/bin/debugtool/src/main.rs"
-# build = "src/bin/rulesctl/build.rs"
+name = "precached-trigger"
+path = "src/bin/precached-trigger/src/main.rs"
+# build = "src/bin/precached-trigger/build.rs"
+
+[[bin]]
+name = "precached-debug"
+path = "src/bin/precached-debug/src/main.rs"
+# build = "src/bin/precached-debug/build.rs"

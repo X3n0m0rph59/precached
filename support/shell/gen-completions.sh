@@ -22,10 +22,15 @@
 # ./target/debug/iotracectl completions fish > support/shell/completions/iotracectl.fish-completion
 # ./target/debug/iotracectl completions powershell > support/shell/completions/iotracectl.powershell-completion
 
-# ./target/debug/precached-debugtool completions bash > support/shell/completions/precached-debugtool.bash-completion
-# ./target/debug/precached-debugtool completions zsh > support/shell/completions/precached-debugtool.zsh-completion
-# ./target/debug/precached-debugtool completions fish > support/shell/completions/precached-debugtool.fish-completion
-# ./target/debug/precached-debugtool completions powershell > support/shell/completions/precached-debugtool.powershell-completion
+# ./target/debug/precached-trigger completions bash > support/shell/completions/precached-trigger.bash-completion
+# ./target/debug/precached-trigger completions zsh > support/shell/completions/precached-trigger.zsh-completion
+# ./target/debug/precached-trigger completions fish > support/shell/completions/precached-trigger.fish-completion
+# ./target/debug/precached-trigger completions powershell > support/shell/completions/precached-trigger.powershell-completion
+
+# ./target/debug/precached-debug completions bash > support/shell/completions/precached-debug.bash-completion
+# ./target/debug/precached-debug completions zsh > support/shell/completions/precached-debug.zsh-completion
+# ./target/debug/precached-debug completions fish > support/shell/completions/precached-debug.fish-completion
+# ./target/debug/precached-debug completions powershell > support/shell/completions/precached-debug.powershell-completion
 
 function gen_completions {
     ./target/debug/"$1" "completions" "bash" > "support/shell/completions/$1.bash-completion"
@@ -38,6 +43,7 @@ gen_completions "precachedctl"
 gen_completions "precachedtop"
 gen_completions "rulesctl"
 gen_completions "iotracectl"
-gen_completions "precached-debugtool"
+gen_completions "precached-trigger"
+gen_completions "precached-debug"
 
 exit 0

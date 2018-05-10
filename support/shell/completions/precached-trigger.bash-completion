@@ -1,4 +1,4 @@
-_precached-debugtool() {
+_precached-trigger() {
     local i cur prev opts cmds
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -9,24 +9,21 @@ _precached-debugtool() {
     for i in ${COMP_WORDS[@]}
     do
         case "${i}" in
-            precached-debugtool)
-                cmd="precached-debugtool"
+            precached-trigger)
+                cmd="precached-trigger"
                 ;;
             
-            cleanup)
-                cmd+="__cleanup"
-                ;;
             completions)
                 cmd+="__completions"
                 ;;
             help)
                 cmd+="__help"
                 ;;
+            offline-prefetch)
+                cmd+="__offline__prefetch"
+                ;;
             status)
                 cmd+="__status"
-                ;;
-            test-tracing)
-                cmd+="__test__tracing"
                 ;;
             *)
                 ;;
@@ -34,8 +31,8 @@ _precached-debugtool() {
     done
 
     case "${cmd}" in
-        precached-debugtool)
-            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status help test-tracing cleanup completions"
+        precached-trigger)
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status help offline-prefetch completions"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -58,22 +55,7 @@ _precached-debugtool() {
             return 0
             ;;
         
-        precached__debugtool__cleanup)
-            opts=" -h -V  --help --version  "
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-                return 0
-            fi
-            case "${prev}" in
-                
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-            return 0
-            ;;
-        precached__debugtool__completions)
+        precached__trigger__completions)
             opts=" -h -V  --help --version  <SHELL> "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -88,7 +70,7 @@ _precached-debugtool() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        precached__debugtool__help)
+        precached__trigger__help)
             opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -103,8 +85,8 @@ _precached-debugtool() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        precached__debugtool__status)
-            opts=" -h -V  --tabular --help --version  "
+        precached__trigger__offline__prefetch)
+            opts=" -h -V  --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -118,8 +100,8 @@ _precached-debugtool() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
-        precached__debugtool__test__tracing)
-            opts=" -s -h -V  --sleep --help --version  "
+        precached__trigger__status)
+            opts=" -h -V  --tabular --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -136,4 +118,4 @@ _precached-debugtool() {
     esac
 }
 
-complete -F _precached-debugtool -o bashdefault -o default precached-debugtool
+complete -F _precached-trigger -o bashdefault -o default precached-trigger

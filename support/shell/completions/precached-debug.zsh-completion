@@ -1,8 +1,8 @@
-#compdef precached-debugtool
+#compdef precached-debug
 
 autoload -U is-at-least
 
-_precached-debugtool() {
+_precached-debug() {
     typeset -A opt_args
     typeset -a _arguments_options
     local ret=1
@@ -26,14 +26,14 @@ _precached-debugtool() {
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-":: :_precached-debugtool_commands" \
-"*::: :->precached-debugtool" \
+":: :_precached-debug_commands" \
+"*::: :->precached-debug" \
 && ret=0
     case $state in
-    (precached-debugtool)
+    (precached-debug)
         words=($line[1] "${words[@]}")
         (( CURRENT += 1 ))
-        curcontext="${curcontext%:*:*}:precached-debugtool-command-$line[1]:"
+        curcontext="${curcontext%:*:*}:precached-debug-command-$line[1]:"
         case $line[1] in
             (status)
 _arguments "${_arguments_options[@]}" \
@@ -84,8 +84,8 @@ _arguments "${_arguments_options[@]}" \
 esac
 }
 
-(( $+functions[_precached-debugtool_commands] )) ||
-_precached-debugtool_commands() {
+(( $+functions[_precached-debug_commands] )) ||
+_precached-debug_commands() {
     local commands; commands=(
         "status:Show the current status of the precached daemon" \
 "help:Display this short help text" \
@@ -93,42 +93,42 @@ _precached-debugtool_commands() {
 "cleanup:Cleanup all files created during testing" \
 "completions:Generates completion scripts for your shell" \
     )
-    _describe -t commands 'precached-debugtool commands' commands "$@"
+    _describe -t commands 'precached-debug commands' commands "$@"
 }
-(( $+functions[_precached-debugtool__cleanup_commands] )) ||
-_precached-debugtool__cleanup_commands() {
+(( $+functions[_precached-debug__cleanup_commands] )) ||
+_precached-debug__cleanup_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'precached-debugtool cleanup commands' commands "$@"
+    _describe -t commands 'precached-debug cleanup commands' commands "$@"
 }
-(( $+functions[_precached-debugtool__completions_commands] )) ||
-_precached-debugtool__completions_commands() {
+(( $+functions[_precached-debug__completions_commands] )) ||
+_precached-debug__completions_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'precached-debugtool completions commands' commands "$@"
+    _describe -t commands 'precached-debug completions commands' commands "$@"
 }
-(( $+functions[_precached-debugtool__help_commands] )) ||
-_precached-debugtool__help_commands() {
+(( $+functions[_precached-debug__help_commands] )) ||
+_precached-debug__help_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'precached-debugtool help commands' commands "$@"
+    _describe -t commands 'precached-debug help commands' commands "$@"
 }
-(( $+functions[_precached-debugtool__status_commands] )) ||
-_precached-debugtool__status_commands() {
+(( $+functions[_precached-debug__status_commands] )) ||
+_precached-debug__status_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'precached-debugtool status commands' commands "$@"
+    _describe -t commands 'precached-debug status commands' commands "$@"
 }
-(( $+functions[_precached-debugtool__test-tracing_commands] )) ||
-_precached-debugtool__test-tracing_commands() {
+(( $+functions[_precached-debug__test-tracing_commands] )) ||
+_precached-debug__test-tracing_commands() {
     local commands; commands=(
         
     )
-    _describe -t commands 'precached-debugtool test-tracing commands' commands "$@"
+    _describe -t commands 'precached-debug test-tracing commands' commands "$@"
 }
 
-_precached-debugtool "$@"
+_precached-debug "$@"
