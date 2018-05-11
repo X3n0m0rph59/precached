@@ -46,7 +46,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{OrigName}/rules.d/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/system.d/
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/autostart/
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/xdg/autostart/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/iotrace/
