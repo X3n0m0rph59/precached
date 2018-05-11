@@ -8,6 +8,4 @@ Icon=precached-trigger
 Categories=System;
 Terminal=false
 StartupNotify=false
-NotShowIn=GNOME;
-NoDisplay=true
 X-GNOME-Autostart-Phase=Application
