@@ -2,7 +2,7 @@
 
 Name:    precached-git
 Version: 1.2.0
-Release: 37%{?dist}
+Release: 38%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.github.io/precached/
 License: GPLv3+
@@ -176,6 +176,9 @@ esac
 #%{_datadir}/%{OrigName}/
 
 %changelog
+* Fri May 11 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.2.0-38
+- rebuilt
+
 * Fri May 11 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.2.0-37
 - rebuilt
 
