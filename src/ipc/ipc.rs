@@ -279,7 +279,7 @@ impl IpcServer {
     }
 
     fn handle_request_tracked_processes(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
-        warn!("IPC client command: RequestTrackedProcesses");
+        trace!("IPC client command: RequestTrackedProcesses");
 
         let hm = manager.hook_manager.read().unwrap();
 

@@ -18,12 +18,12 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::env;
-use std::process::Command;
+// use std::env;
+// use std::process::Command;
 
 fn main() {
     // Create and package shell completions
-    let _out_dir = env::var("OUT_DIR").unwrap();
+    // let _out_dir = env::var("OUT_DIR").unwrap();
 
-    Command::new("support/shell/gen-completions.sh").status().unwrap();
+    // Command::new("support/shell/gen-completions.sh").status().unwrap();
 }
