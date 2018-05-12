@@ -116,8 +116,8 @@ pub enum Action {
     Log,
     /// Notify logged in user
     Notify,
-    /// Recursively cache the specified directory
-    CacheDirRecursive,
+    /// Recursively cache the metadata of all files in the specified directory
+    CacheMetadataRecursive,
 }
 
 /// An entry in a .rules file (a rule)
@@ -504,7 +504,7 @@ pub fn parse_action(action: &str) -> Result<Action, String> {
 
         "Notify" => Ok(Action::Notify),
 
-        "CacheDirRecursive" => Ok(Action::CacheDirRecursive),
+        "CacheMetadataRecursive" => Ok(Action::CacheMetadataRecursive),
 
         _ => Err(format!("Invalid Action: '{}'", action)),
     }

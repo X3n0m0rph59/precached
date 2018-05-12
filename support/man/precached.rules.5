@@ -35,7 +35,7 @@
    * Noop - No-operation, does nothing; just a placeholder
    * Log - Logs a message to syslog using specified severity
    * Notify - Sends a message to the logged in users desktop
-   * CacheDirRecursive - Cache directory specified in argument `Directory`
+   * CacheMetadataRecursive - Cache metadata of all files in the directory specified in argument `Directory`
 
  Example .rules file contents:
    # =============================================================================
@@ -47,8 +47,8 @@
    # =============================================================================
    # Event-Name              Filter            Action      	       Arguments
      UserLogin		         Noop              Log                 Severity:Warn,Message:"User $user logged in! ($home_dir)"
-     UserLogin               Noop              CacheDirRecursive   Directory:"$home_dir/.gnome"
-     UserLogin               Noop              CacheDirRecursive   Directory:"/home/$user/.gnome2"   
+     UserLogin               Noop              CacheMetadataRecursive   Directory:"$home_dir/.gnome"
+     UserLogin               Noop              CacheMetadataRecursive   Directory:"/home/$user/.gnome2"   
    # =============================================================================
 
 

@@ -203,15 +203,15 @@ impl RuleEngine {
         result
     }
 
-    /// Implements the `CacheDirRecursive` rule action
-    fn rule_action_cache_dir_recursive(
+    /// Implements the `CacheMetadataRecursive` rule action
+    fn rule_action_cache_metadata_recursive(
         &self,
         event: &rules::Event,
         rule: &rules::RuleEntry,
         globals: &mut Globals,
         manager: &Manager,
     ) {
-        trace!("Rule Action: CacheDirRecursive");
+        trace!("Rule Action: CacheMetadataRecursive");
 
         let pm = manager.plugin_manager.read().unwrap();
 
@@ -263,7 +263,7 @@ impl RuleEngine {
                         _ => {}
                     }
                 } else {
-                    warn!("Ignored 'CacheDirRecursive' rule action, current system profile does not allow prefetching");
+                    warn!("Ignored 'CacheMetadataRecursive' rule action, current system profile does not allow prefetching");
                 }
             }
         }
@@ -274,7 +274,7 @@ impl RuleEngine {
     ///     * Noop
     ///     * Log
     ///     * Notify
-    ///     * CacheDirRecursive
+    ///     * CacheMetadataRecursive
     fn process_timer_event(&self, event: &rules::Event, rule: &rules::RuleEntry, globals: &mut Globals, manager: &Manager) {
         match rule.action {
             rules::Action::Noop => { /* Do nothing */ }
@@ -287,8 +287,8 @@ impl RuleEngine {
                 self.rule_action_notify(event, rule, globals, manager);
             }
 
-            rules::Action::CacheDirRecursive => {
-                self.rule_action_cache_dir_recursive(event, rule, globals, manager);
+            rules::Action::CacheMetadataRecursive => {
+                self.rule_action_cache_metadata_recursive(event, rule, globals, manager);
             }
         }
     }
@@ -298,7 +298,7 @@ impl RuleEngine {
     ///     * Noop
     ///     * Log
     ///     * Notify
-    ///     * CacheDirRecursive
+    ///     * CacheMetadataRecursive
     fn process_ping_event(&self, event: &rules::Event, rule: &rules::RuleEntry, globals: &mut Globals, manager: &Manager) {
         match rule.action {
             rules::Action::Noop => { /* Do nothing */ }
@@ -311,8 +311,8 @@ impl RuleEngine {
                 self.rule_action_notify(event, rule, globals, manager);
             }
 
-            rules::Action::CacheDirRecursive => {
-                self.rule_action_cache_dir_recursive(event, rule, globals, manager);
+            rules::Action::CacheMetadataRecursive => {
+                self.rule_action_cache_metadata_recursive(event, rule, globals, manager);
             }
         }
     }
@@ -322,7 +322,7 @@ impl RuleEngine {
     ///     * Noop
     ///     * Log
     ///     * Notify
-    ///     * CacheDirRecursive(), Valid variables are: $user, $home_dir
+    ///     * CacheMetadataRecursive(), Valid variables are: $user, $home_dir
     fn process_user_login_event(&self, event: &rules::Event, rule: &rules::RuleEntry, globals: &mut Globals, manager: &Manager) {
         match rule.action {
             rules::Action::Noop => { /* Do nothing */ }
@@ -335,8 +335,8 @@ impl RuleEngine {
                 self.rule_action_notify(event, rule, globals, manager);
             }
 
-            rules::Action::CacheDirRecursive => {
-                self.rule_action_cache_dir_recursive(event, rule, globals, manager);
+            rules::Action::CacheMetadataRecursive => {
+                self.rule_action_cache_metadata_recursive(event, rule, globals, manager);
             }
         }
     }
