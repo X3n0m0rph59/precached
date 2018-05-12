@@ -13,6 +13,9 @@ _precachedctl() {
                 cmd="precachedctl"
                 ;;
             
+            analyze)
+                cmd+="__analyze"
+                ;;
             completions)
                 cmd+="__completions"
                 ;;
@@ -54,6 +57,9 @@ _precachedctl() {
                 ;;
             shutdown)
                 cmd+="__shutdown"
+                ;;
+            statistics)
+                cmd+="__statistics"
                 ;;
             status)
                 cmd+="__status"
@@ -155,8 +161,53 @@ _precachedctl() {
             return 0
             ;;
         precachedctl__plugins)
-            opts=" -h -V  --help --version   hot-applications help"
+            opts=" -h -V  --help --version   analyze hot-applications help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        precachedctl__plugins__analyze)
+            opts=" -h -V  --help --version   statistics help"
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        precachedctl__plugins__analyze__help)
+            opts=" -h -V  --help --version  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        precachedctl__plugins__analyze__statistics)
+            opts=" -h -V  --help --version  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
             fi

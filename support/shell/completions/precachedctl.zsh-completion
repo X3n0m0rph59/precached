@@ -123,7 +123,42 @@ case $state in
         (( CURRENT += 1 ))
         curcontext="${curcontext%:*:*}:precachedctl-plugins-command-$line[1]:"
         case $line[1] in
-            (hot-applications)
+            (analyze)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_precachedctl__plugins__analyze_commands" \
+"*::: :->analyze" \
+&& ret=0
+case $state in
+    (analyze)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:precachedctl-plugins-analyze-command-$line[1]:"
+        case $line[1] in
+            (statistics)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(hot-applications)
 _arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
@@ -230,6 +265,14 @@ _precachedctl_commands() {
     )
     _describe -t commands 'precachedctl commands' commands "$@"
 }
+(( $+functions[_precachedctl__plugins__analyze_commands] )) ||
+_precachedctl__plugins__analyze_commands() {
+    local commands; commands=(
+        "statistics:Show the global system statistics" \
+"help:Prints this message or the help of the given subcommand(s)" \
+    )
+    _describe -t commands 'precachedctl plugins analyze commands' commands "$@"
+}
 (( $+functions[_precachedctl__completions_commands] )) ||
 _precachedctl__completions_commands() {
     local commands; commands=(
@@ -257,6 +300,13 @@ _precachedctl__help_commands() {
         
     )
     _describe -t commands 'precachedctl help commands' commands "$@"
+}
+(( $+functions[_precachedctl__plugins__analyze__help_commands] )) ||
+_precachedctl__plugins__analyze__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'precachedctl plugins analyze help commands' commands "$@"
 }
 (( $+functions[_precachedctl__plugins__help_commands] )) ||
 _precachedctl__plugins__help_commands() {
@@ -306,7 +356,8 @@ _precachedctl__plugins__hot-applications__optimize_commands() {
 (( $+functions[_precachedctl__plugins_commands] )) ||
 _precachedctl__plugins_commands() {
     local commands; commands=(
-        "hot-applications:Manage plugin: Hot Applications" \
+        "analyze:Manage plugin: Global Statistics" \
+"hot-applications:Manage plugin: Hot Applications" \
 "help:Prints this message or the help of the given subcommand(s)" \
     )
     _describe -t commands 'precachedctl plugins commands' commands "$@"
@@ -380,6 +431,13 @@ _shutdown_commands() {
         
     )
     _describe -t commands 'shutdown commands' commands "$@"
+}
+(( $+functions[_precachedctl__plugins__analyze__statistics_commands] )) ||
+_precachedctl__plugins__analyze__statistics_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'precachedctl plugins analyze statistics commands' commands "$@"
 }
 (( $+functions[_precachedctl__status_commands] )) ||
 _precachedctl__status_commands() {
