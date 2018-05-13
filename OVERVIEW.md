@@ -94,6 +94,7 @@ The following plugins are available for precached (as of 2018-05-10)
 * System Profiles (experimental/in development) - Let precached transition between distinct profiles like e.g. BootUp, UpAndRunning
 * Rule Engine  (experimental/in development) - A rules based matching engine; executes actions when events are triggered
 * Rule Event Bridge (stable) - Convert daemon internal events to events used inside the rule matching engine
+* Introspection (experimental) - Support introspection of precached internal global state
 * System Agent (not implemented/in development)
 * Triggers (not implemented/in development) - Trigger certain actions in precached by an unprivileged user
 * User Session (stable) - Cache metadata of files in logged user's home directories

@@ -18,4 +18,5 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+pub mod analyze;
 pub mod hot_applications;

@@ -35,9 +35,11 @@ extern crate pretty_env_logger;
 extern crate prettytable;
 #[macro_use]
 extern crate serde_derive;
+extern crate serde;
 extern crate serde_json;
 extern crate term;
 extern crate toml;
+extern crate zmq;
 extern crate zstd;
 
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
@@ -61,6 +63,7 @@ use term::Attr;
 mod clap_app;
 mod constants;
 mod iotrace;
+mod ipc;
 mod plugins;
 mod process;
 mod util;
@@ -331,6 +334,35 @@ fn main() {
 
             "plugins" => if let Some(plugin) = config.matches.subcommand_matches("plugins").unwrap().subcommand_name() {
                 match plugin {
+                    "analyze" => if let Some(subcommand) = config
+                        .matches
+                        .subcommand_matches("plugins")
+                        .unwrap()
+                        .subcommand_matches("analyze")
+                        .unwrap()
+                        .subcommand_name()
+                    {
+                        match subcommand {
+                            "internal-state" => {
+                                plugins::analyze::display_internal_state(&config, daemon_config);
+                            }
+
+                            "statistics" => {
+                                plugins::analyze::display_global_stats(&config, daemon_config);
+                            }
+
+                            "help" => {
+                                plugins::analyze::print_help(&mut config_c);
+                            }
+
+                            &_ => {
+                                plugins::analyze::print_usage(&mut config_c);
+                            }
+                        };
+                    } else {
+                        plugins::analyze::print_usage(&mut config_c);
+                    },
+
                     "hot-applications" => if let Some(subcommand) = config
                         .matches
                         .subcommand_matches("plugins")
@@ -355,6 +387,7 @@ fn main() {
                             "help" => {
                                 plugins::hot_applications::print_help(&mut config_c);
                             }
+
                             &_ => {
                                 plugins::hot_applications::print_usage(&mut config_c);
                             }
@@ -366,6 +399,7 @@ fn main() {
                     "help" => {
                         print_help_plugins(&mut config_c);
                     }
+
                     &_ => {
                         print_usage_plugins(&mut config_c);
                     }

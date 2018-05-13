@@ -24,12 +24,13 @@ use events::EventType;
 use globals::*;
 use manager::*;
 // use hooks::process_tracker::ProcessTracker;
+use chrono::prelude::*;
+use chrono::Duration;
 use plugins::hot_applications::HotApplications;
 use plugins::iotrace_log_manager::IOtraceLogManager;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
 use std::any::Any;
-use std::time::{Duration, Instant};
 use storage;
 use util;
 
@@ -50,14 +51,14 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug, Clone)]
 pub struct Janitor {
     /// The janitor actually only runs if this is set to true
-    janitor_needs_to_run: bool,
+    pub janitor_needs_to_run: bool,
     /// Specifies whether the janitor was executed
     /// at least once in the daemon process' lifetime
-    janitor_ran_once: bool,
+    pub janitor_ran_once: bool,
     /// Holds the time the precached daemon process was started
-    daemon_startup_time: Instant,
+    pub daemon_startup_time: DateTime<Utc>,
     /// The instant when we last performed janitorial tasks
-    last_housekeeping_performed: Instant,
+    pub last_housekeeping_performed: DateTime<Utc>,
 }
 
 impl Janitor {
@@ -65,8 +66,8 @@ impl Janitor {
         Janitor {
             janitor_needs_to_run: true, // true, so we run after startup
             janitor_ran_once: false,
-            daemon_startup_time: Instant::now(),
-            last_housekeeping_performed: Instant::now(),
+            daemon_startup_time: Utc::now(),
+            last_housekeeping_performed: Utc::now(),
         }
     }
 
@@ -168,9 +169,10 @@ impl Plugin for Janitor {
                 // * The time MIN_HOUSEKEEPING_INTERVAL_SECS passed
                 if self.janitor_needs_to_run
                     && (!self.janitor_ran_once
-                        && self.daemon_startup_time.elapsed()
-                            > Duration::from_secs(constants::HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS))
-                    || self.last_housekeeping_performed.elapsed() > Duration::from_secs(constants::MIN_HOUSEKEEPING_INTERVAL_SECS)
+                        && Utc::now().signed_duration_since(self.daemon_startup_time)
+                            >= Duration::seconds(constants::HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS))
+                    ||  Utc::now().signed_duration_since(self.last_housekeeping_performed)
+                            >= Duration::seconds(constants::MIN_HOUSEKEEPING_INTERVAL_SECS)
                 {
                     match util::SCHEDULER.lock() {
                         Err(e) => {
@@ -185,7 +187,7 @@ impl Plugin for Janitor {
                                 Self::perform_housekeeping(&globals_c, &manager_c);
                             });
 
-                            self.last_housekeeping_performed = Instant::now();
+                            self.last_housekeeping_performed = Utc::now();
                             self.janitor_ran_once = true;
 
                             self.janitor_needs_to_run = false;
@@ -208,7 +210,7 @@ impl Plugin for Janitor {
                         Self::perform_housekeeping(&globals_c, &manager_c);
                     });
 
-                    self.last_housekeeping_performed = Instant::now();
+                    self.last_housekeeping_performed = Utc::now();
                     self.janitor_ran_once = true;
                 }
             },

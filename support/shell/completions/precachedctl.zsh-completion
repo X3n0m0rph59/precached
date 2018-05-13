@@ -138,7 +138,15 @@ case $state in
         (( CURRENT += 1 ))
         curcontext="${curcontext%:*:*}:precachedctl-plugins-analyze-command-$line[1]:"
         case $line[1] in
-            (statistics)
+            (internal-state)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(statistics)
 _arguments "${_arguments_options[@]}" \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
@@ -268,7 +276,8 @@ _precachedctl_commands() {
 (( $+functions[_precachedctl__plugins__analyze_commands] )) ||
 _precachedctl__plugins__analyze_commands() {
     local commands; commands=(
-        "statistics:Show the global system statistics" \
+        "internal-state:Inspect daemon internal state" \
+"statistics:Show global system statistics" \
 "help:Prints this message or the help of the given subcommand(s)" \
     )
     _describe -t commands 'precachedctl plugins analyze commands' commands "$@"
@@ -339,6 +348,13 @@ _precachedctl__housekeeping_commands() {
     )
     _describe -t commands 'precachedctl housekeeping commands' commands "$@"
 }
+(( $+functions[_precachedctl__plugins__analyze__internal-state_commands] )) ||
+_precachedctl__plugins__analyze__internal-state_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'precachedctl plugins analyze internal-state commands' commands "$@"
+}
 (( $+functions[_precachedctl__plugins__hot-applications__list_commands] )) ||
 _precachedctl__plugins__hot-applications__list_commands() {
     local commands; commands=(
@@ -356,7 +372,7 @@ _precachedctl__plugins__hot-applications__optimize_commands() {
 (( $+functions[_precachedctl__plugins_commands] )) ||
 _precachedctl__plugins_commands() {
     local commands; commands=(
-        "analyze:Manage plugin: Global Statistics" \
+        "analyze:Analyze state and statistics" \
 "hot-applications:Manage plugin: Hot Applications" \
 "help:Prints this message or the help of the given subcommand(s)" \
     )

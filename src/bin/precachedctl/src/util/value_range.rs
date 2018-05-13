@@ -18,10 +18,39 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod config_file;
-pub mod files;
-pub mod value_range;
+use std::fmt::Display;
+use std::ops::Range;
 
-pub use self::config_file::*;
-pub use self::files::*;
-pub use self::value_range::*;
+#[derive(Debug)]
+pub struct ValueRange<T: PartialOrd> {
+    pub valid_range: Range<T>,
+    pub warn_range: Range<T>,
+    pub err_range: Range<T>,
+}
+
+impl<T: PartialOrd> ValueRange<T> {
+    pub fn new(valid: Range<T>, warn: Range<T>, err: Range<T>) -> ValueRange<T> {
+        ValueRange {
+            valid_range: valid,
+            warn_range: warn,
+            err_range: err,
+        }
+    }
+}
+
+pub trait Contains<T>
+where
+    T: PartialOrd,
+{
+    fn contains_val(&self, v: &T) -> bool;
+}
+
+impl<T: PartialOrd> Contains<T> for Range<T> {
+    fn contains_val(&self, v: &T) -> bool {
+        if self.start <= *v && self.end > *v {
+            true
+        } else {
+            false
+        }
+    }
+}

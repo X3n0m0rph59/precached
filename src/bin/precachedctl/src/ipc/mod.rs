@@ -18,10 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod config_file;
-pub mod files;
-pub mod value_range;
+pub mod ipc;
 
-pub use self::config_file::*;
-pub use self::files::*;
-pub use self::value_range::*;
+pub use self::ipc::*;

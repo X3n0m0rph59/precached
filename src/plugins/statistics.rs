@@ -25,6 +25,7 @@ use manager::*;
 // use hooks::process_tracker::ProcessTracker;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use plugins::static_whitelist::StaticWhitelist;
 use std::any::Any;
 use std::time::{Duration, Instant};
 use storage;
@@ -50,6 +51,13 @@ pub struct Statistics {
     sys_left_idle_period: bool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GlobalStatistics {
+    pub static_whitelist_mapped_files_count: Option<usize>,
+    pub static_whitelist_whitelist_entries_count: Option<usize>,
+    pub static_whitelist_program_whitelist_entries_count: Option<usize>,
+}
+
 impl Statistics {
     pub fn new() -> Statistics {
         Statistics {
@@ -62,6 +70,37 @@ impl Statistics {
         trace!("Updating global statistics...");
 
         // TODO: Implement this!
+    }
+
+    pub fn get_global_statistics(&self, manager: &Manager) -> GlobalStatistics {
+        let pm = manager.plugin_manager.read().unwrap();
+
+        let mut static_whitelist_mapped_files_count = None;
+        let mut static_whitelist_whitelist_entries_count = None;
+        let mut static_whitelist_program_whitelist_entries_count = None;
+
+        match pm.get_plugin_by_name(&String::from("static_whitelist")) {
+            None => {
+                trace!("Plugin not loaded: 'static_whitelist', skipped");
+            }
+
+            Some(p) => {
+                let p = p.read().unwrap();
+                let static_whitelist_plugin = p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
+
+                static_whitelist_mapped_files_count = Some(static_whitelist_plugin.get_mapped_files_count());
+                static_whitelist_whitelist_entries_count = Some(static_whitelist_plugin.get_whitelist_entries_count());
+                static_whitelist_program_whitelist_entries_count =
+                    Some(static_whitelist_plugin.get_program_whitelist_entries_count());
+            }
+        };
+
+        // produce final report
+        GlobalStatistics {
+            static_whitelist_mapped_files_count: static_whitelist_mapped_files_count,
+            static_whitelist_whitelist_entries_count: static_whitelist_whitelist_entries_count,
+            static_whitelist_program_whitelist_entries_count: static_whitelist_program_whitelist_entries_count,
+        }
     }
 }
 

@@ -55,8 +55,8 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct StaticBlacklist {
-    blacklist: Vec<PathBuf>,
-    program_blacklist: Vec<PathBuf>,
+    pub blacklist: Vec<PathBuf>,
+    pub program_blacklist: Vec<PathBuf>,
 }
 
 impl StaticBlacklist {

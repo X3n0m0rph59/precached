@@ -25,12 +25,13 @@ pub use self::plugin_manager::*;
 use globals::*;
 use manager::*;
 
-// pub mod system_agent;
+pub mod introspection;
 pub mod iotrace_log_cache;
 pub mod iotrace_log_manager;
 pub mod profiles;
 pub mod static_blacklist;
 pub mod static_whitelist;
+pub mod system_agent;
 pub mod vfs_stat_cache;
 // pub mod markov_log_manager;
 pub mod hot_applications;
@@ -48,12 +49,13 @@ pub mod rule_event_bridge;
 pub mod triggers;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
+    introspection::register_plugin(globals, manager);
     profiles::register_plugin(globals, manager);
     inotify_multiplexer::register_plugin(globals, manager);
     triggers::register_plugin(globals, manager);
     statistics::register_plugin(globals, manager);
     metrics::register_plugin(globals, manager);
-    // system_agent::register_plugin(globals, manager);
+    system_agent::register_plugin(globals, manager);
     iotrace_log_cache::register_plugin(globals, manager);
     static_blacklist::register_plugin(globals, manager);
     static_whitelist::register_plugin(globals, manager);

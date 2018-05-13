@@ -95,6 +95,21 @@ where
                 .setting(AppSettings::NeedsSubcommandHelp)
                 .about("Manage precached daemon plugins")
                 .subcommand(
+                    SubCommand::with_name("analyze")
+                        .setting(AppSettings::DeriveDisplayOrder)
+                        .about("Analyze state and statistics")
+                        .subcommand(
+                            SubCommand::with_name("internal-state")
+                                .setting(AppSettings::DeriveDisplayOrder)
+                                .about("Inspect daemon internal state"),
+                        )
+                        .subcommand(
+                            SubCommand::with_name("statistics")
+                                .setting(AppSettings::DeriveDisplayOrder)
+                                .about("Show global system statistics"),
+                        ),
+                )
+                .subcommand(
                     SubCommand::with_name("hot-applications")
                         .setting(AppSettings::DeriveDisplayOrder)
                         .about("Manage plugin: Hot Applications")

@@ -241,6 +241,7 @@ impl StaticWhitelist {
             None => {
                 warn!("Plugin not loaded: 'metrics', skipped");
             }
+
             Some(p) => {
                 let p = p.read().unwrap();
                 let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
@@ -262,12 +263,24 @@ impl StaticWhitelist {
         &mut self.mapped_files
     }
 
+    pub fn get_mapped_files_count(&self) -> usize {
+        self.mapped_files.len()
+    }
+
     pub fn get_whitelist(&self) -> &Vec<PathBuf> {
         &self.whitelist
     }
 
     pub fn get_whitelist_mut(&mut self) -> &mut Vec<PathBuf> {
         &mut self.whitelist
+    }
+
+    pub fn get_whitelist_entries_count(&self) -> usize {
+        self.whitelist.len()
+    }
+
+    pub fn get_program_whitelist_entries_count(&self) -> usize {
+        self.program_whitelist.len()
     }
 }
 
@@ -301,6 +314,7 @@ impl Plugin for StaticWhitelist {
                 self.cache_whitelisted_files(globals, manager);
                 self.prefetch_whitelisted_programs(globals, manager);
             }
+
             events::EventType::ConfigurationReloaded => {
                 let whitelist = match globals.config.config_file.clone() {
                     Some(config_file) => config_file.whitelist.unwrap_or_else(|| vec![]),
@@ -319,10 +333,12 @@ impl Plugin for StaticWhitelist {
                 self.cache_whitelisted_files(globals, manager);
                 self.prefetch_whitelisted_programs(globals, manager);
             }
+
             events::EventType::PrimeCaches => {
                 // self.cache_whitelisted_files(globals, manager);
                 // self.prefetch_whitelisted_programs(globals, manager);
             }
+
             _ => {
                 // Ignore all other events
             }

@@ -71,11 +71,9 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 #[derive(Debug, Clone)]
 pub struct HotApplications {
     /// Histogram of a hash of the corresponding I/O trace and a counter value
-    app_histogram: HashMap<String, usize>,
+    pub app_histogram: HashMap<String, usize>,
     /// Vector of currently cached apps
-    cached_apps: Vec<String>,
-    /// Ignore the first low watermark events until we have primed our caches
-    caches_already_primed: bool,
+    pub cached_apps: Vec<String>,
 }
 
 impl HotApplications {
@@ -83,8 +81,6 @@ impl HotApplications {
         HotApplications {
             app_histogram: HashMap::new(),
             cached_apps: vec![],
-
-            caches_already_primed: false,
         }
     }
 
@@ -452,7 +448,6 @@ impl Plugin for HotApplications {
 
             events::EventType::PrimeCaches => {
                 self.prefetch_data(globals, manager);
-                self.caches_already_primed = true;
             }
 
             events::EventType::AvailableMemoryLowWatermark => {

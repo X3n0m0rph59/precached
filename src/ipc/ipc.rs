@@ -33,6 +33,11 @@ use hooks::ftrace_logger::ACTIVE_TRACERS;
 use hooks::iotrace_prefetcher::{IOtracePrefetcher, ThreadState};
 use hooks::process_tracker::ProcessTracker;
 use manager::*;
+use plugins;
+use plugins::introspection;
+use plugins::introspection::InternalState;
+use plugins::statistics;
+use plugins::statistics::GlobalStatistics;
 use process;
 use std::collections::VecDeque;
 use std::fs::OpenOptions;
@@ -105,6 +110,12 @@ pub enum IpcCommand {
 
     RequestStatistics,
     SendStatistics(Vec<Statistics>),
+
+    RequestInternalState,
+    SendInternalState(InternalState),
+
+    RequestGlobalStatistics,
+    SendGlobalStatistics(GlobalStatistics),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -261,6 +272,26 @@ impl IpcServer {
                     },
 
                     IpcCommand::RequestStatistics => match Self::handle_request_statistics(socket, queue, &manager) {
+                        Err(e) => {
+                            error!("Error sending response: {}", e);
+                        }
+
+                        Ok(()) => {
+                            trace!("Successfully sent reply");
+                        }
+                    },
+
+                    IpcCommand::RequestInternalState => match Self::handle_request_internal_state(socket, &manager) {
+                        Err(e) => {
+                            error!("Error sending response: {}", e);
+                        }
+
+                        Ok(()) => {
+                            trace!("Successfully sent reply");
+                        }
+                    },
+
+                    IpcCommand::RequestGlobalStatistics => match Self::handle_request_global_statistics(socket, &manager) {
                         Err(e) => {
                             error!("Error sending response: {}", e);
                         }
@@ -447,5 +478,57 @@ impl IpcServer {
         socket.send(&buf, 0)?;
 
         Ok(())
+    }
+
+    fn handle_request_internal_state(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("introspection")) {
+            None => {
+                warn!("Plugin not loaded: 'introspection', skipped");
+
+                Ok(())
+            }
+
+            Some(p) => {
+                let p = p.read().unwrap();
+                let mut introspection = p.as_any().downcast_ref::<plugins::introspection::Introspection>().unwrap();
+
+                let data = introspection.get_internal_state(manager);
+
+                let cmd = IpcMessage::new(IpcCommand::SendInternalState(data));
+                let buf = serde_json::to_string(&cmd).unwrap();
+
+                socket.send(&buf, 0)?;
+
+                Ok(())
+            }
+        }
+    }
+
+    fn handle_request_global_statistics(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("statistics")) {
+            None => {
+                warn!("Plugin not loaded: 'statistics', skipped");
+
+                Ok(())
+            }
+
+            Some(p) => {
+                let p = p.read().unwrap();
+                let mut statistics = p.as_any().downcast_ref::<plugins::statistics::Statistics>().unwrap();
+
+                let data = statistics.get_global_statistics(manager);
+
+                let cmd = IpcMessage::new(IpcCommand::SendGlobalStatistics(data));
+                let buf = serde_json::to_string(&cmd).unwrap();
+
+                socket.send(&buf, 0)?;
+
+                Ok(())
+            }
+        }
     }
 }
