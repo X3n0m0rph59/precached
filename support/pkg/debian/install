@@ -7,6 +7,7 @@ support/systemd/precached.service lib/systemd/system
 support/systemd/precached-prime-caches.service lib/systemd/system
 support/systemd/precached-prime-caches.timer lib/systemd/system
 support/dbus/org.precached.precached1.conf etc/dbus-1/system.d
+support/desktop/precached-trigger.desktop etc/xdg/autostart
 support/shell/completions/iotracectl.bash-completion usr/share/bash-completion/completions/iotracectl
 support/shell/completions/rulesctl.bash-completion usr/share/bash-completion/completions/rulesctl
 support/shell/completions/precachedctl.bash-completion usr/share/bash-completion/completions/precachedctl
