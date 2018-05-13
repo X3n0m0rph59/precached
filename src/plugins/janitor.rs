@@ -171,8 +171,8 @@ impl Plugin for Janitor {
                     && (!self.janitor_ran_once
                         && Utc::now().signed_duration_since(self.daemon_startup_time)
                             >= Duration::seconds(constants::HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS))
-                    ||  Utc::now().signed_duration_since(self.last_housekeeping_performed)
-                            >= Duration::seconds(constants::MIN_HOUSEKEEPING_INTERVAL_SECS)
+                    || Utc::now().signed_duration_since(self.last_housekeeping_performed)
+                        >= Duration::seconds(constants::MIN_HOUSEKEEPING_INTERVAL_SECS)
                 {
                     match util::SCHEDULER.lock() {
                         Err(e) => {

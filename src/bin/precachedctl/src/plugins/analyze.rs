@@ -171,7 +171,7 @@ fn fmt_cell_bool(o: Option<bool>, r: Option<bool>) -> Cell {
     }
 }
 
-fn fmt_cell_datetime(_o: Option<DateTime<Utc>>) -> Cell {    
+fn fmt_cell_datetime(_o: Option<DateTime<Utc>>) -> Cell {
     Cell::new(&String::from("Valid"))
         .with_style(Attr::Bold)
         .with_style(Attr::ForegroundColor(GREEN))
