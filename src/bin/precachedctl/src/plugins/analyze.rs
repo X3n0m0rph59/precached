@@ -288,7 +288,7 @@ pub fn display_internal_state(config: &Config, _daemon_config: util::ConfigFile)
                                         ),
                                     ];
 
-                                    for (index, (f, v, cell)) in field_defs.iter().enumerate() {
+                                    for (index, &(ref f, ref v, ref cell)) in field_defs.iter().enumerate() {
                                         table.add_row(Row::new(vec![
                                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                                             Cell::new(&f).with_style(Attr::Bold),
