@@ -358,7 +358,7 @@ pub fn display_global_stats(config: &Config, _daemon_config: util::ConfigFile) {
                                         fmt_cell(Some(123), Some(ValueRange::new(0..usize::max_value(), 0..0, 0..0))),
                                     )];
 
-                                    for (index, (f, v, cell)) in field_defs.iter().enumerate() {
+                                    for (index, &(ref f, ref v, ref cell)) in field_defs.iter().enumerate() {
                                         table.add_row(Row::new(vec![
                                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                                             Cell::new(&f).with_style(Attr::Bold),
