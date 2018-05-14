@@ -62,7 +62,7 @@ pbr = "1.0.0"
 # prettytable-rs = "0.7"
 prettytable-rs = { version = "*", git = "https://github.com/Eijebong/prettytable-rs.git", branch = "term"}
 daemonize = "0.3.0"
-inotify = "0.5.0"
+inotify = "0.5"
 clippy = { version = "*", optional = true }
 
 # [replace]
