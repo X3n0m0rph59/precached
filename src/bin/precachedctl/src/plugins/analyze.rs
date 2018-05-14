@@ -30,7 +30,6 @@ use clap::{App, AppSettings, Arg, SubCommand};
 use constants;
 use iotrace;
 use ipc;
-use profiles::SystemProfile;
 use pbr::ProgressBar;
 use prettytable::cell::Cell;
 use prettytable::format::Alignment;
@@ -38,6 +37,7 @@ use prettytable::format::*;
 use prettytable::row::Row;
 use prettytable::Table;
 use process;
+use profiles::SystemProfile;
 use rayon::prelude::*;
 use serde;
 use serde_json;
@@ -188,8 +188,9 @@ fn fmt_cell_datetime(_o: Option<DateTime<Utc>>) -> Cell {
         .with_style(Attr::ForegroundColor(GREEN))
 }
 
-fn fmt_cell_enum<T>(o: Option<T>, r: Option<T>) -> Cell 
-    where T: PartialOrd + PartialEq
+fn fmt_cell_enum<T>(o: Option<T>, r: Option<T>) -> Cell
+where
+    T: PartialOrd + PartialEq,
 {
     if r.is_none() {
         Cell::new(&String::from("Out of Range"))
@@ -243,8 +244,7 @@ pub fn display_internal_state(config: &Config, _daemon_config: util::ConfigFile)
                                         (
                                             String::from("profiles.current_profile"),
                                             fmt_option_enum(state.profiles_current_profile),
-                                            fmt_cell_enum(state.profiles_current_profile, 
-                                                Some(SystemProfile::UpAndRunning)),
+                                            fmt_cell_enum(state.profiles_current_profile, Some(SystemProfile::UpAndRunning)),
                                         ),
                                         // Plugin: Janitor
                                         (
