@@ -571,7 +571,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         // short read, maybe EOF?
         // wait for new data to arrive
         if len < 1 {
-            thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+            // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
             continue;
         }
 
@@ -596,21 +596,21 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // ignore the headers starting with a comment sign
             if l.starts_with('#') {
                 warn!("Not processing data in current line: '{}'", l);
-                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
             // ignore "lost events" events
             if REGEX_FILTER.is_match(l) {
                 warn!("Not processing data in current line: '{}'", l);
-                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
             // bail out if the event is caused by a blacklisted process
             if trace_is_from_blacklisted_process(l) {
                 // warn!("Not processing data in current line: '{}'", l);
-                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
@@ -620,7 +620,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
             if fields.len() <= 1 {
                 // warn!("Not processing data in current line: '{}'", l);
-                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
@@ -886,7 +886,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         } else {
             // No data received in this iteration of the loop,
             // wait a bit for new data to trickle in...
-            thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+            // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
         }
     }
 
