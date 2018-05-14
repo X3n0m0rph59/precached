@@ -30,6 +30,7 @@ use clap::{App, AppSettings, Arg, SubCommand};
 use constants;
 use iotrace;
 use ipc;
+use profiles::SystemProfile;
 use pbr::ProgressBar;
 use prettytable::cell::Cell;
 use prettytable::format::Alignment;
@@ -41,7 +42,7 @@ use rayon::prelude::*;
 use serde;
 use serde_json;
 use std::collections::{HashMap, HashSet};
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::io;
 use std::io::prelude;
 use std::io::BufReader;
@@ -91,6 +92,16 @@ where
 {
     match o {
         Some(data) => format!("{}", data),
+        None => "Not available".to_string(),
+    }
+}
+
+fn fmt_option_enum<T>(o: Option<T>) -> String
+where
+    T: Debug,
+{
+    match o {
+        Some(data) => format!("{:#?}", data),
         None => "Not available".to_string(),
     }
 }
@@ -177,6 +188,28 @@ fn fmt_cell_datetime(_o: Option<DateTime<Utc>>) -> Cell {
         .with_style(Attr::ForegroundColor(GREEN))
 }
 
+fn fmt_cell_enum<T>(o: Option<T>, r: Option<T>) -> Cell 
+    where T: PartialOrd + PartialEq
+{
+    if r.is_none() {
+        Cell::new(&String::from("Out of Range"))
+            .with_style(Attr::Bold)
+            .with_style(Attr::ForegroundColor(YELLOW))
+    } else if o.is_none() {
+        Cell::new(&String::from("Missing"))
+            .with_style(Attr::Bold)
+            .with_style(Attr::ForegroundColor(YELLOW))
+    } else if o.unwrap() >= r.unwrap() {
+        Cell::new(&String::from("Valid"))
+            .with_style(Attr::Bold)
+            .with_style(Attr::ForegroundColor(GREEN))
+    } else {
+        Cell::new(&String::from("Warn"))
+            .with_style(Attr::Bold)
+            .with_style(Attr::ForegroundColor(YELLOW))
+    }
+}
+
 pub fn display_internal_state(config: &Config, _daemon_config: util::ConfigFile) {
     let ctx = zmq::Context::new();
     let socket = ctx.socket(zmq::REQ).unwrap();
@@ -200,28 +233,18 @@ pub fn display_internal_state(config: &Config, _daemon_config: util::ConfigFile)
 
                                     table.add_row(Row::new(vec![
                                         Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                                        Cell::new(&String::from("Field")),
+                                        Cell::new(&String::from("Key")),
                                         Cell::new(&String::from("Value")),
                                         Cell::new(&String::from("Status")),
                                     ]));
 
                                     let field_defs = vec![
-                                        // Plugin: Hot Applications
+                                        // Plugin: Profiles
                                         (
-                                            String::from("hot_applications.app_histogram_entries_count"),
-                                            fmt_option(state.hot_applications_app_histogram_entries_count),
-                                            fmt_cell(
-                                                state.hot_applications_app_histogram_entries_count,
-                                                Some(ValueRange::new(0..usize::max_value(), 0..0, 0..0)),
-                                            ),
-                                        ),
-                                        (
-                                            String::from("hot_applications.cached_apps_count"),
-                                            fmt_option(state.hot_applications_cached_apps_count),
-                                            fmt_cell(
-                                                state.hot_applications_cached_apps_count,
-                                                Some(ValueRange::new(0..usize::max_value(), 0..0, 0..0)),
-                                            ),
+                                            String::from("profiles.current_profile"),
+                                            fmt_option_enum(state.profiles_current_profile),
+                                            fmt_cell_enum(state.profiles_current_profile, 
+                                                Some(SystemProfile::UpAndRunning)),
                                         ),
                                         // Plugin: Janitor
                                         (
@@ -243,6 +266,23 @@ pub fn display_internal_state(config: &Config, _daemon_config: util::ConfigFile)
                                             String::from("janitor.last_housekeeping_performed"),
                                             fmt_option_datetime(state.janitor_last_housekeeping_performed),
                                             fmt_cell_datetime(state.janitor_last_housekeeping_performed),
+                                        ),
+                                        // Plugin: Hot Applications
+                                        (
+                                            String::from("hot_applications.app_histogram_entries_count"),
+                                            fmt_option(state.hot_applications_app_histogram_entries_count),
+                                            fmt_cell(
+                                                state.hot_applications_app_histogram_entries_count,
+                                                Some(ValueRange::new(0..usize::max_value(), 0..0, 0..0)),
+                                            ),
+                                        ),
+                                        (
+                                            String::from("hot_applications.cached_apps_count"),
+                                            fmt_option(state.hot_applications_cached_apps_count),
+                                            fmt_cell(
+                                                state.hot_applications_cached_apps_count,
+                                                Some(ValueRange::new(0..usize::max_value(), 0..0, 0..0)),
+                                            ),
                                         ),
                                         // Plugin: Static Blacklist
                                         (
@@ -347,7 +387,7 @@ pub fn display_global_stats(config: &Config, _daemon_config: util::ConfigFile) {
 
                                     table.add_row(Row::new(vec![
                                         Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                                        Cell::new(&String::from("Field")),
+                                        Cell::new(&String::from("Key")),
                                         Cell::new(&String::from("Value")),
                                         Cell::new(&String::from("Status")),
                                     ]));

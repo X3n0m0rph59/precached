@@ -20,7 +20,7 @@
 
 /// The 'profile' that is currently active
 /// Represents the global operational state of the host system
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum SystemProfile {
     /// The system, is currently booting up
     BootUp,

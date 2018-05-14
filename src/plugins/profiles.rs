@@ -45,7 +45,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Profiles {
     current_profile: SystemProfile,
 }

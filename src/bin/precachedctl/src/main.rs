@@ -66,6 +66,7 @@ mod iotrace;
 mod ipc;
 mod plugins;
 mod process;
+mod profiles;
 mod util;
 
 /// Unicode characters used for drawing the progress bar

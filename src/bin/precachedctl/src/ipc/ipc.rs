@@ -23,19 +23,23 @@ extern crate serde;
 extern crate serde_json;
 
 use chrono::{DateTime, Local, TimeZone, Utc};
+use profiles::SystemProfile;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InternalState {
-    // Plugin: Hot Applications
-    pub hot_applications_app_histogram_entries_count: Option<usize>,
-    pub hot_applications_cached_apps_count: Option<usize>,
+    // Plugin: Profiles
+    pub profiles_current_profile: Option<SystemProfile>,
 
     // Plugin: Janitor
     pub janitor_janitor_needs_to_run: Option<bool>,
     pub janitor_janitor_ran_once: Option<bool>,
     pub janitor_daemon_startup_time: Option<DateTime<Utc>>,
     pub janitor_last_housekeeping_performed: Option<DateTime<Utc>>,
+
+    // Plugin: Hot Applications
+    pub hot_applications_app_histogram_entries_count: Option<usize>,
+    pub hot_applications_cached_apps_count: Option<usize>,
 
     // Plugin: Static Blacklist
     pub static_blacklist_blacklist_entries_count: Option<usize>,

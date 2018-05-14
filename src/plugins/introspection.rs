@@ -29,8 +29,10 @@ use plugins::hot_applications::HotApplications;
 use plugins::janitor::Janitor;
 use plugins::plugin::Plugin;
 use plugins::plugin::PluginDescription;
+use plugins::profiles::Profiles;
 use plugins::static_blacklist::StaticBlacklist;
 use plugins::static_whitelist::StaticWhitelist;
+use profiles::SystemProfile;
 use std::any::Any;
 use std::time::{Duration, Instant, SystemTime};
 use storage;
@@ -54,15 +56,18 @@ pub struct Introspection {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InternalState {
-    // Plugin: Hot Applications
-    pub hot_applications_app_histogram_entries_count: Option<usize>,
-    pub hot_applications_cached_apps_count: Option<usize>,
+    // Plugin: Profiles
+    pub profiles_current_profile: Option<SystemProfile>,
 
     // Plugin: Janitor
     pub janitor_janitor_needs_to_run: Option<bool>,
     pub janitor_janitor_ran_once: Option<bool>,
     pub janitor_daemon_startup_time: Option<DateTime<Utc>>,
     pub janitor_last_housekeeping_performed: Option<DateTime<Utc>>,
+
+    // Plugin: Hot Applications
+    pub hot_applications_app_histogram_entries_count: Option<usize>,
+    pub hot_applications_cached_apps_count: Option<usize>,
 
     // Plugin: Static Blacklist
     pub static_blacklist_blacklist_entries_count: Option<usize>,
@@ -82,21 +87,19 @@ impl Introspection {
     pub fn get_internal_state(&self, manager: &Manager) -> InternalState {
         let pm = manager.plugin_manager.read().unwrap();
 
-        // Plugin: Hot Applications
-        let mut hot_applications_app_histogram_entries_count = None;
-        let mut hot_applications_cached_apps_count = None;
+        // Plugin: Profiles
+        let mut profiles_current_profile = None;
 
-        match pm.get_plugin_by_name(&String::from("hot_applications")) {
+        match pm.get_plugin_by_name(&String::from("profiles")) {
             None => {
-                trace!("Plugin not loaded: 'hot_applications', skipped");
+                trace!("Plugin not loaded: 'profiles', skipped");
             }
 
             Some(p) => {
                 let p = p.read().unwrap();
-                let hot_applications_plugin = p.as_any().downcast_ref::<HotApplications>().unwrap();
+                let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
-                hot_applications_app_histogram_entries_count = Some(hot_applications_plugin.app_histogram.len());
-                hot_applications_cached_apps_count = Some(hot_applications_plugin.cached_apps.len());
+                profiles_current_profile = Some(profiles_plugin.get_current_profile());
             }
         };
 
@@ -119,6 +122,24 @@ impl Introspection {
                 janitor_janitor_ran_once = Some(janitor_plugin.janitor_ran_once);
                 janitor_daemon_startup_time = Some(janitor_plugin.daemon_startup_time);
                 janitor_last_housekeeping_performed = Some(janitor_plugin.last_housekeeping_performed);
+            }
+        };
+
+        // Plugin: Hot Applications
+        let mut hot_applications_app_histogram_entries_count = None;
+        let mut hot_applications_cached_apps_count = None;
+
+        match pm.get_plugin_by_name(&String::from("hot_applications")) {
+            None => {
+                trace!("Plugin not loaded: 'hot_applications', skipped");
+            }
+
+            Some(p) => {
+                let p = p.read().unwrap();
+                let hot_applications_plugin = p.as_any().downcast_ref::<HotApplications>().unwrap();
+
+                hot_applications_app_histogram_entries_count = Some(hot_applications_plugin.app_histogram.len());
+                hot_applications_cached_apps_count = Some(hot_applications_plugin.cached_apps.len());
             }
         };
 
@@ -163,17 +184,24 @@ impl Introspection {
 
         // Produce final report
         InternalState {
-            hot_applications_app_histogram_entries_count: hot_applications_app_histogram_entries_count,
-            hot_applications_cached_apps_count: hot_applications_cached_apps_count,
+            // Plugin: Profiles
+            profiles_current_profile: profiles_current_profile,
 
+            // Plugin: Janitor
             janitor_janitor_needs_to_run: janitor_janitor_needs_to_run,
             janitor_janitor_ran_once: janitor_janitor_ran_once,
             janitor_daemon_startup_time: janitor_daemon_startup_time,
             janitor_last_housekeeping_performed: janitor_last_housekeeping_performed,
 
+            // Plugin: Hot Applications
+            hot_applications_app_histogram_entries_count: hot_applications_app_histogram_entries_count,
+            hot_applications_cached_apps_count: hot_applications_cached_apps_count,
+
+            // Plugin: Static Blacklist
             static_blacklist_blacklist_entries_count: static_blacklist_blacklist_entries_count,
             static_blacklist_program_blacklist_entries_count: static_blacklist_program_blacklist_entries_count,
 
+            // Plugin: Static Whitelist
             static_whitelist_mapped_files_count: static_whitelist_mapped_files_count,
             static_whitelist_whitelist_entries_count: static_whitelist_whitelist_entries_count,
             static_whitelist_program_whitelist_entries_count: static_whitelist_program_whitelist_entries_count,
