@@ -390,8 +390,8 @@ pub fn trace_process_io_ftrace(pid: libc::pid_t) -> io::Result<()> {
     trace!("ftrace filter for pid: {}", pid);
 
     // filter for pid
-    // let filename = Path::new(TRACING_DIR).join("set_event_pid");
-    // append(&filename, format!("{}", pid))?;
+    let filename = Path::new(TRACING_DIR).join("set_event_pid");
+    append(&filename, format!("{}", pid))?;
 
     // // enable ftrace
     // let filename = Path::new(TRACING_DIR).join("tracing_on");
