@@ -105,6 +105,9 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     let filename = Path::new(TRACING_DIR).join("options").join("event-fork");
     echo(&filename, String::from("1"))?;
 
+    // let filename = Path::new(TRACING_DIR).join("options").join("function-fork");
+    // echo(&filename, String::from("1"))?;
+
     let filter = format!("common_pid != {}", unsafe { libc::getpid() });
     trace!("PID Filter: {}", filter);
 
@@ -386,9 +389,9 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
 pub fn trace_process_io_ftrace(pid: libc::pid_t) -> io::Result<()> {
     trace!("ftrace filter for pid: {}", pid);
 
-    // // filter for pid
-    let filename = Path::new(TRACING_DIR).join("set_event_pid");
-    append(&filename, format!("{}", pid))?;
+    // filter for pid
+    // let filename = Path::new(TRACING_DIR).join("set_event_pid");
+    // append(&filename, format!("{}", pid))?;
 
     // // enable ftrace
     // let filename = Path::new(TRACING_DIR).join("tracing_on");
@@ -547,6 +550,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
     // filled in with `getdirnameprobe` kprobe event data
     // let mut last_dirname = None;
 
+    let mut counter = 0;
     'LINE_LOOP: loop {
         // do we have a pending exit request?
         if FTRACE_EXIT_NOW.load(Ordering::Relaxed) {
@@ -554,14 +558,16 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             break 'LINE_LOOP;
         }
 
-        // prune expired tracers
-        // NOTE: We have to use `lock()` here instead of `try_lock()`
-        //       because we don't want to miss events in any case.
-        //       Will deadlock with `.try_lock()`
-        match hooks::ftrace_logger::ACTIVE_TRACERS.lock() {
-            Err(e) => error!("Could not take a lock on a shared data structure! {}", e),
-            Ok(mut active_tracers) => {
-                check_expired_tracers(&mut active_tracers, &iotrace_dir, min_len, min_prefetch_size, globals);
+        if counter % 1000 == 0 {
+            // prune expired tracers
+            // NOTE: We have to use `lock()` here instead of `try_lock()`
+            //       because we don't want to miss events in any case.
+            //       Will deadlock with `.try_lock()`
+            match hooks::ftrace_logger::ACTIVE_TRACERS.lock() {
+                Err(e) => error!("Could not take a lock on a shared data structure! {}", e),
+                Ok(mut active_tracers) => {
+                    check_expired_tracers(&mut active_tracers, &iotrace_dir, min_len, min_prefetch_size, globals);
+                }
             }
         }
 
@@ -588,7 +594,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
             // ignore invalid lines (handled further below now)
             // if l.is_empty() || l.len() < 1 {
-            //     // warn!("Not processing data in current line: '{}'", l);
+            //     warn!("Not processing data in current line: '{}'", l);
             //     // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
             //     continue;
             // }
@@ -711,13 +717,12 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // getnameprobe kprobe event
             if l.contains("getnameprobe") {
                 match REGEX_FILENAME.captures(l) {
-                    None => error!(
-                        "Could not get associated file name of the current trace event! Event: '{}'",
-                        l
-                    ),
+                    None => error!("Could not extract file name! Event: '{}'", l),
 
                     Some(c) => {
                         last_filename = Some(PathBuf::from(Path::new(&c["filename"])));
+                        info!("Last filename: '{:?}'", last_filename);
+
                         // trace!("Last filename: '{:?}'", last_filename);
                     }
                 }
@@ -729,7 +734,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
             //     match REGEX_DIRNAME.captures(l) {
             //         None => {
-            //             error!("Could not get associated directory name of the current trace event! Event: '{}'", l)
+            //             error!("Could not extract directory name! Event: '{}'", l)
             //         }
             //         Some(c) => {
             //             last_dirname = Some(String::from(&c["dirname"]));
@@ -750,7 +755,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     // let printk_formats = get_printk_formats().unwrap();
                     //
                     // match printk_formats.get(&addr) {
-                    //     None    => { error!("Could not get associated file name of the current trace event!") }
+                    //     None    => { error!("Could not get associated file name for the current trace event!") }
                     //     Some(f) => {
                     //         if cb(pid, IOEvent { syscall: SysCall::Open(f.clone(), 0) }) == false {
                     //             break 'LINE_LOOP; // callback returned false, exit requested
@@ -761,7 +766,11 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     let mut reset_filename = false;
                     match last_filename {
                         // Error may happen if the previous open* syscall failed
-                        None => error!("Could not get associated file name of the current trace event! '{}'", l),
+                        None => {
+                            error!("Could not get associated file name for the current trace event! '{}'", l);
+
+                            // reset_filename = true;
+                        }
 
                         Some(ref c) => {
                             // trace!("c: '{:?}'", c.clone());
@@ -888,6 +897,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // wait a bit for new data to trickle in...
             // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
         }
+
+        counter += 1;
     }
 
     Ok(())
