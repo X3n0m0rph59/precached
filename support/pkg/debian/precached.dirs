@@ -1,5 +1,5 @@
-/etc/precached
-/etc/precached/rules.d
-/etc/xdg/autostart
-/var/lib/precached
-/var/lib/precached/iotrace
+etc/precached
+etc/precached/rules.d
+etc/xdg/autostart
+var/lib/precached
+var/lib/precached/iotrace
