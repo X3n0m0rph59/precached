@@ -465,7 +465,7 @@ impl Plugin for HotApplications {
                         if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
                             self.prefetch_data(globals, manager);
                         } else {
-                            warn!("Ignored 'Low Memory' condition, current system profile does not allow prefetching");
+                            warn!("Ignored 'Low Memory' condition, current system profile does not allow offline prefetching");
                         }
                     }
                 }
@@ -494,7 +494,7 @@ impl Plugin for HotApplications {
                         if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
                             self.prefetch_data(globals, manager);
                         } else {
-                            warn!("Ignored 'Idle' condition, current system profile does not allow prefetching");
+                            warn!("Ignored 'Idle' condition, current system profile does not allow offline prefetching");
                         }
                     }
                 }

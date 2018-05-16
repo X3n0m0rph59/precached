@@ -287,7 +287,7 @@ impl Plugin for VFSStatCache {
 
                             self.memory_freed = false;
                         } else {
-                            warn!("Ignored 'PrimeCaches' request, current system profile does not allow prefetching");
+                            warn!("Ignored 'PrimeCaches' request, current system profile does not allow offline prefetching");
                         }
                     }
                 }
