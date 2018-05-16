@@ -36,9 +36,7 @@ override_dh_auto_install:
 
 override_dh_installinit:
 	dh_systemd_enable --name=precached.service precached.service
-	dh_systemd_enable --no-enable --name=precached-prime-caches.service precached-prime-caches.service
-	dh_systemd_enable --name=precached-prime-caches.timer precached-prime-caches.timer
-
+		
 override_dh_auto_test:
 	# we don't run tests at the moment
 
