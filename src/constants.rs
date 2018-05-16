@@ -64,7 +64,7 @@ pub const WORKER_THREAD_NICENESS: i32 = 4;
 pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2000;
 
 /// Thread wait time (ftrace parser loop)
-pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 200;
+pub const FTRACE_THREAD_YIELD_MILLIS: u64 = 1;
 
 /// Time that has to elapse before we may perform housekeeping after the precached process' startup
 pub const HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS: i64 = 5 * 60; // 5 Minutes

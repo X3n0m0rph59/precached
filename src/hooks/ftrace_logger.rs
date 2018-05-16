@@ -118,12 +118,12 @@ impl FtraceLogger {
                             }
 
                             // comm is only used for the syslog output
-                            let mut comm = String::from("<not available>");
+                            let mut comm = None;
 
                             if let Some(process) = process_tracker.get_process(pid) {
-                                comm = process.comm.clone();
+                                comm = Some(process.comm.clone());
                             } else if let Ok(process) = Process::new(pid) {
-                                comm = process.get_comm().unwrap_or_else(|_| String::from("<not available>"));
+                                comm = process.get_comm().ok();
                             }
 
                             // NOTE: We have to use `lock()` here instead of `try_lock()`
@@ -153,7 +153,7 @@ impl FtraceLogger {
                                                 util::SysCall::Open(ref filename, fd) => {
                                                     trace!(
                                                         "Process: '{}' with pid {} opened file: {:?} fd: {}",
-                                                        comm,
+                                                        comm.clone().unwrap_or_else(|| String::from("<not available>")),
                                                         pid,
                                                         filename,
                                                         fd
@@ -224,7 +224,8 @@ impl FtraceLogger {
 
                                             warn!(
                                                 "Spurious trace log entry for untracked process '{}' with pid {} processed!",
-                                                comm, pid
+                                                comm.clone().unwrap_or_else(|| String::from("<not available>")),
+                                                pid
                                             );
 
                                             add_tracer = true;
@@ -234,7 +235,7 @@ impl FtraceLogger {
                                     // Late-add tracers for processes for which we somehow
                                     // missed their creation event, e.g. when precached daemon
                                     // was started after the creation of the process
-                                    if add_tracer {
+                                    if add_tracer {                                        
                                         // // Add the previously untracked process
                                         if let Ok(_result) = Self::shall_new_tracelog_be_created(pid, &mut globals_c, manager) {
                                             // Begin tracing the process `pid`.
@@ -254,7 +255,8 @@ impl FtraceLogger {
                                                     match util::trace_process_io_ftrace(pid) {
                                                         Err(e) => error!(
                                                             "Could not enable ftrace for process '{}' with pid {}: {}",
-                                                            comm, pid, e
+                                                            comm, 
+                                                            pid, e
                                                         ),
                                                         Ok(()) => {
                                                             trace!("Enabled ftrace for process '{}' with pid {}", comm, pid)
@@ -263,7 +265,9 @@ impl FtraceLogger {
                                                 }
                                             }
 
-                                            info!("Added previously untracked process '{}' with pid: {}", comm, pid);
+                                            info!("Added previously untracked process '{}' with pid: {}",
+                                            comm.unwrap_or_else(|| String::from("<not available>")),
+                                            pid);
                                         } else {
                                             error!("Could not add tracking entry for process with pid: {}", pid);
                                         }

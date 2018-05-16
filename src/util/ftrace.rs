@@ -558,7 +558,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             break 'LINE_LOOP;
         }
 
-        if counter % 1000 == 0 {
+        if counter % 250 == 0 {
             // prune expired tracers
             // NOTE: We have to use `lock()` here instead of `try_lock()`
             //       because we don't want to miss events in any case.
@@ -595,28 +595,28 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // ignore invalid lines (handled further below now)
             // if l.is_empty() || l.len() < 1 {
             //     warn!("Not processing data in current line: '{}'", l);
-            //     // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+            //     thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
             //     continue;
             // }
 
             // ignore the headers starting with a comment sign
             if l.starts_with('#') {
                 warn!("Not processing data in current line: '{}'", l);
-                // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
             // ignore "lost events" events
             if REGEX_FILTER.is_match(l) {
                 warn!("Not processing data in current line: '{}'", l);
-                // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
             // bail out if the event is caused by a blacklisted process
             if trace_is_from_blacklisted_process(l) {
                 // warn!("Not processing data in current line: '{}'", l);
-                // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
@@ -626,7 +626,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
             if fields.len() <= 1 {
                 // warn!("Not processing data in current line: '{}'", l);
-                // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
                 continue;
             }
 
@@ -721,8 +721,6 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
 
                     Some(c) => {
                         last_filename = Some(PathBuf::from(Path::new(&c["filename"])));
-                        info!("Last filename: '{:?}'", last_filename);
-
                         // trace!("Last filename: '{:?}'", last_filename);
                     }
                 }
@@ -888,14 +886,10 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // }
         }
 
-        if data_present {
+        if !data_present {
             unsafe {
                 libc::sched_yield();
             }
-        } else {
-            // No data received in this iteration of the loop,
-            // wait a bit for new data to trickle in...
-            // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
         }
 
         counter += 1;
