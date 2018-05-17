@@ -133,6 +133,25 @@ _arguments "${_arguments_options[@]}" \
 '--version[Prints version information]' \
 && ret=0
 ;;
+(sizes)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filter for the hash value of the I/O trace]' \
+'--hash=[Filter for the hash value of the I/O trace]' \
+'-e+[Filter for executable name of the I/O trace]' \
+'--executable=[Filter for executable name of the I/O trace]' \
+'-o+[Filter for optimization status of the I/O trace]: :(true false)' \
+'--optimized=[Filter for optimization status of the I/O trace]: :(true false)' \
+'--flags=[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
+'(-s --short)-f[Use '\''full'\'' display format (list all fields)]' \
+'(-s --short)--full[Use '\''full'\'' display format (list all fields)]' \
+'(-f --full)-s[Use '\''short'\'' display format (list important fields only)]' \
+'(-f --full)--short[Use '\''short'\'' display format (list important fields only)]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
 (optimize)
 _arguments "${_arguments_options[@]}" \
 '-p+[Filter for the hash value of the I/O trace]' \
@@ -230,6 +249,7 @@ _iotracectl_commands() {
 "info:Print metadata information of specific I/O traces" \
 "dump:Dump I/O trace log entries (recorded I/O operations)" \
 "analyze:Analyze I/O trace logs (check for missing files)" \
+"sizes:Show virtual memory consumption" \
 "optimize:Optimize I/O trace logs (optimize I/O operations)" \
 "remove:Remove I/O trace" \
 "clear:Completely clear all I/O traces and reset the precached I/O tracing subsystem" \
@@ -328,6 +348,13 @@ _show_commands() {
         
     )
     _describe -t commands 'show commands' commands "$@"
+}
+(( $+functions[_iotracectl__sizes_commands] )) ||
+_iotracectl__sizes_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl sizes commands' commands "$@"
 }
 (( $+functions[_iotracectl__status_commands] )) ||
 _iotracectl__status_commands() {

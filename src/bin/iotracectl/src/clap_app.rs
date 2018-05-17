@@ -280,6 +280,58 @@ where
                 ),
         )
         .subcommand(
+            SubCommand::with_name("sizes")
+                .setting(AppSettings::DeriveDisplayOrder)
+                .about("Show virtual memory consumption")
+                .arg(
+                    Arg::with_name("full")
+                        .long("full")
+                        .short("f")
+                        .conflicts_with("short")
+                        .help("Use 'full' display format (list all fields)"),
+                )
+                .arg(
+                    Arg::with_name("short")
+                        .long("short")
+                        .short("s")
+                        .conflicts_with("full")
+                        .help("Use 'short' display format (list important fields only)"),
+                )
+                .arg(
+                    Arg::with_name("hash")
+                        .long("hash")
+                        .short("p")
+                        .takes_value(true)
+                        .required(false)
+                        .help("Filter for the hash value of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("executable")
+                        .long("executable")
+                        .short("e")
+                        .takes_value(true)
+                        .required(false)
+                        .help("Filter for executable name of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("optimized")
+                        .long("optimized")
+                        .short("o")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["true", "false"])
+                        .help("Filter for optimization status of the I/O trace"),
+                )
+                .arg(
+                    Arg::with_name("flags")
+                        .long("flags")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&["valid", "invalid", "fresh", "expired", "current", "outdated", "missing"])
+                        .help("Filter for flags of the I/O trace"),
+                ),
+        )
+        .subcommand(
             SubCommand::with_name("optimize")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about("Optimize I/O trace logs (optimize I/O operations)")

@@ -37,7 +37,7 @@ use std::path::{Path, PathBuf};
 use util;
 
 /// Represents an I/O operation in an I/O trace log entry
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum IOOperation {
     Open(PathBuf, libc::int32_t),
     Stat(PathBuf),

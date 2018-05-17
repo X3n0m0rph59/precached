@@ -46,6 +46,9 @@ _iotracectl() {
             show)
                 cmd+="__show"
                 ;;
+            sizes)
+                cmd+="__sizes"
+                ;;
             status)
                 cmd+="__status"
                 ;;
@@ -56,7 +59,7 @@ _iotracectl() {
 
     case "${cmd}" in
         iotracectl)
-            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status list info dump analyze optimize remove clear help completions  show  delete"
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status list info dump analyze sizes optimize remove clear help completions  show  delete"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -467,6 +470,49 @@ _iotracectl() {
                     ;;
                 --order)
                     COMPREPLY=($(compgen -W "asc ascending desc descending" -- ${cur}))
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__sizes)
+            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --flags  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                --optimized)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --flags)
+                    COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated missing" -- ${cur}))
                     return 0
                     ;;
                 *)

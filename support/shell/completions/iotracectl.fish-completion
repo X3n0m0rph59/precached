@@ -9,6 +9,7 @@ complete -c iotracectl -n "__fish_use_subcommand" -f -a "list" -d 'List all avai
 complete -c iotracectl -n "__fish_use_subcommand" -f -a "info" -d 'Print metadata information of specific I/O traces'
 complete -c iotracectl -n "__fish_use_subcommand" -f -a "dump" -d 'Dump I/O trace log entries (recorded I/O operations)'
 complete -c iotracectl -n "__fish_use_subcommand" -f -a "analyze" -d 'Analyze I/O trace logs (check for missing files)'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "sizes" -d 'Show virtual memory consumption'
 complete -c iotracectl -n "__fish_use_subcommand" -f -a "optimize" -d 'Optimize I/O trace logs (optimize I/O operations)'
 complete -c iotracectl -n "__fish_use_subcommand" -f -a "remove" -d 'Remove I/O trace'
 complete -c iotracectl -n "__fish_use_subcommand" -f -a "clear" -d 'Completely clear all I/O traces and reset the precached I/O tracing subsystem'
@@ -47,6 +48,14 @@ complete -c iotracectl -n "__fish_seen_subcommand_from analyze" -l tabular -d 'U
 complete -c iotracectl -n "__fish_seen_subcommand_from analyze" -s t -l terse -d 'Use \'terse\' display format (list files only)'
 complete -c iotracectl -n "__fish_seen_subcommand_from analyze" -s h -l help -d 'Prints help information'
 complete -c iotracectl -n "__fish_seen_subcommand_from analyze" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s p -l hash -d 'Filter for the hash value of the I/O trace'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s e -l executable -d 'Filter for executable name of the I/O trace'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s o -l optimized -d 'Filter for optimization status of the I/O trace' -r -f -a "true false"
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -l flags -d 'Filter for flags of the I/O trace' -r -f -a "valid invalid fresh expired current outdated missing"
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s f -l full -d 'Use \'full\' display format (list all fields)'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s s -l short -d 'Use \'short\' display format (list important fields only)'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s V -l version -d 'Prints version information'
 complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -s p -l hash -d 'Filter for the hash value of the I/O trace'
 complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -s e -l executable -d 'Filter for executable name of the I/O trace'
 complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -s o -l optimized -d 'Filter for optimization status of the I/O trace' -r -f -a "true false"

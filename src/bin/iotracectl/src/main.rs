@@ -43,13 +43,14 @@ extern crate zstd;
 
 use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
-use iotrace::IOTraceLogFlag;
+use iotrace::{IOOperation, IOTraceLogFlag};
 use pbr::ProgressBar;
 use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::row::Row;
 use prettytable::Table;
 use std::cmp::{max, min};
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs::read_dir;
 use std::io;
@@ -972,6 +973,143 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     );
 }
 
+/// Show I/O trace files an display virtual memory usage information
+fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
+    let state_dir = daemon_config
+        .clone()
+        .state_dir
+        .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
+    let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
+
+    let count = read_dir(&traces_path).unwrap().count();
+    let mut pb = ProgressBar::new(count as u64);
+
+    let display_progress = unsafe { nix::libc::isatty(1) == 1 };
+
+    if display_progress {
+        pb.format(PROGRESS_BAR_INDICATORS);
+    }
+
+    let matches = config.matches.subcommand_matches("sizes").unwrap();
+
+    let (result, total, matching, errors) = get_io_traces_filtered_and_sorted(
+        config,
+        daemon_config,
+        display_progress,
+        &mut pb,
+        &String::from("sizes"),
+        parse_sort_field(&matches),
+        parse_sort_order(&matches),
+    ).unwrap();
+
+    if display_progress {
+        pb.finish_println("\n");
+    }
+
+    let mut table = Table::new();
+    table.set_format(default_table_format(&config));
+
+    // Add table row header
+    table.add_row(Row::new(vec![
+        Cell::new("RSS (VM) Size"),
+        Cell::new("# Unique Files"),
+        Cell::new("Accum. I/O Size"),
+        Cell::new("# Accum. I/O Ops"),
+    ]));
+
+    let mut index = 0;
+    let mut acc_io_size = 0;
+    let mut acc_ioops = 0;
+    let mut acc_vm_size = 0;
+    let mut files_histogram = HashMap::new();
+
+    for (io_trace, _path) in result {
+        acc_io_size += io_trace.accumulated_size;
+        acc_ioops += io_trace.trace_log.len();
+
+        // Build a histogram of files (make unique)
+        for entry in io_trace.trace_log {
+            match entry.operation {
+                IOOperation::Open(path, _file) => {
+                    let (cnt, vm_size) = files_histogram.entry(path).or_insert((0, 0));
+
+                    // count size of every file only once
+                    if *cnt == 0 {
+                        acc_vm_size += entry.size;
+                    }
+
+                    *cnt += 1;
+                    *vm_size = entry.size;
+                }
+
+                _ => { /* Ignore all others */ }
+            }
+        }
+
+        index += 1;
+    }
+
+    if display_progress {
+        // pb.finish_println("\n");
+    }
+
+    table.add_row(Row::new(vec![
+        Cell::new_align(&format!("{} KiB", acc_vm_size / 1024), Alignment::RIGHT)
+            .with_style(Attr::Bold)
+            .with_style(Attr::ForegroundColor(GREEN)),
+        Cell::new_align(&format!("{} files", files_histogram.len()), Alignment::RIGHT).with_style(Attr::Bold),
+        Cell::new_align(&format!("{} KiB", acc_io_size / 1024), Alignment::RIGHT),
+        Cell::new_align(&format!("{} ops", acc_ioops), Alignment::RIGHT),
+    ]));
+
+    if total < 1 {
+        println!("No I/O trace logs available");
+    } else if index < 1 {
+        println!("No I/O trace log matched the filter parameter(s)");
+    } else {
+        if table.len() > 1 {
+            // Print the generated table to stdout
+            table.printstd();
+
+            // full format lists each file individually
+            if matches.is_present("full") {
+                // List files an their reference counts
+                let mut table = Table::new();
+                table.set_format(default_table_format(&config));
+
+                // Add table row header
+                table.add_row(Row::new(vec![
+                    Cell::new("File"),
+                    Cell::new("RSS (VM) Size"),
+                    Cell::new("# References"),
+                ]));
+
+                // sort by num references (desc)
+                let mut files_histogram_sorted: Vec<(PathBuf, (usize, u64))> = files_histogram.into_iter().collect();
+                files_histogram_sorted.sort_by(|a, b| b.1.cmp(&a.1));
+
+                for (file, (cnt, vm_size)) in files_histogram_sorted {
+                    table.add_row(Row::new(vec![
+                        Cell::new_align(&file.to_string_lossy(), Alignment::LEFT).with_style(Attr::Bold),
+                        Cell::new_align(&format!("{} KiB", vm_size), Alignment::RIGHT).with_style(Attr::Bold),
+                        Cell::new_align(&format!("{}", cnt), Alignment::RIGHT).with_style(Attr::Bold),
+                    ]));
+                }
+
+                // Print the generated table to stdout
+                table.printstd();
+            }
+        } else if matching < 1 {
+            println!("No I/O trace log matched the filter parameter(s)");
+        }
+
+        println!(
+            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
+            total, matching, errors
+        );
+    }
+}
+
 /// Optimize I/O trace file access pattern
 fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     let state_dir = daemon_config
@@ -1361,6 +1499,10 @@ fn main() {
 
             "analyze" => {
                 analyze_io_traces(&config, daemon_config.clone());
+            }
+
+            "sizes" => {
+                display_io_traces_sizes(&config, daemon_config.clone());
             }
 
             "optimize" => {
