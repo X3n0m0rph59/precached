@@ -450,7 +450,8 @@ impl FtraceLogger {
                                 Ok(io_trace) => {
                                     let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
 
-                                    if err || flags.contains(&iotrace::IOTraceLogFlag::Expired)
+                                    if err
+                                        || flags.contains(&iotrace::IOTraceLogFlag::Expired)
                                         || flags.contains(&iotrace::IOTraceLogFlag::Outdated)
                                     {
                                         Ok(true)

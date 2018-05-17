@@ -100,7 +100,8 @@ impl Process {
         let filename = Path::new(&tmp);
         let maps = util::get_lines_from_file(filename)?;
 
-        let result = maps.into_iter()
+        let result = maps
+            .into_iter()
             .filter_map(|l| {
                 let caps = RE_PROC_MAPS.captures(&l);
                 match caps {
@@ -118,7 +119,8 @@ impl Process {
         let filename = Path::new(&tmp);
         let maps = util::get_lines_from_file(filename)?;
 
-        let result = maps.into_iter()
+        let result = maps
+            .into_iter()
             .filter_map(|l| {
                 let caps = RE_PROC_MAPS.captures(&l);
                 match caps {

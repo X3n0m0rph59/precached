@@ -283,7 +283,8 @@ impl Application {
                                     items = vec![format!("Connection Error!")];
                                 } else {
                                     // Render tracked processes
-                                    items = self.tracked_processes
+                                    items = self
+                                        .tracked_processes
                                         .par_iter()
                                         .map(|v| {
                                             let v = v.clone();
@@ -305,7 +306,8 @@ impl Application {
                                     trace_items = vec![format!("Connection Error!")];
                                 } else {
                                     // Render traced processes
-                                    trace_items = self.active_traces
+                                    trace_items = self
+                                        .active_traces
                                         .par_iter()
                                         .map(|v| {
                                             let v = v.clone();
@@ -346,7 +348,8 @@ impl Application {
                                     .render(terminal, &chunks[2]);
 
                                 // Render daemon internal events
-                                let mut events: Vec<String> = self.events
+                                let mut events: Vec<String> = self
+                                    .events
                                     .par_iter()
                                     .map(|v| {
                                         let v = v.clone();
@@ -374,7 +377,8 @@ impl Application {
                             .margin(0)
                             .render(terminal, &chunks[1], |terminal, chunks| {
                                 // Render daemon internal events
-                                let mut events: Vec<String> = self.events
+                                let mut events: Vec<String> = self
+                                    .events
                                     .par_iter()
                                     .map(|v| {
                                         let v = v.clone();
@@ -401,7 +405,8 @@ impl Application {
                             .margin(0)
                             .render(terminal, &chunks[1], |terminal, chunks| {
                                 // Render cached files
-                                let cached_files: Vec<String> = self.cached_files
+                                let cached_files: Vec<String> = self
+                                    .cached_files
                                     .par_iter()
                                     .map(|v| String::from(v.to_string_lossy()))
                                     .collect();
