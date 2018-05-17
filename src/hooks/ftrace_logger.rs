@@ -235,7 +235,7 @@ impl FtraceLogger {
                                     // Late-add tracers for processes for which we somehow
                                     // missed their creation event, e.g. when precached daemon
                                     // was started after the creation of the process
-                                    if add_tracer {                                        
+                                    if add_tracer {
                                         // // Add the previously untracked process
                                         if let Ok(_result) = Self::shall_new_tracelog_be_created(pid, &mut globals_c, manager) {
                                             // Begin tracing the process `pid`.
@@ -255,8 +255,7 @@ impl FtraceLogger {
                                                     match util::trace_process_io_ftrace(pid) {
                                                         Err(e) => error!(
                                                             "Could not enable ftrace for process '{}' with pid {}: {}",
-                                                            comm, 
-                                                            pid, e
+                                                            comm, pid, e
                                                         ),
                                                         Ok(()) => {
                                                             trace!("Enabled ftrace for process '{}' with pid {}", comm, pid)
@@ -265,9 +264,11 @@ impl FtraceLogger {
                                                 }
                                             }
 
-                                            info!("Added previously untracked process '{}' with pid: {}",
-                                            comm.unwrap_or_else(|| String::from("<not available>")),
-                                            pid);
+                                            info!(
+                                                "Added previously untracked process '{}' with pid: {}",
+                                                comm.unwrap_or_else(|| String::from("<not available>")),
+                                                pid
+                                            );
                                         } else {
                                             error!("Could not add tracking entry for process with pid: {}", pid);
                                         }

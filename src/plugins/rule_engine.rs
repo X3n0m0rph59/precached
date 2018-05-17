@@ -263,7 +263,9 @@ impl RuleEngine {
                         _ => {}
                     }
                 } else {
-                    warn!("Ignored 'CacheMetadataRecursive' rule action, current system profile does not allow offline prefetching");
+                    warn!(
+                        "Ignored 'CacheMetadataRecursive' rule action, current system profile does not allow offline prefetching"
+                    );
                 }
             }
         }
