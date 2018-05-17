@@ -1031,7 +1031,7 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
         for entry in io_trace.trace_log {
             match entry.operation {
                 IOOperation::Open(path, _file) => {
-                    let (cnt, vm_size) = files_histogram.entry(path).or_insert((0, 0));
+                    let (ref mut cnt, ref mut vm_size) = files_histogram.entry(path).or_insert((0, 0));
 
                     // count size of every file only once
                     if *cnt == 0 {
