@@ -111,7 +111,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 fn print_license_header() {
     println_tr!("license-text");
-    println!("\n");
+    println!("");
 }
 
 /// Print help message on how to use this command

@@ -133,7 +133,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .short("o")
                         .takes_value(true)
                         .required(false)
-                        .possible_values(&["true", "false"])
+                        .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
                 )
                 .arg(

@@ -134,13 +134,8 @@ impl<'a, 'b> Config<'a, 'b> {
 
 /// Print a license header to the console
 fn print_license_header() {
-    println!(
-        "precached Copyright (C) 2017-2018 the precached team
-This program comes with ABSOLUTELY NO WARRANTY;
-This is free software, and you are welcome to redistribute it
-under certain conditions.
-"
-    );
+    println_tr!("license-text");
+    println!("");
 }
 
 /// Represents a tracked process

@@ -36,42 +36,76 @@ iotracectl-filter-iotrace = Filtern anhand von Flags
 iotracectl-sort = Sortieren nach Feld
 iotracectl-sort-order = Sortierreihenfolge
 
-filter-valid = valide
-filter-invalid = ungültig
-filter-fresh = aktuell
-filter-expired = abgelaufen
-filter-current = passend
-filter-outdated = überholt
-filter-missing = fehlt
+filter-valid = valid
+filter-invalid = invalid
+filter-fresh = fresh
+filter-expired = expired
+filter-current = current
+filter-outdated = outdated
+filter-missing = missing
 
-sort-executable = dateiname
+sort-executable = executable
 sort-hash = hash
-sort-date = datum
-sort-numfiles = numdateien
+sort-date = date
+sort-numfiles = numfiles
 sort-numioops = numioops
-sort-iosize = iogröße
-sort-optimized = optimiert
+sort-iosize = iosize
+sort-optimized = optimized
 
-sort-asc = auf
-sort-ascending = aufsteigend
-sort-desc = ab
-sort-descending = absteigend
+sort-asc = asc
+sort-ascending = ascending
+sort-desc = desc
+sort-descending = descending
+
+# filter-valid = gültig
+# filter-invalid = ungültig
+# filter-fresh = aktuell
+# filter-expired = abgelaufen
+# filter-current = passend
+# filter-outdated = überholt
+# filter-missing = fehlt
+# 
+# sort-executable = dateiname
+# sort-hash = hash
+# sort-date = datum
+# sort-numfiles = numdateien
+# sort-numioops = numioops
+# sort-iosize = iogröße
+# sort-optimized = optimiert
+# 
+# sort-asc = auf
+# sort-ascending = aufsteigend
+# sort-desc = ab
+# sort-descending = absteigend
 
 ok = OK
 missing-file = Datei fehlt
 
-unknown = Unbekannt
-valid = Gültig
-invalid = Ungültig
-fresh = Aktuell
-expired = Abgelaufen
-current = Passend
-missing = Fehlt
-binary-newer = Überholt (Binärdatei neuer)
-missing-binary = Binärdatei fehlt
+unknown = Unknown
+valid = Valid
+invalid = Invalid
+fresh = Fresh
+expired = Expired
+current = Current
+missing = Missing
+binary-newer = Binary Newer
+missing-binary = Missing Binary
 
-true = ja
-false = nein
+# unknown = Unbekannt
+# valid = Gültig
+# invalid = Ungültig
+# fresh = Aktuell
+# expired = Abgelaufen
+# current = Passend
+# missing = Fehlt
+# binary-newer = Überholt (Binärdatei neuer)
+# missing-binary = Binärdatei fehlt
+
+true = true
+false = false
+
+# true = ja
+# false = nein
 
 warn = Warnung
 error = Fehler
@@ -272,7 +306,7 @@ precachedctl-plugins-hot-applications-show = Histogramm der genutzten Anwendunge
 precachedctl-plugins-hot-applications-optimize = Histogramm der genutzten Anwendungen optimieren
 precachedctl-plugins-hot-applications-hint = Tipp: Benutzen Sie 'precachedctl plugins hot-applications optimize'
                                              um fehlende I/O Trace Logs zu entfernen
-precachedctl-plugins-hot-applications-summary = { $count } Einträge analysiert, { $errors } fehlende I/O Trace Logs
+precachedctl-plugins-hot-applications-summary = Ergebnis: { $count } Einträge analysiert, { $errors } fehlende I/O Trace Logs
 
 precachedctl-help = Diese Kurzhilfe anzeigen
 
@@ -327,8 +361,8 @@ rule-hook = Rule Hook
 rulesctl-manage-rules-files = Verwalten von precached .rules Dateien
 rulesctl-rule-hook-desc = Übermittelt Ereignisse an die Regel-Engine
 
-rulesctl-summary-1 = { $count } .rules Dateien analysiert, { $valid } gültige Dateien
-rulesctl-summary-2 = { $count } Regeln analysiert
+rulesctl-summary-1 = Ergebnis: { $count } .rules Dateien analysiert, { $valid } gültige Dateien
+rulesctl-summary-2 = Ergebnis: { $count } Regeln analysiert
 
 rulesctl-rule-enabled = Regeln erfolgreich aktiviert, neu laden der Konfiguration veranlasst
 rulesctl-rule-disabled = Regeln erfolgreich deaktiviert, neu laden der Konfiguration veranlasst

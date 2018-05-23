@@ -274,13 +274,13 @@ precachedctl-plugins-hot-applications-show = Show all entries in the histogram o
 precachedctl-plugins-hot-applications-optimize = Optimize the histogram of hot applications
 precachedctl-plugins-hot-applications-hint = Hint: Use 'precachedctl plugins hot-applications optimize'
                                              to remove entries with missing I/O trace logs!
-precachedctl-plugins-hot-applications-summary = { $count } histogram entries examined, { $errors } missing I/O trace logs
+precachedctl-plugins-hot-applications-summary = Summary: { $count } histogram entries examined, { $errors } missing I/O trace logs
 
 precachedctl-examining-files = Examining I/O trace log files: 
 
 precachedctl-missing-io-trace-log = Missing I/O Trace Log
 
-precachedctl-help = Diese Kurzhilfe anzeigen
+precachedctl-help = Display this short help text
 
 precachedctl-completions = Generates completion scripts for your shell
 precachedctl-completions-shell = The shell to generate the script for
@@ -329,8 +329,8 @@ rule-hook = Rule Hook
 rulesctl-manage-rules-files = Manage precached .rules files
 rulesctl-rule-hook-desc = Deliver internal events to the rule engine
 
-rulesctl-summary-1 = { $count } rule files examined, { $valid } valid files(s)
-rulesctl-summary-2 = { $count } rules examined
+rulesctl-summary-1 = Summary: { $count } rule files examined, { $valid } valid files(s)
+rulesctl-summary-2 = Summary: { $count } rules examined
 
 rulesctl-rule-enabled = Rules enabled successfully, reloading configuration now
 rulesctl-rule-disabled = Rules disabled successfully, reloading configuration now

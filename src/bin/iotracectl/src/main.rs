@@ -102,7 +102,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 fn print_license_header() {
     println_tr!("license-text");
-    println!("\n");
+    println!("");
 }
 
 /// Return a formatted `String` containing date and time of `date`
@@ -162,14 +162,16 @@ fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::I
 
     if matches.is_present("optimized") {
         if let Some(flag) = matches.value_of("optimized") {
-            match <bool as FromStr>::from_str(flag) {
-                Err(_) => {
-                    error!("Could not parse command line argument 'optimized'");
-                }
-
-                Ok(value) => if !io_trace.trace_log_optimized == value {
+            if flag == tr!("true") {
+                if !io_trace.trace_log_optimized {
                     return false;
-                },
+                }
+            } else if flag == tr!("false") {
+                if io_trace.trace_log_optimized {
+                    return false;
+                }
+            } else {
+                error!("Could not parse command line argument 'optimized'");
             }
         }
     }
@@ -253,7 +255,8 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
             "flags" => format!("{:?}", flags)
         );
-        println!("");
+        
+        println!("\n");
     } else if matches.is_present("short") {
         // Print in "short" format
         println_tr!("iotracectl-iotrace-info-short",
@@ -264,7 +267,8 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
             "flags" => format!("{:?}", flags)
         );
-        println!("");
+        
+        println!("\n");
     } else if matches.is_present("terse") {
         // Print in "terse" format
         println!("{}", io_trace.exe.to_string_lossy());
@@ -346,7 +350,7 @@ fn map_bool_to_color(b: bool) -> Color {
     if b {
         GREEN
     } else {
-        RED
+        YELLOW
     }
 }
 
@@ -704,6 +708,8 @@ fn print_io_trace_info(filename: &Path, io_trace: &iotrace::IOTraceLog, _index: 
         "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
         "flags" => format!("{:?}", flags.0)
     );
+
+    println!("\n");
 }
 
 /// Display metadata of an I/O trace in the specified format
@@ -809,6 +815,8 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 "flags" => format!("{:?}", flags.0)
             );
 
+            println!("");
+
             matching += 1;
 
             // dump all I/O trace log entries
@@ -848,6 +856,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     index += 1;
 
+    println!("");
     println_tr!("iotracectl-summary-1",
         "total" => format!("{}", index),
         "matching" => format!("{}", matching),
@@ -922,6 +931,8 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 "flags" => format!("{:?}", flags.0)
             );
 
+            println!("");
+
             matching += 1;
 
             // dump all I/O trace log entries
@@ -971,7 +982,8 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     }
 
     index += 1;
-
+    
+    println!("");
     println_tr!("iotracectl-summary-1",
         "total" => format!("{}", index),
         "matching" => format!("{}", matching),
@@ -1063,7 +1075,7 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
         Cell::new_align(&format!("{} KiB", acc_vm_size / 1024), Alignment::RIGHT)
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(GREEN)),
-        Cell::new_align(&format!("{} files", files_histogram.len()), Alignment::RIGHT).with_style(Attr::Bold),
+        Cell::new_align(&format!("{}", files_histogram.len()), Alignment::RIGHT).with_style(Attr::Bold),
         Cell::new_align(&format!("{} KiB", acc_io_size / 1024), Alignment::RIGHT),
         Cell::new_align(&format!("{} Ops", acc_ioops), Alignment::RIGHT),
     ]));
@@ -1109,6 +1121,7 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
             println_tr!("iotracectl-no-matches");
         }
 
+        println!("");
         println_tr!("iotracectl-summary-1",
             "total" => format!("{}", total),
             "matching" => format!("{}", matching),

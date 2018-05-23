@@ -106,7 +106,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 pub fn print_license_header() {
     println_tr!("license-text");
-    println!("\n");
+    println!("");
 }
 
 /// Read the pid of the precached daemon from the file `/run/precached.pid`
