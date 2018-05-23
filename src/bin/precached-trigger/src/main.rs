@@ -24,6 +24,7 @@
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
+extern crate fluent;
 extern crate rayon;
 #[macro_use]
 extern crate lazy_static;
@@ -65,6 +66,8 @@ use std::time;
 use term::color::*;
 use term::Attr;
 
+#[macro_use]
+mod i10n;
 mod clap_app;
 mod constants;
 mod util;
@@ -107,13 +110,8 @@ impl<'a, 'b> Config<'a, 'b> {
 
 /// Print a license header to the console
 fn print_license_header() {
-    println!(
-        "precached Copyright (C) 2017-2018 the precached team
-This program comes with ABSOLUTELY NO WARRANTY;
-This is free software, and you are welcome to redistribute it
-under certain conditions.
-"
-    );
+    println_tr!("license-text");
+    println!("\n");
 }
 
 /// Print help message on how to use this command
@@ -154,10 +152,10 @@ fn transition_profile(_config: &Config, _daemon_config: util::ConfigFile) {
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGUSR2) {
                 Err(e) => {
-                    println!("Could not send signal! {}", e);
+                    println_tr!("could-not-send-signal", "error" => format!("{}", e));
                 }
                 Ok(()) => {
-                    println!("Success");
+                    println_tr!("success");
                 }
             }
         }
@@ -188,12 +186,12 @@ fn main() {
 
     // Enforce tracing level output logs by default,
     // but may be overridden by user
-    match env::var("RUST_LOG") {
-        Ok(_) => { /* Do nothing */ }
-        Err(_) => {
-            env::set_var("RUST_LOG", "trace");
-        }
-    }
+    // match env::var("RUST_LOG") {
+    //     Ok(_) => { /* Do nothing */ }
+    //     Err(_) => {
+    //         env::set_var("RUST_LOG", "trace");
+    //     }
+    // }
 
     pretty_env_logger::init(); //.expect("Could not initialize the logging subsystem!");
 

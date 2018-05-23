@@ -31,6 +31,7 @@
 #![allow(unused_imports)]
 #![allow(unused_must_use)]
 
+extern crate fluent;
 #[macro_use]
 extern crate log;
 extern crate ansi_term;
@@ -85,6 +86,8 @@ use procmon::ProcMon;
 mod events;
 use events::EventType;
 
+#[macro_use]
+mod i10n;
 mod config;
 mod dbus;
 mod hooks;

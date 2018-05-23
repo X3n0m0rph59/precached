@@ -28,6 +28,7 @@ extern crate serde_json;
 
 use clap::{App, AppSettings, Arg, SubCommand};
 use constants;
+use i10n;
 use iotrace;
 use pbr::ProgressBar;
 use prettytable::cell::Cell;
@@ -49,7 +50,7 @@ use {default_table_format, Config, PROGRESS_BAR_INDICATORS};
 
 /// Print help message on how to use this command
 pub fn print_help(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
+    // println!("NOTE: Usage information: precachedctl --help");
 
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
@@ -59,7 +60,7 @@ pub fn print_help(config: &mut Config) {
 
 /// Print usage message on how to use this command
 pub fn print_usage(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
+    // println!("NOTE: Usage information: precachedctl --help");
 
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
@@ -101,7 +102,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
 
             if display_progress {
                 pb.format(PROGRESS_BAR_INDICATORS);
-                pb.message("Examining I/O trace log files: ");
+                pb.message(tr!("precachedctl-examining-files"));
             }
 
             // Print in "tabular" format (the default)
@@ -110,9 +111,9 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
 
             table.add_row(Row::new(vec![
                 Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                Cell::new(&String::from("Executable")),
-                Cell::new(&String::from("Hash")),
-                Cell::new_align(&String::from("Count"), Alignment::RIGHT),
+                Cell::new(&tr!("executable")),
+                Cell::new(&tr!("hash")),
+                Cell::new_align(&tr!("count"), Alignment::RIGHT),
             ]));
 
             let mut index = 0;
@@ -125,7 +126,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
                     Err(_) => {
                         table.add_row(Row::new(vec![
                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
-                            Cell::new(&format!("Missing I/O Trace Log")).with_style(Attr::Italic(true)),
+                            Cell::new(&tr!("precachedctl-missing-io-trace-log")).with_style(Attr::Italic(true)),
                             Cell::new(&hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
                         ]));
@@ -154,7 +155,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
             }
 
             if display_progress {
-                pb.finish_print("done");
+                pb.finish_print(tr!("done"));
             }
 
             table.printstd();
@@ -163,19 +164,20 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
             // a large number of missing I/O trace logs
             if show_all {
                 if errors > 25 {
-                    println!(
-                        "\nHint: Use 'precachedctl plugins hot-applications optimize'\nto remove entries with missing I/O trace logs!\n"
-                    );
+                    println!("\n");
+                    println_tr!("precachedctl-plugins-hot-applications-hint");
                 }
             } else {
                 if errors > 5 {
-                    println!(
-                        "\nHint: Use 'precachedctl plugins hot-applications optimize'\nto remove entries with missing I/O trace logs!\n"
-                    );
+                    println!("\n");
+                    println_tr!("precachedctl-plugins-hot-applications-hint");
                 }
             }
 
-            println!("\n{} histogram entries examined, {} missing I/O trace logs", index, errors);
+            println!("\n");
+            println_tr!("precachedctl-plugins-hot-applications-summary", 
+                        "count" => format!("{}", index),
+                        "errors" => format!("{}", errors));
         }
     }
 }
@@ -206,7 +208,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
             if display_progress {
                 pb.format(PROGRESS_BAR_INDICATORS);
-                pb.message("Examining I/O trace log files: ");
+                pb.message(tr!("precachedctl-examining-files"));
             }
 
             // Print in "tabular" format (the default)
@@ -215,10 +217,10 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
             table.add_row(Row::new(vec![
                 Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                Cell::new(&String::from("Executable")),
-                Cell::new(&String::from("Hash")),
-                Cell::new_align(&String::from("Count"), Alignment::RIGHT),
-                Cell::new(&String::from("Status")),
+                Cell::new(&tr!("executable")),
+                Cell::new(&tr!("hash")),
+                Cell::new_align(&tr!("count"), Alignment::RIGHT),
+                Cell::new(&tr!("status")),
             ]));
 
             let mut index = 0;
@@ -233,10 +235,10 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
                         table.add_row(Row::new(vec![
                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
-                            Cell::new(&format!("Missing I/O Trace Log")).with_style(Attr::Italic(true)),
+                            Cell::new(&tr!("precachedctl-missing-io-trace-log")).with_style(Attr::Italic(true)),
                             Cell::new(&hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
-                            Cell::new(&String::from("Removed"))
+                            Cell::new(&tr!("removed"))
                                 .with_style(Attr::Bold)
                                 .with_style(Attr::ForegroundColor(RED)),
                         ]));
@@ -256,7 +258,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
                             Cell::new(&filename).with_style(Attr::Bold),
                             Cell::new(&iotrace.hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
-                            Cell::new(&String::from("Valid"))
+                            Cell::new(&tr!("valid").to_string())
                                 .with_style(Attr::Bold)
                                 .with_style(Attr::ForegroundColor(GREEN)),
                         ]));
@@ -288,12 +290,15 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
                 Ok(()) => {
                     if display_progress {
-                        pb.finish_print("done");
+                        pb.finish_print(tr!("done"));
                     }
 
                     table.printstd();
 
-                    println!("\n{} histogram entries examined, {} missing I/O trace logs", index, errors);
+                    println!("\n");
+                    println_tr!("precachedctl-plugins-hot-applications-summary", 
+                                "count" => format!("{}", index),
+                                "errors" => format!("{}", errors));
                 }
             }
         }

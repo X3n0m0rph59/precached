@@ -28,6 +28,7 @@ extern crate term;
 
 use chrono::{DateTime, Duration, Utc};
 use constants;
+use i10n;
 use process::Process;
 use std::collections::HashMap;
 use std::hash::Hasher;
@@ -89,11 +90,11 @@ pub enum IOTraceLogEntryFlag {
 
 pub fn map_io_trace_log_entry_flag_to_string(flag: IOTraceLogEntryFlag) -> &'static str {
     match flag {
-        IOTraceLogEntryFlag::Unknown => "Unknown",
-        IOTraceLogEntryFlag::Valid => "Valid",
-        IOTraceLogEntryFlag::Invalid => "Invalid",
-        IOTraceLogEntryFlag::OK => "OK",
-        IOTraceLogEntryFlag::MissingFile => "Missing File",
+        IOTraceLogEntryFlag::Unknown => tr!("unknown"),
+        IOTraceLogEntryFlag::Valid => tr!("valid"),
+        IOTraceLogEntryFlag::Invalid => tr!("invalid"),
+        IOTraceLogEntryFlag::OK => tr!("ok"),
+        IOTraceLogEntryFlag::MissingFile => tr!("missing-file"),
     }
 }
 
@@ -124,14 +125,14 @@ pub enum IOTraceLogFlag {
 
 pub fn map_io_trace_flag_to_string(flag: IOTraceLogFlag) -> &'static str {
     match flag {
-        IOTraceLogFlag::Unknown => "Unknown",
-        IOTraceLogFlag::Valid => "Valid",
-        IOTraceLogFlag::Invalid => "Invalid",
-        IOTraceLogFlag::Fresh => "Fresh",
-        IOTraceLogFlag::Expired => "Expired",
-        IOTraceLogFlag::Current => "Current",
-        IOTraceLogFlag::Outdated => "Binary Newer",
-        IOTraceLogFlag::MissingBinary => "Missing Binary",
+        IOTraceLogFlag::Unknown => tr!("unknown"),
+        IOTraceLogFlag::Valid => tr!("valid"),
+        IOTraceLogFlag::Invalid => tr!("invalid"),
+        IOTraceLogFlag::Fresh => tr!("fresh"),
+        IOTraceLogFlag::Expired => tr!("expired"),
+        IOTraceLogFlag::Current => tr!("current"),
+        IOTraceLogFlag::Outdated => tr!("binary-newer"),
+        IOTraceLogFlag::MissingBinary => tr!("missing-binary"),
     }
 }
 

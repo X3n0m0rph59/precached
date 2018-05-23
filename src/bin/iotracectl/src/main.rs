@@ -24,6 +24,7 @@
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
+extern crate fluent;
 extern crate rayon;
 #[macro_use]
 extern crate lazy_static;
@@ -59,6 +60,8 @@ use std::str::FromStr;
 use term::color::*;
 use term::Attr;
 
+#[macro_use]
+mod i10n;
 mod clap_app;
 mod constants;
 mod iotrace;
@@ -98,13 +101,8 @@ impl<'a, 'b> Config<'a, 'b> {
 
 /// Print a license header to the console
 fn print_license_header() {
-    println!(
-        "precached Copyright (C) 2017-2018 the precached team
-This program comes with ABSOLUTELY NO WARRANTY;
-This is free software, and you are welcome to redistribute it
-under certain conditions.
-"
-    );
+    println_tr!("license-text");
+    println!("\n");
 }
 
 /// Return a formatted `String` containing date and time of `date`
@@ -182,31 +180,31 @@ fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::I
 
             let value = flags.to_lowercase();
 
-            if result.contains(&IOTraceLogFlag::Valid) && value == "valid" {
+            if result.contains(&IOTraceLogFlag::Valid) && value == tr!("filter-valid") {
                 return true;
             }
 
-            if result.contains(&IOTraceLogFlag::Invalid) && value == "invalid" {
+            if result.contains(&IOTraceLogFlag::Invalid) && value == tr!("filter-invalid") {
                 return true;
             }
 
-            if result.contains(&IOTraceLogFlag::Fresh) && value == "fresh" {
+            if result.contains(&IOTraceLogFlag::Fresh) && value == tr!("filter-fresh") {
                 return true;
             }
 
-            if result.contains(&IOTraceLogFlag::Expired) && value == "expired" {
+            if result.contains(&IOTraceLogFlag::Expired) && value == tr!("filter-expired") {
                 return true;
             }
 
-            if result.contains(&IOTraceLogFlag::Current) && value == "current" {
+            if result.contains(&IOTraceLogFlag::Current) && value == tr!("filter-current") {
                 return true;
             }
 
-            if result.contains(&IOTraceLogFlag::Outdated) && value == "outdated" {
+            if result.contains(&IOTraceLogFlag::Outdated) && value == tr!("filter-outdated") {
                 return true;
             }
 
-            if result.contains(&IOTraceLogFlag::MissingBinary) && value == "missing" {
+            if result.contains(&IOTraceLogFlag::MissingBinary) && value == tr!("filter-missing") {
                 return true;
             }
 
@@ -241,37 +239,35 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
 
     if matches.is_present("full") {
         // Print in "full" format
-        println!(
-            "I/O Trace Log:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\nTrace End Date:\t{}\n\
-             Compression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\nI/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
-            filename,
-            io_trace.exe,
-            io_trace.comm,
-            io_trace.cmdline,
-            io_trace.hash,
-            format_date(io_trace.created_at),
-            format_date(io_trace.trace_stopped_at),
-            io_trace.file_map.len(),
-            io_trace.trace_log.len(),
-            format!("{} KiB", io_trace.accumulated_size / 1024),
-            io_trace.trace_log_optimized,
-            flags
+        println_tr!("iotracectl-iotrace-info-full",
+            "filename" => format!("{}", filename.to_string_lossy()),
+            "executable" => format!("{}", io_trace.exe.to_string_lossy()),
+            "command" => format!("{}", io_trace.comm),
+            "commandline" => format!("{}", io_trace.cmdline),
+            "hash" => format!("{}", io_trace.hash),
+            "creationdate" => format_date(io_trace.created_at),
+            "enddate" => format_date(io_trace.trace_stopped_at),
+            "numfiles" => format!("{}", io_trace.file_map.len()),
+            "numioops" => format!("{}", io_trace.trace_log.len()),
+            "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
+            "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
+            "flags" => format!("{:?}", flags)
         );
+        println!("");
     } else if matches.is_present("short") {
         // Print in "short" format
-        println!(
-            "Executable:\t{:?}\nCreation Date:\t{}\nTrace End Date:\t{}\nNum I/O Ops:\t{}\n\
-             I/O Size:\t{}\nFlags:\t\t{:?}\n\n",
-            io_trace.exe,
-            format_date(io_trace.created_at),
-            format_date(io_trace.trace_stopped_at),
-            io_trace.trace_log.len(),
-            format!("{} KiB", io_trace.accumulated_size / 1024),
-            flags
+        println_tr!("iotracectl-iotrace-info-short",
+            "executable" => format!("{}", io_trace.exe.to_string_lossy()),
+            "creationdate" => format_date(io_trace.created_at),
+            "enddate" => format_date(io_trace.trace_stopped_at),
+            "numioops" => format!("{}", io_trace.trace_log.len()),
+            "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
+            "flags" => format!("{:?}", flags)
         );
+        println!("");
     } else if matches.is_present("terse") {
         // Print in "terse" format
-        println!("{:?}", io_trace.exe);
+        println!("{}", io_trace.exe.to_string_lossy());
     } else
     /*if matches.is_present("tabular")*/
     {
@@ -304,7 +300,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             Cell::new_align(&format!("{}", io_trace.file_map.len()), Alignment::RIGHT),
             Cell::new_align(&format!("{}", io_trace.trace_log.len()), Alignment::RIGHT),
             Cell::new_align(&format!("{} KiB", io_trace.accumulated_size / 1024), Alignment::RIGHT),
-            Cell::new(&format!("{}", io_trace.trace_log_optimized))
+            Cell::new(tr!(&format!("{}", io_trace.trace_log_optimized)))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(map_bool_to_color(io_trace.trace_log_optimized))),
             Cell::new(&format!("{}", flags))
@@ -335,13 +331,13 @@ fn print_io_trace_msg(message: &str, index: usize, config: &Config, table: &mut 
             Cell::new(&message)
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(RED)),
-            Cell::new(&"n/a"),
-            Cell::new(&"n/a"),
-            Cell::new(&"n/a"),
-            Cell::new(&"n/a"),
-            Cell::new(&"n/a"),
-            Cell::new(&"n/a"),
-            Cell::new(&"n/a"),
+            Cell::new(&tr!("na")),
+            Cell::new(&tr!("na")),
+            Cell::new(&tr!("na")),
+            Cell::new(&tr!("na")),
+            Cell::new(&tr!("na")),
+            Cell::new(&tr!("na")),
+            Cell::new(&tr!("na")),
         ]));
     }
 }
@@ -370,45 +366,45 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
 
     // Add table row header
     table.add_row(Row::new(vec![
-        Cell::new("Module"),
-        Cell::new("Description"),
-        Cell::new("Type"),
-        Cell::new("Enabled"),
+        Cell::new(tr!("module")),
+        Cell::new(tr!("description")),
+        Cell::new(tr!("type")),
+        Cell::new(tr!("enabled")),
     ]));
 
     // Print in "tabular" format (the default)
     table.add_row(Row::new(vec![
-        Cell::new(&"ftrace based I/O Trace Logger").with_style(Attr::Bold),
-        Cell::new(&"Trace processes using ftrace and log their filesystem activity").with_style(Attr::Italic(true)),
-        Cell::new(&"Hook"),
-        Cell::new(&format!("{}", ftrace_logger_enabled))
+        Cell::new(&tr!("iotracectl-ftrace-trace-logger")).with_style(Attr::Bold),
+        Cell::new(&tr!("iotracectl-ftrace-trace-logger-desc")).with_style(Attr::Italic(true)),
+        Cell::new(&tr!("iotracectl-type-1")),
+        Cell::new(&tr!(&format!("{}", ftrace_logger_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(ftrace_logger_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&"I/O Trace Prefetcher").with_style(Attr::Bold),
-        Cell::new(&"Replay file operations previously recorded by an I/O tracer").with_style(Attr::Italic(true)),
-        Cell::new(&"Hook"),
-        Cell::new(&format!("{}", iotrace_prefetcher_enabled))
+        Cell::new(&tr!("iotracectl-prefetcher")).with_style(Attr::Bold),
+        Cell::new(&tr!("iotracectl-replay")).with_style(Attr::Italic(true)),
+        Cell::new(&tr!("iotracectl-hook")),
+        Cell::new(&tr!(&format!("{}", iotrace_prefetcher_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(iotrace_prefetcher_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&"I/O Trace Log Manager").with_style(Attr::Bold),
-        Cell::new(&"Manage I/O trace log files").with_style(Attr::Italic(true)),
-        Cell::new(&"Plugin"),
-        Cell::new(&format!("{}", iotrace_log_manager_enabled))
+        Cell::new(&tr!("iotracectl-trace-log-manager")).with_style(Attr::Bold),
+        Cell::new(&tr!("iotracectl-manage-trace-logs")).with_style(Attr::Italic(true)),
+        Cell::new(&tr!("iotracectl-plugin")),
+        Cell::new(&tr!(&format!("{}", iotrace_log_manager_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(iotrace_log_manager_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&"I/O Trace Log Cache").with_style(Attr::Bold),
-        Cell::new(&"Cache and mlock() I/O trace log files").with_style(Attr::Italic(true)),
-        Cell::new(&"Plugin"),
-        Cell::new(&format!("{}", iotrace_log_cache_enabled))
+        Cell::new(&tr!("iotracectl-trace-log-cache")).with_style(Attr::Bold),
+        Cell::new(&tr!("iotracectl-cache-lock")).with_style(Attr::Italic(true)),
+        Cell::new(&tr!("iotracectl-plugin")),
+        Cell::new(&tr!(&format!("{}", iotrace_log_cache_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(iotrace_log_cache_enabled))),
     ]));
@@ -438,15 +434,22 @@ fn parse_sort_field(matches: &clap::ArgMatches) -> SortField {
     match matches.value_of("sort") {
         None => SortField::None,
 
-        Some(field) => match field {
-            "executable" => SortField::Executable,
-            "hash" => SortField::Hash,
-            "date" => SortField::Date,
-            "numfiles" => SortField::Numfiles,
-            "numioops" => SortField::Numioops,
-            "iosize" => SortField::Iosize,
-            "optimized" => SortField::Optimized,
-            &_ => SortField::None,
+        Some(field) => if field == tr!("sort-executable") {
+            SortField::Executable
+        } else if field == tr!("sort-hash") {
+            SortField::Hash
+        } else if field == tr!("sort-date") {
+            SortField::Date
+        } else if field == tr!("sort-numfiles") {
+            SortField::Numfiles
+        } else if field == tr!("sort-numioops") {
+            SortField::Numioops
+        } else if field == tr!("sort-iosize") {
+            SortField::Iosize
+        } else if field == tr!("sort-optimized") {
+            SortField::Optimized
+        } else {
+            SortField::None
         },
     }
 }
@@ -455,10 +458,16 @@ fn parse_sort_order(matches: &clap::ArgMatches) -> SortOrder {
     match matches.value_of("order") {
         None => SortOrder::Ascending,
 
-        Some(order) => match order {
-            "asc" | "ascending" => SortOrder::Ascending,
-            "desc" | "descending" => SortOrder::Descending,
-            &_ => SortOrder::Ascending,
+        Some(order) => if order == tr!("sort-asc") {
+            SortOrder::Ascending
+        } else if order == tr!("sort-ascending") {
+            SortOrder::Ascending
+        } else if order == tr!("sort-desc") {
+            SortOrder::Descending
+        } else if order == tr!("sort-descending") {
+            SortOrder::Descending
+        } else {
+            SortOrder::Ascending
         },
     }
 }
@@ -479,7 +488,7 @@ where
     T: std::io::Write,
 {
     if display_progress {
-        pb.message("Examining I/O trace log files: ");
+        pb.message(tr!("iotracectl-examining-files"));
     }
 
     let mut result = vec![];
@@ -521,7 +530,7 @@ where
 
     // Sort result data set
     if display_progress {
-        pb.message("Sorting data set: ");
+        pb.message(tr!("iotracectl-sorting-dataset"));
     }
 
     match sort_field {
@@ -633,16 +642,16 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     // Add table row header
     table.add_row(Row::new(vec![
         Cell::new("#"),
-        Cell::new("Executable"),
-        Cell::new("Hash"),
-        Cell::new("Creation Date"),
-        // Cell::new("Trace End Date"),
-        // Cell::new("Compression"),
-        Cell::new("# Files"),
-        Cell::new("# I/O Ops"),
-        Cell::new("I/O Size"),
-        Cell::new("Optimized"),
-        Cell::new("Flags"),
+        Cell::new(tr!("iotracectl-executable")),
+        Cell::new(tr!("iotracectl-hash")),
+        Cell::new(tr!("iotracectl-creation-date")),
+        // Cell::new(tr!("Trace End Date")),
+        // Cell::new(tr!("Compression")),
+        Cell::new(tr!("iotracectl-num-files")),
+        Cell::new(tr!("iotracectl-num-ioops")),
+        Cell::new(tr!("iotracectl-iosize")),
+        Cell::new(tr!("iotracectl-optimized")),
+        Cell::new(tr!("iotracectl-flags")),
     ]));
 
     let mut index = 0;
@@ -656,20 +665,22 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     }
 
     if total < 1 {
-        println!("No I/O trace logs available");
+        println_tr!("iotracectl-no-traces");
     } else if index < 1 {
-        println!("No I/O trace log matched the filter parameter(s)");
+        println_tr!("iotracectl-no-matches");
     } else {
         if table.len() > 1 {
             // Print the generated table to stdout
             table.printstd();
         } else if matching < 1 {
-            println!("No I/O trace log matched the filter parameter(s)");
+            println_tr!("iotracectl-no-matches");
         }
 
-        println!(
-            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
-            total, matching, errors
+        println!("");
+        println_tr!("iotracectl-summary-1",
+            "total" => format!("{}", total),
+            "matching" => format!("{}", matching),
+            "errors" => format!("{}", errors)
         );
     }
 }
@@ -679,22 +690,19 @@ fn print_io_trace_info(filename: &Path, io_trace: &iotrace::IOTraceLog, _index: 
 
     // TODO: Support other formats here
     // Print in "full" format
-    println!(
-        "I/O Trace Log:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
-         Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-         I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
-        filename,
-        io_trace.exe,
-        io_trace.comm,
-        io_trace.cmdline,
-        io_trace.hash,
-        format_date(io_trace.created_at),
-        format_date(io_trace.trace_stopped_at),
-        io_trace.file_map.len(),
-        io_trace.trace_log.len(),
-        format!("{} KiB", io_trace.accumulated_size / 1024),
-        io_trace.trace_log_optimized,
-        flags.0
+    println_tr!("iotracectl-iotrace-info-full",
+        "filename" => format!("{}", filename.to_string_lossy()),
+        "executable" => format!("{}", io_trace.exe.to_string_lossy()),
+        "command" => format!("{}", io_trace.comm),
+        "commandline" => format!("{}", io_trace.cmdline),
+        "hash" => format!("{}", io_trace.hash),
+        "creationdate" => format_date(io_trace.created_at),
+        "enddate" => format_date(io_trace.trace_stopped_at),
+        "numfiles" => format!("{}", io_trace.file_map.len()),
+        "numioops" => format!("{}", io_trace.trace_log.len()),
+        "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
+        "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
+        "flags" => format!("{:?}", flags.0)
     );
 }
 
@@ -742,17 +750,19 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
     }
 
     if total < 1 {
-        println!("No I/O trace logs available");
+        println_tr!("iotracectl-no-traces");
     } else if index < 1 {
-        println!("No I/O trace log matched the filter parameter(s)");
+        println_tr!("iotracectl-no-matches");
     } else {
         if matching < 1 {
-            println!("No I/O trace log matched the filter parameter(s)");
+            println_tr!("iotracectl-no-matches");
         }
 
-        println!(
-            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
-            total, matching, errors
+        println!("");
+        println_tr!("iotracectl-summary-1",
+            "total" => format!("{}", total),
+            "matching" => format!("{}", matching),
+            "errors" => format!("{}", errors)
         );
     }
 }
@@ -784,22 +794,19 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             let flags = get_io_trace_flags(&io_trace);
 
             // Print in "full" format
-            println!(
-                "I/O Trace Log:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
-                 Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-                 I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
-                filename,
-                io_trace.exe,
-                io_trace.comm,
-                io_trace.cmdline,
-                io_trace.hash,
-                format_date(io_trace.created_at),
-                format_date(io_trace.trace_stopped_at),
-                io_trace.file_map.len(),
-                io_trace.trace_log.len(),
-                format!("{} KiB", io_trace.accumulated_size / 1024),
-                io_trace.trace_log_optimized,
-                flags.0
+            println_tr!("iotracectl-iotrace-info-full",
+                "filename" => format!("{}", filename.to_string_lossy()),
+                "executable" => format!("{}", io_trace.exe.to_string_lossy()),
+                "command" => format!("{}", io_trace.comm),
+                "commandline" => format!("{}", io_trace.cmdline),
+                "hash" => format!("{}", io_trace.hash),
+                "creationdate" => format_date(io_trace.created_at),
+                "enddate" => format_date(io_trace.trace_stopped_at),
+                "numfiles" => format!("{}", io_trace.file_map.len()),
+                "numioops" => format!("{}", io_trace.trace_log.len()),
+                "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
+                "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
+                "flags" => format!("{:?}", flags.0)
             );
 
             matching += 1;
@@ -813,9 +820,9 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             // Add table row header
             table.add_row(Row::new(vec![
                 Cell::new("#"),
-                Cell::new("Timestamp"),
-                Cell::new("I/O Operation"),
-                Cell::new("I/O Size"),
+                Cell::new(tr!("timestamp")),
+                Cell::new(tr!("io-ops")),
+                Cell::new(tr!("io-size")),
             ]));
 
             for e in io_trace.trace_log.iter() {
@@ -841,9 +848,10 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     index += 1;
 
-    println!(
-        "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
-        index, matching, errors
+    println_tr!("iotracectl-summary-1",
+        "total" => format!("{}", index),
+        "matching" => format!("{}", matching),
+        "errors" => format!("{}", errors)
     );
 }
 
@@ -899,22 +907,19 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             let flags = get_io_trace_flags(&io_trace);
 
             // Print in "full" format
-            println!(
-                "I/O Trace Log:\t{:?}\nExecutable:\t{:?}\nCommand:\t{}\nCommandline:\t{}\nHash:\t\t{}\nCreation Date:\t{}\n\
-                 Trace End Date:\t{}\nCompression:\tZstd\nNum Files:\t{}\nNum I/O Ops:\t{}\n\
-                 I/O Size:\t{}\nOptimized:\t{}\nFlags:\t\t{:?}\n\n",
-                filename,
-                io_trace.exe,
-                io_trace.comm,
-                io_trace.cmdline,
-                io_trace.hash,
-                format_date(io_trace.created_at),
-                format_date(io_trace.trace_stopped_at),
-                io_trace.file_map.len(),
-                io_trace.trace_log.len(),
-                format!("{} KiB", io_trace.accumulated_size / 1024),
-                io_trace.trace_log_optimized,
-                flags.0
+            println_tr!("iotracectl-iotrace-info-full",
+                "filename" => format!("{}", filename.to_string_lossy()),
+                "executable" => format!("{}", io_trace.exe.to_string_lossy()),
+                "command" => format!("{}", io_trace.comm),
+                "commandline" => format!("{}", io_trace.cmdline),
+                "hash" => format!("{}", io_trace.hash),
+                "creationdate" => format_date(io_trace.created_at),
+                "enddate" => format_date(io_trace.trace_stopped_at),
+                "numfiles" => format!("{}", io_trace.file_map.len()),
+                "numioops" => format!("{}", io_trace.trace_log.len()),
+                "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
+                "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
+                "flags" => format!("{:?}", flags.0)
             );
 
             matching += 1;
@@ -928,10 +933,10 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             // Add table row header
             table.add_row(Row::new(vec![
                 Cell::new("#"),
-                Cell::new("Timestamp"),
-                Cell::new("I/O Operation"),
-                Cell::new("I/O Size"),
-                Cell::new("Flags"),
+                Cell::new(tr!("timestamp")),
+                Cell::new(tr!("io-ops")),
+                Cell::new(tr!("io-size")),
+                Cell::new(tr!("flags")),
             ]));
 
             for e in io_trace.trace_log.iter() {
@@ -967,9 +972,10 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     index += 1;
 
-    println!(
-        "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
-        index, matching, errors
+    println_tr!("iotracectl-summary-1",
+        "total" => format!("{}", index),
+        "matching" => format!("{}", matching),
+        "errors" => format!("{}", errors)
     );
 }
 
@@ -1011,10 +1017,10 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
 
     // Add table row header
     table.add_row(Row::new(vec![
-        Cell::new("RSS (VM) Size"),
-        Cell::new("# Unique Files"),
-        Cell::new("Accum. I/O Size"),
-        Cell::new("# Accum. I/O Ops"),
+        Cell::new(tr!("rss-size")),
+        Cell::new(tr!("uniq-files")),
+        Cell::new(tr!("accum-io-size")),
+        Cell::new(tr!("accum-io-ops")),
     ]));
 
     let mut index = 0;
@@ -1059,13 +1065,13 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
             .with_style(Attr::ForegroundColor(GREEN)),
         Cell::new_align(&format!("{} files", files_histogram.len()), Alignment::RIGHT).with_style(Attr::Bold),
         Cell::new_align(&format!("{} KiB", acc_io_size / 1024), Alignment::RIGHT),
-        Cell::new_align(&format!("{} ops", acc_ioops), Alignment::RIGHT),
+        Cell::new_align(&format!("{} Ops", acc_ioops), Alignment::RIGHT),
     ]));
 
     if total < 1 {
-        println!("No I/O trace logs available");
+        println_tr!("iotracectl-no-traces");
     } else if index < 1 {
-        println!("No I/O trace log matched the filter parameter(s)");
+        println_tr!("iotracectl-no-matches");
     } else {
         if table.len() > 1 {
             // Print the generated table to stdout
@@ -1079,9 +1085,9 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
 
                 // Add table row header
                 table.add_row(Row::new(vec![
-                    Cell::new("File"),
-                    Cell::new("RSS (VM) Size"),
-                    Cell::new("# References"),
+                    Cell::new(tr!("file")),
+                    Cell::new(tr!("rss-size")),
+                    Cell::new(tr!("num-references")),
                 ]));
 
                 // sort by num references (desc)
@@ -1100,12 +1106,13 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
                 table.printstd();
             }
         } else if matching < 1 {
-            println!("No I/O trace log matched the filter parameter(s)");
+            println_tr!("iotracectl-no-matches");
         }
 
-        println!(
-            "\nSummary: {} I/O trace log files processed, {} matching filter, {} errors occurred",
-            total, matching, errors
+        println_tr!("iotracectl-summary-1",
+            "total" => format!("{}", total),
+            "matching" => format!("{}", matching),
+            "errors" => format!("{}", errors)
         );
     }
 }
@@ -1153,7 +1160,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     if display_progress {
         pb.format(PROGRESS_BAR_INDICATORS);
-        pb.message("Optimizing I/O trace log files: ");
+        pb.message(tr!("iotracectl-optimizing-trace-logs"));
     }
 
     let dry_run = config.matches.subcommand_matches("optimize").unwrap().is_present("dryrun");
@@ -1164,8 +1171,8 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     // Add table row header
     table.add_row(Row::new(vec![
         Cell::new("#"),
-        Cell::new("I/O Trace Log"),
-        Cell::new("Status"),
+        Cell::new(tr!("iotracectl-io-trace-log")),
+        Cell::new(tr!("iotracectl-status")),
     ]));
 
     let mut index = 0;
@@ -1178,7 +1185,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&"failed (permission problem?)")
+                    Cell::new(&tr!("iotracectl-failed"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(RED)),
                 ]));
@@ -1191,7 +1198,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&"optimized")
+                    Cell::new(&tr!("iotracectl-optimized"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN)),
                 ]));
@@ -1215,18 +1222,20 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         table.printstd();
 
         if dry_run {
-            println!(
-                "\nSummary: {} I/O trace log files processed, {} trace files would have been optimized, {} errors occurred",
-                total, matching, errors
+            println_tr!("iotracectl-summary-2",
+                "total" => format!("{}", total),
+                "matching" => format!("{}", matching),
+                "errors" => format!("{}", errors)
             );
         } else {
-            println!(
-                "\nSummary: {} I/O trace log files processed, {} optimized, {} errors occurred",
-                total, matching, errors
+            println_tr!("iotracectl-summary-4",
+                "total" => format!("{}", total),
+                "matching" => format!("{}", matching),
+                "errors" => format!("{}", errors)
             );
         }
     } else {
-        println!("No I/O trace matched the filter parameter(s)");
+        println_tr!("iotracectl-no-matches");
     }
 }
 
@@ -1263,7 +1272,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     if display_progress {
         pb.format(PROGRESS_BAR_INDICATORS);
-        pb.message("Removing I/O trace log files: ");
+        pb.message(tr!("iotracectl-removing-trace-logs"));
     }
 
     let dry_run = config.matches.subcommand_matches("remove").unwrap().is_present("dryrun");
@@ -1274,8 +1283,8 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     // Add table row header
     table.add_row(Row::new(vec![
         Cell::new("#"),
-        Cell::new("I/O Trace Log"),
-        Cell::new("Status"),
+        Cell::new(tr!("iotracectl-io-trace-log")),
+        Cell::new(tr!("iotracectl-status")),
     ]));
 
     let mut index = 0;
@@ -1288,7 +1297,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&"error (permission problem?)")
+                    Cell::new(&tr!("iotracectl-error"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(RED)),
                 ]));
@@ -1301,7 +1310,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&"removed")
+                    Cell::new(&tr!("removed"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN)),
                 ]));
@@ -1322,23 +1331,27 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     // pb.finish_println("\n");
 
     if total < 1 {
-        println!("No I/O trace logs available");
+        println_tr!("iotracectl-no-traces");
     } else if table.len() > 1 {
         table.printstd();
 
         if dry_run {
-            println!(
-                "\nSummary: {} I/O trace log files processed, {} trace files would have been removed, {} errors occurred",
-                total, matching, errors
+            println!("");
+            println_tr!("iotracectl-summary-3",
+                "total" => format!("{}", total),
+                "matching" => format!("{}", matching),
+                "errors" => format!("{}", errors)
             );
         } else {
-            println!(
-                "\nSummary: {} I/O trace log files processed, {} removed, {} errors occurred",
-                total, matching, errors
+            println!("");
+            println_tr!("iotracectl-summary-2",
+                "total" => format!("{}", total),
+                "matching" => format!("{}", matching),
+                "errors" => format!("{}", errors)
             );
         }
     } else {
-        println!("No I/O trace log matched the filter parameter(s)");
+        println_tr!("iotracectl-no-matches");
     }
 }
 
@@ -1363,8 +1376,8 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     // Add table row header
     table.add_row(Row::new(vec![
         Cell::new("#"),
-        Cell::new("I/O Trace Log"),
-        Cell::new("Status"),
+        Cell::new(&tr!("iotracectl-io-trace-log")),
+        Cell::new(&tr!("status")),
     ]));
 
     match util::walk_directories(&vec![traces_path], &mut |path| {
@@ -1376,7 +1389,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&path.to_string_lossy()).with_style(Attr::Bold),
-                    Cell::new(&"error")
+                    Cell::new(&tr!("error"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(RED)),
                 ]));
@@ -1387,7 +1400,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&path.to_string_lossy()).with_style(Attr::Bold),
-                    Cell::new(&"removed")
+                    Cell::new(&tr!("removed"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN)),
                 ]));
@@ -1402,7 +1415,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     }
 
     if index < 1 {
-        println!("There are currently no I/O trace logs available to remove");
+        println_tr!("iotracectl-no-traces");
     } else {
         if table.len() > 1 {
             // Print the generated table to stdout
@@ -1410,14 +1423,18 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         }
 
         if dry_run {
-            println!(
-                "\nSummary: {} I/O trace log files processed, {} would have been removed, {} errors occurred",
-                index, matching, errors
+            println!("");
+            println_tr!("iotracectl-summary-3",
+                "total" => format!("{}", index),
+                "matching" => format!("{}", matching),
+                "errors" => format!("{}", errors)
             );
         } else {
-            println!(
-                "\nSummary: {} I/O trace log files processed, {} removed, {} errors occurred",
-                index, matching, errors
+            println!("");
+            println_tr!("iotracectl-summary-2",
+                "total" => format!("{}", index),
+                "matching" => format!("{}", matching),
+                "errors" => format!("{}", errors)
             );
         }
     }

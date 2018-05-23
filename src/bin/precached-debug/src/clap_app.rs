@@ -22,6 +22,7 @@ extern crate clap;
 
 use self::clap::{App, AppSettings, Arg, SubCommand};
 use constants;
+use i10n;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b>
 where
@@ -30,27 +31,27 @@ where
     App::new("precached-debug")
         .version("1.2.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
-        .about("A debugging aide for precached")
+        .about(tr!("precached-debug-about"))
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
         .arg(
             Arg::with_name("ascii")
                 .short("a")
                 .long("ascii")
-                .help("Produce ASCII output (default) instead of using Unicode for line drawing"),
+                .help(tr!("precached-debug-produce-ascii")),
         )
         .arg(
             Arg::with_name("unicode")
                 .short("u")
                 .long("unicode")
-                .help("Produce Unicode output instead of using ASCII (default) for line drawing"),
+                .help(tr!("precached-debug-produce-unicode")),
         )
         .arg(
             Arg::with_name("config")
                 .short("c")
                 .long("config")
                 .value_name("file")
-                .help("The precached config file to use")
+                .help(tr!("precached-debug-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
         )
@@ -58,51 +59,51 @@ where
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
-                .help("Sets the level of output verbosity"),
+                .help(tr!("precached-debug-output-verbosity")),
         )
         .subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Show the current status of the precached daemon")
+                .about(tr!("precached-debug-status"))
                 .arg(Arg::with_name("tabular")
                             .long("tabular")
                             // .short("t")
                             // .conflicts_with("full")
                             // .conflicts_with("short")
                             // .conflicts_with("terse")
-                            .help("Use 'tabular' display format")),
+                            .help(tr!("precached-debug-tabular"))),
         )
         .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Display this short help text"),
+                .about(tr!("precached-debug-help")),
         )
         .subcommand(
             SubCommand::with_name("test-tracing")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Test the I/O tracing subsystem of precached")
+                .about(tr!("precached-debug-test-tracing"))
                 .arg(
                     Arg::with_name("sleep")
                             .long("sleep")
                             .short("s")
                             // .conflicts_with("...")
-                            .help("Sleep after touching each file"),
+                            .help(tr!("precached-debug-test-tracing-help")),
                 ),
         )
         .subcommand(
             SubCommand::with_name("cleanup")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Cleanup all files created during testing"),
+                .about(tr!("precached-debug-cleanup")),
         )
         .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
-                .about("Generates completion scripts for your shell")
+                .about(tr!("precached-debug-completions"))
                 .arg(
                     Arg::with_name("SHELL")
                         .required(true)
                         .possible_values(&["bash", "fish", "zsh", "powershell"])
-                        .help("The shell to generate the script for"),
+                        .help(tr!("precached-debug-completions-shell")),
                 ),
         )
 }

@@ -28,6 +28,7 @@ extern crate rayon;
 use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{App, AppSettings, Arg, SubCommand};
 use constants;
+use i10n;
 use iotrace;
 use ipc;
 use pbr::ProgressBar;
@@ -92,7 +93,7 @@ where
 {
     match o {
         Some(data) => format!("{}", data),
-        None => "Not available".to_string(),
+        None => tr!("precachedctl-plugins-analyze-na").to_string(),
     }
 }
 
@@ -102,14 +103,14 @@ where
 {
     match o {
         Some(data) => format!("{:#?}", data),
-        None => "Not available".to_string(),
+        None => tr!("precachedctl-plugins-analyze-na").to_string(),
     }
 }
 
 fn fmt_option_datetime(o: Option<DateTime<Utc>>) -> String {
     match o {
         Some(data) => data.to_rfc2822(),
-        None => "Not available".to_string(),
+        None => tr!("precachedctl-plugins-analyze-na").to_string(),
     }
 }
 
@@ -118,30 +119,30 @@ where
     T: Display + PartialOrd,
 {
     match r {
-        None => Cell::new(&String::from("Valid"))
+        None => Cell::new(&tr!("valid"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(GREEN)),
 
         Some(range) => match o {
-            None => Cell::new(&String::from("Missing"))
+            None => Cell::new(&tr!("missing"))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(YELLOW)),
 
             Some(ref val) => {
                 if range.err_range.contains_val(val) {
-                    Cell::new(&String::from("Error"))
+                    Cell::new(&tr!("error").to_string())
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(RED))
                 } else if range.warn_range.contains_val(val) {
-                    Cell::new(&String::from("Warn"))
+                    Cell::new(&tr!("warn").to_string())
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW))
                 } else if range.valid_range.contains_val(val) {
-                    Cell::new(&String::from("Valid"))
+                    Cell::new(&tr!("valid").to_string())
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN))
                 } else {
-                    Cell::new(&String::from("Out of Range"))
+                    Cell::new(&tr!("out-of-range").to_string())
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW))
                 }
@@ -152,28 +153,28 @@ where
 
 fn fmt_cell_bool(o: Option<bool>, r: Option<bool>) -> Cell {
     match r {
-        None => Cell::new(&String::from("Valid"))
+        None => Cell::new(&tr!("valid").to_string())
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(GREEN)),
 
         Some(range) => {
             if range {
                 match o {
-                    None => Cell::new(&String::from("Missing"))
+                    None => Cell::new(&tr!("missing"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW)),
 
-                    Some(_) => Cell::new(&String::from("Warn"))
+                    Some(_) => Cell::new(&tr!("warn"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW)),
                 }
             } else {
                 match o {
-                    None => Cell::new(&String::from("Missing"))
+                    None => Cell::new(&tr!("missing"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW)),
 
-                    Some(_) => Cell::new(&String::from("Valid"))
+                    Some(_) => Cell::new(&tr!("valid"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN)),
                 }
@@ -183,7 +184,7 @@ fn fmt_cell_bool(o: Option<bool>, r: Option<bool>) -> Cell {
 }
 
 fn fmt_cell_datetime(_o: Option<DateTime<Utc>>) -> Cell {
-    Cell::new(&String::from("Valid"))
+    Cell::new(&tr!("valid"))
         .with_style(Attr::Bold)
         .with_style(Attr::ForegroundColor(GREEN))
 }
@@ -193,19 +194,19 @@ where
     T: PartialOrd + PartialEq,
 {
     if r.is_none() {
-        Cell::new(&String::from("Out of Range"))
+        Cell::new(&tr!("out-of-range"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(YELLOW))
     } else if o.is_none() {
-        Cell::new(&String::from("Missing"))
+        Cell::new(&tr!("missing"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(YELLOW))
     } else if o.unwrap() >= r.unwrap() {
-        Cell::new(&String::from("Valid"))
+        Cell::new(&tr!("valid"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(GREEN))
     } else {
-        Cell::new(&String::from("Warn"))
+        Cell::new(&tr!("warn"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(YELLOW))
     }
@@ -234,9 +235,9 @@ pub fn display_internal_state(config: &Config, _daemon_config: util::ConfigFile)
 
                                     table.add_row(Row::new(vec![
                                         Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                                        Cell::new(&String::from("Key")),
-                                        Cell::new(&String::from("Value")),
-                                        Cell::new(&String::from("Status")),
+                                        Cell::new(&tr!("key")),
+                                        Cell::new(&tr!("value")),
+                                        Cell::new(&tr!("status")),
                                     ]));
 
                                     let field_defs = vec![
@@ -387,9 +388,9 @@ pub fn display_global_stats(config: &Config, _daemon_config: util::ConfigFile) {
 
                                     table.add_row(Row::new(vec![
                                         Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                                        Cell::new(&String::from("Key")),
-                                        Cell::new(&String::from("Value")),
-                                        Cell::new(&String::from("Status")),
+                                        Cell::new(&tr!("key")),
+                                        Cell::new(&tr!("value")),
+                                        Cell::new(&tr!("status")),
                                     ]));
 
                                     let field_defs = vec![(
@@ -436,7 +437,7 @@ pub fn display_global_stats(config: &Config, _daemon_config: util::ConfigFile) {
 
 /// Print help message on how to use this command
 pub fn print_help(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
+    // println!("NOTE: Usage information: precachedctl --help");
 
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
@@ -446,7 +447,7 @@ pub fn print_help(config: &mut Config) {
 
 /// Print usage message on how to use this command
 pub fn print_usage(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
+    // println!("NOTE: Usage information: precachedctl --help");
 
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();

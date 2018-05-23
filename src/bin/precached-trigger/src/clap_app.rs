@@ -22,6 +22,7 @@ extern crate clap;
 
 use self::clap::{App, AppSettings, Arg, SubCommand};
 use constants;
+use i10n;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b>
 where
@@ -30,27 +31,27 @@ where
     App::new("precached-trigger")
         .version("1.2.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
-        .about("Trigger certain actions in precached")
+        .about(tr!("precached-trigger-about"))
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
         .arg(
             Arg::with_name("ascii")
                 .short("a")
                 .long("ascii")
-                .help("Produce ASCII output (default) instead of using Unicode for line drawing"),
+                .help(tr!("precached-trigger-produce-ascii")),
         )
         .arg(
             Arg::with_name("unicode")
                 .short("u")
                 .long("unicode")
-                .help("Produce Unicode output instead of using ASCII (default) for line drawing"),
+                .help(tr!("precached-trigger-produce-unicode")),
         )
         .arg(
             Arg::with_name("config")
                 .short("c")
                 .long("config")
                 .value_name("file")
-                .help("The precached config file to use")
+                .help(tr!("precached-trigger-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
         )
@@ -58,39 +59,41 @@ where
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
-                .help("Sets the level of output verbosity"),
+                .help(tr!("precached-trigger-output-verbosity")),
         )
         .subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Show the current status of the precached daemon")
-                .arg(Arg::with_name("tabular")
+                .about(tr!("precached-trigger-status"))
+                .arg(
+                    Arg::with_name("tabular")
                             .long("tabular")
                             // .short("t")
                             // .conflicts_with("full")
                             // .conflicts_with("short")
                             // .conflicts_with("terse")
-                            .help("Use 'tabular' display format")),
+                            .help(tr!("precached-trigger-tabular")),
+                ),
         )
         .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Display this short help text"),
+                .about(tr!("precached-trigger-help")),
         )
         .subcommand(
             SubCommand::with_name("transition-profile")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Tell precached to transition to the next profile"),
+                .about(tr!("precached-trigger-transition-profile")),
         )
         .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
-                .about("Generates completion scripts for your shell")
+                .about(tr!("precached-trigger-completions"))
                 .arg(
                     Arg::with_name("SHELL")
                         .required(true)
                         .possible_values(&["bash", "fish", "zsh", "powershell"])
-                        .help("The shell to generate the script for"),
+                        .help(tr!("precached-trigger-completions-shell")),
                 ),
         )
 }

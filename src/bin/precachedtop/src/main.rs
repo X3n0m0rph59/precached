@@ -24,6 +24,7 @@
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
+extern crate fluent;
 extern crate rayon;
 #[macro_use]
 extern crate lazy_static;
@@ -82,6 +83,8 @@ use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Widget};
 use tui::Terminal;
 
+#[macro_use]
+mod i10n;
 mod clap_app;
 mod constants;
 mod iotrace;

@@ -23,6 +23,7 @@
 
 extern crate chrono;
 extern crate clap;
+extern crate fluent;
 extern crate rayon;
 #[macro_use]
 extern crate lazy_static;
@@ -60,6 +61,8 @@ use std::path::{Path, PathBuf};
 use term::color::*;
 use term::Attr;
 
+#[macro_use]
+mod i10n;
 mod clap_app;
 mod constants;
 mod iotrace;
@@ -102,13 +105,8 @@ impl<'a, 'b> Config<'a, 'b> {
 
 /// Print a license header to the console
 pub fn print_license_header() {
-    println!(
-        "precached Copyright (C) 2017-2018 the precached team
-This program comes with ABSOLUTELY NO WARRANTY;
-This is free software, and you are welcome to redistribute it
-under certain conditions.
-"
-    );
+    println_tr!("license-text");
+    println!("\n");
 }
 
 /// Read the pid of the precached daemon from the file `/run/precached.pid`
@@ -147,10 +145,10 @@ fn default_table_format(config: &Config) -> TableFormat {
 fn print_status(_config: &Config, _daemon_config: util::ConfigFile) {
     match read_daemon_pid() {
         Err(_e) => {
-            println!("precached is NOT running");
+            println_tr!("precachedctl-precached-not-running");
         }
         Ok(_pid) => {
-            println!("precached is up and running");
+            println_tr!("precachedctl-precached-up");
         }
     }
 }
@@ -159,16 +157,16 @@ fn print_status(_config: &Config, _daemon_config: util::ConfigFile) {
 fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
     match read_daemon_pid() {
         Err(_e) => {
-            println!("precached is NOT running, did not send signal");
+            println_tr!("precachedctl-daemon-not-running");
         }
         Ok(pid_str) => {
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGHUP) {
                 Err(e) => {
-                    println!("Could not send signal! {}", e);
+                    println_tr!("precachedctl-could-not-send-signal", "error" => format!("{}", e));
                 }
                 Ok(()) => {
-                    println!("Success");
+                    println_tr!("success");
                 }
             }
         }
@@ -179,16 +177,16 @@ fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
 fn daemon_shutdown(_config: &Config, _daemon_config: util::ConfigFile) {
     match read_daemon_pid() {
         Err(_e) => {
-            println!("precached is NOT running, did not send signal");
+            println_tr!("precachedctl-daemon-not-running");
         }
         Ok(pid_str) => {
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGTERM) {
                 Err(e) => {
-                    println!("Could not send signal! {}", e);
+                    println_tr!("precachedctl-could-not-send-signal", "error" => format!("{}", e));
                 }
                 Ok(()) => {
-                    println!("Success");
+                    println_tr!("success");
                 }
             }
         }
@@ -199,16 +197,16 @@ fn daemon_shutdown(_config: &Config, _daemon_config: util::ConfigFile) {
 fn do_housekeeping(_config: &Config, _daemon_config: util::ConfigFile) {
     match read_daemon_pid() {
         Err(_e) => {
-            println!("precached is NOT running, did not send signal");
+            println_tr!("precachedctl-daemon-not-running");
         }
         Ok(pid_str) => {
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGUSR1) {
                 Err(e) => {
-                    println!("Could not send signal! {}", e);
+                    println_tr!("precachedctl-could-not-send-signal", "error" => format!("{}", e));
                 }
                 Ok(()) => {
-                    println!("Success");
+                    println_tr!("success");
                 }
             }
         }
@@ -219,16 +217,16 @@ fn do_housekeeping(_config: &Config, _daemon_config: util::ConfigFile) {
 fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
     match read_daemon_pid() {
         Err(_e) => {
-            println!("precached is NOT running, did not send signal");
+            println_tr!("precachedctl-daemon-not-running");
         }
         Ok(pid_str) => {
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGUSR2) {
                 Err(e) => {
-                    println!("Could not send signal! {}", e);
+                    println_tr!("precachedctl-could-not-send-signal", "error" => format!("{}", e));
                 }
                 Ok(()) => {
-                    println!("Success");
+                    println_tr!("success");
                 }
             }
         }

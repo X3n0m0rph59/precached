@@ -1,0 +1,352 @@
+license-text = precached Copyright (C) 2017-2018 the precached team    
+    Dieses Programm kommt OHNE JEGLICHE GARANTIE;
+    Dies ist freie Software, die Sie gerne weiter verbreiten dürfen,
+    unter den Bedingungen der Lizenz
+    
+iotracectl-mail-contact = X3n0m0rph59 <x3n0m0rph59@gmail.com>
+iotracectl-about = Werkzeug zum Verwalten von I/O Trace Logs
+iotracectl-produce-ascii = ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen
+iotracectl-produce-unicode = Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen
+iotracectl-config-file = Die precached Konfigurationsdatei
+iotracectl-output-verbosity = Legt die Ausgabe-Verbosität fest
+iotracectl-status = Status des precached I/O Tracing Subsystems anzeigen
+iotracectl-dump = I/O Trace Log Einträge ausgeben
+iotracectl-analyze = I/O Trace Logs analysieren (fehlende Dateien anzeigen)
+iotracectl-sizes = Belegung des Virtuellen Speichers berechnen
+iotracectl-optimize = I/O Trace Logs optimieren
+iotracectl-dry-run = Keine Aktion ausführen, nur so tun als ob
+iotracectl-remove = I/O Trace Logs entfernen
+iotracectl-clear = Alle I/O Trace Logs löschen und das precached I/O Tracing Subsystem zurücksetzen
+iotracectl-help = Diese Kurzhilfe anzeigen
+iotracectl-completions = Generiert Shell Skripte für Autovervollständigung
+iotracectl-completions-shell = Ziel Shell
+
+iotracectl-tabular = Das tabellarische Ausgabeformat benutzen
+iotracectl-full = Das volle Ausgabeformat benutzen (alle Felder anzeigen)
+iotracectl-short = Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)
+iotracectl-terse = Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)
+
+iotracectl-list = Alle passenden I/O Trace Logs auflisten
+iotracectl-info = Metadaten von I/O Trace Logs ausgeben
+
+iotracectl-filter-hash = Filtern anhand des Hashwerts
+iotracectl-filter-executable = Filtern anhand der ausführbaren Datei
+iotracectl-filter-optimized = Filtern anhand des Optimierungsstatus
+iotracectl-filter-iotrace = Filtern anhand von Flags
+iotracectl-sort = Sortieren nach Feld
+iotracectl-sort-order = Sortierreihenfolge
+
+filter-valid = valide
+filter-invalid = ungültig
+filter-fresh = aktuell
+filter-expired = abgelaufen
+filter-current = passend
+filter-outdated = überholt
+filter-missing = fehlt
+
+sort-executable = dateiname
+sort-hash = hash
+sort-date = datum
+sort-numfiles = numdateien
+sort-numioops = numioops
+sort-iosize = iogröße
+sort-optimized = optimiert
+
+sort-asc = auf
+sort-ascending = aufsteigend
+sort-desc = ab
+sort-descending = absteigend
+
+ok = OK
+missing-file = Datei fehlt
+
+unknown = Unbekannt
+valid = Gültig
+invalid = Ungültig
+fresh = Aktuell
+expired = Abgelaufen
+current = Passend
+missing = Fehlt
+binary-newer = Überholt (Binärdatei neuer)
+missing-binary = Binärdatei fehlt
+
+true = ja
+false = nein
+
+warn = Warnung
+error = Fehler
+out-of-range = Außerh. Bereich
+
+key = Schlüssel
+value = Wert
+status = Status
+
+executable = Ausführbare Datei
+hash = Hash
+count = Anzahl
+
+done = Abgeschlossen
+
+removed = entfernt
+
+iotracectl-param-hash = Hash Wert des I/O Trace Logs
+
+module = Modul
+description = Beschreibung
+type = Typ
+enabled = Aktiviert
+
+na = n/a
+
+uniq-files = # Eindeutige Dateien
+accum-io-size = Akkum. I/O Größe
+accum-io-ops = # Akkum. I/O Ops
+
+file = Datei
+rss-size = RSS (VM) Größe
+num-references = # Referenzen
+
+timestamp = Zeitstempel
+io-ops = I/O Operationen
+io-size = I/O Größe
+flags = Flags
+
+iotracectl-ftrace-trace-logger = ftrace basierter I/O Trace Logger
+iotracectl-ftrace-trace-logger-desc = Ein Tracer für Prozesse, welcher Dateisystemaktivitäten aufzeichnet
+iotracectl-type-1 = Hook
+
+iotracectl-removing-trace-logs = Entferne I/O Trace Logs: 
+iotracectl-optimizing-trace-logs = Optimiere I/O Trace Logs: 
+
+iotracectl-io-trace-log = I/O Trace Log
+iotracectl-status = Status anzeigen
+
+iotracectl-prefetcher = I/O Trace Prefetcher
+iotracectl-replay = Wiedergabe von zuvor aufgezeichneten Dateioperationen
+iotracectl-trace-log-manager = I/O Trace Log Manager
+iotracectl-manage-trace-logs = I/O Trace Logs verwalten
+iotracectl-trace-log-cache = I/O Trace Log Cache
+iotracectl-cache-lock = Cachen und mlock() für I/O Trace Logs
+iotracectl-hook = Hook
+iotracectl-plugin = Plugin
+
+iotracectl-failed = fehler (Berechtigungen?)
+iotracectl-optimized = optimiert
+
+iotracectl-error = fehler (Berechtigungen?)
+
+iotracectl-examining-files = Analysiere I/O Trace Logs: 
+iotracectl-sorting-dataset = Sortiere Datensätze: 
+
+iotracectl-iotrace-info = I/O Trace Log:       { $filename }
+                          Ausführbare Datei:   { $executable }
+                          Kommando:            { $command }
+                          Parameter:           { $commandline }
+                          Hash:                { $hash }
+                          Erzeugt am:          { $creationdate }
+                          Beendet am:          { $enddate }
+                          Kompression:         Zstd
+                          Num Dateien:         { $numfiles }
+                          Num I/O Ops:         { $numioops }
+                          I/O Größe:           { $iosize }
+                          Optimiert:           { $optimized }
+                          Flags:               { $flags }
+
+iotracectl-iotrace-info-full = I/O Trace Log:       { $filename }
+                               Ausführbare Datei:   { $executable }
+                               Kommando:            { $command }
+                               Parameter:           { $commandline }
+                               Hash:                { $hash }
+                               Erzeugt am:          { $creationdate }
+                               Beendet am:          { $enddate }
+                               Kompression:         Zstd
+                               Num Dateien:         { $numfiles }
+                               Num I/O Ops:         { $numioops }
+                               I/O Größe:           { $iosize }
+                               Optimiert:           { $optimized }
+                               Flags:               { $flags }
+
+iotracectl-iotrace-info-short = Ausführbare Datei:  { $executable }
+                                Erzeugt am:         { $creationdate }
+                                Beendet am:         { $enddate }
+                                Num I/O Ops:        { $numioops }
+                                I/O Größe:          { $iosize }
+                                Flags:              { $flags }
+
+iotracectl-executable = Ausführbare Datei
+iotracectl-hash = Hash
+iotracectl-creation-date = Erzeugt am
+iotracectl-num-files = # Dateien
+iotracectl-num-ioops = # I/O Ops
+iotracectl-iosize = I/O Größe
+iotracectl-optimized = Optimiert
+iotracectl-flags = Flags
+
+iotracectl-no-traces = Keine I/O Trace Logs gefunden
+iotracectl-no-matches = Keine I/O Trace Logs passen zu den Filter Parametern
+iotracectl-summary-1 = Ergebnis: { $total } I/O Trace Logs analysiert, { $matching } Passen auf Filter, { $errors } Fehler
+iotracectl-summary-2 = Ergebnis: { $total } I/O trace logs analysiert, { $matching } entfernt, { $errors } Fehler
+iotracectl-summary-3 = Ergebnis: { $total } I/O trace logs analysiert, { $matching } wären entfernt worden, { $errors } Fehler
+iotracectl-summary-4 = Ergebnis: { $total } I/O trace logs analysiert, { $matching } optimiert, { $errors } Fehler
+iotracectl-summary-5 = Ergebnis: { $total } I/O trace logs analysiert, { $matching } wären optimiert worden, { $errors } Fehler
+
+###############################################################################
+
+success = Erfolgreich
+could-not-send-signal = Konnte Signal nicht senden! { $error }
+
+precached-trigger-about = Aktionen im precached Daemon auslösen
+
+precached-trigger-produce-ascii = ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen
+precached-trigger-produce-unicode = Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen
+precached-trigger-config-file = Die precached Konfigurationsdatei
+precached-trigger-output-verbosity = Legt die Ausgabe-Verbosität fest
+
+precached-trigger-status = Status des precached Daemons anzeigen
+
+precached-trigger-tabular = Das tabellarische Ausgabeformat benutzen
+precached-trigger-full = Das volle Ausgabeformat benutzen (alle Felder anzeigen)
+precached-trigger-short = Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)
+precached-trigger-terse = Das knappe Ausgabeformat benutzen
+
+precached-trigger-help = Diese Kurzhilfe anzeigen
+
+precached-trigger-transition-profile = Den precached Daemon anweisen, zum nächsten Profil zu wechseln
+
+precached-trigger-completions = Generiert Shell Skripte für Autovervollständigung
+precached-trigger-completions-shell = Ziel Shell
+
+###############################################################################
+
+precached-debug-about = Debugging Tool für den precached Daemon
+
+precached-debug-produce-ascii = ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen
+precached-debug-produce-unicode = Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen
+precached-debug-config-file = Die precached Konfigurationsdatei
+precached-debug-output-verbosity = Legt die Ausgabe-Verbosität fest
+
+precached-debug-status = Status des precached Daemons anzeigen
+
+precached-debug-tabular = Das tabellarische Ausgabeformat benutzen
+precached-debug-full = Das volle Ausgabeformat benutzen (alle Felder anzeigen)
+precached-debug-short = Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)
+precached-debug-terse = Das knappe Ausgabeformat benutzen
+
+precached-debug-test-tracing = Das I/O Tracing Subsystem von precached testen
+precached-debug-test-tracing-help = Pausieren nach dem erzeugen jeder Datei
+
+precached-debug-cleanup = Dateien entfernen, die während des Tests erzeugt wurden
+
+precached-debug-help = Diese Kurzhilfe anzeigen
+
+precached-debug-completions = Generiert Shell Skripte für Autovervollständigung
+precached-debug-completions-shell = Ziel Shell
+
+###############################################################################
+
+precachedctl-about = Verwaltungstool für den precached Daemon
+
+precachedctl-produce-ascii = ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen
+precachedctl-produce-unicode = Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen
+precachedctl-config-file = Die precached Konfigurationsdatei
+precachedctl-output-verbosity = Legt die Ausgabe-Verbosität fest
+
+precachedctl-status = Status des precached Daemons anzeigen
+
+precachedctl-tabular = Das tabellarische Ausgabeformat benutzen
+precachedctl-full = Das volle Ausgabeformat benutzen (alle Felder anzeigen)
+precachedctl-short = Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)
+precachedctl-terse = Das knappe Ausgabeformat benutzen
+
+precachedctl-reload-config = Externe Konfiguration neu laden
+precachedctl-shutdown = Den Daemon anweisen, sich zu beenden
+precachedctl-do-housekeeping = Den Daemon anweisen, Hausmeister Aufgaben auszuführen
+precachedctl-prime-caches = Alle Caches jetzt befüllen
+precachedctl-plugins = Plugins verwalten
+precachedctl-plugins-analyze = Zustand des Daemons und Statistiken anzeigen
+precachedctl-plugins-analyze-internal-state = Internen Zustand des Daemons inspizieren
+precachedctl-plugins-statistics = Globale System Statistiken anzeigen
+precachedctl-plugins-hot-applications = Plugin verwalten: Hot Applications
+precachedctl-plugins-hot-applications-top = Die meistgenutzten Anwendungen ausgeben
+precachedctl-plugins-hot-applications-show = Histogramm der genutzten Anwendungen komplett ausgeben
+precachedctl-plugins-hot-applications-optimize = Histogramm der genutzten Anwendungen optimieren
+precachedctl-plugins-hot-applications-hint = Tipp: Benutzen Sie 'precachedctl plugins hot-applications optimize'
+                                             um fehlende I/O Trace Logs zu entfernen
+precachedctl-plugins-hot-applications-summary = { $count } Einträge analysiert, { $errors } fehlende I/O Trace Logs
+
+precachedctl-help = Diese Kurzhilfe anzeigen
+
+precachedctl-completions = Generiert Shell Skripte für Autovervollständigung
+precachedctl-completions-shell = Ziel Shell
+
+precachedctl-examining-files = Analysiere I/O Trace Logs: 
+
+precachedctl-missing-io-trace-log = I/O Trace Log nicht vorhanden
+
+precachedctl-precached-not-running = precached läuft NICHT
+precachedctl-precached-up = precached läuft
+
+precachedctl-daemon-not-running = precached läuft NICHT, Signal konnte nicht gesendet werden
+
+precachedctl-could-not-send-signal = Signal konnte nicht gesendet werden! { $error }
+
+###############################################################################
+
+rulesctl-about = Regeln des precached Daemons verwalten
+rulesctl-produce-ascii = ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen
+rulesctl-produce-unicode = Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen
+rulesctl-config-file = Die precached Konfigurationsdatei
+rulesctl-output-verbosity = Legt die Ausgabe-Verbosität fest
+rulesctl-status = Status des precached Regel-Subsystems anzeigen
+rulesctl-list-rules = Alle verfügbaren .rules Dateien auflisten
+rulesctl-show = Informationen über eine .rules Datei ausgeben
+rulesctl-show-help = Name der .rules Datei
+rulesctl-enable = Aktivieren einer .rules Datei
+rulesctl-enable-help = Name der .rules Datei
+rulesctl-disable = Deaktivieren einer .rules Datei
+rulesctl-disable-help = Name der .rules Datei
+rulesctl-reload = Den precached Daemon anweisen, alle .rules Dateien neu zu laden
+rulesctl-help = Diese Kurzhilfe anzeigen
+rulesctl-completions = Generiert Shell Skripte für Autovervollständigung
+rulesctl-completions-shell = Ziel Shell
+
+module = Modul
+description = Beschreibung
+type = Typ
+enabled = Aktiviert
+
+precached-description = Linux Prozess Monitor und pre-caching Daemon
+daemon = Daemon
+
+rule-engine = Regel-Engine
+plugin = Plugin
+hook = Hook
+
+rule-hook = Rule Hook
+
+rulesctl-manage-rules-files = Verwalten von precached .rules Dateien
+rulesctl-rule-hook-desc = Übermittelt Ereignisse an die Regel-Engine
+
+rulesctl-summary-1 = { $count } .rules Dateien analysiert, { $valid } gültige Dateien
+rulesctl-summary-2 = { $count } Regeln analysiert
+
+rulesctl-rule-enabled = Regeln erfolgreich aktiviert, neu laden der Konfiguration veranlasst
+rulesctl-rule-disabled = Regeln erfolgreich deaktiviert, neu laden der Konfiguration veranlasst
+
+file = Datei
+name = Name
+description = Beschreibung
+enabled = Aktiviert
+version = Version
+num-rules = # Regeln
+
+event = Ereignis
+filter = Filter
+action = Aktion
+arguments = Argumente
+
+rulesctl-daemon-not-running = precached läuft NICHT, Signal konnte nicht gesendet werden
+
+rulesctl-could-not-send-signal = Signal konnte nicht gesendet werden! { $error }
+
+###############################################################################

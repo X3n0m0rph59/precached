@@ -22,6 +22,7 @@ extern crate clap;
 
 use self::clap::{App, AppSettings, Arg, SubCommand};
 use constants;
+use i10n;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b>
 where
@@ -36,20 +37,20 @@ where
             Arg::with_name("ascii")
                 .short("a")
                 .long("ascii")
-                .help("Produce ASCII output (default) instead of using Unicode for line drawing"),
+                .help(tr!("precachedctl-produce-ascii")),
         )
         .arg(
             Arg::with_name("unicode")
                 .short("u")
                 .long("unicode")
-                .help("Produce Unicode output instead of using ASCII (default) for line drawing"),
+                .help(tr!("precachedctl-produce-unicode")),
         )
         .arg(
             Arg::with_name("config")
                 .short("c")
                 .long("config")
                 .value_name("file")
-                .help("The precached config file to use")
+                .help(tr!("precachedctl-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
         )
@@ -57,94 +58,94 @@ where
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
-                .help("Sets the level of output verbosity"),
+                .help(tr!("precachedctl-output-verbosity")),
         )
         .subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Show the current status of the precached daemon")
+                .about(tr!("precachedctl-status"))
                 .arg(Arg::with_name("long").short("l").help("Use long display format")),
         )
         .subcommand(
             SubCommand::with_name("reload")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("reload-config")
-                .about("Reload external configuration of precached"),
+                .about(tr!("precachedctl-reload-config")),
         )
         .subcommand(
             SubCommand::with_name("stop")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("shutdown")
-                .about("Instruct precached to shutdown and quit"),
+                .about(tr!("precachedctl-shutdown")),
         )
         .subcommand(
             SubCommand::with_name("housekeeping")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("do-housekeeping")
-                .about("Instruct precached to commence housekeeping tasks"),
+                .about(tr!("precachedctl-do-housekeeping")),
         )
         .subcommand(
             SubCommand::with_name("prime-caches")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("prime-caches-now")
-                .about("Instruct precached to commence priming all caches now"),
+                .about(tr!("precachedctl-prime-caches")),
         )
         .subcommand(
             SubCommand::with_name("plugins")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .setting(AppSettings::NeedsSubcommandHelp)
-                .about("Manage precached daemon plugins")
+                .about(tr!("precachedctl-plugins"))
                 .subcommand(
                     SubCommand::with_name("analyze")
                         .setting(AppSettings::DeriveDisplayOrder)
-                        .about("Analyze state and statistics")
+                        .about(tr!("precachedctl-plugins-analyze"))
                         .subcommand(
                             SubCommand::with_name("internal-state")
                                 .setting(AppSettings::DeriveDisplayOrder)
-                                .about("Inspect daemon internal state"),
+                                .about(tr!("precachedctl-plugins-analyze-internal-state")),
                         )
                         .subcommand(
                             SubCommand::with_name("statistics")
                                 .setting(AppSettings::DeriveDisplayOrder)
-                                .about("Show global system statistics"),
+                                .about(tr!("precachedctl-plugins-statistics")),
                         ),
                 )
                 .subcommand(
                     SubCommand::with_name("hot-applications")
                         .setting(AppSettings::DeriveDisplayOrder)
-                        .about("Manage plugin: Hot Applications")
+                        .about(tr!("precachedctl-plugins-hot-applications"))
                         .subcommand(
                             SubCommand::with_name("top")
                                 .setting(AppSettings::DeriveDisplayOrder)
-                                .about("Show the top most entries in the histogram of hot applications"),
+                                .about(tr!("precachedctl-plugins-hot-applications-top")),
                         )
                         .subcommand(
                             SubCommand::with_name("list")
                                 .setting(AppSettings::DeriveDisplayOrder)
                                 .alias("show")
-                                .about("Show all entries in the histogram of hot applications"),
+                                .about(tr!("precachedctl-plugins-hot-applications-show")),
                         )
                         .subcommand(
                             SubCommand::with_name("optimize")
                                 .setting(AppSettings::DeriveDisplayOrder)
-                                .about("Optimize the histogram of hot applications"),
+                                .about(tr!("precachedctl-plugins-hot-applications-optimize")),
                         ),
                 ),
         )
         .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Display this short help text"),
+                .about(tr!("precachedctl-help")),
         )
         .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
-                .about("Generates completion scripts for your shell")
+                .about(tr!("precachedctl-completions"))
                 .arg(
                     Arg::with_name("SHELL")
                         .required(true)
                         .possible_values(&["bash", "fish", "zsh", "powershell"])
-                        .help("The shell to generate the script for"),
+                        .help(tr!("precachedctl-completions-shell")),
                 ),
         )
 }

@@ -24,6 +24,7 @@
 extern crate chrono;
 extern crate chrono_tz;
 extern crate clap;
+extern crate fluent;
 extern crate rayon;
 #[macro_use]
 extern crate lazy_static;
@@ -58,6 +59,8 @@ use std::str::FromStr;
 use term::color::*;
 use term::Attr;
 
+#[macro_use]
+mod i10n;
 mod clap_app;
 mod constants;
 mod iotrace;
@@ -99,13 +102,8 @@ impl<'a, 'b> Config<'a, 'b> {
 
 /// Print a license header to the console
 fn print_license_header() {
-    println!(
-        "precached Copyright (C) 2017-2018 the precached team
-This program comes with ABSOLUTELY NO WARRANTY;
-This is free software, and you are welcome to redistribute it
-under certain conditions.
-"
-    );
+    println_tr!("license-text");
+    println!("");
 }
 
 /// Return a formatted `String` containing date and time of `date`
@@ -167,36 +165,36 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
 
     // Add table row header
     table.add_row(Row::new(vec![
-        Cell::new("Module"),
-        Cell::new("Description"),
-        Cell::new("Type"),
-        Cell::new("Enabled"),
+        Cell::new(tr!("module")),
+        Cell::new(tr!("description")),
+        Cell::new(tr!("type")),
+        Cell::new(tr!("enabled")),
     ]));
 
     // Print in "tabular" format (the default)
     table.add_row(Row::new(vec![
         Cell::new(&"precached").with_style(Attr::Bold),
-        Cell::new(&"Linux process monitor and pre-caching daemon").with_style(Attr::Italic(true)),
-        Cell::new(&"Daemon"),
-        Cell::new(&format!("{}", is_precached_running))
+        Cell::new(&tr!("precached-description")).with_style(Attr::Italic(true)),
+        Cell::new(&tr!("daemon")),
+        Cell::new(tr!(&format!("{}", is_precached_running)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(is_precached_running))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&"Rule Engine").with_style(Attr::Bold),
-        Cell::new(&"Manage precached rule files").with_style(Attr::Italic(true)),
-        Cell::new(&"Plugin"),
-        Cell::new(&format!("{}", rules_engine_enabled))
+        Cell::new(&tr!("rule-engine")).with_style(Attr::Bold),
+        Cell::new(&tr!("rulesctl-manage-rules-files")).with_style(Attr::Italic(true)),
+        Cell::new(&tr!("plugin")),
+        Cell::new(&tr!(&format!("{}", rules_engine_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(rules_engine_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&"Rule Hook").with_style(Attr::Bold),
-        Cell::new(&"Deliver internal events to the rule engine").with_style(Attr::Italic(true)),
-        Cell::new(&"Hook"),
-        Cell::new(&format!("{}", true))
+        Cell::new(&tr!("rule-hook")).with_style(Attr::Bold),
+        Cell::new(&tr!("rulesctl-rule-hook-desc")).with_style(Attr::Italic(true)),
+        Cell::new(&tr!("hook")),
+        Cell::new(&tr!(&format!("{}", true)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(true))),
     ]));
@@ -217,12 +215,12 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
     // Add table row header
     table.add_row(Row::new(vec![
         Cell::new("#"),
-        Cell::new("File"),
-        Cell::new("Name"),
-        Cell::new("Description"),
-        Cell::new("Enabled"),
-        Cell::new("Version"),
-        Cell::new("# Rules"),
+        Cell::new(tr!("file")),
+        Cell::new(tr!("name")),
+        Cell::new(tr!("description")),
+        Cell::new(tr!("enabled")),
+        Cell::new(tr!("version")),
+        Cell::new(tr!("num-rules")),
     ]));
 
     util::walk_directories(&[rules_path.to_path_buf()], &mut |path| {
@@ -234,13 +232,13 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
                     table.add_row(Row::new(vec![
                         Cell::new(&format!("{}", idx + 1)),
                         Cell::new(&path.file_name().unwrap().to_string_lossy()),
-                        Cell::new("n/a"),
+                        Cell::new(tr!("na")),
                         Cell::new(&format!("{}", e)).with_style(Attr::Bold),
-                        Cell::new("Error")
+                        Cell::new(tr!("error"))
                             .with_style(Attr::Bold)
                             .with_style(Attr::ForegroundColor(RED)),
-                        Cell::new("n/a"),
-                        Cell::new("n/a"),
+                        Cell::new(tr!("na")),
+                        Cell::new(tr!("na")),
                     ]));
                 }
 
@@ -251,7 +249,7 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
                         Cell::new(&path.file_name().unwrap().to_string_lossy()).with_style(Attr::Bold),
                         Cell::new(&rule_file.metadata.name).with_style(Attr::Bold),
                         Cell::new(&rule_file.metadata.description),
-                        Cell::new(&format!("{}", rule_file.metadata.enabled))
+                        Cell::new(tr!(&format!("{}", rule_file.metadata.enabled)))
                             .with_style(Attr::Bold)
                             .with_style(Attr::ForegroundColor(map_bool_to_color(rule_file.metadata.enabled))),
                         Cell::new(&format!("{}", rule_file.metadata.version)),
@@ -269,7 +267,8 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
 
     table.printstd();
 
-    println!("\n{} rule files examined, {} valid files(s)", cnt, valid);
+    println!("");
+    println_tr!("rulesctl-summary-1", "count" => cnt, "valid" => valid);
 }
 
 fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
@@ -287,10 +286,10 @@ fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
     // Add table row header
     table.add_row(Row::new(vec![
         Cell::new("#"),
-        Cell::new("Event"),
-        Cell::new("Filter"),
-        Cell::new("Action"),
-        Cell::new("Arguments"),
+        Cell::new(tr!("event")),
+        Cell::new(tr!("filter")),
+        Cell::new(tr!("action")),
+        Cell::new(tr!("arguments")),
     ]));
 
     match rules::RuleFile::from_file(&filename) {
@@ -316,7 +315,8 @@ fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
 
     table.printstd();
 
-    println!("\n{} rules examined", idx);
+    println!("");
+    println_tr!("rulesctl-summary-2", "count" => idx);
 }
 
 fn enable_rules(config: &Config, daemon_config: util::ConfigFile) {
@@ -332,7 +332,9 @@ fn enable_rules(config: &Config, daemon_config: util::ConfigFile) {
         }
 
         Ok(()) => {
-            println!("\nRules enabled successfully, reloading configuration now");
+            println!("");
+            println_tr!("rulesctl-rule-enabled");
+
             daemon_reload(config, daemon_config);
         }
     }
@@ -351,7 +353,9 @@ fn disable_rules(config: &Config, daemon_config: util::ConfigFile) {
         }
 
         Ok(()) => {
-            println!("\nRules disabled successfully, reloading configuration now");
+            println!("");
+            println_tr!("rulesctl-rule-disabled");
+            
             daemon_reload(config, daemon_config);
         }
     }
@@ -361,18 +365,18 @@ fn disable_rules(config: &Config, daemon_config: util::ConfigFile) {
 fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
     match read_daemon_pid() {
         Err(_e) => {
-            println!("precached is NOT running, did not send signal");
+            println_tr!("rulesctl-daemon-not-running");
         }
 
         Ok(pid_str) => {
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGHUP) {
                 Err(e) => {
-                    println!("Could not send signal! {}", e);
+                    println_tr!("rulesctl-could-not-send-signal", "error" => format!("{}", e));
                 }
 
                 Ok(()) => {
-                    println!("Success");
+                    println_tr!("success");
                 }
             }
         }
