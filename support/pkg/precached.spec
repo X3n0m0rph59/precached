@@ -91,6 +91,7 @@ cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precached-debug.
 cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached-trigger.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -a %{_builddir}/%{name}-%{version}/support/desktop/precached-trigger.desktop %{buildroot}/%{_sysconfdir}/xdg/autostart/precached-trigger.desktop
 cp -a %{_builddir}/%{name}-%{version}/support/assets/precached.svg %{buildroot}/%{_datarootdir}/icons/hicolor/scalable/apps/precached-trigger.svg
+cp -Ra %{_builddir}/%{name}-%{version}/support/i10n/ %{buildroot}/%{_datarootdir}/%{OrigName}/i10n/
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
@@ -139,6 +140,7 @@ esac
 %dir %{_datarootdir}/bash-completion/completions/
 %dir %{_datarootdir}/zsh/site-functions/
 %dir %{_sysconfdir}/%{OrigName}/rules.d/
+%dir %{_datarootdir}/%{OrigName}/i10n/
 # %docdir %{_docdir}/%{OrigName}/examples/
 %config(noreplace) %{_sysconfdir}/%{OrigName}/%{OrigName}.conf
 %config(noreplace) %{_sysconfdir}/%{OrigName}/log4rs.yaml
