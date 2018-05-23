@@ -92,7 +92,7 @@ cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precached-debug.
 cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached-trigger.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -a %{_builddir}/%{name}-%{version}/support/desktop/precached-trigger.desktop %{buildroot}/%{_sysconfdir}/xdg/autostart/precached-trigger.desktop
 cp -a %{_builddir}/%{name}-%{version}/support/assets/precached.svg %{buildroot}/%{_datarootdir}/icons/hicolor/scalable/apps/precached-trigger.svg
-cp -ra %{_builddir}/%{name}-%{version}/support/i18n %{buildroot}/%{_datarootdir}/%{OrigName}/i18n
+cp -ra %{_builddir}/%{name}-%{version}/support/i18n %{buildroot}/%{_datarootdir}/%{OrigName}/
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
