@@ -28,7 +28,7 @@ extern crate serde_json;
 
 use clap::{App, AppSettings, Arg, SubCommand};
 use constants;
-use i10n;
+use i18n;
 use iotrace;
 use pbr::ProgressBar;
 use prettytable::cell::Cell;

@@ -54,7 +54,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_datarootdir}/icons/hicolor/scalable/apps/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/bash-completion/completions/
 %{__mkdir_p} %{buildroot}%{_datarootdir}/zsh/site-functions/
-%{__mkdir_p} %{buildroot}%{_datarootdir}/%{OrigName}/i10n/
+%{__mkdir_p} %{buildroot}%{_datarootdir}/%{OrigName}/i18n/
 #%{__mkdir_p} %{buildroot}%{_datadir}/{OrigName}/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.conf.5 %{buildroot}/%{_mandir}/man5/
 cp -a %{_builddir}/%{name}-%{version}/support/man/precached.rules.5 %{buildroot}/%{_mandir}/man5/
@@ -92,7 +92,7 @@ cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/precached-debug.
 cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached-trigger.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -a %{_builddir}/%{name}-%{version}/support/desktop/precached-trigger.desktop %{buildroot}/%{_sysconfdir}/xdg/autostart/precached-trigger.desktop
 cp -a %{_builddir}/%{name}-%{version}/support/assets/precached.svg %{buildroot}/%{_datarootdir}/icons/hicolor/scalable/apps/precached-trigger.svg
-cp -ra %{_builddir}/%{name}-%{version}/support/i10n %{buildroot}/%{_datarootdir}/%{OrigName}/i10n
+cp -ra %{_builddir}/%{name}-%{version}/support/i18n %{buildroot}/%{_datarootdir}/%{OrigName}/i18n
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached %{buildroot}%{_sbindir}/precached
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precachedctl %{buildroot}%{_sbindir}/precachedctl
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/iotracectl %{buildroot}%{_sbindir}/iotracectl
@@ -141,7 +141,7 @@ esac
 %dir %{_datarootdir}/bash-completion/completions/
 %dir %{_datarootdir}/zsh/site-functions/
 %dir %{_sysconfdir}/%{OrigName}/rules.d/
-%dir %{_datarootdir}/%{OrigName}/i10n/
+%dir %{_datarootdir}/%{OrigName}/i18n/
 # %docdir %{_docdir}/%{OrigName}/examples/
 %config(noreplace) %{_sysconfdir}/%{OrigName}/%{OrigName}.conf
 %config(noreplace) %{_sysconfdir}/%{OrigName}/log4rs.yaml
@@ -177,10 +177,10 @@ esac
 %{_datarootdir}/zsh/site-functions/_precached-debug
 %{_docdir}/%{OrigName}/examples/
 #%{_datadir}/%{OrigName}/
-%{_datarootdir}/%{OrigName}/i10n/C
-%{_datarootdir}/%{OrigName}/i10n/de_DE.UTF-8
-%{_datarootdir}/%{OrigName}/i10n/de_DE/messages.fluent
-%{_datarootdir}/%{OrigName}/i10n/en_US/messages.fluent
+%{_datarootdir}/%{OrigName}/i18n/C
+%{_datarootdir}/%{OrigName}/i18n/de_DE.UTF-8
+%{_datarootdir}/%{OrigName}/i18n/de_DE/messages.fluent
+%{_datarootdir}/%{OrigName}/i18n/en_US/messages.fluent
 
 %changelog
 * Wed May 23 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.2.0-54

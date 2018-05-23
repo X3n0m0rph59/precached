@@ -84,7 +84,7 @@ use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Widget
 use tui::Terminal;
 
 #[macro_use]
-mod i10n;
+mod i18n;
 mod clap_app;
 mod constants;
 mod iotrace;

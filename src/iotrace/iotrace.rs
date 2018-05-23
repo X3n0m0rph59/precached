@@ -28,7 +28,7 @@ extern crate term;
 
 use chrono::{DateTime, Duration, Utc};
 use constants;
-use i10n;
+use i18n;
 use process::Process;
 use std::collections::HashMap;
 use std::hash::Hasher;

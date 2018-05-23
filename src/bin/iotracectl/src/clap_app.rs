@@ -22,7 +22,7 @@ extern crate clap;
 
 use self::clap::{App, AppSettings, Arg, SubCommand};
 use constants;
-use i10n;
+use i18n;
 use util;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b> {

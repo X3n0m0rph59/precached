@@ -64,7 +64,7 @@ use term::color::*;
 use term::Attr;
 
 #[macro_use]
-mod i10n;
+mod i18n;
 mod clap_app;
 mod constants;
 mod util;

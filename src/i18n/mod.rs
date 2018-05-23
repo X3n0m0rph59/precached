@@ -31,13 +31,13 @@ static LOCALES: &[&'static str] = &["locale"];
 
 lazy_static! {
     pub static ref LANG: String = env::var("LANG").unwrap_or("C".to_string());
-    pub static ref CTX: fluent::MessageContext<'static> = initialize_i10n();
+    pub static ref CTX: fluent::MessageContext<'static> = initialize_i18n();
 }
 
 #[macro_export]
 macro_rules! tr {
     ($msgid:expr) => ({
-        Box::leak(i10n::get_message_args($msgid, None)).as_str()
+        Box::leak(i18n::get_message_args($msgid, None)).as_str()
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
@@ -47,14 +47,14 @@ macro_rules! tr {
             args.insert($k, fluent::types::FluentValue::from($v));
         )*
 
-        Box::leak(i10n::get_message_args($msgid, Some(&args))).as_str()
+        Box::leak(i18n::get_message_args($msgid, Some(&args))).as_str()
     });
 }
 
 #[macro_export]
 macro_rules! println_tr {
     ($msgid:expr) => ({
-        println!("{}", Box::leak(i10n::get_message_args($msgid, None)).as_str());
+        println!("{}", Box::leak(i18n::get_message_args($msgid, None)).as_str());
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
@@ -64,11 +64,11 @@ macro_rules! println_tr {
             args.insert($k, $crate::fluent::types::FluentValue::from($v));
         )*
 
-        println!("{}", Box::leak(i10n::get_message_args($msgid, Some(&args))));
+        println!("{}", Box::leak(i18n::get_message_args($msgid, Some(&args))));
     });
 }
 
-fn initialize_i10n() -> fluent::MessageContext<'static> {
+fn initialize_i18n() -> fluent::MessageContext<'static> {
     let mut ctx = MessageContext::new(LOCALES);
 
     // release builds shall use system dirs
@@ -79,7 +79,7 @@ fn initialize_i10n() -> fluent::MessageContext<'static> {
     #[cfg(debug_assertions)]
     let prefix = "support/";
 
-    match fs::read_to_string(format!("{}/i10n/{}/messages.fluent", prefix, LANG.as_str())) {
+    match fs::read_to_string(format!("{}/i18n/{}/messages.fluent", prefix, LANG.as_str())) {
         Err(e) => {
             panic!("Could not load translations for '{}': {}", LANG.as_str(), e);
         }

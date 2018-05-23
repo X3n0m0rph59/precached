@@ -87,7 +87,7 @@ mod events;
 use events::EventType;
 
 #[macro_use]
-mod i10n;
+mod i18n;
 mod config;
 mod dbus;
 mod hooks;

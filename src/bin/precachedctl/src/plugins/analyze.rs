@@ -28,7 +28,7 @@ extern crate rayon;
 use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{App, AppSettings, Arg, SubCommand};
 use constants;
-use i10n;
+use i18n;
 use iotrace;
 use ipc;
 use pbr::ProgressBar;
