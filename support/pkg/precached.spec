@@ -177,6 +177,10 @@ esac
 %{_datarootdir}/zsh/site-functions/_precached-debug
 %{_docdir}/%{OrigName}/examples/
 #%{_datadir}/%{OrigName}/
+%{_datarootdir}/%{OrigName}/i10n/C
+%{_datarootdir}/%{OrigName}/i10n/de_DE.UTF-8
+%{_datarootdir}/%{OrigName}/i10n/de_DE/messages.fluent
+%{_datarootdir}/%{OrigName}/i10n/en_US/messages.fluent
 
 %changelog
 * Wed May 23 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.2.0-53
