@@ -178,9 +178,12 @@ esac
 %{_docdir}/%{OrigName}/examples/
 #%{_datadir}/%{OrigName}/
 %{_datarootdir}/%{OrigName}/i18n/C
+%{_datarootdir}/%{OrigName}/i18n/de_AT
+%{_datarootdir}/%{OrigName}/i18n/de_AT.UTF-8
 %{_datarootdir}/%{OrigName}/i18n/de_DE.UTF-8
 %{_datarootdir}/%{OrigName}/i18n/de_DE/messages.fluent
 %{_datarootdir}/%{OrigName}/i18n/en_US/messages.fluent
+%{_datarootdir}/%{OrigName}/i18n/en_UK
 
 %changelog
 * Thu May 24 2018 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.2.0-60
