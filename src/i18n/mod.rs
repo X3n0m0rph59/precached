@@ -81,7 +81,19 @@ fn initialize_i18n() -> fluent::MessageContext<'static> {
 
     match fs::read_to_string(format!("{}/i18n/{}/messages.fluent", prefix, LANG.as_str())) {
         Err(e) => {
-            panic!("Could not load translations for '{}': {}", LANG.as_str(), e);
+            println!("Could not load translations for '{}': {}\n", LANG.as_str(), e);
+
+            // error loading translations, so switch to the "C" 
+            // fallback locale and try again
+            match fs::read_to_string(format!("{}/i18n/{}/messages.fluent", prefix, "C")) {
+                Err(e) => {
+                    panic!("Could not load translations: {}", e);
+                }
+
+                Ok(msgs) => {
+                    ctx.add_messages(&msgs);
+                }
+            }
         }
 
         Ok(msgs) => {
