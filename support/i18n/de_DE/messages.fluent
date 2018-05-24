@@ -384,3 +384,30 @@ rulesctl-daemon-not-running = precached läuft NICHT, Signal konnte nicht gesend
 rulesctl-could-not-send-signal = Signal konnte nicht gesendet werden! { $error }
 
 ###############################################################################
+
+precachedtop-config-file = Die precached Konfigurationsdatei
+precachedtop-output-verbosity = Legt die Ausgabe-Verbosität fest
+precachedtop-help = Diese Kurzhilfe anzeigen
+precachedtop-completions = Generiert Shell Skripte für Autovervollständigung
+precachedtop-completions-shell = Ziel Shell
+
+beginning-of-log = <Anfang>
+tab-pages = Seiten
+
+overview = Überblick
+events = Ereignisse
+cached-files = Dateien im Cache ({ $count })
+statistics = Statistiken
+help = Hilfe
+
+tracked-processes = Prozesse
+no-data = <Keine Daten>
+prefetcher-threads = Prefetcher Threads
+events = Ereignisse
+cached = Dateien im Cache
+stats = Statistiken
+
+active-traces = Aktive Tracer
+
+
+###############################################################################

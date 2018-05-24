@@ -352,3 +352,30 @@ rulesctl-daemon-not-running = precached is NOT running, did not send signal
 rulesctl-could-not-send-signal = Could not send signal! { $error }
 
 ###############################################################################
+
+precachedtop-config-file = The precached config file to use
+precachedtop-output-verbosity = Sets the level of output verbosity
+precachedtop-help = Display this short help text
+precachedtop-completions = Generates completion scripts for your shell
+precachedtop-completions-shell = The shell to generate the script for
+
+beginning-of-log = <Beginning of Log>
+tab-pages = Tab Pages
+
+overview = Overview
+events = Events
+cached-files = Cached Files ({ $count })
+statistics = Statistics
+help = Help
+
+tracked-processes = Tracked Processes
+no-data = <No data>
+prefetcher-threads = Prefetcher Threads
+events = Events
+cached = Cached Files
+stats = Statistics
+
+active-traces = Active Traces
+
+
+###############################################################################

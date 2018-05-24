@@ -181,11 +181,11 @@ dependencies = [
 
 [[package]]
 name = "clippy"
-version = "0.0.203"
+version = "0.0.204"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ansi_term 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy_lints 0.0.203 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy_lints 0.0.204 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc_version 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "semver 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -193,7 +193,7 @@ dependencies = [
 
 [[package]]
 name = "clippy_lints"
-version = "0.0.203"
+version = "0.0.204"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cargo_metadata 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -798,7 +798,7 @@ dependencies = [
  "chrono 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono-tz 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "clippy 0.0.203 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy 0.0.204 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossbeam 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "daemonize 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "dbus 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1451,8 +1451,8 @@ dependencies = [
 "checksum chrono 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "1cce36c92cb605414e9b824f866f5babe0a0368e39ea07393b9b63cf3844c0e6"
 "checksum chrono-tz 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "aa1878c18b5b01b9978d5f130fe366d434022004d12fb87c182e8459b427c4a3"
 "checksum clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f0f16b89cbb9ee36d87483dc939fe9f1e13c05898d56d7b230a0d4dff033a536"
-"checksum clippy 0.0.203 (registry+https://github.com/rust-lang/crates.io-index)" = "5ebbf1f0632ef97215395cc266fbf13952fbe787f1bc787cc58093bf190f3e38"
-"checksum clippy_lints 0.0.203 (registry+https://github.com/rust-lang/crates.io-index)" = "f452643be401cfeae506f9898d026a7f784f2ca67fb0eba5460d31ac9927c711"
+"checksum clippy 0.0.204 (registry+https://github.com/rust-lang/crates.io-index)" = "ffdfe65fde3af4c9c5f9436d316011cc434d5d0331638eece6f66d45999403a5"
+"checksum clippy_lints 0.0.204 (registry+https://github.com/rust-lang/crates.io-index)" = "884da952240907da47b5fc8631aa8aaab89785bf180c32376fd9f19b683a2979"
 "checksum crossbeam 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "24ce9782d4d5c53674646a6a4c1863a21a8fc0cb649b3c94dfc16e45071dea19"
 "checksum crossbeam-deque 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f739f8c5363aca78cfb059edf753d8f0d36908c348f3d8d1503f03d8b75d9cf3"
 "checksum crossbeam-epoch 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "927121f5407de9956180ff5e936fe3cf4324279280001cd56b669d28ee7e9150"

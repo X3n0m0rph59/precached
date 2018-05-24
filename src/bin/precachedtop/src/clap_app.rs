@@ -22,6 +22,7 @@ extern crate clap;
 
 use self::clap::{App, AppSettings, Arg, SubCommand};
 use constants;
+use i18n;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b>
 where
@@ -37,7 +38,7 @@ where
                 .short("c")
                 .long("config")
                 .value_name("file")
-                .help("The precached config file to use")
+                .help(tr!("precachedtop-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
         )
@@ -45,22 +46,22 @@ where
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
-                .help("Sets the level of output verbosity"),
+                .help(tr!("precachedtop-output-verbosity"))
         )
         .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about("Display this short help text"),
+                .about(tr!("precachedtop-help"))
         )
         .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
-                .about("Generates completion scripts for your shell")
+                .about(tr!("precachedtop-completions"))
                 .arg(
                     Arg::with_name("SHELL")
                         .required(true)
                         .possible_values(&["bash", "fish", "zsh", "powershell"])
-                        .help("The shell to generate the script for"),
+                        .help(tr!("precachedtop-completions-shell")),
                 ),
         )
 }

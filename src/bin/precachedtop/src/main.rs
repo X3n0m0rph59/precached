@@ -223,7 +223,7 @@ impl Application {
             sel_index_events: 0,
             events: vec![EventListItem {
                 datetime: Utc::now(),
-                msg: String::from("<Beginning of Log>"),
+                msg: String::from(tr!("beginning-of-log")),
             }],
 
             sel_index_files: 0,
@@ -254,13 +254,14 @@ impl Application {
             .render(terminal, &size, |ref mut terminal, chunks| {
                 Block::default().borders(Borders::ALL).render(terminal, &size);
                 Tabs::default()
-                    .block(Block::default().borders(Borders::ALL).title("Tab Pages"))
+                    .block(Block::default().borders(Borders::ALL).title(tr!("tab-pages")))
                     .titles(&[
-                        "Overview",
-                        "Events",
-                        &format!("Cached Files ({})", app.cached_files.len()),
-                        "Statistics",
-                        "Help",
+                        tr!("overview"),
+                        tr!("events"),
+                        tr!("cached-files", 
+                            "count" => format!("{}", app.cached_files.len())),
+                        tr!("statistics"),
+                        tr!("help"),
                     ])
                     .select(app.tab_index)
                     .style(Style::default().fg(Color::White))
@@ -292,7 +293,7 @@ impl Application {
                                 }
 
                                 SelectableList::default()
-                                    .block(Block::default().borders(Borders::ALL).title("Tracked Processes"))
+                                    .block(Block::default().borders(Borders::ALL).title(tr!("tracked-processes")))
                                     .items(&items)
                                     .select(self.sel_index_processes)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -316,7 +317,7 @@ impl Application {
 
                                 SelectableList::default()
                                     .block(Block::default().borders(Borders::ALL)
-                                    .title("Active Traces"))
+                                    .title(tr!("active-traces")))
                                     .items(&trace_items)
                                     // .select(self.sel_index_active_traces)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -334,12 +335,12 @@ impl Application {
                                         ctr += 1;
                                     }
                                 } else {
-                                    prefetcher.push(String::from("<No data>"));
+                                    prefetcher.push(String::from(tr!("no-data")));
                                 }
 
                                 SelectableList::default()
                                     .block(Block::default().borders(Borders::ALL)
-                                    .title("Prefetcher Threads"))
+                                    .title(tr!("prefetcher-threads")))
                                     .items(&prefetcher)
                                     // .select(self.sel_index)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -359,7 +360,7 @@ impl Application {
 
                                 SelectableList::default()
                                     .block(Block::default().borders(Borders::ALL)
-                                    .title("Events"))
+                                    .title(tr!("events")))
                                     .items(&events)
                                     // .select(self.sel_index_events)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -387,7 +388,7 @@ impl Application {
                                 events.reverse();
 
                                 SelectableList::default()
-                                    .block(Block::default().borders(Borders::ALL).title("Events"))
+                                    .block(Block::default().borders(Borders::ALL).title(tr!("events")))
                                     .items(&events)
                                     .select(self.sel_index_events)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -410,7 +411,7 @@ impl Application {
                                     .collect();
 
                                 SelectableList::default()
-                                    .block(Block::default().borders(Borders::ALL).title("Cached Files"))
+                                    .block(Block::default().borders(Borders::ALL).title(tr!("cached")))
                                     .items(&cached_files)
                                     .select(self.sel_index_files)
                                     .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -425,7 +426,7 @@ impl Application {
                             .sizes(&[Size::Percent(100)])
                             .margin(2)
                             .render(terminal, &chunks[1], |terminal, chunks| {
-                                Block::default().title("Stats").render(terminal, &chunks[0]);
+                                Block::default().title(tr!("stats")).render(terminal, &chunks[0]);
 
                                 Paragraph::default().text("... Stats ...").render(terminal, &chunks[0]);
                             });
@@ -438,15 +439,10 @@ impl Application {
                             .sizes(&[Size::Percent(100)])
                             .margin(2)
                             .render(terminal, &chunks[1], |terminal, chunks| {
-                                Block::default().title("Help").render(terminal, &chunks[0]);
+                                Block::default().title(tr!("help")).render(terminal, &chunks[0]);
 
                                 Paragraph::default()
-                                    .text(
-                                        "\n\nprecached Copyright (C) 2017-2018 the precached team
-This program comes with ABSOLUTELY NO WARRANTY;
-This is free software, and you are welcome to redistribute it
-under certain conditions.",
-                                    )
+                                    .text(&format!("\n\n{}", tr!("license-text")))
                                     .render(terminal, &chunks[0]);
                             });
                     }
