@@ -255,7 +255,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
             "flags" => format!("{:?}", flags)
         );
-        
+
         println!("\n");
     } else if matches.is_present("short") {
         // Print in "short" format
@@ -267,7 +267,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
             "flags" => format!("{:?}", flags)
         );
-        
+
         println!("\n");
     } else if matches.is_present("terse") {
         // Print in "terse" format
@@ -982,7 +982,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     }
 
     index += 1;
-    
+
     println!("");
     println_tr!("iotracectl-summary-1",
         "total" => format!("{}", index),

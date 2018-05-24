@@ -355,7 +355,7 @@ fn disable_rules(config: &Config, daemon_config: util::ConfigFile) {
         Ok(()) => {
             println!("");
             println_tr!("rulesctl-rule-disabled");
-            
+
             daemon_reload(config, daemon_config);
         }
     }

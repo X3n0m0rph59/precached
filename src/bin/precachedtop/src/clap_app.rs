@@ -46,12 +46,12 @@ where
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
-                .help(tr!("precachedtop-output-verbosity"))
+                .help(tr!("precachedtop-output-verbosity")),
         )
         .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about(tr!("precachedtop-help"))
+                .about(tr!("precachedtop-help")),
         )
         .subcommand(
             SubCommand::with_name("completions")
