@@ -44,7 +44,8 @@ package() {
   mkdir -p "$pkgdir/usr/share/doc/precached/examples/"
   mkdir -p "$pkgdir/usr/share/bash-completion/completions/"
   mkdir -p "$pkgdir/usr/share/zsh/site-functions/"
-
+  mkdir -p "$pkgdir/usr/share/precached/i18n/"
+  
   install -m 755 "target/release/precached" "$pkgdir/usr/bin/"
   install -m 755 "target/release/precachedctl" "$pkgdir/usr/bin/"
   install -m 755 "target/release/iotracectl" "$pkgdir/usr/bin/"
@@ -74,6 +75,8 @@ package() {
   install -m 644 "support/man/rulesctl.8" "$pkgdir/usr/share/man/man8/"
   install -m 644 "support/man/precached.conf.5" "$pkgdir/usr/share/man/man5/"
   install -m 644 "support/man/precached.rules.5" "$pkgdir/usr/share/man/man5/"
+
+  cp -ra "support/i18n" "$pkgdir/usr/share/precached/"
 
   install -m 644 -T "support/shell/completions/iotracectl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/iotracectl"
   install -m 644 -T "support/shell/completions/precachedctl.bash-completion" "$pkgdir/usr/share/bash-completion/completions/precachedctl"
