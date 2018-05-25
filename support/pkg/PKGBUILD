@@ -1,7 +1,7 @@
 # Maintainer: X3n0m0rph59 <x3n0m0rph59@gmail.com>
 pkgname=precached
-pkgver=1.2.0
-pkgrel=4
+pkgver=1.3.0
+pkgrel=5
 pkgdesc="A Linux process monitor and pre-caching daemon"
 arch=('i686' 'x86_64')
 url="https://x3n0m0rph59.github.io/precached/"

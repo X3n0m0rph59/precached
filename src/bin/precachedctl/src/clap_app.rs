@@ -29,7 +29,7 @@ where
     'a: 'b,
 {
     App::new("precachedctl")
-        .version("1.2.0")
+        .version("1.3.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
