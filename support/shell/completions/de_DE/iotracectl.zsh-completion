@@ -1,0 +1,367 @@
+#compdef iotracectl
+
+autoload -U is-at-least
+
+_iotracectl() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" \
+'-c+[Die precached Konfigurationsdatei]' \
+'--config=[Die precached Konfigurationsdatei]' \
+'-a[ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen]' \
+'--ascii[ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen]' \
+'-u[Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen]' \
+'--unicode[Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen]' \
+'*-v[Legt die Ausgabe-Verbosität fest]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_iotracectl_commands" \
+"*::: :->iotracectl" \
+&& ret=0
+    case $state in
+    (iotracectl)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:iotracectl-command-$line[1]:"
+        case $line[1] in
+            (status)
+_arguments "${_arguments_options[@]}" \
+'--tabular[Das tabellarische Ausgabeformat benutzen]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(list)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filtern anhand des Hashwerts]' \
+'--hash=[Filtern anhand des Hashwerts]' \
+'-e+[Filtern anhand der ausführbaren Datei]' \
+'--executable=[Filtern anhand der ausführbaren Datei]' \
+'-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
+'(-f --full -s --short -t --terse)--tabular[Das tabellarische Ausgabeformat benutzen]' \
+'(--tabular -s --short -t --terse)-f[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
+'(--tabular -s --short -t --terse)--full[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
+'(--tabular -f --full -t --terse)-s[Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)]' \
+'(--tabular -f --full -t --terse)--short[Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)]' \
+'(--tabular -f --full -s --short)-t[Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)]' \
+'(--tabular -f --full -s --short)--terse[Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(show)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filtern anhand des Hashwerts]' \
+'--hash=[Filtern anhand des Hashwerts]' \
+'-e+[Filtern anhand der ausführbaren Datei]' \
+'--executable=[Filtern anhand der ausführbaren Datei]' \
+'-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
+'(-s --short)-f[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
+'(-s --short)--full[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
+'(-f --full)-s[Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)]' \
+'(-f --full)--short[Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(info)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filtern anhand des Hashwerts]' \
+'--hash=[Filtern anhand des Hashwerts]' \
+'-e+[Filtern anhand der ausführbaren Datei]' \
+'--executable=[Filtern anhand der ausführbaren Datei]' \
+'-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
+'(-s --short)-f[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
+'(-s --short)--full[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
+'(-f --full)-s[Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)]' \
+'(-f --full)--short[Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(dump)
+_arguments "${_arguments_options[@]}" \
+'-p+[Hash Wert des I/O Trace Logs]' \
+'--hash=[Hash Wert des I/O Trace Logs]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(analyze)
+_arguments "${_arguments_options[@]}" \
+'-p+[Hash Wert des I/O Trace Logs]' \
+'--hash=[Hash Wert des I/O Trace Logs]' \
+'(-t --terse)--tabular[Das tabellarische Ausgabeformat benutzen]' \
+'-t[Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)]' \
+'--terse[Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(sizes)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filtern anhand des Hashwerts]' \
+'--hash=[Filtern anhand des Hashwerts]' \
+'-e+[Filtern anhand der ausführbaren Datei]' \
+'--executable=[Filtern anhand der ausführbaren Datei]' \
+'-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
+'(-s --short)-f[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
+'(-s --short)--full[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
+'(-f --full)-s[Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)]' \
+'(-f --full)--short[Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(optimize)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filtern anhand des Hashwerts]' \
+'--hash=[Filtern anhand des Hashwerts]' \
+'-e+[Filtern anhand der ausführbaren Datei]' \
+'--executable=[Filtern anhand der ausführbaren Datei]' \
+'-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
+'-n[Keine Aktion ausführen, nur so tun als ob]' \
+'--dry-run[Keine Aktion ausführen, nur so tun als ob]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(delete)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filtern anhand des Hashwerts]' \
+'--hash=[Filtern anhand des Hashwerts]' \
+'-e+[Filtern anhand der ausführbaren Datei]' \
+'--executable=[Filtern anhand der ausführbaren Datei]' \
+'-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
+'-n[Keine Aktion ausführen, nur so tun als ob]' \
+'--dry-run[Keine Aktion ausführen, nur so tun als ob]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(remove)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filtern anhand des Hashwerts]' \
+'--hash=[Filtern anhand des Hashwerts]' \
+'-e+[Filtern anhand der ausführbaren Datei]' \
+'--executable=[Filtern anhand der ausführbaren Datei]' \
+'-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
+'-n[Keine Aktion ausführen, nur so tun als ob]' \
+'--dry-run[Keine Aktion ausführen, nur so tun als ob]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(clear)
+_arguments "${_arguments_options[@]}" \
+'-n[Keine Aktion ausführen, nur so tun als ob]' \
+'--dry-run[Keine Aktion ausführen, nur so tun als ob]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(completions)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':SHELL -- Ziel Shell:(bash fish zsh powershell)' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+}
+
+(( $+functions[_iotracectl_commands] )) ||
+_iotracectl_commands() {
+    local commands; commands=(
+        "status:Status anzeigen" \
+"list:Alle passenden I/O Trace Logs auflisten" \
+"info:Metadaten von I/O Trace Logs ausgeben" \
+"dump:I/O Trace Log Einträge ausgeben" \
+"analyze:I/O Trace Logs analysieren (fehlende Dateien anzeigen)" \
+"sizes:Belegung des Virtuellen Speichers berechnen" \
+"optimize:I/O Trace Logs optimieren" \
+"remove:I/O Trace Logs entfernen" \
+"clear:Alle I/O Trace Logs löschen und das precached I/O Tracing Subsystem zurücksetzen" \
+"help:Diese Kurzhilfe anzeigen" \
+"completions:Generiert Shell Skripte für Autovervollständigung" \
+    )
+    _describe -t commands 'iotracectl commands' commands "$@"
+}
+(( $+functions[_iotracectl__analyze_commands] )) ||
+_iotracectl__analyze_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl analyze commands' commands "$@"
+}
+(( $+functions[_iotracectl__clear_commands] )) ||
+_iotracectl__clear_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl clear commands' commands "$@"
+}
+(( $+functions[_iotracectl__completions_commands] )) ||
+_iotracectl__completions_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl completions commands' commands "$@"
+}
+(( $+functions[_delete_commands] )) ||
+_delete_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'delete commands' commands "$@"
+}
+(( $+functions[_iotracectl__delete_commands] )) ||
+_iotracectl__delete_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl delete commands' commands "$@"
+}
+(( $+functions[_iotracectl__dump_commands] )) ||
+_iotracectl__dump_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl dump commands' commands "$@"
+}
+(( $+functions[_iotracectl__help_commands] )) ||
+_iotracectl__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl help commands' commands "$@"
+}
+(( $+functions[_iotracectl__info_commands] )) ||
+_iotracectl__info_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl info commands' commands "$@"
+}
+(( $+functions[_iotracectl__list_commands] )) ||
+_iotracectl__list_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl list commands' commands "$@"
+}
+(( $+functions[_iotracectl__optimize_commands] )) ||
+_iotracectl__optimize_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl optimize commands' commands "$@"
+}
+(( $+functions[_iotracectl__remove_commands] )) ||
+_iotracectl__remove_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl remove commands' commands "$@"
+}
+(( $+functions[_iotracectl__show_commands] )) ||
+_iotracectl__show_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl show commands' commands "$@"
+}
+(( $+functions[_show_commands] )) ||
+_show_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'show commands' commands "$@"
+}
+(( $+functions[_iotracectl__sizes_commands] )) ||
+_iotracectl__sizes_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl sizes commands' commands "$@"
+}
+(( $+functions[_iotracectl__status_commands] )) ||
+_iotracectl__status_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl status commands' commands "$@"
+}
+
+_iotracectl "$@"

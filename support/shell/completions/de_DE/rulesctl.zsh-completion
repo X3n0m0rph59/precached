@@ -1,0 +1,205 @@
+#compdef rulesctl
+
+autoload -U is-at-least
+
+_rulesctl() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" \
+'-c+[Die precached Konfigurationsdatei]' \
+'--config=[Die precached Konfigurationsdatei]' \
+'-a[ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen]' \
+'--ascii[ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen]' \
+'-u[Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen]' \
+'--unicode[Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen]' \
+'*-v[Legt die Ausgabe-Verbosität fest]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_rulesctl_commands" \
+"*::: :->rulesctl" \
+&& ret=0
+    case $state in
+    (rulesctl)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:rulesctl-command-$line[1]:"
+        case $line[1] in
+            (status)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(list)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(info)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':filename -- Name der .rules Datei:_files' \
+&& ret=0
+;;
+(show)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':filename -- Name der .rules Datei:_files' \
+&& ret=0
+;;
+(enable)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':filename -- Name der .rules Datei:_files' \
+&& ret=0
+;;
+(disable)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':filename -- Name der .rules Datei:_files' \
+&& ret=0
+;;
+(reload)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(completions)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':SHELL -- Ziel Shell:(bash fish zsh powershell)' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+}
+
+(( $+functions[_rulesctl_commands] )) ||
+_rulesctl_commands() {
+    local commands; commands=(
+        "status:Status des precached Regel-Subsystems anzeigen" \
+"list:Alle verfügbaren .rules Dateien auflisten" \
+"show:Informationen über eine .rules Datei ausgeben" \
+"enable:Aktivieren einer .rules Datei" \
+"disable:Deaktivieren einer .rules Datei" \
+"reload:Den precached Daemon anweisen, alle .rules Dateien neu zu laden" \
+"help:Diese Kurzhilfe anzeigen" \
+"completions:Generiert Shell Skripte für Autovervollständigung" \
+    )
+    _describe -t commands 'rulesctl commands' commands "$@"
+}
+(( $+functions[_rulesctl__completions_commands] )) ||
+_rulesctl__completions_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'rulesctl completions commands' commands "$@"
+}
+(( $+functions[_rulesctl__disable_commands] )) ||
+_rulesctl__disable_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'rulesctl disable commands' commands "$@"
+}
+(( $+functions[_rulesctl__enable_commands] )) ||
+_rulesctl__enable_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'rulesctl enable commands' commands "$@"
+}
+(( $+functions[_rulesctl__help_commands] )) ||
+_rulesctl__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'rulesctl help commands' commands "$@"
+}
+(( $+functions[_info_commands] )) ||
+_info_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'info commands' commands "$@"
+}
+(( $+functions[_rulesctl__info_commands] )) ||
+_rulesctl__info_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'rulesctl info commands' commands "$@"
+}
+(( $+functions[_rulesctl__list_commands] )) ||
+_rulesctl__list_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'rulesctl list commands' commands "$@"
+}
+(( $+functions[_rulesctl__reload_commands] )) ||
+_rulesctl__reload_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'rulesctl reload commands' commands "$@"
+}
+(( $+functions[_rulesctl__show_commands] )) ||
+_rulesctl__show_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'rulesctl show commands' commands "$@"
+}
+(( $+functions[_rulesctl__status_commands] )) ||
+_rulesctl__status_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'rulesctl status commands' commands "$@"
+}
+
+_rulesctl "$@"

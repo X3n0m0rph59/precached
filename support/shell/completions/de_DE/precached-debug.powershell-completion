@@ -1,0 +1,83 @@
+
+using namespace System.Management.Automation
+using namespace System.Management.Automation.Language
+
+Register-ArgumentCompleter -Native -CommandName 'precached-debug' -ScriptBlock {
+    param($wordToComplete, $commandAst, $cursorPosition)
+
+    $commandElements = $commandAst.CommandElements
+    $command = @(
+        'precached-debug'
+        for ($i = 1; $i -lt $commandElements.Count; $i++) {
+            $element = $commandElements[$i]
+            if ($element -isnot [StringConstantExpressionAst] -or
+                $element.StringConstantType -ne [StringConstantType]::BareWord -or
+                $element.Value.StartsWith('-')) {
+                break
+        }
+        $element.Value
+    }) -join ';'
+
+    $completions = @(switch ($command) {
+        'precached-debug' {
+            [CompletionResult]::new('-c', 'c', [CompletionResultType]::ParameterName, 'Die precached Konfigurationsdatei')
+            [CompletionResult]::new('--config', 'config', [CompletionResultType]::ParameterName, 'Die precached Konfigurationsdatei')
+            [CompletionResult]::new('-a', 'a', [CompletionResultType]::ParameterName, 'ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen')
+            [CompletionResult]::new('--ascii', 'ascii', [CompletionResultType]::ParameterName, 'ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen')
+            [CompletionResult]::new('-u', 'u', [CompletionResultType]::ParameterName, 'Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen')
+            [CompletionResult]::new('--unicode', 'unicode', [CompletionResultType]::ParameterName, 'Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen')
+            [CompletionResult]::new('-v', 'v', [CompletionResultType]::ParameterName, 'Legt die Ausgabe-Verbosität fest')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('status', 'status', [CompletionResultType]::ParameterValue, 'Status des precached Daemons anzeigen')
+            [CompletionResult]::new('help', 'help', [CompletionResultType]::ParameterValue, 'Diese Kurzhilfe anzeigen')
+            [CompletionResult]::new('test-tracing', 'test-tracing', [CompletionResultType]::ParameterValue, 'Das I/O Tracing Subsystem von precached testen')
+            [CompletionResult]::new('cleanup', 'cleanup', [CompletionResultType]::ParameterValue, 'Dateien entfernen, die während des Tests erzeugt wurden')
+            [CompletionResult]::new('completions', 'completions', [CompletionResultType]::ParameterValue, 'Generiert Shell Skripte für Autovervollständigung')
+            break
+        }
+        'precached-debug;status' {
+            [CompletionResult]::new('--tabular', 'tabular', [CompletionResultType]::ParameterName, 'Das tabellarische Ausgabeformat benutzen')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'precached-debug;help' {
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'precached-debug;test-tracing' {
+            [CompletionResult]::new('-s', 's', [CompletionResultType]::ParameterName, 'Pausieren nach dem erzeugen jeder Datei')
+            [CompletionResult]::new('--sleep', 'sleep', [CompletionResultType]::ParameterName, 'Pausieren nach dem erzeugen jeder Datei')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'precached-debug;cleanup' {
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'precached-debug;completions' {
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+    })
+
+    $completions.Where{ $_.CompletionText -like "$wordToComplete*" } |
+        Sort-Object -Property ListItemText
+}

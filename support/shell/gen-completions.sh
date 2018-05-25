@@ -33,17 +33,26 @@
 # ./target/debug/precached-debug completions powershell > support/shell/completions/precached-debug.powershell-completion
 
 function gen_completions {
-    ./target/debug/"$1" "completions" "bash" > "support/shell/completions/$1.bash-completion"
-    ./target/debug/"$1" "completions" "zsh" > "support/shell/completions/$1.zsh-completion"
-    ./target/debug/"$1" "completions" "fish" > "support/shell/completions/$1.fish-completion"
-    ./target/debug/"$1" "completions" "powershell" > "support/shell/completions/$1.powershell-completion"
+    ./target/debug/"$1" "completions" "bash" > "support/shell/completions/$LANG/$1.bash-completion"
+    ./target/debug/"$1" "completions" "zsh" > "support/shell/completions/$LANG/$1.zsh-completion"
+    ./target/debug/"$1" "completions" "fish" > "support/shell/completions/$LANG/$1.fish-completion"
+    ./target/debug/"$1" "completions" "powershell" > "support/shell/completions/$LANG/$1.powershell-completion"
 }
 
-gen_completions "precachedctl"
-gen_completions "precachedtop"
-gen_completions "rulesctl"
-gen_completions "iotracectl"
-gen_completions "precached-trigger"
-gen_completions "precached-debug"
+# supported locales
+languages=('en_US' 'de_DE')
+
+for l in ${languages[@]}
+do
+    export LANG=$l
+    mkdir -p "support/shell/completions/$LANG/"
+
+    gen_completions "precachedctl"
+    gen_completions "precachedtop"
+    gen_completions "rulesctl"
+    gen_completions "iotracectl"
+    gen_completions "precached-trigger"
+    gen_completions "precached-debug"
+done
 
 exit 0

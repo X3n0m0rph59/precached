@@ -1,0 +1,200 @@
+
+using namespace System.Management.Automation
+using namespace System.Management.Automation.Language
+
+Register-ArgumentCompleter -Native -CommandName 'iotracectl' -ScriptBlock {
+    param($wordToComplete, $commandAst, $cursorPosition)
+
+    $commandElements = $commandAst.CommandElements
+    $command = @(
+        'iotracectl'
+        for ($i = 1; $i -lt $commandElements.Count; $i++) {
+            $element = $commandElements[$i]
+            if ($element -isnot [StringConstantExpressionAst] -or
+                $element.StringConstantType -ne [StringConstantType]::BareWord -or
+                $element.Value.StartsWith('-')) {
+                break
+        }
+        $element.Value
+    }) -join ';'
+
+    $completions = @(switch ($command) {
+        'iotracectl' {
+            [CompletionResult]::new('-c', 'c', [CompletionResultType]::ParameterName, 'Die precached Konfigurationsdatei')
+            [CompletionResult]::new('--config', 'config', [CompletionResultType]::ParameterName, 'Die precached Konfigurationsdatei')
+            [CompletionResult]::new('-a', 'a', [CompletionResultType]::ParameterName, 'ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen')
+            [CompletionResult]::new('--ascii', 'ascii', [CompletionResultType]::ParameterName, 'ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen')
+            [CompletionResult]::new('-u', 'u', [CompletionResultType]::ParameterName, 'Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen')
+            [CompletionResult]::new('--unicode', 'unicode', [CompletionResultType]::ParameterName, 'Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen')
+            [CompletionResult]::new('-v', 'v', [CompletionResultType]::ParameterName, 'Legt die Ausgabe-Verbosität fest')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('status', 'status', [CompletionResultType]::ParameterValue, 'Status anzeigen')
+            [CompletionResult]::new('list', 'list', [CompletionResultType]::ParameterValue, 'Alle passenden I/O Trace Logs auflisten')
+            [CompletionResult]::new('info', 'info', [CompletionResultType]::ParameterValue, 'Metadaten von I/O Trace Logs ausgeben')
+            [CompletionResult]::new('dump', 'dump', [CompletionResultType]::ParameterValue, 'I/O Trace Log Einträge ausgeben')
+            [CompletionResult]::new('analyze', 'analyze', [CompletionResultType]::ParameterValue, 'I/O Trace Logs analysieren (fehlende Dateien anzeigen)')
+            [CompletionResult]::new('sizes', 'sizes', [CompletionResultType]::ParameterValue, 'Belegung des Virtuellen Speichers berechnen')
+            [CompletionResult]::new('optimize', 'optimize', [CompletionResultType]::ParameterValue, 'I/O Trace Logs optimieren')
+            [CompletionResult]::new('remove', 'remove', [CompletionResultType]::ParameterValue, 'I/O Trace Logs entfernen')
+            [CompletionResult]::new('clear', 'clear', [CompletionResultType]::ParameterValue, 'Alle I/O Trace Logs löschen und das precached I/O Tracing Subsystem zurücksetzen')
+            [CompletionResult]::new('help', 'help', [CompletionResultType]::ParameterValue, 'Diese Kurzhilfe anzeigen')
+            [CompletionResult]::new('completions', 'completions', [CompletionResultType]::ParameterValue, 'Generiert Shell Skripte für Autovervollständigung')
+            break
+        }
+        'iotracectl;status' {
+            [CompletionResult]::new('--tabular', 'tabular', [CompletionResultType]::ParameterName, 'Das tabellarische Ausgabeformat benutzen')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;list' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('-e', 'e', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('--executable', 'executable', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--optimized', 'optimized', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--flags', 'flags', [CompletionResultType]::ParameterName, 'Filtern anhand von Flags')
+            [CompletionResult]::new('--sort', 'sort', [CompletionResultType]::ParameterName, 'Sortieren nach Feld')
+            [CompletionResult]::new('--order', 'order', [CompletionResultType]::ParameterName, 'Sortierreihenfolge')
+            [CompletionResult]::new('--tabular', 'tabular', [CompletionResultType]::ParameterName, 'Das tabellarische Ausgabeformat benutzen')
+            [CompletionResult]::new('-f', 'f', [CompletionResultType]::ParameterName, 'Das volle Ausgabeformat benutzen (alle Felder anzeigen)')
+            [CompletionResult]::new('--full', 'full', [CompletionResultType]::ParameterName, 'Das volle Ausgabeformat benutzen (alle Felder anzeigen)')
+            [CompletionResult]::new('-s', 's', [CompletionResultType]::ParameterName, 'Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)')
+            [CompletionResult]::new('--short', 'short', [CompletionResultType]::ParameterName, 'Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)')
+            [CompletionResult]::new('-t', 't', [CompletionResultType]::ParameterName, 'Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)')
+            [CompletionResult]::new('--terse', 'terse', [CompletionResultType]::ParameterName, 'Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;info' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('-e', 'e', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('--executable', 'executable', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--optimized', 'optimized', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--flags', 'flags', [CompletionResultType]::ParameterName, 'Filtern anhand von Flags')
+            [CompletionResult]::new('--sort', 'sort', [CompletionResultType]::ParameterName, 'Sortieren nach Feld')
+            [CompletionResult]::new('--order', 'order', [CompletionResultType]::ParameterName, 'Sortierreihenfolge')
+            [CompletionResult]::new('-f', 'f', [CompletionResultType]::ParameterName, 'Das volle Ausgabeformat benutzen (alle Felder anzeigen)')
+            [CompletionResult]::new('--full', 'full', [CompletionResultType]::ParameterName, 'Das volle Ausgabeformat benutzen (alle Felder anzeigen)')
+            [CompletionResult]::new('-s', 's', [CompletionResultType]::ParameterName, 'Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)')
+            [CompletionResult]::new('--short', 'short', [CompletionResultType]::ParameterName, 'Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;dump' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Hash Wert des I/O Trace Logs')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Hash Wert des I/O Trace Logs')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;analyze' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Hash Wert des I/O Trace Logs')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Hash Wert des I/O Trace Logs')
+            [CompletionResult]::new('--tabular', 'tabular', [CompletionResultType]::ParameterName, 'Das tabellarische Ausgabeformat benutzen')
+            [CompletionResult]::new('-t', 't', [CompletionResultType]::ParameterName, 'Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)')
+            [CompletionResult]::new('--terse', 'terse', [CompletionResultType]::ParameterName, 'Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;sizes' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('-e', 'e', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('--executable', 'executable', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--optimized', 'optimized', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--flags', 'flags', [CompletionResultType]::ParameterName, 'Filtern anhand von Flags')
+            [CompletionResult]::new('-f', 'f', [CompletionResultType]::ParameterName, 'Das volle Ausgabeformat benutzen (alle Felder anzeigen)')
+            [CompletionResult]::new('--full', 'full', [CompletionResultType]::ParameterName, 'Das volle Ausgabeformat benutzen (alle Felder anzeigen)')
+            [CompletionResult]::new('-s', 's', [CompletionResultType]::ParameterName, 'Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)')
+            [CompletionResult]::new('--short', 'short', [CompletionResultType]::ParameterName, 'Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;optimize' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('-e', 'e', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('--executable', 'executable', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--optimized', 'optimized', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--flags', 'flags', [CompletionResultType]::ParameterName, 'Filtern anhand von Flags')
+            [CompletionResult]::new('--sort', 'sort', [CompletionResultType]::ParameterName, 'Sortieren nach Feld')
+            [CompletionResult]::new('--order', 'order', [CompletionResultType]::ParameterName, 'Sortierreihenfolge')
+            [CompletionResult]::new('-n', 'n', [CompletionResultType]::ParameterName, 'Keine Aktion ausführen, nur so tun als ob')
+            [CompletionResult]::new('--dry-run', 'dry-run', [CompletionResultType]::ParameterName, 'Keine Aktion ausführen, nur so tun als ob')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;remove' {
+            [CompletionResult]::new('-p', 'p', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('--hash', 'hash', [CompletionResultType]::ParameterName, 'Filtern anhand des Hashwerts')
+            [CompletionResult]::new('-e', 'e', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('--executable', 'executable', [CompletionResultType]::ParameterName, 'Filtern anhand der ausführbaren Datei')
+            [CompletionResult]::new('-o', 'o', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--optimized', 'optimized', [CompletionResultType]::ParameterName, 'Filtern anhand des Optimierungsstatus')
+            [CompletionResult]::new('--flags', 'flags', [CompletionResultType]::ParameterName, 'Filtern anhand von Flags')
+            [CompletionResult]::new('--sort', 'sort', [CompletionResultType]::ParameterName, 'Sortieren nach Feld')
+            [CompletionResult]::new('--order', 'order', [CompletionResultType]::ParameterName, 'Sortierreihenfolge')
+            [CompletionResult]::new('-n', 'n', [CompletionResultType]::ParameterName, 'Keine Aktion ausführen, nur so tun als ob')
+            [CompletionResult]::new('--dry-run', 'dry-run', [CompletionResultType]::ParameterName, 'Keine Aktion ausführen, nur so tun als ob')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;clear' {
+            [CompletionResult]::new('-n', 'n', [CompletionResultType]::ParameterName, 'Keine Aktion ausführen, nur so tun als ob')
+            [CompletionResult]::new('--dry-run', 'dry-run', [CompletionResultType]::ParameterName, 'Keine Aktion ausführen, nur so tun als ob')
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;help' {
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+        'iotracectl;completions' {
+            [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Prints help information')
+            [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Prints version information')
+            [CompletionResult]::new('--version', 'version', [CompletionResultType]::ParameterName, 'Prints version information')
+            break
+        }
+    })
+
+    $completions.Where{ $_.CompletionText -like "$wordToComplete*" } |
+        Sort-Object -Property ListItemText
+}

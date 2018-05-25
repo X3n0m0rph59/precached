@@ -1,0 +1,83 @@
+complete -c iotracectl -n "__fish_use_subcommand" -s c -l config -d 'Die precached Konfigurationsdatei'
+complete -c iotracectl -n "__fish_use_subcommand" -s a -l ascii -d 'ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen'
+complete -c iotracectl -n "__fish_use_subcommand" -s u -l unicode -d 'Unicode Linien Ausgabe erzeugen anstatt ASCII zu benutzen'
+complete -c iotracectl -n "__fish_use_subcommand" -s v -d 'Legt die Ausgabe-Verbosität fest'
+complete -c iotracectl -n "__fish_use_subcommand" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_use_subcommand" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "status" -d 'Status anzeigen'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "list" -d 'Alle passenden I/O Trace Logs auflisten'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "info" -d 'Metadaten von I/O Trace Logs ausgeben'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "dump" -d 'I/O Trace Log Einträge ausgeben'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "analyze" -d 'I/O Trace Logs analysieren (fehlende Dateien anzeigen)'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "sizes" -d 'Belegung des Virtuellen Speichers berechnen'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "optimize" -d 'I/O Trace Logs optimieren'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "remove" -d 'I/O Trace Logs entfernen'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "clear" -d 'Alle I/O Trace Logs löschen und das precached I/O Tracing Subsystem zurücksetzen'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "help" -d 'Diese Kurzhilfe anzeigen'
+complete -c iotracectl -n "__fish_use_subcommand" -f -a "completions" -d 'Generiert Shell Skripte für Autovervollständigung'
+complete -c iotracectl -n "__fish_seen_subcommand_from status" -l tabular -d 'Das tabellarische Ausgabeformat benutzen'
+complete -c iotracectl -n "__fish_seen_subcommand_from status" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from status" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -s p -l hash -d 'Filtern anhand des Hashwerts'
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -s e -l executable -d 'Filtern anhand der ausführbaren Datei'
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -s o -l optimized -d 'Filtern anhand des Optimierungsstatus' -r -f -a "true false"
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -l flags -d 'Filtern anhand von Flags' -r -f -a "valid invalid fresh expired current outdated missing"
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -l sort -d 'Sortieren nach Feld' -r -f -a "executable hash date numfiles numioops iosize optimized"
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -l order -d 'Sortierreihenfolge' -r -f -a "asc ascending desc descending"
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -l tabular -d 'Das tabellarische Ausgabeformat benutzen'
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -s f -l full -d 'Das volle Ausgabeformat benutzen (alle Felder anzeigen)'
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -s s -l short -d 'Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)'
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -s t -l terse -d 'Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)'
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from list" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -s p -l hash -d 'Filtern anhand des Hashwerts'
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -s e -l executable -d 'Filtern anhand der ausführbaren Datei'
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -s o -l optimized -d 'Filtern anhand des Optimierungsstatus' -r -f -a "true false"
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -l flags -d 'Filtern anhand von Flags' -r -f -a "valid invalid fresh expired current outdated missing"
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -l sort -d 'Sortieren nach Feld' -r -f -a "executable hash date numfiles numioops iosize optimized"
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -l order -d 'Sortierreihenfolge' -r -f -a "asc ascending desc descending"
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -s f -l full -d 'Das volle Ausgabeformat benutzen (alle Felder anzeigen)'
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -s s -l short -d 'Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)'
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from info" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from dump" -s p -l hash -d 'Hash Wert des I/O Trace Logs'
+complete -c iotracectl -n "__fish_seen_subcommand_from dump" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from dump" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from analyze" -s p -l hash -d 'Hash Wert des I/O Trace Logs'
+complete -c iotracectl -n "__fish_seen_subcommand_from analyze" -l tabular -d 'Das tabellarische Ausgabeformat benutzen'
+complete -c iotracectl -n "__fish_seen_subcommand_from analyze" -s t -l terse -d 'Das knappe Ausgabeformat benutzen (nur ausführbare Dateien anzeigen)'
+complete -c iotracectl -n "__fish_seen_subcommand_from analyze" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from analyze" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s p -l hash -d 'Filtern anhand des Hashwerts'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s e -l executable -d 'Filtern anhand der ausführbaren Datei'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s o -l optimized -d 'Filtern anhand des Optimierungsstatus' -r -f -a "true false"
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -l flags -d 'Filtern anhand von Flags' -r -f -a "valid invalid fresh expired current outdated missing"
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s f -l full -d 'Das volle Ausgabeformat benutzen (alle Felder anzeigen)'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s s -l short -d 'Das kurze Ausgabeformat benutzen (nur wichtige Felder anzeigen)'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from sizes" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -s p -l hash -d 'Filtern anhand des Hashwerts'
+complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -s e -l executable -d 'Filtern anhand der ausführbaren Datei'
+complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -s o -l optimized -d 'Filtern anhand des Optimierungsstatus' -r -f -a "true false"
+complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -l flags -d 'Filtern anhand von Flags' -r -f -a "valid invalid fresh expired current outdated missing"
+complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -l sort -d 'Sortieren nach Feld' -r -f -a "executable hash date numfiles numioops iosize optimized"
+complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -l order -d 'Sortierreihenfolge' -r -f -a "asc ascending desc descending"
+complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -s n -l dry-run -d 'Keine Aktion ausführen, nur so tun als ob'
+complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from optimize" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from remove" -s p -l hash -d 'Filtern anhand des Hashwerts'
+complete -c iotracectl -n "__fish_seen_subcommand_from remove" -s e -l executable -d 'Filtern anhand der ausführbaren Datei'
+complete -c iotracectl -n "__fish_seen_subcommand_from remove" -s o -l optimized -d 'Filtern anhand des Optimierungsstatus' -r -f -a "true false"
+complete -c iotracectl -n "__fish_seen_subcommand_from remove" -l flags -d 'Filtern anhand von Flags' -r -f -a "valid invalid fresh expired current outdated missing"
+complete -c iotracectl -n "__fish_seen_subcommand_from remove" -l sort -d 'Sortieren nach Feld' -r -f -a "executable hash date numfiles numioops iosize optimized"
+complete -c iotracectl -n "__fish_seen_subcommand_from remove" -l order -d 'Sortierreihenfolge' -r -f -a "asc ascending desc descending"
+complete -c iotracectl -n "__fish_seen_subcommand_from remove" -s n -l dry-run -d 'Keine Aktion ausführen, nur so tun als ob'
+complete -c iotracectl -n "__fish_seen_subcommand_from remove" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from remove" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from clear" -s n -l dry-run -d 'Keine Aktion ausführen, nur so tun als ob'
+complete -c iotracectl -n "__fish_seen_subcommand_from clear" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from clear" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from help" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from help" -s V -l version -d 'Prints version information'
+complete -c iotracectl -n "__fish_seen_subcommand_from completions" -s h -l help -d 'Prints help information'
+complete -c iotracectl -n "__fish_seen_subcommand_from completions" -s V -l version -d 'Prints version information'

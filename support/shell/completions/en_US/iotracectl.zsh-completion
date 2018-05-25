@@ -79,10 +79,10 @@ _arguments "${_arguments_options[@]}" \
 '--flags=[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort=[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order=[Sort order]: :(asc ascending desc descending)' \
-'(-s --short)-f[Use '\''full'\'' display format]' \
-'(-s --short)--full[Use '\''full'\'' display format]' \
-'(-f --full)-s[Use '\''short'\'' display format]' \
-'(-f --full)--short[Use '\''short'\'' display format]' \
+'(-s --short)-f[Use '\''full'\'' display format (list all fields)]' \
+'(-s --short)--full[Use '\''full'\'' display format (list all fields)]' \
+'(-f --full)-s[Use '\''short'\'' display format (list important fields only)]' \
+'(-f --full)--short[Use '\''short'\'' display format (list important fields only)]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -100,10 +100,10 @@ _arguments "${_arguments_options[@]}" \
 '--flags=[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort=[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order=[Sort order]: :(asc ascending desc descending)' \
-'(-s --short)-f[Use '\''full'\'' display format]' \
-'(-s --short)--full[Use '\''full'\'' display format]' \
-'(-f --full)-s[Use '\''short'\'' display format]' \
-'(-f --full)--short[Use '\''short'\'' display format]' \
+'(-s --short)-f[Use '\''full'\'' display format (list all fields)]' \
+'(-s --short)--full[Use '\''full'\'' display format (list all fields)]' \
+'(-f --full)-s[Use '\''short'\'' display format (list important fields only)]' \
+'(-f --full)--short[Use '\''short'\'' display format (list important fields only)]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -112,8 +112,8 @@ _arguments "${_arguments_options[@]}" \
 ;;
 (dump)
 _arguments "${_arguments_options[@]}" \
-'-p+[The hash value of the I/O trace to dump]' \
-'--hash=[The hash value of the I/O trace to dump]' \
+'-p+[The hash value of the I/O trace]' \
+'--hash=[The hash value of the I/O trace]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -122,11 +122,11 @@ _arguments "${_arguments_options[@]}" \
 ;;
 (analyze)
 _arguments "${_arguments_options[@]}" \
-'-p+[The hash value of the I/O trace to analyze]' \
-'--hash=[The hash value of the I/O trace to analyze]' \
+'-p+[The hash value of the I/O trace]' \
+'--hash=[The hash value of the I/O trace]' \
 '(-t --terse)--tabular[Use '\''tabular'\'' display format]' \
-'-t[Use '\''terse'\'' display format (list files only)]' \
-'--terse[Use '\''terse'\'' display format (list files only)]' \
+'-t[Use '\''terse'\'' display format (list executables only)]' \
+'--terse[Use '\''terse'\'' display format (list executables only)]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -182,8 +182,8 @@ _arguments "${_arguments_options[@]}" \
 '--flags=[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort=[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order=[Sort order]: :(asc ascending desc descending)' \
-'-n[Do not actually remove anything, just pretend to]' \
-'--dry-run[Do not actually remove anything, just pretend to]' \
+'-n[Do not actually optimize anything, just pretend to]' \
+'--dry-run[Do not actually optimize anything, just pretend to]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -201,8 +201,8 @@ _arguments "${_arguments_options[@]}" \
 '--flags=[Filter for flags of the I/O trace]: :(valid invalid fresh expired current outdated missing)' \
 '--sort=[Sort entries by field]: :(executable hash date numfiles numioops iosize optimized)' \
 '--order=[Sort order]: :(asc ascending desc descending)' \
-'-n[Do not actually remove anything, just pretend to]' \
-'--dry-run[Do not actually remove anything, just pretend to]' \
+'-n[Do not actually optimize anything, just pretend to]' \
+'--dry-run[Do not actually optimize anything, just pretend to]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -211,8 +211,8 @@ _arguments "${_arguments_options[@]}" \
 ;;
 (clear)
 _arguments "${_arguments_options[@]}" \
-'-n[Do not actually remove anything, just pretend to]' \
-'--dry-run[Do not actually remove anything, just pretend to]' \
+'-n[Do not actually optimize anything, just pretend to]' \
+'--dry-run[Do not actually optimize anything, just pretend to]' \
 '-h[Prints help information]' \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
@@ -244,14 +244,14 @@ esac
 (( $+functions[_iotracectl_commands] )) ||
 _iotracectl_commands() {
     local commands; commands=(
-        "status:Show the current status of the precached I/O tracing subsystem" \
+        "status:Show status" \
 "list:List all available I/O traces" \
 "info:Print metadata information of specific I/O traces" \
 "dump:Dump I/O trace log entries (recorded I/O operations)" \
 "analyze:Analyze I/O trace logs (check for missing files)" \
 "sizes:Show virtual memory consumption" \
 "optimize:Optimize I/O trace logs (optimize I/O operations)" \
-"remove:Remove I/O trace" \
+"remove:Remove I/O trace logs" \
 "clear:Completely clear all I/O traces and reset the precached I/O tracing subsystem" \
 "help:Display this short help text" \
 "completions:Generates completion scripts for your shell" \
