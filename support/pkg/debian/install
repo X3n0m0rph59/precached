@@ -20,6 +20,8 @@ support/shell/completions/precachedtop.bash-completion usr/share/bash-completion
 support/shell/completions/precachedtop.zsh-completion usr/share/zsh/site-functions/_precachedtop
 support/shell/completions/precached-trigger.zsh-completion usr/share/zsh/site-functions/_precached-trigger
 support/shell/completions/precached-debug.zsh-completion usr/share/zsh/site-functions/_precached-debug
+support/i18n/en_US/messages.fluent usr/share/precached/i18n/en_US/messages.fluent
+support/i18n/de_DE/messages.fluent usr/share/precached/i18n/de_DE/messages.fluent
 target/release/precached usr/sbin
 target/release/precachedctl usr/sbin
 target/release/iotracectl usr/sbin
