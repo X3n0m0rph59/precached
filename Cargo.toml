@@ -22,8 +22,8 @@ zmq = { version = "*", git = "https://github.com/X3n0m0rph59/rust-zmq", branch =
 # threadpool = { version = "*", path = "vendor/threadpool" }
 # zmq = { version = "*", path = "vendor/zmq" }
 chrono = { version = "0.4", features = ["serde", "rustc-serialize"] }
-chrono-tz = { version = "0.4", features = ["serde"] }
-crossbeam = "0.3.2"
+chrono-tz = { version = "0.5", features = ["serde"] }
+crossbeam = "0.3"
 rayon = "1.0"
 indexmap = "1.0"
 time = "0.1.38"
@@ -48,7 +48,7 @@ globset = "0.4"
 byteorder = "1.1.0"
 bytevec = "0.2.0"
 toml = "0.4"
-clap = "2.27.1"
+clap = "2.32"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
