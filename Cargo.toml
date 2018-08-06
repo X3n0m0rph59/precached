@@ -17,9 +17,10 @@ dev = ["clippy"]
 procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }
 sys-info = { version = "*", git = "https://github.com/X3n0m0rph59/sys-info-rs", branch = "master" }
 threadpool = { version = "*", git = "https://github.com/X3n0m0rph59/rust-threadpool", branch = "master" }
+zmq = { version = "*", git = "https://github.com/X3n0m0rph59/rust-zmq", branch = "master" }
 # sys-info = { version = "*", path = "vendor/sys-info" }
 # threadpool = { version = "*", path = "vendor/threadpool" }
-zmq = "0.8"
+# zmq = { version = "*", path = "vendor/zmq" }
 chrono = { version = "0.4", features = ["serde", "rustc-serialize"] }
 chrono-tz = { version = "0.5", features = ["serde"] }
 crossbeam = "0.4"
