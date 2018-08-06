@@ -65,7 +65,7 @@ fn do_request(socket: &zmq::Socket, command: ipc::IpcCommand) -> Result<ipc::Ipc
     let cmd = ipc::IpcMessage::new(command);
     let buf = serde_json::to_string(&cmd).unwrap();
 
-    match socket.send(&buf, 0) {
+    match socket.send(&buf.as_bytes(), 0) {
         Ok(()) => {
             // Receive the daemon's reply
             match socket.recv_string(0) {

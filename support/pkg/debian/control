@@ -3,10 +3,9 @@ Section: admin
 Priority: optional
 Maintainer: X3n0m0rph59 <x3n0m0rph59@gmail.com>
 Build-Depends: debhelper (>= 9.20160709),
-	       dh-systemd (>= 1.5),
-	       cargo (>= 0.26),
-		   rustc (>= 1.26),
-	       libdbus-1-dev (>= 1.10),
+	       cargo (>= 0.28),
+		   rustc (>= 1.27),
+	       libdbus-1-dev (>= 1.11),
 		   libzmq3-dev (>= 4.2)
 Depends: libzmq5 (>= 4.2)
 Standards-Version: 4.1.2

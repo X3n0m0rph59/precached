@@ -17,13 +17,12 @@ dev = ["clippy"]
 procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }
 sys-info = { version = "*", git = "https://github.com/X3n0m0rph59/sys-info-rs", branch = "master" }
 threadpool = { version = "*", git = "https://github.com/X3n0m0rph59/rust-threadpool", branch = "master" }
-zmq = { version = "*", git = "https://github.com/X3n0m0rph59/rust-zmq", branch = "master" }
 # sys-info = { version = "*", path = "vendor/sys-info" }
 # threadpool = { version = "*", path = "vendor/threadpool" }
-# zmq = { version = "*", path = "vendor/zmq" }
+zmq = "0.8"
 chrono = { version = "0.4", features = ["serde", "rustc-serialize"] }
 chrono-tz = { version = "0.5", features = ["serde"] }
-crossbeam = "0.3"
+crossbeam = "0.4"
 rayon = "1.0"
 indexmap = "1.0"
 time = "0.1.38"
@@ -59,8 +58,7 @@ tui = "0.2"
 termion = "1.5.1"
 term = "0.5"
 pbr = "1.0.0"
-# prettytable-rs = "0.7"
-prettytable-rs = { version = "*", git = "https://github.com/Eijebong/prettytable-rs.git", branch = "term"}
+prettytable-rs = "0.7"
 daemonize = "0.3.0"
 inotify = "0.5"
 fluent = "0.2"

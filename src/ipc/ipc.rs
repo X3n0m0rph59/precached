@@ -206,7 +206,7 @@ impl IpcServer {
                         let cmd = IpcMessage::new(IpcCommand::ConnectedSuccessfully);
                         let buf = serde_json::to_string(&cmd).unwrap();
 
-                        match socket.send(&buf, 0) {
+                        match socket.send(&buf.as_bytes(), 0) {
                             Err(e) => {
                                 error!("Error sending response: {}", e);
                             }
@@ -337,7 +337,7 @@ impl IpcServer {
                 let cmd = IpcMessage::new(IpcCommand::SendTrackedProcesses(v));
                 let buf = serde_json::to_string(&cmd).unwrap();
 
-                socket.send(&buf, 0)?;
+                socket.send(&buf.as_bytes(), 0)?;
 
                 Ok(())
             }
@@ -364,7 +364,7 @@ impl IpcServer {
         let cmd = IpcMessage::new(IpcCommand::SendInFlightTracers(result));
         let buf = serde_json::to_string(&cmd).unwrap();
 
-        socket.send(&buf, 0)?;
+        socket.send(&buf.as_bytes(), 0)?;
 
         Ok(())
     }
@@ -397,7 +397,7 @@ impl IpcServer {
                 let cmd = IpcMessage::new(IpcCommand::SendPrefetchStatus(stats));
                 let buf = serde_json::to_string(&cmd).unwrap();
 
-                socket.send(&buf, 0)?;
+                socket.send(&buf.as_bytes(), 0)?;
 
                 Ok(())
             }
@@ -425,7 +425,7 @@ impl IpcServer {
                 let cmd = IpcMessage::new(IpcCommand::SendCachedFiles(v));
                 let buf = serde_json::to_string(&cmd).unwrap();
 
-                socket.send(&buf, 0)?;
+                socket.send(&buf.as_bytes(), 0)?;
 
                 Ok(())
             }
@@ -451,7 +451,7 @@ impl IpcServer {
         let cmd = IpcMessage::new(IpcCommand::SendInternalEvents(items));
         let buf = serde_json::to_string(&cmd).unwrap();
 
-        socket.send(&buf, 0)?;
+        socket.send(&buf.as_bytes(), 0)?;
 
         Ok(())
     }
@@ -475,7 +475,7 @@ impl IpcServer {
         let cmd = IpcMessage::new(IpcCommand::SendStatistics(items));
         let buf = serde_json::to_string(&cmd).unwrap();
 
-        socket.send(&buf, 0)?;
+        socket.send(&buf.as_bytes(), 0)?;
 
         Ok(())
     }
@@ -499,7 +499,7 @@ impl IpcServer {
                 let cmd = IpcMessage::new(IpcCommand::SendInternalState(data));
                 let buf = serde_json::to_string(&cmd).unwrap();
 
-                socket.send(&buf, 0)?;
+                socket.send(&buf.as_bytes(), 0)?;
 
                 Ok(())
             }
@@ -525,7 +525,7 @@ impl IpcServer {
                 let cmd = IpcMessage::new(IpcCommand::SendGlobalStatistics(data));
                 let buf = serde_json::to_string(&cmd).unwrap();
 
-                socket.send(&buf, 0)?;
+                socket.send(&buf.as_bytes(), 0)?;
 
                 Ok(())
             }
