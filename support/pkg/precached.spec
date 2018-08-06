@@ -180,7 +180,9 @@ esac
 %{_datarootdir}/%{OrigName}/i18n/C
 %{_datarootdir}/%{OrigName}/i18n/de_AT
 %{_datarootdir}/%{OrigName}/i18n/de_AT.UTF-8
+%{_datarootdir}/%{OrigName}/i18n/de_AT.utf8
 %{_datarootdir}/%{OrigName}/i18n/de_DE.UTF-8
+%{_datarootdir}/%{OrigName}/i18n/de_DE.utf8
 %{_datarootdir}/%{OrigName}/i18n/de_DE/messages.fluent
 %{_datarootdir}/%{OrigName}/i18n/en_US/messages.fluent
 %{_datarootdir}/%{OrigName}/i18n/en_UK
