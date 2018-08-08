@@ -20,8 +20,9 @@
 
 use std::io;
 use std::path::{Path, PathBuf};
-use crate::util;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
+use serde_derive::{Serialize, Deserialize};
+use crate::util;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ConfigFile {
