@@ -22,19 +22,6 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-use log::{trace, debug, info, warn, error, log, LevelFilter};
-use chrono::{DateTime, Local, TimeZone, Utc};
-use clap::{App, AppSettings, Arg, Shell, SubCommand};
-use nix::libc::pid_t;
-use nix::sys::signal::*;
-use nix::unistd::*;
-use pbr::ProgressBar;
-use prettytable::cell::Cell;
-use prettytable::format::Alignment;
-use prettytable::format::*;
-use prettytable::row::Row;
-use prettytable::Table;
-use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::fs::OpenOptions;
 use std::io;
@@ -48,6 +35,20 @@ use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use std::time::Duration;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use serde_derive::{Serialize, Deserialize};
+use chrono::{DateTime, Local, TimeZone, Utc};
+use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use nix::libc::pid_t;
+use nix::sys::signal::*;
+use nix::unistd::*;
+use pbr::ProgressBar;
+use prettytable::cell::Cell;
+use prettytable::format::Alignment;
+use prettytable::format::*;
+use prettytable::row::Row;
+use prettytable::Table;
+use rayon::prelude::*;
 use term::color::*;
 use term::Attr;
 use termion::event::{Event, Key, MouseEvent};
@@ -895,7 +896,7 @@ pub fn main() {
     // }
 
     // TODO: Implement a suitable logger that integrates well into the TUI
-    logger::init(); //.expect("Could not initialize the logging subsystem!");
+    pretty_env_logger::init(); //.expect("Could not initialize the logging subsystem!");
 
     trace!("Startup");
 
