@@ -18,18 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use clap::{App, AppSettings, Arg, SubCommand};
-use crate::constants;
-use crate::i18n;
-use crate::iotrace;
-use pbr::ProgressBar;
-use prettytable::cell::Cell;
-use prettytable::format::Alignment;
-use prettytable::format::*;
-use prettytable::row::Row;
-use prettytable::Table;
-use crate::process;
-use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::io;
 use std::io::prelude;
@@ -37,7 +25,20 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use term::color::*;
 use term::Attr;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use clap::{App, AppSettings, Arg, SubCommand};
+use pbr::ProgressBar;
+use rayon::prelude::*;
+use prettytable::cell::Cell;
+use prettytable::format::Alignment;
+use prettytable::format::*;
+use prettytable::row::Row;
+use prettytable::Table;
+use crate::constants;
+use crate::iotrace;
+use crate::process;
 use crate::util;
+use crate::i18n;
 use crate::{default_table_format, Config, PROGRESS_BAR_INDICATORS};
 
 /// Print help message on how to use this command

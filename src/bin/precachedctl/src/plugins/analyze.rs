@@ -18,23 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use chrono::{DateTime, Local, TimeZone, Utc};
-use clap::{App, AppSettings, Arg, SubCommand};
-use crate::constants;
-use crate::i18n;
-use crate::iotrace;
-use crate::ipc;
-use pbr::ProgressBar;
-use prettytable::cell::Cell;
-use prettytable::format::Alignment;
-use prettytable::format::*;
-use prettytable::row::Row;
-use prettytable::Table;
-use crate::process;
-use crate::profiles::SystemProfile;
-use rayon::prelude::*;
-use serde;
-use serde_json;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display};
 use std::io;
@@ -44,9 +27,27 @@ use std::ops::Range;
 use std::path::{Path, PathBuf};
 use term::color::*;
 use term::Attr;
+use zmq;
+use serde;
+use serde_json;
+use chrono::{DateTime, Local, TimeZone, Utc};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use clap::{App, AppSettings, Arg, SubCommand};
+use serde_derive::{Serialize, Deserialize};
+use pbr::ProgressBar;
+use prettytable::cell::Cell;
+use prettytable::format::Alignment;
+use prettytable::format::*;
+use prettytable::row::Row;
+use prettytable::Table;
+use rayon::prelude::*;
+use crate::process;
+use crate::profiles::SystemProfile;
+use crate::constants;
+use crate::iotrace;
+use crate::ipc;
 use crate::util;
 use crate::util::value_range::{Contains, ValueRange};
-use zmq;
 use crate::{default_table_format, Config, PROGRESS_BAR_INDICATORS};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

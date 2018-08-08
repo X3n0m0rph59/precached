@@ -18,9 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::path::{Path, PathBuf};
+use serde_derive::{Serialize, Deserialize};
 use chrono::{DateTime, Local, TimeZone, Utc};
 use crate::profiles::SystemProfile;
-use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InternalState {

@@ -37,7 +37,7 @@ lazy_static! {
 #[macro_export]
 macro_rules! tr {
     ($msgid:expr) => ({
-        Box::leak(i18n::get_message_args($msgid, None)).as_str()
+        Box::leak($crate::i18n::get_message_args($msgid, None)).as_str()
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
@@ -47,7 +47,7 @@ macro_rules! tr {
             args.insert($k, fluent::types::FluentValue::from($v));
         )*
 
-        Box::leak(i18n::get_message_args($msgid, Some(&args))).as_str()
+        Box::leak($crate::i18n::get_message_args($msgid, Some(&args))).as_str()
     });
 }
 

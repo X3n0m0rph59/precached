@@ -22,7 +22,15 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
+use std::collections::{HashMap, HashSet};
+use std::io;
+use std::io::prelude;
+use std::io::BufReader;
+use std::path::{Path, PathBuf};
+use term::color::*;
+use term::Attr;
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
 use nix::libc::pid_t;
 use nix::sys::signal::*;
 use nix::unistd::*;
@@ -32,13 +40,6 @@ use prettytable::format::Alignment;
 use prettytable::format::*;
 use prettytable::row::Row;
 use prettytable::Table;
-use std::collections::{HashMap, HashSet};
-use std::io;
-use std::io::prelude;
-use std::io::BufReader;
-use std::path::{Path, PathBuf};
-use term::color::*;
-use term::Attr;
 
 #[macro_use]
 mod i18n;
