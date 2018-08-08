@@ -22,13 +22,6 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-use chrono::{DateTime, Local, TimeZone, Utc};
-use clap::{App, AppSettings, Arg, Shell, SubCommand};
-use pbr::ProgressBar;
-use prettytable::cell::Cell;
-use prettytable::format::*;
-use prettytable::row::Row;
-use prettytable::Table;
 use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::env;
@@ -43,6 +36,14 @@ use std::time;
 use term::color::*;
 use term::Attr;
 use lazy_static::lazy_static;
+use chrono::{DateTime, Local, TimeZone, Utc};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use pbr::ProgressBar;
+use prettytable::cell::Cell;
+use prettytable::format::*;
+use prettytable::row::Row;
+use prettytable::Table;
 
 #[macro_use]
 mod i18n;
