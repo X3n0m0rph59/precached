@@ -40,19 +40,7 @@ thread_local! {
 #[macro_export]
 macro_rules! tr {
     ($msgid:expr) => ({
-        i18n::I18N_STATE.with(|s| {
-            let bundle = s.borrow();
-
-            match bundle.format($msgid, None) {
-                None => panic!("Could not translate: '{}'", $msgid),
-
-                Some((msg, _errors)) => {
-                    let b = Box::new(msg.clone());
-
-                    Box::leak(b).as_str()
-                }
-            }
-        })
+        Box::leak($crate::i18n::get_message_args($msgid, None)).as_str()
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
@@ -68,13 +56,7 @@ macro_rules! tr {
             match bundle.format($msgid, Some(&args)) {
                 None => panic!("Could not translate: '{}'", $msgid),
 
-                Some((msg, _errors)) => {
-                    let b = Box::new(msg.clone());
-
-                    Box::leak(b).as_str()
-                }
-            }
-        })
+        Box::leak($crate::i18n::get_message_args($msgid, Some(&args))).as_str()
     });
 }
 
