@@ -18,7 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use self::clap::{App, AppSettings, Arg, SubCommand};
+use clap::{App, AppSettings, Arg, SubCommand};
 use crate::constants;
 use crate::i18n;
 use crate::util;
