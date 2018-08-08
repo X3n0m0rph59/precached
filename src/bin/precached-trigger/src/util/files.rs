@@ -18,9 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use self::globset::{Glob, GlobSetBuilder};
-use crate::constants;
-use rayon::prelude::*;
 use std::cell::RefCell;
 use std::cmp::{max, min};
 use std::fs;
@@ -32,7 +29,11 @@ use std::io::ErrorKind;
 use std::path;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use globset::{Glob, GlobSetBuilder};
+use rayon::prelude::*;
 use lazy_static::lazy_static;
+use crate::constants;
 
 lazy_static! {
     pub static ref GLOB_SET: Arc<Mutex<Option<globset::GlobSet>>> = { Arc::new(Mutex::new(None)) };
