@@ -61,7 +61,7 @@ macro_rules! println_tr {
         let mut args = $crate::std::collections::HashMap::new();
 
         $(
-            args.insert($k, $crate::fluent::types::FluentValue::from($v));
+            args.insert($k, fluent::types::FluentValue::from($v));
         )*
 
         println!("{}", Box::leak(i18n::get_message_args($msgid, Some(&args))));
