@@ -98,8 +98,6 @@ macro_rules! println_tr {
         i18n::I18N_STATE.with(|s| {
             let bundle = s.borrow();
 
-            let mut args = $crate::std::collections::HashMap::new();
-
             $(
                 args.insert($k, $crate::fluent::types::FluentValue::from($v));
             )*

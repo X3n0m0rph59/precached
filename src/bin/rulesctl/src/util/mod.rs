@@ -18,15 +18,12 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::cmp::PartialEq;
-use rayon::prelude::*;
+pub mod config_file;
+pub mod files;
+pub mod iotrace;
+pub mod vec;
 
-pub trait Contains<T> {
-    fn contains(&self, p: &T) -> bool;
-}
-
-impl<T: PartialEq + Sync> Contains<T> for Vec<T> {
-    fn contains(&self, p: &T) -> bool {
-        self.par_iter().any(|e| e == p)
-    }
-}
+pub use self::config_file::*;
+pub use self::files::*;
+pub use self::iotrace::*;
+pub use self::vec::*;

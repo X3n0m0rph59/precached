@@ -22,8 +22,16 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
+use std::collections::HashSet;
+use std::fs::read_dir;
+use std::io;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
+use term::color::*;
+use term::Attr;
 use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
 use nix::libc::pid_t;
 use nix::sys::signal::*;
 use nix::unistd::*;
@@ -32,13 +40,6 @@ use prettytable::Cell;
 use prettytable::format::*;
 use prettytable::Row;
 use prettytable::Table;
-use std::collections::HashSet;
-use std::fs::read_dir;
-use std::io;
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
-use term::color::*;
-use term::Attr;
 
 #[macro_use]
 mod i18n;
