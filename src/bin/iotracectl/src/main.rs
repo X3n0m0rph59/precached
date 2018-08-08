@@ -21,14 +21,6 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-use chrono::{DateTime, Local, TimeZone, Utc};
-use clap::{App, AppSettings, Arg, Shell, SubCommand};
-use crate::iotrace::{IOOperation, IOTraceLogFlag};
-use pbr::ProgressBar;
-use prettytable::Cell;
-use prettytable::format::*;
-use prettytable::Row;
-use prettytable::Table;
 use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -38,6 +30,15 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use term::color::*;
 use term::Attr;
+use chrono::{DateTime, Local, TimeZone, Utc};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use pbr::ProgressBar;
+use prettytable::cell::Cell;
+use prettytable::format::*;
+use prettytable::row::Row;
+use prettytable::Table;
+use crate::iotrace::{IOOperation, IOTraceLogFlag};
 
 #[macro_use]
 mod i18n;
