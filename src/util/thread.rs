@@ -18,9 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-extern crate nix;
-
 use std::ptr;
 
 pub fn set_realtime_priority() {

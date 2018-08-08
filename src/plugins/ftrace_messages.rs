@@ -18,24 +18,25 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use constants;
-use events;
-use events::EventType;
-use globals::*;
-use manager::*;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
 use std::any::Any;
 use std::time::Instant;
-use storage;
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::util;
 
 static NAME: &str = "ftrace_messages";
 static DESCRIPTION: &str = "Insert custom messages into the ftrace event stream";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(FTraceMessages::new());
 
         let m = manager.plugin_manager.read().unwrap();

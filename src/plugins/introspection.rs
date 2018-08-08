@@ -18,31 +18,31 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use chrono::prelude::*;
-use events;
-use events::EventType;
-use globals::*;
-use manager::*;
-// use hooks::process_tracker::ProcessTracker;
-use chrono::prelude::*;
-use plugins::hot_applications::HotApplications;
-use plugins::janitor::Janitor;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use plugins::profiles::Profiles;
-use plugins::static_blacklist::StaticBlacklist;
-use plugins::static_whitelist::StaticWhitelist;
-use profiles::SystemProfile;
 use std::any::Any;
 use std::time::{Duration, Instant, SystemTime};
-use storage;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use chrono::prelude::*;
+use serde_derive::{Serialize, Deserialize};
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::hot_applications::HotApplications;
+use crate::plugins::janitor::Janitor;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::plugins::profiles::Profiles;
+use crate::plugins::static_blacklist::StaticBlacklist;
+use crate::plugins::static_whitelist::StaticWhitelist;
+use crate::profiles::SystemProfile;
 
 static NAME: &str = "introspection";
 static DESCRIPTION: &str = "Manage global internal state of the precached daemon";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Introspection::new());
 
         let m = manager.plugin_manager.read().unwrap();

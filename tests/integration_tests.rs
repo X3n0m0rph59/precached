@@ -17,3 +17,5 @@
     You should have received a copy of the GNU General Public License
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#![feature(rust_2018_preview)]

@@ -18,9 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-
-use constants;
 use std;
 use std::ffi::CString;
 use std::fs::File;
@@ -28,6 +25,9 @@ use std::io::{Error, ErrorKind, Result};
 use std::os::unix::io::IntoRawFd;
 use std::path::{Path, PathBuf};
 use std::ptr;
+use serde_derive::{Serialize, Deserialize};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::constants;
 
 /// Represents a file backed memory mapping
 #[derive(Debug, Clone, Serialize, Deserialize)]

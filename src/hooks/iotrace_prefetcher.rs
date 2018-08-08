@@ -18,32 +18,29 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate lazy_static;
-extern crate libc;
-extern crate num_cpus;
-extern crate threadpool;
-
-use constants;
-use events;
-use events::EventType;
-use globals::*;
-use hooks::hook;
-use hooks::process_tracker::ProcessTracker;
-use iotrace;
-use manager::*;
-use plugins::hot_applications::HotApplications;
-use plugins::iotrace_log_manager::IOtraceLogManager;
-use plugins::static_blacklist::StaticBlacklist;
-use plugins::static_whitelist::StaticWhitelist;
-use process::Process;
-use procmon;
 use std::any::Any;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex, RwLock};
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use serde_derive::{Serialize, Deserialize};
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::globals::*;
+use crate::hooks::hook;
+use crate::hooks::process_tracker::ProcessTracker;
+use crate::iotrace;
+use crate::manager::*;
+use crate::plugins::hot_applications::HotApplications;
+use crate::plugins::iotrace_log_manager::IOtraceLogManager;
+use crate::plugins::static_blacklist::StaticBlacklist;
+use crate::plugins::static_whitelist::StaticWhitelist;
+use crate::process::Process;
+use crate::procmon;
+use crate::util;
 
 static NAME: &str = "iotrace_prefetcher";
 static DESCRIPTION: &str = "Replay file operations previously recorded by an I/O tracer";

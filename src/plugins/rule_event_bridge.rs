@@ -18,25 +18,25 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use globals::*;
-use manager::*;
-// use hooks::process_tracker::ProcessTracker;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use plugins::rule_engine::RuleEngine;
-use profiles::SystemProfile;
-use rules;
 use std::any::Any;
-use storage;
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::events;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::plugins::rule_engine::RuleEngine;
+use crate::profiles::SystemProfile;
+use crate::rules;
+use crate::util;
 
 static NAME: &str = "rule_event_bridge";
 static DESCRIPTION: &str = "Convey internal events to the rule matching engine";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(RuleEventBridge::new());
 
         let m = manager.plugin_manager.read().unwrap();

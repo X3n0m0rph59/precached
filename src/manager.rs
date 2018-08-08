@@ -18,10 +18,11 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use hooks::HookManager;
-use plugins::PluginManager;
 use std::cell::RefCell;
 use std::sync::{Arc, RwLock};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::hooks::HookManager;
+use crate::plugins::PluginManager;
 
 /// Global `manager` data structure.
 /// Holds state for managers like the `PluginManager`

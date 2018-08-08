@@ -18,21 +18,19 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate inotify;
-extern crate serde;
-extern crate serde_json;
-
-use self::inotify::{EventMask, Inotify, WatchMask};
-use self::serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
-use self::serde::ser::{Serialize, SerializeStruct, Serializer};
-use constants;
-use events;
-use events::EventType;
-use globals::*;
-use manager::*;
 use std::fmt;
 use std::mem;
 use std::path::{Path, PathBuf};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use inotify::{EventMask, Inotify, WatchMask};
+use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
+use serde::ser::{Serialize, SerializeStruct, Serializer};
+use serde_derive::{Serialize, Deserialize};
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::globals::*;
+use crate::manager::*;
 
 pub struct InotifyWatches {
     pub inotify: Option<Inotify>,

@@ -18,27 +18,20 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate chrono;
-extern crate clap;
-extern crate lazy_static;
-extern crate nix;
-extern crate prettytable;
-extern crate rayon;
-
 use chrono::{DateTime, Local, TimeZone, Utc};
 use clap::{App, AppSettings, Arg, SubCommand};
-use constants;
-use i18n;
-use iotrace;
-use ipc;
+use crate::constants;
+use crate::i18n;
+use crate::iotrace;
+use crate::ipc;
 use pbr::ProgressBar;
 use prettytable::cell::Cell;
 use prettytable::format::Alignment;
 use prettytable::format::*;
 use prettytable::row::Row;
 use prettytable::Table;
-use process;
-use profiles::SystemProfile;
+use crate::process;
+use crate::profiles::SystemProfile;
 use rayon::prelude::*;
 use serde;
 use serde_json;
@@ -51,10 +44,10 @@ use std::ops::Range;
 use std::path::{Path, PathBuf};
 use term::color::*;
 use term::Attr;
-use util;
-use util::value_range::{Contains, ValueRange};
+use crate::util;
+use crate::util::value_range::{Contains, ValueRange};
 use zmq;
-use {default_table_format, Config, PROGRESS_BAR_INDICATORS};
+use crate::{default_table_format, Config, PROGRESS_BAR_INDICATORS};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalStatistics {

@@ -18,13 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate procmon_sys;
-
-extern crate libc;
-extern crate serde;
-extern crate serde_json;
-
 use std::io::Result;
+use serde_derive::{Serialize, Deserialize};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
 
 #[derive(Debug, Clone)]
 pub struct ProcMon {

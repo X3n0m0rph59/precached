@@ -18,30 +18,30 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use globals::*;
-// use hooks::process_tracker::ProcessTracker;
-use hooks::iotrace_prefetcher::IOtracePrefetcher;
-use manager::*;
-use plugins::metrics::Metrics;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use plugins::static_blacklist::StaticBlacklist;
 use std::any::Any;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
 use std::sync::Mutex;
-use storage;
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::events;
+use crate::config_file;
+use crate::globals::*;
+use crate::hooks::iotrace_prefetcher::IOtracePrefetcher;
+use crate::manager::*;
+use crate::plugins::metrics::Metrics;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::plugins::static_blacklist::StaticBlacklist;
+use crate::util;
 
 static NAME: &str = "static_whitelist";
 static DESCRIPTION: &str = "Whitelist files that shall be kept mlock()ed in memory all the time";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(StaticWhitelist::new(globals));
 
         let m = manager.plugin_manager.read().unwrap();

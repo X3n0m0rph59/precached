@@ -22,8 +22,8 @@ pub mod plugin;
 pub mod plugin_manager;
 
 pub use self::plugin_manager::*;
-use globals::*;
-use manager::*;
+use crate::globals::*;
+use crate::manager::*;
 
 pub mod introspection;
 pub mod iotrace_log_cache;

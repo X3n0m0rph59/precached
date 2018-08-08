@@ -18,16 +18,15 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate indexmap;
-
-use self::indexmap::map::Entry::{Occupied, Vacant};
-use self::indexmap::IndexMap;
-use super::hook::Hook;
-use events;
-use globals::*;
-use manager::*;
-use procmon;
 use std::sync::{Arc, RwLock};
+use indexmap::map::Entry::{Occupied, Vacant};
+use indexmap::IndexMap;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::hooks::hook::Hook;
+use crate::globals::*;
+use crate::manager::*;
+use crate::events;
+use crate::procmon;
 
 #[derive(Clone)]
 pub struct HookManager {

@@ -27,8 +27,6 @@
 
 #![allow(unused)]
 
-extern crate log;
-
 use std::path::{Path, PathBuf};
 
 /// The initial default log level filter. May be overridden by specifying

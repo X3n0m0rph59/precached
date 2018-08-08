@@ -18,18 +18,17 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate indexmap;
-extern crate rayon;
-
-use self::indexmap::map::Entry::{Occupied, Vacant};
-use self::indexmap::IndexMap;
-use super::plugin::Plugin;
-use events;
-use globals::*;
-use manager::*;
-use rayon::prelude::*;
 use std::cell::RefCell;
 use std::sync::{Arc, RwLock};
+use rayon::prelude::*;
+use indexmap::map::Entry::{Occupied, Vacant};
+use indexmap::IndexMap;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use super::plugin::Plugin;
+use crate::events;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
 
 #[derive(Clone)]
 pub struct PluginManager {

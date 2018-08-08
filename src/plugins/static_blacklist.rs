@@ -18,21 +18,20 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate globset;
-extern crate rayon;
-
-use self::globset::{Glob, GlobSetBuilder};
-use events;
-use globals::*;
-use manager::*;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use rayon::prelude::*;
 use std::any::Any;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
-use storage;
-use util;
+use globset::{Glob, GlobSetBuilder};
+use rayon::prelude::*;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use lazy_static::lazy_static;
+use crate::events;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::util;
 
 static NAME: &str = "static_blacklist";
 static DESCRIPTION: &str = "Statically blacklist files that shall not be cached";
@@ -44,7 +43,7 @@ lazy_static! {
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(StaticBlacklist::new(globals));
 
         let m = manager.plugin_manager.read().unwrap();

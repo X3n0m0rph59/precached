@@ -18,31 +18,28 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate dbus;
-extern crate lazy_static;
-extern crate libc;
-
-use self::dbus::tree::{Access, EmitsChangedSignal, Interface, MTFn, MethodErr, Signal};
-use self::dbus::{tree, BusType, Connection, Path};
-use constants;
-use events;
-use events::EventType;
-use globals::*;
-use hooks::process_tracker::*;
-use iotrace::IOTraceLog;
-use manager::*;
-use plugins::iotrace_log_manager::IOtraceLogManager;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use process::*;
-use procmon;
 use std::any::Any;
 use std::collections::HashMap;
 use std::path;
 use std::result::Result;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
-use storage;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use dbus::tree::{Access, EmitsChangedSignal, Interface, MTFn, MethodErr, Signal};
+use dbus::{tree, BusType, Connection, Path};
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals::*;
+use crate::hooks::process_tracker::*;
+use crate::iotrace::IOTraceLog;
+use crate::manager::*;
+use crate::plugins::iotrace_log_manager::IOtraceLogManager;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::process::*;
+use crate::procmon;
 
 pub fn create_dbus_interface(_globals: &mut Globals, _manager: &mut Manager) -> DBUSInterface {
     DBUSInterface::new()

@@ -18,12 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use constants;
-use globals::*;
 use std::io;
 use std::path::{Path, PathBuf};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use serde_derive::{Serialize, Deserialize};
 use toml;
-use util;
+use crate::globals::*;
+use crate::constants;
+use crate::util;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ConfigFile {

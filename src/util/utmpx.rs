@@ -18,17 +18,13 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate byteorder;
-extern crate enum_primitive;
-extern crate time;
-
-use self::byteorder::{BigEndian, LittleEndian, ReadBytesExt, WriteBytesExt};
-use self::enum_primitive::FromPrimitive;
-use self::time::Timespec;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::result::Result;
+use byteorder::{BigEndian, LittleEndian, ReadBytesExt, WriteBytesExt};
+use enum_primitive::*;
+use time::Timespec;
 
 enum_from_primitive! {
     #[derive(Debug, Clone, Copy, PartialEq)]

@@ -18,6 +18,16 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod process;
+use serde_derive::{Serialize, Deserialize};
 
-pub use self::process::*;
+/// The 'profile' that is currently active
+/// Represents the global operational state of the host system
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub enum SystemProfile {
+    /// The system, is currently booting up
+    BootUp,
+    /// The system, is up and running
+    UpAndRunning,
+    // The system, is currently shutting down
+    // Shutdown,
+}

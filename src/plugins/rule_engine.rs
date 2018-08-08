@@ -18,28 +18,29 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use constants;
-use events;
-use globals::*;
-use manager::*;
-use plugins::notifications::Notifications;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use plugins::profiles::Profiles;
-use plugins::vfs_stat_cache::VFSStatCache;
-use profiles::SystemProfile;
-use rules;
 use std::any::Any;
 use std::path::{Path, PathBuf};
-use storage;
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::constants;
+use crate::events;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::notifications::Notifications;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::plugins::profiles::Profiles;
+use crate::plugins::vfs_stat_cache::VFSStatCache;
+use crate::profiles::SystemProfile;
+use crate::rules;
+use crate::util;
 
 static NAME: &str = "rule_engine";
 static DESCRIPTION: &str = "A rule matching engine for precached";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(RuleEngine::new());
 
         let m = manager.plugin_manager.read().unwrap();

@@ -18,11 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate clap;
-
 use self::clap::{App, AppSettings, Arg, SubCommand};
-use constants;
-use i18n;
+use crate::constants;
+use crate::i18n;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b>
 where

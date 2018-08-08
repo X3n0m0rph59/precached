@@ -18,28 +18,28 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use constants;
-use events;
-use events::EventType;
-use globals::*;
-use manager::*;
-// use hooks::process_tracker::ProcessTracker;
+use std::any::Any;
 use chrono::prelude::*;
 use chrono::Duration;
-use plugins::hot_applications::HotApplications;
-use plugins::iotrace_log_manager::IOtraceLogManager;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use std::any::Any;
-use storage;
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::hot_applications::HotApplications;
+use crate::plugins::iotrace_log_manager::IOtraceLogManager;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::util;
 
 static NAME: &str = "janitor";
 static DESCRIPTION: &str = "Periodically performs housekeeping tasks";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Janitor::new());
 
         let m = manager.plugin_manager.read().unwrap();

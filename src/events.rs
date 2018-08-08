@@ -18,16 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate serde;
-extern crate serde_json;
-
-use chrono::{DateTime, Local, TimeZone, Utc};
-use globals::*;
-use inotify::EventMaskWrapper;
-use procmon;
-use profiles::SystemProfile;
 use std::path::PathBuf;
 use std::time::Instant;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use chrono::{DateTime, Local, TimeZone, Utc};
+use crate::globals::*;
+use crate::inotify::EventMaskWrapper;
+use crate::procmon;
+use crate::profiles::SystemProfile;
 
 /// Daemon internal events
 #[derive(Debug, Clone)]

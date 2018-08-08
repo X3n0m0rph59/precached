@@ -18,25 +18,26 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use constants;
-use events;
-use globals::*;
-use manager::*;
-// use hooks::process_tracker::ProcessTracker;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use plugins::static_whitelist::StaticWhitelist;
 use std::any::Any;
 use std::time::{Duration, Instant};
-use storage;
-use util;
+use serde_derive::{Serialize, Deserialize};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::constants;
+use crate::events;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::plugins::static_whitelist::StaticWhitelist;
+use crate::util;
 
 static NAME: &str = "statistics";
 static DESCRIPTION: &str = "Gather global system statistics and make them available to other plugins";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Statistics::new());
 
         let m = manager.plugin_manager.read().unwrap();

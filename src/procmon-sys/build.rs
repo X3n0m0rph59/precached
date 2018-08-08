@@ -18,7 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+use gcc;
 
 fn main() {
     gcc::Build::new()

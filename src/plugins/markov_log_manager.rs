@@ -18,25 +18,26 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use globals::*;
-use manager::*;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use plugins::static_blacklist::StaticBlacklist;
-use procmon;
 use std::any::Any;
 use std::collections::HashMap;
 use std::sync::mpsc::{channel, Sender};
-use storage;
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::plugins::static_blacklist::StaticBlacklist;
+use crate::events;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::procmon;
+use crate::util;
 
 static NAME: &str = "markov_log_manager";
 static DESCRIPTION: &str = "Manages state-files used by the 'Markov-chain Prefetcher' hook";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(MarkovLogManager::new(globals));
 
         let m = manager.plugin_manager.read().unwrap();

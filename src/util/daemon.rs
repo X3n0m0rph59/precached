@@ -18,11 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate daemonize;
-
-use constants;
 use daemonize::{Daemonize, DaemonizeError};
-use globals;
+use crate::constants;
+use crate::globals;
 
 /// Daemonizes the calling process
 pub fn daemonize(globals: globals::Globals) -> Result<(), DaemonizeError> {

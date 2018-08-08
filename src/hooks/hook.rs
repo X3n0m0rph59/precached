@@ -18,11 +18,11 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use globals::*;
-use manager::*;
-use procmon;
 use std::any::Any;
+use crate::globals::*;
+use crate::manager::*;
+use crate::events;
+use crate::procmon;
 
 pub trait Hook {
     fn register(&mut self);

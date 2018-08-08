@@ -18,30 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#![feature(rust_2018_preview)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
-
-extern crate chrono;
-extern crate clap;
-extern crate fluent;
-extern crate rayon;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
-extern crate nix;
-extern crate pbr;
-extern crate pretty_env_logger;
-#[macro_use]
-extern crate prettytable;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-extern crate serde_json;
-extern crate term;
-extern crate toml;
-extern crate zmq;
-extern crate zstd;
 
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
 use nix::libc::pid_t;

@@ -18,21 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-
-use constants;
-use events;
-use events::EventType;
-use globals::*;
-use hooks::hook;
-use hooks::process_tracker::ProcessTracker;
-use iotrace;
-use iotrace::*;
-use manager::*;
-use plugins::iotrace_log_manager::IOtraceLogManager;
-use plugins::static_blacklist::StaticBlacklist;
-use process::Process;
-use procmon;
 use std::any::Any;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
@@ -42,10 +27,25 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
-use util;
-use util::ftrace;
-use util::Contains;
-use EXIT_NOW;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use lazy_static::lazy_static;
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::globals::*;
+use crate::hooks::hook;
+use crate::hooks::process_tracker::ProcessTracker;
+use crate::iotrace;
+use crate::iotrace::*;
+use crate::manager::*;
+use crate::plugins::iotrace_log_manager::IOtraceLogManager;
+use crate::plugins::static_blacklist::StaticBlacklist;
+use crate::process::Process;
+use crate::procmon;
+use crate::util;
+use crate::util::ftrace;
+use crate::util::Contains;
+use crate::EXIT_NOW;
 
 static NAME: &str = "ftrace_logger";
 static DESCRIPTION: &str = "Trace processes using ftrace and log their filesystem activity";

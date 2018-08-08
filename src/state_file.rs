@@ -18,6 +18,29 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-pub mod inotify_watches;
+use std::io::Result;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use serde::Serialize;
+use crate::globals::Globals;
+use crate::util::write_text_file;
 
-pub use self::inotify_watches::*;
+pub fn serialize<T>(t: &T, globals: &mut Globals) -> Result<()>
+where
+    T: Serialize,
+{
+    let serialized = serde_json::to_string_pretty(&t).unwrap();
+
+    let config = globals.config.config_file.clone().unwrap();
+    let filename = config.state_dir.unwrap().join("precached.state");
+
+    write_text_file(&filename, &serialized)?;
+
+    Ok(())
+}
+
+pub fn deserialize<T>(_t: &T, _globals: &mut Globals)
+where
+    T: Serialize,
+{
+
+}

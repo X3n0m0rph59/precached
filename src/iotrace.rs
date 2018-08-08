@@ -20,22 +20,18 @@
 
 #![allow(unused)]
 
-extern crate chrono;
-extern crate fnv;
-extern crate libc;
-extern crate serde_json;
-extern crate term;
-
-use chrono::{DateTime, Duration, Utc};
-use constants;
-use i18n;
-use process::Process;
 use std::collections::HashMap;
 use std::hash::Hasher;
 use std::io;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
-use util;
+use chrono::{DateTime, Duration, Utc};
+use serde_derive::{Serialize, Deserialize};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::constants;
+use crate::i18n;
+use crate::process::Process;
+use crate::util;
 
 /// Represents an I/O operation in an I/O trace log entry
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Serialize, Deserialize)]

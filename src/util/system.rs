@@ -18,9 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-extern crate nix;
-
 use std::result::Result;
 
 /// Check that the system conforms to the minimum requirements

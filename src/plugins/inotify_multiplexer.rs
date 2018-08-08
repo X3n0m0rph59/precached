@@ -18,26 +18,25 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate inotify;
-
-use self::inotify::{EventMask, Inotify, WatchMask};
-use events;
-use events::EventType;
-use globals::*;
-use inotify::EventMaskWrapper;
-use manager::*;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
 use std::any::Any;
 use std::path::{Path, PathBuf};
-use storage;
+use inotify::{EventMask, Inotify, WatchMask};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals::*;
+use crate::inotify::EventMaskWrapper;
+use crate::manager::*;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
 
 static NAME: &str = "inotify_multiplexer";
 static DESCRIPTION: &str = "Translate inotify events to subsystem specific internal events";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(InotifyMultiplexer::new());
 
         let m = manager.plugin_manager.read().unwrap();

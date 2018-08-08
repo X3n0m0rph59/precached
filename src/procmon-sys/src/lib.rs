@@ -18,8 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-
 #[repr(C)]
 pub struct Event {
     pub event_type: u32,
