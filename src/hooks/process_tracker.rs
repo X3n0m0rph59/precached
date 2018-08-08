@@ -47,7 +47,7 @@ pub struct ProcessTracker {
 }
 
 impl ProcessTracker {
-    pub fn new() -> ProcessTracker {
+    pub fn new() -> Self {
         ProcessTracker {
             tracked_processes: HashMap::new(),
         }

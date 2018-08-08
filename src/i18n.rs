@@ -30,7 +30,7 @@ use fluent::MessageContext;
 static LOCALES: &[&'static str] = &["locale"];
 
 lazy_static! {
-    pub static ref LANG: String = env::var("LANG").unwrap_or("C".to_string());
+    pub static ref LANG: String = env::var("LANG").unwrap_or_else(|_| "C".to_string());
     pub static ref CTX: fluent::MessageContext<'static> = initialize_i18n();
 }
 

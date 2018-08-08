@@ -48,7 +48,7 @@ pub struct ForkBombDetector {
 }
 
 impl ForkBombDetector {
-    pub fn new() -> ForkBombDetector {
+    pub fn new() -> Self {
         ForkBombDetector { forks_per_sec: 0 }
     }
 }

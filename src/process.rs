@@ -29,8 +29,7 @@ use crate::util;
 
 lazy_static! {
     /// Regex used to parse memory mappings of a process (from `/proc/<pid>/maps`)
-    static ref RE_PROC_MAPS: Regex = Regex::new(r"^(?P<start>[0-9A-Fa-f]+)-(?P<end>[0-9A-Fa-f]+)\s+(?P<mode>\S{4})\s+(\d+)\s\
-    +([0-9A-Fa-f]+):([0-9A-Fa-f]+)\s+(\d+)\s+(?P<filename>.*)$").unwrap();
+    static ref RE_PROC_MAPS: Regex = Regex::new(r"^(?P<start>[0-9A-Fa-f]+)-(?P<end>[0-9A-Fa-f]+)\s+(?P<mode>\S{4})\s+(\d+)\s+([0-9A-Fa-f]+):([0-9A-Fa-f]+)\s+(\d+)\s+(?P<filename>.*)$").unwrap();
 }
 
 /// Represents a memory mapping of a process

@@ -46,7 +46,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct SystemAgent {}
 
 impl SystemAgent {
-    pub fn new() -> SystemAgent {
+    pub fn new() -> Self {
         SystemAgent {}
     }
 

@@ -48,7 +48,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct Triggers {}
 
 impl Triggers {
-    pub fn new() -> Triggers {
+    pub fn new() -> Self {
         Triggers {}
     }
 }

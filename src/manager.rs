@@ -34,7 +34,7 @@ pub struct Manager {
 }
 
 impl Manager {
-    pub fn new() -> Manager {
+    pub fn new() -> Self {
         Manager {
             plugin_manager: Arc::new(RwLock::new(PluginManager::new())),
             hook_manager: Arc::new(RwLock::new(HookManager::new())),

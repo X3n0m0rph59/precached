@@ -37,7 +37,7 @@ pub struct InotifyWatches {
 }
 
 impl InotifyWatches {
-    pub fn new() -> InotifyWatches {
+    pub fn new() -> Self {
         InotifyWatches { inotify: None }
     }
 
@@ -244,7 +244,7 @@ impl<'de> Deserialize<'de> for EventMaskWrapper {
             }
         }
 
-        const FIELDS: &[&'static str] = &["event_mask"];
+        const FIELDS: &[&str] = &["event_mask"];
         deserializer.deserialize_struct("EventMaskWrapper", FIELDS, EventMaskWrapperVisitor)
     }
 }

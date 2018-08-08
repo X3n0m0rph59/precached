@@ -55,7 +55,7 @@ fn map_int_to_event_type(i: u32) -> EventType {
 }
 
 impl ProcMon {
-    pub fn new() -> Result<ProcMon> {
+    pub fn new() -> Result<Self> {
         let nls: libc::int32_t = unsafe { procmon_sys::nl_connect() };
         unsafe {
             procmon_sys::set_proc_ev_listen(nls, true);

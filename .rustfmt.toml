@@ -1,5 +1,5 @@
 max_width = 130
-# reorder_imports = true
+reorder_imports = false
 # fn_args_layout = "Block"
 # array_layout = "Block"
 # control_style = "Rfc"

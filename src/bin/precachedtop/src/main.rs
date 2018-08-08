@@ -76,7 +76,7 @@ static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 static GLOBAL_ERROR_STATE: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Unicode characters used for drawing the progress bar
-pub const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
+pub const PROGRESS_BAR_INDICATORS: &str = "╢▉▉░╟";
 
 /// Delay in milliseconds after each iteration of the main loop
 pub const MAIN_LOOP_DELAY_MILLIS: u64 = 100;
@@ -94,7 +94,7 @@ where
 }
 
 impl<'a, 'b> Config<'a, 'b> {
-    pub fn new() -> Config<'a, 'b> {
+    pub fn new() -> Self {
         trace!("Parsing command line...");
 
         let clap = clap_app::get_app();
@@ -112,7 +112,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 fn print_license_header() {
     println_tr!("license-text");
-    println!("");
+    println!();
 }
 
 /// Represents a tracked process
@@ -183,7 +183,7 @@ struct Application {
 }
 
 impl Application {
-    pub fn new() -> Application {
+    pub fn new() -> Self {
         Application {
             size: Rect::default(),
 
@@ -860,7 +860,7 @@ fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -870,7 +870,7 @@ fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Generate shell completions

@@ -45,7 +45,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct ForkBombMitigation {}
 
 impl ForkBombMitigation {
-    pub fn new() -> ForkBombMitigation {
+    pub fn new() -> Self {
         ForkBombMitigation {}
     }
 }

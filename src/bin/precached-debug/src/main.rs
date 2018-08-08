@@ -52,7 +52,7 @@ mod constants;
 mod util;
 
 /// Unicode characters used for drawing the progress bar
-const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
+const PROGRESS_BAR_INDICATORS: &str = "╢▉▉░╟";
 
 lazy_static! {
     static ref NUM_FILES: u32 = 100;
@@ -72,7 +72,7 @@ where
 }
 
 impl<'a, 'b> Config<'a, 'b> {
-    pub fn new() -> Config<'a, 'b> {
+    pub fn new() -> Self {
         trace!("Parsing command line...");
 
         let clap = clap_app::get_app();
@@ -90,7 +90,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 fn print_license_header() {
     println_tr!("license-text");
-    println!("");
+    println!();
 }
 
 /// Print help message on how to use this command
@@ -100,7 +100,7 @@ fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -110,7 +110,7 @@ fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print a status summary of the system
@@ -123,7 +123,7 @@ fn touch_file(p: &Path) -> io::Result<()> {
     let mut file = File::create(p)?;
 
     let data: [u8; 8192] = [0xFF; 8192];
-    file.write(&data)?;
+    file.write_all(&data)?;
 
     Ok(())
 }

@@ -32,17 +32,17 @@ use crate::manager::*;
 
 #[derive(Clone)]
 pub struct PluginManager {
-    pub plugins: Arc<RwLock<IndexMap<String, Arc<RwLock<Box<Plugin + Sync + Send>>>>>>,
+    pub plugins: Arc<RwLock<IndexMap<String, Arc<RwLock<Box<dyn Plugin + Sync + Send>>>>>>,
 }
 
 impl PluginManager {
-    pub fn new() -> PluginManager {
+    pub fn new() -> Self {
         PluginManager {
             plugins: Arc::new(RwLock::new(IndexMap::new())),
         }
     }
 
-    pub fn register_plugin(&self, mut plugin: Box<Plugin + Sync + Send>) {
+    pub fn register_plugin(&self, mut plugin: Box<dyn Plugin + Sync + Send>) {
         plugin.register();
         self.plugins
             .write()
@@ -67,7 +67,7 @@ impl PluginManager {
         }
     }
 
-    pub fn get_plugin_by_name(&self, name: &String) -> Option<Arc<RwLock<Box<Plugin + Sync + Send>>>> {
+    pub fn get_plugin_by_name(&self, name: &String) -> Option<Arc<RwLock<Box<dyn Plugin + Sync + Send>>>> {
         self.plugins.read().unwrap().get(name).cloned()
     }
 

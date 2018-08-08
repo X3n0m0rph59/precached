@@ -57,7 +57,7 @@ pub struct VFSStatCache {
 }
 
 impl VFSStatCache {
-    pub fn new() -> VFSStatCache {
+    pub fn new() -> Self {
         VFSStatCache { memory_freed: true }
     }
 
@@ -232,7 +232,7 @@ impl VFSStatCache {
             }
             Some(p) => {
                 let p = p.read().unwrap();
-                let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
+                let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 if metrics_plugin.get_available_mem_percentage() <= 1 {
                     result = false;
@@ -280,7 +280,7 @@ impl Plugin for VFSStatCache {
 
                     Some(p) => {
                         let p = p.read().unwrap();
-                        let mut profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
+                        let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
                         if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
                             self.prime_statx_cache_for_top_iotraces(globals, manager);

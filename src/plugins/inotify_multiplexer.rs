@@ -49,7 +49,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct InotifyMultiplexer {}
 
 impl InotifyMultiplexer {
-    pub fn new() -> InotifyMultiplexer {
+    pub fn new() -> Self {
         InotifyMultiplexer {}
     }
 

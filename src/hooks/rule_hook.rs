@@ -46,7 +46,7 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 pub struct RuleHook {}
 
 impl RuleHook {
-    pub fn new() -> RuleHook {
+    pub fn new() -> Self {
         RuleHook {}
     }
 }

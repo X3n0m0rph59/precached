@@ -62,7 +62,7 @@ pub struct Janitor {
 }
 
 impl Janitor {
-    pub fn new() -> Janitor {
+    pub fn new() -> Self {
         Janitor {
             janitor_needs_to_run: true, // true, so we run after startup
             janitor_ran_once: false,
@@ -106,7 +106,7 @@ impl Janitor {
 
             Some(p) => {
                 let mut p = p.write().unwrap();
-                let mut hot_applications_plugin = p.as_any_mut().downcast_mut::<HotApplications>().unwrap();
+                let hot_applications_plugin = p.as_any_mut().downcast_mut::<HotApplications>().unwrap();
 
                 hot_applications_plugin.do_housekeeping(globals, manager);
             }

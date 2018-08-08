@@ -75,7 +75,7 @@ pub struct Metrics {
 }
 
 impl Metrics {
-    pub fn new() -> Metrics {
+    pub fn new() -> Self {
         Metrics {
             mem_info_last: None,
             mem_info_1: None,

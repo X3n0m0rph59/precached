@@ -206,7 +206,7 @@ where
     }
 }
 
-pub fn display_internal_state(config: &Config, _daemon_config: util::ConfigFile) {
+pub fn display_internal_state(config: &Config, _daemon_config: &util::ConfigFile) {
     let ctx = zmq::Context::new();
     let socket = ctx.socket(zmq::REQ).unwrap();
     socket.connect("ipc:///run/precached.sock").unwrap();
@@ -359,7 +359,7 @@ pub fn display_internal_state(config: &Config, _daemon_config: util::ConfigFile)
     }
 }
 
-pub fn display_global_stats(config: &Config, _daemon_config: util::ConfigFile) {
+pub fn display_global_stats(config: &Config, _daemon_config: &util::ConfigFile) {
     let ctx = zmq::Context::new();
     let socket = ctx.socket(zmq::REQ).unwrap();
     socket.connect("ipc:///run/precached.sock").unwrap();
@@ -436,7 +436,7 @@ pub fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -446,5 +446,5 @@ pub fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }

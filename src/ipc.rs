@@ -149,7 +149,7 @@ pub struct IpcServer {
 }
 
 impl IpcServer {
-    pub fn new() -> IpcServer {
+    pub fn new() -> Self {
         IpcServer { socket: None }
     }
 

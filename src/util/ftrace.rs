@@ -446,7 +446,7 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
         }
 
         // ignore invalid lines
-        if l.trim().len() < 1 {
+        if l.trim().is_empty() {
             continue;
         }
 
@@ -479,7 +479,7 @@ fn check_expired_tracers(
 ) {
     for (pid, v) in active_tracers.iter_mut() {
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
-            let mut comm = &v.trace_log.comm;
+            let comm = &v.trace_log.comm;
 
             debug!("Tracing time expired for process '{}' with pid: {}", comm, pid);
 
@@ -669,7 +669,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             let mut pid: libc::pid_t = 0;
             let s = String::from(fields[0]);
 
-            match s.rfind("-") {
+            match s.rfind('-') {
                 None => {
                     error!("Could not parse the process id field from current trace data: '{}'", l);
                 }
@@ -677,8 +677,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                 Some(lidx) => {
                     let pid_s = String::from(&s[lidx + 1..]);
 
-                    let pid_f: Vec<&str> = pid_s.split(" ").collect();
-                    if pid_f.len() < 1 {
+                    let pid_f: Vec<&str> = pid_s.split(' ').collect();
+                    if pid_f.is_empty() {
                         match pid_s.parse() {
                             Err(e) => {
                                 error!(
@@ -748,7 +748,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at"))
                 && !l.contains("getnameprobe")
             {
-                if fields.len() >= 1 {
+                if !fields.is_empty() {
                     // debug !("{:#?}", l);
 
                     // let comm = String::from(fields[0]);
@@ -803,7 +803,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             if l.contains("sys_read") || l.contains("sys_readv") || l.contains("sys_preadv2") || l.contains("sys_pread64") {
                 // debug!("{:#?}", l);
 
-                if fields.len() >= 1 {
+                if !fields.is_empty() {
                     // get last part of trace buffer line
                     let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
                     let tmp = tmp[tmp.len() - 1];
@@ -826,7 +826,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             if l.contains("sys_mmap") {
                 // debug!("{:#?}", l);
 
-                if fields.len() >= 1 {
+                if !fields.is_empty() {
                     // get last part of trace buffer line
                     let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
                     let tmp = tmp[tmp.len() - 1];
@@ -914,7 +914,7 @@ pub fn parse_function_call_syntax(s: &str) -> Result<HashMap<String, String>, &'
     let mut cnt = 0;
     for t in tok {
         let t_t = t.trim();
-        if t_t.len() < 1 {
+        if t_t.is_empty() {
             continue;
         }
 
