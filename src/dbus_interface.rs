@@ -256,7 +256,7 @@ pub struct DBUSInterface {
 }
 
 impl DBUSInterface {
-    pub fn new() -> DBUSInterface {
+    pub fn new() -> Self {
         DBUSInterface {
             connection: None,
             io_trace_logs_tree: None,

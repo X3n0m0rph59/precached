@@ -29,7 +29,7 @@ pub struct WorkerThreadPool {
 }
 
 impl WorkerThreadPool {
-    pub fn new() -> WorkerThreadPool {
+    pub fn new() -> Self {
         WorkerThreadPool {
             pool: threadpool::Builder::new()
                 // .num_threads(4)
@@ -53,7 +53,7 @@ pub struct PrefetchThreadPool {
 }
 
 impl PrefetchThreadPool {
-    pub fn new() -> PrefetchThreadPool {
+    pub fn new() -> Self {
         PrefetchThreadPool {
             pool: threadpool::Builder::new()
                 // .num_threads(constants::NUM_PREFETCHER_THREADS)

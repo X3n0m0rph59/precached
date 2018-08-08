@@ -571,7 +571,7 @@ fn main() {
     hooks::unregister_hooks(&mut globals, &mut manager);
 
     // unregister other subsystems
-    inotify_watches.teardown_default_inotify_watches(&mut globals, &mut manager);
+    inotify_watches.teardown_default_inotify_watches(&mut globals, &manager);
 
     info!("Exiting now");
 }

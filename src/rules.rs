@@ -611,7 +611,7 @@ pub fn tokenize_field(params: &str) -> Vec<String> {
                 if !string_flag {
                     // end of current parameter
                     let tmp = String::from(acc.trim());
-                    if tmp.len() > 0 {
+                    if !tmp.is_empty() {
                         result.push(tmp.clone());
                         acc.clear();
                     }

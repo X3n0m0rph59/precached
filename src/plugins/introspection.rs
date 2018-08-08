@@ -80,7 +80,7 @@ pub struct InternalState {
 }
 
 impl Introspection {
-    pub fn new() -> Introspection {
+    pub fn new() -> Self {
         Introspection {}
     }
 

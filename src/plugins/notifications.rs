@@ -48,7 +48,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct Notifications {}
 
 impl Notifications {
-    pub fn new() -> Notifications {
+    pub fn new() -> Self {
         Notifications {}
     }
 
@@ -82,7 +82,10 @@ impl Notifications {
                 )
             };
             if result < 0 {
-                unsafe { libc::perror(CString::new("libc::execve() failed!").unwrap().as_ptr()) };
+                unsafe { 
+                    let msg = CString::new("libc::execve() failed!").unwrap();
+                    libc::perror(msg.as_ptr());
+                };
             }
 
             // just in case...

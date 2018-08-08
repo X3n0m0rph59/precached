@@ -46,7 +46,7 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 pub struct MarkovPrefetcher {}
 
 impl MarkovPrefetcher {
-    pub fn new() -> MarkovPrefetcher {
+    pub fn new() -> Self {
         MarkovPrefetcher {}
     }
 }

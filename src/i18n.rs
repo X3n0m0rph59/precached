@@ -31,10 +31,7 @@ static LOCALES: &[&'static str] = &["locale"];
 
 lazy_static! {
     pub static ref LANG: String = env::var("LANG").unwrap_or_else(|_| "C".to_string());
-}
-
-thread_local! {
-    pub static I18N_STATE: RefCell<FluentBundle<'static>> = RefCell::new(initialize_i18n());
+    pub static ref CTX: fluent::MessageContext<'static> = initialize_i18n();
 }
 
 #[macro_export]

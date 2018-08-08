@@ -52,7 +52,7 @@ mod rules;
 mod util;
 
 /// Unicode characters used for drawing the progress bar
-const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
+const PROGRESS_BAR_INDICATORS: &str = "╢▉▉░╟";
 
 /// Runtime configuration for rulesctl
 #[derive(Clone)]
@@ -67,7 +67,7 @@ where
 }
 
 impl<'a, 'b> Config<'a, 'b> {
-    pub fn new() -> Config<'a, 'b> {
+    pub fn new() -> Self {
         trace!("Parsing command line...");
 
         let clap = clap_app::get_app();
@@ -85,7 +85,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 fn print_license_header() {
     println_tr!("license-text");
-    println!("");
+    println!();
 }
 
 /// Return a formatted `String` containing date and time of `date`
@@ -136,8 +136,8 @@ fn read_daemon_pid() -> io::Result<String> {
     util::read_uncompressed_text_file(&Path::new(constants::DAEMON_PID_FILE))
 }
 
-fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
-    let conf = daemon_config.disabled_plugins.unwrap_or(vec![]);
+fn display_status(config: &Config, daemon_config: &util::ConfigFile) {
+    let conf = daemon_config.clone().disabled_plugins.unwrap_or(vec![]);
 
     let rules_engine_enabled = !conf.contains(&String::from("rule_plugin"));
     let is_precached_running = read_daemon_pid().is_ok();
@@ -184,7 +184,7 @@ fn display_status(config: &mut Config, daemon_config: util::ConfigFile) {
     table.printstd();
 }
 
-fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
+fn list_rules(config: &Config, _daemon_config: &util::ConfigFile) {
     let rules_path = Path::new(constants::RULES_DIR);
 
     let mut table = Table::new();
@@ -249,11 +249,11 @@ fn list_rules(config: &Config, _daemon_config: util::ConfigFile) {
 
     table.printstd();
 
-    println!("");
+    println!();
     println_tr!("rulesctl-summary-1", "count" => cnt, "valid" => valid);
 }
 
-fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
+fn show_rules(config: &Config, _daemon_config: &util::ConfigFile) {
     let rules_path = Path::new(constants::RULES_DIR);
 
     let matches = config.matches.subcommand_matches("show").unwrap();
@@ -297,11 +297,11 @@ fn show_rules(config: &Config, _daemon_config: util::ConfigFile) {
 
     table.printstd();
 
-    println!("");
+    println!();
     println_tr!("rulesctl-summary-2", "count" => idx);
 }
 
-fn enable_rules(config: &Config, daemon_config: util::ConfigFile) {
+fn enable_rules(config: &Config, daemon_config: &util::ConfigFile) {
     let rules_path = Path::new(constants::RULES_DIR);
 
     let matches = config.matches.subcommand_matches("enable").unwrap();
@@ -314,7 +314,7 @@ fn enable_rules(config: &Config, daemon_config: util::ConfigFile) {
         }
 
         Ok(()) => {
-            println!("");
+            println!();
             println_tr!("rulesctl-rule-enabled");
 
             daemon_reload(config, daemon_config);
@@ -322,7 +322,7 @@ fn enable_rules(config: &Config, daemon_config: util::ConfigFile) {
     }
 }
 
-fn disable_rules(config: &Config, daemon_config: util::ConfigFile) {
+fn disable_rules(config: &Config, daemon_config: &util::ConfigFile) {
     let rules_path = Path::new(constants::RULES_DIR);
 
     let matches = config.matches.subcommand_matches("disable").unwrap();
@@ -335,7 +335,7 @@ fn disable_rules(config: &Config, daemon_config: util::ConfigFile) {
         }
 
         Ok(()) => {
-            println!("");
+            println!();
             println_tr!("rulesctl-rule-disabled");
 
             daemon_reload(config, daemon_config);
@@ -344,7 +344,7 @@ fn disable_rules(config: &Config, daemon_config: util::ConfigFile) {
 }
 
 /// Instruct precached to reload its configuration and rules
-fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
+fn daemon_reload(_config: &Config, _daemon_config: &util::ConfigFile) {
     match read_daemon_pid() {
         Err(_e) => {
             println_tr!("rulesctl-daemon-not-running");
@@ -372,7 +372,7 @@ fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -382,11 +382,11 @@ fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Generate shell completions
-fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
+fn generate_completions(config: &mut Config, _daemon_config: &util::ConfigFile) {
     let matches = config.matches.subcommand_matches("completions").unwrap();
 
     let shell = match matches.value_of("SHELL").unwrap() {
@@ -424,27 +424,27 @@ fn main() {
     if let Some(command) = config.matches.subcommand_name() {
         match command {
             "status" => {
-                display_status(&mut config_c, daemon_config);
+                display_status(&config_c, &daemon_config);
             }
 
             "list" => {
-                list_rules(&mut config_c, daemon_config);
+                list_rules(&config_c, &daemon_config);
             }
 
             "show" | "info" => {
-                show_rules(&mut config_c, daemon_config);
+                show_rules(&config_c, &daemon_config);
             }
 
             "enable" => {
-                enable_rules(&mut config_c, daemon_config);
+                enable_rules(&config_c, &daemon_config);
             }
 
             "disable" => {
-                disable_rules(&mut config_c, daemon_config);
+                disable_rules(&config_c, &daemon_config);
             }
 
             "reload" => {
-                daemon_reload(&mut config_c, daemon_config);
+                daemon_reload(&config_c, &daemon_config);
             }
 
             "help" => {
@@ -452,7 +452,7 @@ fn main() {
             }
 
             "completions" => {
-                generate_completions(&mut config_c, daemon_config.clone());
+                generate_completions(&mut config_c, &daemon_config.clone());
             }
 
             &_ => {

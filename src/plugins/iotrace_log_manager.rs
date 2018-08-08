@@ -54,7 +54,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct IOtraceLogManager {}
 
 impl IOtraceLogManager {
-    pub fn new() -> IOtraceLogManager {
+    pub fn new() -> Self {
         IOtraceLogManager {}
     }
 

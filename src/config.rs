@@ -35,7 +35,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new() -> Config {
+    pub fn new() -> Self {
         let matches = App::new("precached")
             .version("1.4.1")
             .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")

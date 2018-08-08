@@ -30,17 +30,17 @@ use crate::procmon;
 
 #[derive(Clone)]
 pub struct HookManager {
-    hooks: Arc<RwLock<IndexMap<String, Arc<RwLock<Box<Hook + Sync + Send>>>>>>,
+    hooks: Arc<RwLock<IndexMap<String, Arc<RwLock<Box<dyn Hook + Sync + Send>>>>>>,
 }
 
 impl HookManager {
-    pub fn new() -> HookManager {
+    pub fn new() -> Self {
         HookManager {
             hooks: Arc::new(RwLock::new(IndexMap::new())),
         }
     }
 
-    pub fn register_hook(&self, mut hook: Box<Hook + Sync + Send>) {
+    pub fn register_hook(&self, mut hook: Box<dyn Hook + Sync + Send>) {
         hook.register();
         self.hooks
             .write()
@@ -65,7 +65,7 @@ impl HookManager {
         }
     }
 
-    pub fn get_hook_by_name(&self, name: &str) -> Option<Arc<RwLock<Box<Hook + Sync + Send>>>> {
+    pub fn get_hook_by_name(&self, name: &str) -> Option<Arc<RwLock<Box<dyn Hook + Sync + Send>>>> {
         self.hooks.read().unwrap().get(name).cloned()
     }
 

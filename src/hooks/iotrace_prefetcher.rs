@@ -74,7 +74,7 @@ pub struct IOtracePrefetcher {
 }
 
 impl IOtracePrefetcher {
-    pub fn new() -> IOtracePrefetcher {
+    pub fn new() -> Self {
         let mut thread_states = vec![];
 
         for _ in 0..num_cpus::get() {
@@ -526,9 +526,9 @@ impl IOtracePrefetcher {
 
             Some(h) => {
                 let h = h.read().unwrap();
-                let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
+                let process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
-                let mut process = process_tracker.get_process(event.pid);
+                let process = process_tracker.get_process(event.pid);
 
                 match process {
                     None => debug!("Process with pid {} vanished during prefetching", event.pid),

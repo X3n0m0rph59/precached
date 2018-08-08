@@ -33,7 +33,7 @@ pub struct TaskScheduler {
 }
 
 impl TaskScheduler {
-    pub fn new() -> TaskScheduler {
+    pub fn new() -> Self {
         TaskScheduler {
             main_backlog: Vec::<Box<Fn() + Sync + Send + 'static>>::new(),
             backlog: Vec::<Arc<Box<Fn() + Sync + Send + 'static>>>::new(),

@@ -73,7 +73,7 @@ pub struct FtraceLogger {
 }
 
 impl FtraceLogger {
-    pub fn new() -> FtraceLogger {
+    pub fn new() -> Self {
         FtraceLogger { tracer_thread: None }
     }
 
@@ -99,7 +99,7 @@ impl FtraceLogger {
 
                         Some(h) => {
                             let h = h.read().unwrap();
-                            let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
+                            let process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
                             // Check if we deal with a custom event, like e.g. a 'ping'
                             match event.clone().syscall {
@@ -312,7 +312,7 @@ impl FtraceLogger {
 
             Some(p) => {
                 let p = p.read().unwrap();
-                let mut static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+                let static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
                 result = static_blacklist_plugin.is_file_blacklisted(filename);
             }
@@ -333,7 +333,7 @@ impl FtraceLogger {
 
             Some(p) => {
                 let p = p.read().unwrap();
-                let mut static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
+                let static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
                 result = static_blacklist_plugin.is_program_blacklisted(filename);
             }
@@ -352,7 +352,7 @@ impl FtraceLogger {
             }
             Some(h) => {
                 let h = h.read().unwrap();
-                let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
+                let process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
                 // let mut cmdline = String::from("");
 
@@ -492,7 +492,7 @@ impl FtraceLogger {
 
             Some(h) => {
                 let h = h.read().unwrap();
-                let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
+                let process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
                 if let Some(process) = process_tracker.get_process(event.pid) {
                     let comm = process.comm.clone();
@@ -581,7 +581,7 @@ impl hook::Hook for FtraceLogger {
 
                 // Start the thread that reads events from the Linux ftrace ringbuffer
                 let mut globals_c = globals.clone();
-                let mut manager_c = manager.clone();
+                let manager_c = manager.clone();
 
                 self.tracer_thread = Some(
                     thread::Builder::new()

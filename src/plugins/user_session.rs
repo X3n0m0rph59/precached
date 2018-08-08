@@ -93,7 +93,7 @@ impl UserSession {
                         let p = p.read().unwrap();
                         let rule_event_bridge = p.as_any().downcast_ref::<RuleEventBridge>().unwrap();
 
-                        rule_event_bridge.fire_event(rules::Event::UserLogin(Some(u), Some(home_dir)), globals, manager);
+                        rule_event_bridge.fire_event(&rules::Event::UserLogin(Some(u), Some(home_dir)), globals, manager);
                     }
                 };
             }
@@ -125,7 +125,7 @@ impl UserSession {
                         let p = p.read().unwrap();
                         let rule_event_bridge = p.as_any().downcast_ref::<RuleEventBridge>().unwrap();
 
-                        rule_event_bridge.fire_event(rules::Event::UserLogout(Some(u)), globals, manager);
+                        rule_event_bridge.fire_event(&rules::Event::UserLogout(Some(u)), globals, manager);
                     }
                 };
             }

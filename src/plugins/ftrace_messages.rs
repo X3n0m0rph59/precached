@@ -49,7 +49,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct FTraceMessages {}
 
 impl FTraceMessages {
-    pub fn new() -> FTraceMessages {
+    pub fn new() -> Self {
         FTraceMessages {}
     }
 

@@ -38,7 +38,7 @@ pub struct Globals {
 }
 
 impl Globals {
-    pub fn new() -> Globals {
+    pub fn new() -> Self {
         Globals {
             config: Config::new(),
             event_queue: VecDeque::new(),

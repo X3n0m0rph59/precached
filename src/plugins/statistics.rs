@@ -60,7 +60,7 @@ pub struct GlobalStatistics {
 }
 
 impl Statistics {
-    pub fn new() -> Statistics {
+    pub fn new() -> Self {
         Statistics {
             last_sys_activity: Instant::now(),
             sys_left_idle_period: true,

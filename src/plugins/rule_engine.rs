@@ -55,7 +55,7 @@ pub struct RuleEngine {
 }
 
 impl RuleEngine {
-    pub fn new() -> RuleEngine {
+    pub fn new() -> Self {
         RuleEngine {
             /// Holds all .rules files known to precached in a parsed form
             rule_files: vec![],
@@ -223,7 +223,7 @@ impl RuleEngine {
 
             Some(p) => {
                 let p = p.read().unwrap();
-                let mut profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
+                let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
                 if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
                     match *event {

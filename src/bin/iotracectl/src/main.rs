@@ -50,7 +50,7 @@ mod process;
 mod util;
 
 /// Unicode characters used for drawing the progress bar
-const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
+const PROGRESS_BAR_INDICATORS: &str = "╢▉▉░╟";
 
 /// Runtime configuration for iotracectl
 #[derive(Clone)]
@@ -65,7 +65,7 @@ where
 }
 
 impl<'a, 'b> Config<'a, 'b> {
-    pub fn new() -> Config<'a, 'b> {
+    pub fn new() -> Self {
         trace!("Parsing command line...");
 
         let clap = clap_app::get_app();
@@ -83,7 +83,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 fn print_license_header() {
     println_tr!("license-text");
-    println!("");
+    println!();
 }
 
 /// Return a formatted `String` containing date and time of `date`
@@ -685,7 +685,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
             println_tr!("iotracectl-no-matches");
         }
 
-        println!("");
+        println!();
         println_tr!("iotracectl-summary-1",
             "total" => format!("{}", total),
             "matching" => format!("{}", matching),
@@ -770,7 +770,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
             println_tr!("iotracectl-no-matches");
         }
 
-        println!("");
+        println!();
         println_tr!("iotracectl-summary-1",
             "total" => format!("{}", total),
             "matching" => format!("{}", matching),
@@ -822,7 +822,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 "flags" => format!("{:?}", flags.0)
             );
 
-            println!("");
+            println!();
 
             matching += 1;
 
@@ -863,7 +863,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     index += 1;
 
-    println!("");
+    println!();
     println_tr!("iotracectl-summary-1",
         "total" => format!("{}", index),
         "matching" => format!("{}", matching),
@@ -939,7 +939,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 "flags" => format!("{:?}", flags.0)
             );
 
-            println!("");
+            println!();
 
             matching += 1;
 
@@ -991,7 +991,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     index += 1;
 
-    println!("");
+    println!();
     println_tr!("iotracectl-summary-1",
         "total" => format!("{}", index),
         "matching" => format!("{}", matching),
@@ -1129,7 +1129,7 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
             println_tr!("iotracectl-no-matches");
         }
 
-        println!("");
+        println!();
         println_tr!("iotracectl-summary-1",
             "total" => format!("{}", total),
             "matching" => format!("{}", matching),
@@ -1357,14 +1357,14 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         table.printstd();
 
         if dry_run {
-            println!("");
+            println!();
             println_tr!("iotracectl-summary-3",
                 "total" => format!("{}", total),
                 "matching" => format!("{}", matching),
                 "errors" => format!("{}", errors)
             );
         } else {
-            println!("");
+            println!();
             println_tr!("iotracectl-summary-2",
                 "total" => format!("{}", total),
                 "matching" => format!("{}", matching),
@@ -1444,14 +1444,14 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         }
 
         if dry_run {
-            println!("");
+            println!();
             println_tr!("iotracectl-summary-3",
                 "total" => format!("{}", index),
                 "matching" => format!("{}", matching),
                 "errors" => format!("{}", errors)
             );
         } else {
-            println!("");
+            println!();
             println_tr!("iotracectl-summary-2",
                 "total" => format!("{}", index),
                 "matching" => format!("{}", matching),
@@ -1468,7 +1468,7 @@ fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -1478,7 +1478,7 @@ fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print help message on how to use this command
@@ -1502,7 +1502,7 @@ pub fn print_usage_blacklist(config: &mut Config) {
 }
 
 /// Generate shell completions
-fn generate_completions(config: &mut Config) {
+fn generate_completions(config: &mut Config, _daemon_config: &util::ConfigFile) {
     let matches = config.matches.subcommand_matches("completions").unwrap();
 
     let shell = match matches.value_of("SHELL").unwrap() {
@@ -1602,7 +1602,11 @@ fn main() {
             }
 
             "completions" => {
+<<<<<<< HEAD
                 generate_completions(&mut config_c);
+=======
+                generate_completions(&mut config_c, &daemon_config.clone());
+>>>>>>> e2ba375... Idiomatic Fixes
             }
 
             &_ => {

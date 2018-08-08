@@ -55,7 +55,7 @@ mod constants;
 mod util;
 
 /// Unicode characters used for drawing the progress bar
-const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
+const PROGRESS_BAR_INDICATORS: &str = "╢▉▉░╟";
 
 lazy_static! {
     static ref NUM_FILES: u32 = 100;
@@ -75,7 +75,7 @@ where
 }
 
 impl<'a, 'b> Config<'a, 'b> {
-    pub fn new() -> Config<'a, 'b> {
+    pub fn new() -> Self {
         trace!("Parsing command line...");
 
         let clap = clap_app::get_app();
@@ -93,7 +93,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 fn print_license_header() {
     println_tr!("license-text");
-    println!("");
+    println!();
 }
 
 /// Print help message on how to use this command
@@ -103,7 +103,7 @@ fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -113,7 +113,7 @@ fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print a status summary of the system
@@ -125,7 +125,7 @@ fn read_daemon_pid() -> io::Result<String> {
 }
 
 /// Instruct precached to transition to the next profile
-fn transition_profile(_config: &Config, _daemon_config: util::ConfigFile) {
+fn transition_profile(_config: &Config, _daemon_config: &util::ConfigFile) {
     match read_daemon_pid() {
         Err(_e) => {
             println!("precached is NOT running, did not send signal");
@@ -200,7 +200,7 @@ fn main() {
             }
 
             "transition-profile" => {
-                transition_profile(&mut config_c, daemon_config);
+                transition_profile(&config_c, &daemon_config);
             }
 
             "completions" => {

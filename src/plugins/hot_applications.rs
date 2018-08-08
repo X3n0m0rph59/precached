@@ -72,7 +72,7 @@ pub struct HotApplications {
 }
 
 impl HotApplications {
-    pub fn new() -> HotApplications {
+    pub fn new() -> Self {
         HotApplications {
             app_histogram: HashMap::new(),
             cached_apps: vec![],
@@ -233,7 +233,7 @@ impl HotApplications {
 
             Some(p) => {
                 let p = p.read().unwrap();
-                let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
+                let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 if metrics_plugin.get_available_mem_percentage() <= 100 - available_mem_upper_threshold {
                     result = false;
@@ -265,7 +265,7 @@ impl HotApplications {
 
             Some(p) => {
                 let p = p.read().unwrap();
-                let mut metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
+                let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 if metrics_plugin.get_available_mem_percentage() <= 100 - available_mem_lower_threshold {
                     result = false;
@@ -465,7 +465,7 @@ impl Plugin for HotApplications {
 
                     Some(p) => {
                         let p = p.read().unwrap();
-                        let mut profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
+                        let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
                         if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
                             self.prefetch_data(globals, manager);
@@ -494,7 +494,7 @@ impl Plugin for HotApplications {
 
                     Some(p) => {
                         let p = p.read().unwrap();
-                        let mut profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
+                        let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
                         if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
                             self.prefetch_data(globals, manager);

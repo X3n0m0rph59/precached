@@ -53,7 +53,7 @@ mod profiles;
 mod util;
 
 /// Unicode characters used for drawing the progress bar
-pub const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
+pub const PROGRESS_BAR_INDICATORS: &str = "╢▉▉░╟";
 
 /// Runtime configuration for precachedctl
 #[derive(Clone)]
@@ -68,7 +68,7 @@ where
 }
 
 impl<'a, 'b> Config<'a, 'b> {
-    pub fn new() -> Config<'a, 'b> {
+    pub fn new() -> Self {
         trace!("Parsing command line...");
 
         let clap = clap_app::get_app();
@@ -86,7 +86,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 pub fn print_license_header() {
     println_tr!("license-text");
-    println!("");
+    println!();
 }
 
 /// Read the pid of the precached daemon from the file `/run/precached.pid`
@@ -220,7 +220,7 @@ pub fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -230,7 +230,7 @@ pub fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print help message on how to use this command
@@ -240,7 +240,7 @@ pub fn print_help_plugins(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -250,7 +250,7 @@ pub fn print_usage_plugins(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Generate shell completions
@@ -323,11 +323,11 @@ fn main() {
                     {
                         match subcommand {
                             "internal-state" => {
-                                plugins::analyze::display_internal_state(&config, daemon_config);
+                                plugins::analyze::display_internal_state(&config, &daemon_config);
                             }
 
                             "statistics" => {
-                                plugins::analyze::display_global_stats(&config, daemon_config);
+                                plugins::analyze::display_global_stats(&config, &daemon_config);
                             }
 
                             "help" => {

@@ -52,7 +52,7 @@ pub struct Profiles {
 }
 
 impl Profiles {
-    pub fn new() -> Profiles {
+    pub fn new() -> Self {
         Profiles {
             current_profile: SystemProfile::BootUp,
         }
