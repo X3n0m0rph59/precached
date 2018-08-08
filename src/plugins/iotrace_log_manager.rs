@@ -18,32 +18,30 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate fnv;
-
-use constants;
-use events;
-use events::EventType;
-use globals::*;
-use iotrace;
-use manager::*;
-// use hooks::process_tracker::ProcessTracker;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
 use std::any::Any;
 use std::collections::HashMap;
 use std::hash::Hasher;
 use std::io::BufReader;
 use std::io::Result;
 use std::path::{Path, PathBuf};
-use storage;
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals::*;
+use crate::iotrace;
+use crate::manager::*;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::util;
 
 static NAME: &str = "iotrace_log_manager";
 static DESCRIPTION: &str = "Manage I/O activity trace log files";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(IOtraceLogManager::new());
 
         let m = manager.plugin_manager.read().unwrap();

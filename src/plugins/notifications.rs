@@ -18,31 +18,24 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-// extern crate notify_rust;
-//
-// use self::notify_rust::Notification;
-// use self::notify_rust::NotificationHint as Hint;
-
-use events;
-use events::EventType;
-use globals::*;
-use manager::*;
-// use hooks::process_tracker::ProcessTracker;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-// use std::process::Command;
 use std::any::Any;
 use std::ffi::CString;
 use std::ptr;
-use storage;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
 
 static NAME: &str = "notifications";
 static DESCRIPTION: &str = "Send notifications to logged in users via DBUS";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Notifications::new());
 
         let m = manager.plugin_manager.read().unwrap();

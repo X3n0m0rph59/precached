@@ -18,30 +18,31 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use globals::*;
-use hooks::iotrace_prefetcher::IOtracePrefetcher;
-use manager::*;
-use plugins::hot_applications::HotApplications;
-use plugins::metrics::Metrics;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use plugins::profiles::Profiles;
-use plugins::static_blacklist::StaticBlacklist;
-use plugins::static_whitelist::StaticWhitelist;
-use profiles::SystemProfile;
 use std::any::Any;
 use std::path::{Path, PathBuf};
-use storage;
-use util;
-use util::Contains;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::events;
+use crate::config_file;
+use crate::globals::*;
+use crate::hooks::iotrace_prefetcher::IOtracePrefetcher;
+use crate::manager::*;
+use crate::plugins::hot_applications::HotApplications;
+use crate::plugins::metrics::Metrics;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::plugins::profiles::Profiles;
+use crate::plugins::static_blacklist::StaticBlacklist;
+use crate::plugins::static_whitelist::StaticWhitelist;
+use crate::profiles::SystemProfile;
+use crate::util;
+use crate::util::Contains;
 
 static NAME: &str = "vfs_stat_cache";
 static DESCRIPTION: &str = "Try to keep file metadata in the kernel caches";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(VFSStatCache::new());
 
         let m = manager.plugin_manager.read().unwrap();

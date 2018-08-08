@@ -18,12 +18,12 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use config::Config;
-use events;
-use ipc::ipc;
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::config::Config;
+use crate::events;
 
 /// Global system state
 #[derive(Debug, Clone)]

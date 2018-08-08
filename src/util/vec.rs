@@ -18,8 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate rayon;
-
 use rayon::prelude::*;
 use std::cmp::PartialEq;
 

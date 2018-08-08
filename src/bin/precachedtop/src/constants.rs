@@ -27,8 +27,6 @@
 
 #![allow(unused)]
 
-extern crate log;
-
 use std::path::{Path, PathBuf};
 
 /// Config file, where the daemon's config is located

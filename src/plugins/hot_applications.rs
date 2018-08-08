@@ -18,32 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate crossbeam;
-extern crate fnv;
-extern crate libc;
-extern crate rayon;
-extern crate serde;
-extern crate serde_json;
-
-use self::crossbeam::scope;
-use self::serde::Serialize;
-use constants;
-use events;
-use events::EventType;
-use globals;
-use globals::*;
-use hooks::iotrace_prefetcher::IOtracePrefetcher;
-use iotrace;
-use log::LevelFilter;
-use manager::*;
-use plugins::metrics::Metrics;
-use plugins::plugin::{Plugin, PluginDescription};
-use plugins::profiles::Profiles;
-use process::Process;
-use procmon;
-use profiles::SystemProfile;
-use rayon::prelude::*;
-use rayon::prelude::*;
 use std::any::Any;
 use std::collections::HashMap;
 use std::hash::Hasher;
@@ -54,16 +28,33 @@ use std::sync::atomic::Ordering;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, RwLock};
 use std::thread;
-use storage;
-use util;
-use EXIT_NOW;
+use rayon::prelude::*;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use serde::Serialize;
+use crossbeam::scope;
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals;
+use crate::globals::*;
+use crate::hooks::iotrace_prefetcher::IOtracePrefetcher;
+use crate::iotrace;
+use crate::manager::*;
+use crate::plugins::metrics::Metrics;
+use crate::plugins::plugin::{Plugin, PluginDescription};
+use crate::plugins::profiles::Profiles;
+use crate::process::Process;
+use crate::procmon;
+use crate::profiles::SystemProfile;
+use crate::util;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(HotApplications::new());
 
         let m = manager.plugin_manager.read().unwrap();

@@ -18,25 +18,17 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate chrono;
-extern crate clap;
-extern crate lazy_static;
-extern crate nix;
-extern crate prettytable;
-extern crate rayon;
-extern crate serde_json;
-
 use clap::{App, AppSettings, Arg, SubCommand};
-use constants;
-use i18n;
-use iotrace;
+use crate::constants;
+use crate::i18n;
+use crate::iotrace;
 use pbr::ProgressBar;
 use prettytable::Cell;
 use prettytable::format::Alignment;
 use prettytable::format::*;
 use prettytable::Row;
 use prettytable::Table;
-use process;
+use crate::process;
 use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::io;
@@ -45,8 +37,8 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use term::color::*;
 use term::Attr;
-use util;
-use {default_table_format, Config, PROGRESS_BAR_INDICATORS};
+use crate::util;
+use crate::{default_table_format, Config, PROGRESS_BAR_INDICATORS};
 
 /// Print help message on how to use this command
 pub fn print_help(config: &mut Config) {

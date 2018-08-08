@@ -18,18 +18,17 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-
-use events;
-use events::EventType;
-use globals::*;
-use hooks::hook;
-use manager::*;
-use process::Process;
-use procmon;
 use std::any::Any;
 use std::collections::HashMap;
 use std::sync::mpsc::channel;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::events;
+use crate::events::EventType;
+use crate::globals::*;
+use crate::hooks::hook;
+use crate::manager::*;
+use crate::process::Process;
+use crate::procmon;
 
 static NAME: &str = "rule_hook";
 static DESCRIPTION: &str = "Support rule actions for the rule matching engine";

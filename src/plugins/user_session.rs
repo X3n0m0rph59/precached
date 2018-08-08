@@ -18,35 +18,33 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate indexmap;
-extern crate users;
-
-use self::indexmap::map::Entry::{Occupied, Vacant};
-use self::indexmap::IndexMap;
-use self::users::os::unix::UserExt;
-use self::users::*;
-use events;
-use events::EventType;
-use globals::*;
-use manager::*;
-use plugins::metrics::Metrics;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
-use plugins::rule_event_bridge::RuleEventBridge;
-use plugins::static_blacklist::StaticBlacklist;
-use rules;
 use std::any::Any;
 use std::path::{Path, PathBuf};
 use std::result::Result;
-use storage;
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use indexmap::map::Entry::{Occupied, Vacant};
+use indexmap::IndexMap;
+use users::os::unix::UserExt;
+use users::*;
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::metrics::Metrics;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
+use crate::plugins::rule_event_bridge::RuleEventBridge;
+use crate::plugins::static_blacklist::StaticBlacklist;
+use crate::rules;
+use crate::util;
 
 static NAME: &str = "user_session";
 static DESCRIPTION: &str = "Detect user logins and send notification messages";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(UserSession::new(globals));
 
         let m = manager.plugin_manager.read().unwrap();

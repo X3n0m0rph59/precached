@@ -22,8 +22,8 @@ mod hook;
 mod hook_manager;
 
 pub use self::hook_manager::*;
-use globals::*;
-use manager::*;
+use crate::globals::*;
+use crate::manager::*;
 
 pub mod process_tracker;
 // pub mod ptrace_logger;

@@ -17,34 +17,13 @@
     You should have received a copy of the GNU General Public License
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#![feature(rust_2018_preview)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-extern crate chrono;
-extern crate chrono_tz;
-extern crate clap;
-extern crate fluent;
-extern crate rayon;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
-extern crate nix;
-extern crate pbr;
-extern crate pretty_env_logger;
-#[macro_use]
-extern crate prettytable;
-#[macro_use]
-extern crate serde_derive;
-extern crate term;
-extern crate term_size;
-extern crate toml;
-extern crate zstd;
-
 use chrono::{DateTime, Local, TimeZone, Utc};
-use clap::{App, AppSettings, Arg, ArgMatches, Shell, SubCommand};
-use iotrace::{IOOperation, IOTraceLogFlag};
+use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use crate::iotrace::{IOOperation, IOTraceLogFlag};
 use pbr::ProgressBar;
 use prettytable::Cell;
 use prettytable::format::*;

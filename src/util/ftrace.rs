@@ -18,21 +18,7 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-extern crate regex;
-
-use self::regex::Regex;
-use super::trace_event::*;
-use super::{append, echo, mkdir, rmdir};
-use chrono::{DateTime, Utc};
-use constants;
-use events;
-use events::EventType;
-use globals::Globals;
-use hooks;
-use iotrace;
 use nix::unistd::{gettid, Pid};
-use process::Process;
 use std::collections::HashMap;
 use std::ffi::CString;
 use std::fs::OpenOptions;
@@ -45,7 +31,20 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::thread;
 use std::time::{Duration, Instant};
-use util;
+use regex::Regex;
+use chrono::{DateTime, Utc};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use lazy_static::lazy_static;
+use super::trace_event::*;
+use super::{append, echo, mkdir, rmdir};
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::globals::Globals;
+use crate::hooks;
+use crate::iotrace;
+use crate::process::Process;
+use crate::util;
 
 /// Global 'shall we exit now' flag
 pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -568,7 +567,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             // NOTE: We have to use `lock()` here instead of `try_lock()`
             //       because we don't want to miss events in any case.
             //       Will deadlock with `.try_lock()`
-            match hooks::ftrace_logger::ACTIVE_TRACERS.lock() {
+            match crate::hooks::ftrace_logger::ACTIVE_TRACERS.lock() {
                 Err(e) => error!("Could not take a lock on a shared data structure! {}", e),
                 Ok(mut active_tracers) => {
                     check_expired_tracers(&mut active_tracers, &iotrace_dir, min_len, min_prefetch_size, globals);

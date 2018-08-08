@@ -20,25 +20,6 @@
 
 #![allow(unused)]
 
-extern crate libc;
-extern crate serde;
-extern crate serde_json;
-extern crate zmq;
-
-use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
-use constants;
-use events;
-use globals::*;
-use hooks::ftrace_logger::ACTIVE_TRACERS;
-use hooks::iotrace_prefetcher::{IOtracePrefetcher, ThreadState};
-use hooks::process_tracker::ProcessTracker;
-use manager::*;
-use plugins;
-use plugins::introspection;
-use plugins::introspection::InternalState;
-use plugins::statistics;
-use plugins::statistics::GlobalStatistics;
-use process;
 use std::collections::VecDeque;
 use std::fs::OpenOptions;
 use std::io;
@@ -49,7 +30,23 @@ use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
-use EXIT_NOW;
+use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use serde_derive::{Serialize, Deserialize};
+use crate::constants;
+use crate::events;
+use crate::globals::*;
+use crate::hooks::ftrace_logger::ACTIVE_TRACERS;
+use crate::hooks::iotrace_prefetcher::{IOtracePrefetcher, ThreadState};
+use crate::hooks::process_tracker::ProcessTracker;
+use crate::manager::*;
+use crate::plugins;
+use crate::plugins::introspection;
+use crate::plugins::introspection::InternalState;
+use crate::plugins::statistics;
+use crate::plugins::statistics::GlobalStatistics;
+use crate::process;
+use crate::EXIT_NOW;
 
 /// Represents a process
 #[derive(Debug, Clone, Serialize, Deserialize)]

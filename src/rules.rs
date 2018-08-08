@@ -18,12 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate rayon;
-extern crate sys_info;
-
-use chrono::Utc;
-use profiles::SystemProfile;
-use rayon::prelude::*;
 use std::fs;
 use std::fs::File;
 use std::io;
@@ -31,6 +25,10 @@ use std::io::prelude::*;
 use std::io::{BufReader, BufWriter, Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use chrono::Utc;
+use rayon::prelude::*;
+use crate::profiles::SystemProfile;
 
 /// Events that may appear in a .rules file
 #[derive(Debug, Clone, PartialEq)]
@@ -658,7 +656,7 @@ pub fn tokenize_field(params: &str) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use rules::*;
+    use crate::rules::*;
 
     #[test]
     fn test_tokenize_field() {

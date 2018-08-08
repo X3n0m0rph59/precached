@@ -18,16 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-extern crate nix;
-extern crate regex;
-
-use self::regex::*;
 use std::ffi::OsStr;
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use lazy_static::lazy_static;
+use regex::*;
+use crate::util;
 
 lazy_static! {
     /// Regex used to parse memory mappings of a process (from `/proc/<pid>/maps`)
@@ -180,8 +178,7 @@ impl Process {
 
 #[cfg(test)]
 mod tests {
-    extern crate libc;
-    use process::*;
+    use crate::process::*;
 
     #[test]
     fn test_get_process_comm() {

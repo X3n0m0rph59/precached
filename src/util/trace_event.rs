@@ -18,8 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]

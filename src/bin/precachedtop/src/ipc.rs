@@ -18,12 +18,9 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-extern crate serde;
-extern crate serde_json;
-
 use chrono::{DateTime, Local, TimeZone, Utc};
 use std::path::{Path, PathBuf};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
 
 /// Represents a process
 #[derive(Debug, Clone, Serialize, Deserialize)]

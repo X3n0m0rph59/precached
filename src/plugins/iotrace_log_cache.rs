@@ -18,28 +18,29 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use constants;
-use events;
-use globals::*;
-use manager::*;
-use plugins::metrics::Metrics;
-use plugins::plugin::Plugin;
-use plugins::plugin::PluginDescription;
 use std::any::Any;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
 use std::sync::Mutex;
-use storage;
-use util;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::util;
+use crate::constants;
+use crate::events;
+use crate::config_file;
+use crate::globals::*;
+use crate::manager::*;
+use crate::plugins::metrics::Metrics;
+use crate::plugins::plugin::Plugin;
+use crate::plugins::plugin::PluginDescription;
 
 static NAME: &str = "iotrace_log_cache";
 static DESCRIPTION: &str = "mlock() I/O trace log files";
 
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
-    if !storage::get_disabled_plugins(globals).contains(&String::from(NAME)) {
+    if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(IOtraceLogCache::new(globals));
 
         let m = manager.plugin_manager.read().unwrap();

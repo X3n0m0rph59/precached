@@ -18,27 +18,26 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-extern crate regex;
-extern crate term;
+#![feature(crate_in_paths)]
 
-use self::term::color::*;
-use self::term::Attr;
-use chrono::{DateTime, Duration, Utc};
-use constants;
-use iotrace::*;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Result;
 use std::path::{Path, PathBuf};
-use util;
+use term::color::*;
+use term::Attr;
+use chrono::{DateTime, Duration, Utc};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::iotrace::*;
+use crate::constants;
+use crate::util;
 
 /// Optimizes an I/O trace log. Keep only valid trace log entries that actually
 /// contribute to a faster program startup time. Remove trace log entries that
 /// are invalid, duplicate, or which referenced files do not exist anymore
 pub fn optimize_io_trace_log(
     filename: &Path,
-    io_trace: &mut iotrace::IOTraceLog,
+    io_trace: &mut IOTraceLog,
     min_len: usize,
     min_prefetch_size: u64,
     _dry_run: bool,

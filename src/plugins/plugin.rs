@@ -18,10 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use events;
-use globals::*;
-use manager::*;
 use std::any::Any;
+use crate::events;
+use crate::globals::*;
+use crate::manager::*;
 
 pub struct PluginDescription {
     pub name: String,

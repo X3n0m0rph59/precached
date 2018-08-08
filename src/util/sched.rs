@@ -18,9 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate libc;
-extern crate nix;
-
 /// Lock the calling thread to CPU `cpu_index`
 pub fn set_cpu_affinity(cpu_index: usize) -> Result<(), nix::Error> {
     let pid = nix::unistd::Pid::from_raw(0);

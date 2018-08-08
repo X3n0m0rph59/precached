@@ -18,12 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate num_cpus;
-extern crate threadpool;
-
-use constants;
 use std::sync::Arc;
 use std::sync::Mutex;
+use lazy_static::lazy_static;
+use crate::constants;
 
 #[derive(Debug)]
 pub struct WorkerThreadPool {

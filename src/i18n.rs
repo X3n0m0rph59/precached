@@ -18,19 +18,14 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate fluent;
-
-use self::fluent::bundle::FluentBundle;
-use lazy_static;
-use log::LevelFilter;
-use std::boxed;
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::io::prelude::*;
 use std::io::{self, Write};
-use std::thread;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use lazy_static::lazy_static;
+use fluent::MessageContext;
 
 static LOCALES: &[&'static str] = &["locale"];
 

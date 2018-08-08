@@ -25,43 +25,14 @@
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system
 
+#![feature(rust_2018_preview)]
+
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![allow(unused_must_use)]
 
-extern crate fluent;
-#[macro_use]
-extern crate log;
-extern crate ansi_term;
-extern crate chrono;
-extern crate log4rs;
-extern crate log4rs_syslog;
-extern crate syslog;
-
-#[macro_use]
-extern crate daemonize;
-#[macro_use]
-extern crate enum_primitive;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate serde_derive;
-
-extern crate crossbeam;
-extern crate nix;
-extern crate rayon;
-extern crate toml;
-
-use ansi_term::Style;
-use log::LevelFilter;
-use log4rs::append::console::ConsoleAppender;
-use log4rs::append::file::FileAppender;
-use log4rs::config::{Appender, Config, Root};
-use log4rs::encode::pattern::PatternEncoder;
-use log4rs_syslog::SyslogAppender;
-use nix::sys::signal;
 use std::env;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -70,36 +41,44 @@ use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
 use syslog::{Facility, Formatter3164, Severity};
+use log4rs::append::console::ConsoleAppender;
+use log4rs::append::file::FileAppender;
+use log4rs::config::{Appender, Config, Root};
+use log4rs::encode::pattern::PatternEncoder;
+use log4rs_syslog::SyslogAppender;
+use ansi_term::Style;
+use nix::sys::signal;
 
 mod constants;
-
 mod globals;
-use globals::*;
-
+mod config;
+mod config_file;
 mod manager;
-use manager::*;
-
 mod procmon;
-use procmon::ProcMon;
-
 mod events;
-use events::EventType;
-
 #[macro_use]
 mod i18n;
-mod config;
-mod dbus;
+mod dbus_interface;
+
 mod hooks;
+mod plugins;
+mod util;
+
 mod inotify;
 mod iotrace;
 mod ipc;
-mod plugins;
 mod process;
 mod profiles;
 mod rules;
-mod storage;
-mod util;
+mod state_file;
+
+use crate::i18n::*;
+use crate::globals::*;
+use crate::manager::*;
+use crate::procmon::ProcMon;
+use crate::events::EventType;
 
 /// Global 'shall we exit now' flag
 static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
@@ -219,12 +198,12 @@ under certain conditions.
 /// Shows which plugins have been disabled via the `disabled_plugins = [...]`
 /// parameter in the external text configuration file
 fn print_disabled_plugins_notice(globals: &mut Globals) {
-    info!("Disabled Plugins: {:?}", storage::get_disabled_plugins(globals));
+    info!("Disabled Plugins: {:?}", config_file::get_disabled_plugins(globals));
 }
 
 // Disabling of hooks is currently not supported
 // fn print_disabled_hooks_notice(globals: &mut Globals) {
-//     info!("Disabled Hooks: {:#?}", storage::get_disabled_hooks(globals));
+//     info!("Disabled Hooks: {:#?}", config_file::::get_disabled_hooks(globals));
 // }
 
 /// Process daemon internal events
@@ -288,7 +267,7 @@ fn main() {
     let mut manager = Manager::new();
 
     // Parse external configuration file
-    match storage::parse_config_file(&mut globals) {
+    match config_file::parse_config_file(&mut globals) {
         Ok(_) => info!("Successfully parsed configuration file!"),
         Err(s) => {
             error!("Error in configuration file: {}", s);
@@ -369,7 +348,7 @@ fn main() {
     }
 
     // set-up dbus interface
-    let mut dbus_interface = dbus::create_dbus_interface(&mut globals, &mut manager);
+    let mut dbus_interface = dbus_interface::create_dbus_interface(&mut globals, &mut manager);
     match dbus_interface.register_connection(&mut globals, &manager) {
         Err(s) => {
             error!("Could not create dbus interface: {}", s);
@@ -481,7 +460,7 @@ fn main() {
             warn!("Reloading configuration now...");
 
             // Parse external configuration file
-            match storage::parse_config_file(&mut globals) {
+            match config_file::parse_config_file(&mut globals) {
                 Ok(_) => {
                     info!("Successfully parsed configuration!");
                     events::queue_internal_event(EventType::ConfigurationReloaded, &mut globals);

@@ -20,7 +20,9 @@
 
 use std::sync::Arc;
 use std::sync::Mutex;
-use util;
+use lazy_static::lazy_static;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::util;
 
 pub struct TaskScheduler {
     /// Jobs that ought to be run in the context of one of the worker threads

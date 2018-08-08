@@ -18,12 +18,11 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate clap;
-
-use self::clap::{App, Arg};
-use constants;
 use std::path::PathBuf;
-use storage;
+use clap::{App, Arg};
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use crate::constants;
+use crate::config_file;
 
 /// Holds the global configuration of the daemon, including parsed command line options
 /// and the parsed external text configuration file `/etc/precached/precached.conf`
@@ -32,7 +31,7 @@ pub struct Config {
     pub verbosity: u8,
     pub daemonize: bool,
     pub config_filename: PathBuf,
-    pub config_file: Option<storage::ConfigFile>,
+    pub config_file: Option<config_file::ConfigFile>,
 }
 
 impl Config {

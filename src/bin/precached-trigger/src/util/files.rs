@@ -18,12 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate globset;
-extern crate rayon;
-extern crate zstd;
-
 use self::globset::{Glob, GlobSetBuilder};
-use constants;
+use crate::constants;
 use rayon::prelude::*;
 use std::cell::RefCell;
 use std::cmp::{max, min};
@@ -36,6 +32,7 @@ use std::io::ErrorKind;
 use std::path;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use lazy_static::lazy_static;
 
 lazy_static! {
     pub static ref GLOB_SET: Arc<Mutex<Option<globset::GlobSet>>> = { Arc::new(Mutex::new(None)) };
@@ -325,7 +322,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use util::files::*;
+    use crate::util::files::*;
 
     #[test]
     fn test_ellipsize_filename() {
