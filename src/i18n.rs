@@ -23,6 +23,9 @@ use std::env;
 use std::fs;
 use std::io::prelude::*;
 use std::io::{self, Write};
+use std::cell::RefCell;
+use std::thread;
+use std::boxed;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use lazy_static::lazy_static;
 use fluent::MessageContext;
@@ -31,16 +34,33 @@ static LOCALES: &[&'static str] = &["locale"];
 
 lazy_static! {
     pub static ref LANG: String = env::var("LANG").unwrap_or_else(|_| "C".to_string());
-    pub static ref CTX: fluent::MessageContext<'static> = initialize_i18n();
+}
+
+thread_local! {
+    pub static I18N_STATE: RefCell<fluent::MessageContext<'static>> = RefCell::new(initialize_i18n());
 }
 
 #[macro_export]
 macro_rules! tr {
     ($msgid:expr) => ({
-        Box::leak($crate::i18n::get_message_args($msgid, None)).as_str()
+        $crate::i18n::I18N_STATE.with(|s| {
+            let ctx = s.borrow();
+
+            match ctx.get_message($msgid) {
+                None => panic!("Could not translate: '{}'", $msgid),
+
+                Some(msg) => {
+                    let result = ctx.format(msg, None).unwrap();
+                    let b = Box::new(result.clone());
+
+                    Box::leak(b).as_str()
+                }
+            }
+        })
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
+<<<<<<< HEAD
         i18n::I18N_STATE.with(|s| {
             let bundle = s.borrow();
 
@@ -52,14 +72,35 @@ macro_rules! tr {
 
             match bundle.format($msgid, Some(&args)) {
                 None => panic!("Could not translate: '{}'", $msgid),
+=======
+        $crate::i18n::I18N_STATE.with(|s| {
+            let ctx = s.borrow();
 
-        Box::leak($crate::i18n::get_message_args($msgid, Some(&args))).as_str()
+            let mut args = $crate::std::collections::HashMap::new();
+>>>>>>> c9ccb8e... Port to Fluent Version 0.3
+
+            $(
+                args.insert($k, fluent::types::FluentValue::from($v));
+            )*
+
+            match ctx.get_message($msgid) {
+                None => panic!("Could not translate: '{}'", $msgid),
+
+                Some(msg) => {
+                    let result = ctx.format(msg, Some(&args)).unwrap();                    
+                    let b = Box::new(result.clone());
+
+                    Box::leak(b).as_str()
+                }
+            }
+        })
     });
 }
 
 #[macro_export]
 macro_rules! println_tr {
     ($msgid:expr) => ({
+<<<<<<< HEAD
         i18n::I18N_STATE.with(|s| {
             let bundle = s.borrow();
 
@@ -68,12 +109,24 @@ macro_rules! println_tr {
 
                 Some((msg, _errors)) => {
                     println!("{}", msg.clone().as_str());
+=======
+        $crate::i18n::I18N_STATE.with(|s| {
+            let ctx = s.borrow();
+
+            match ctx.get_message($msgid) {
+                None => panic!("Could not translate: '{}'", $msgid),
+
+                Some(msg) => {
+                    let result = ctx.format(msg, None).unwrap();
+                    println!("{}", result.clone().as_str());
+>>>>>>> c9ccb8e... Port to Fluent Version 0.3
                 }
             }
         })
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
+<<<<<<< HEAD
         i18n::I18N_STATE.with(|s| {
             let bundle = s.borrow();
 
@@ -86,6 +139,23 @@ macro_rules! println_tr {
 
                 Some((msg, _errors)) => {
                     println!("{}", msg.clone().as_str());
+=======
+        $crate::i18n::I18N_STATE.with(|s| {
+            let ctx = s.borrow();
+
+            let mut args = $crate::std::collections::HashMap::new();
+
+            $(
+                args.insert($k, fluent::types::FluentValue::from($v));
+            )*
+
+            match ctx.get_message($msgid) {
+                None => panic!("Could not translate: '{}'", $msgid),
+
+                Some(msg) => {
+                    let result = ctx.format(msg, Some(&args)).unwrap();                
+                    println!("{}", result.clone().as_str());
+>>>>>>> c9ccb8e... Port to Fluent Version 0.3
                 }
             }
         })
@@ -115,15 +185,27 @@ fn initialize_i18n() -> FluentBundle<'static> {
                 }
 
                 Ok(msgs) => {
+<<<<<<< HEAD
                     bundle.add_messages(&msgs).expect("Could not add translation message!");
+=======
+                    ctx.add_messages(&msgs).expect("Could not add translation message!");
+>>>>>>> c9ccb8e... Port to Fluent Version 0.3
                 }
             }
         }
 
         Ok(msgs) => {
+<<<<<<< HEAD
             bundle.add_messages(&msgs).expect("Could not add translation message!");
         }
     }
 
     bundle
+=======
+            ctx.add_messages(&msgs).expect("Could not add translation message!");
+        }
+    }
+
+    ctx
+>>>>>>> c9ccb8e... Port to Fluent Version 0.3
 }

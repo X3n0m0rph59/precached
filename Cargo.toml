@@ -64,8 +64,13 @@ term = "0.5.1"
 pbr = "1.0.1"
 prettytable-rs = "0.8.0"
 daemonize = "0.3.0"
+<<<<<<< HEAD
 inotify = "0.6.1"
 fluent = "0.4.1"
+=======
+inotify = "0.5"
+fluent = "0.3"
+>>>>>>> c9ccb8e... Port to Fluent Version 0.3
 clippy = { version = "*", optional = true }
 
 # [replace]
