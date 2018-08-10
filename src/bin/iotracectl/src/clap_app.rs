@@ -62,7 +62,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
         .subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
-                .about(tr!("iotracectl-status"))
+                .about(tr!("iotracectl-show-status"))
                 .arg(Arg::with_name("tabular")
                             .long("tabular")
                             // .short("t")

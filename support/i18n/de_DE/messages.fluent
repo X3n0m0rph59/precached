@@ -153,7 +153,7 @@ iotracectl-removing-trace-logs = Entferne I/O Trace Logs:
 iotracectl-optimizing-trace-logs = Optimiere I/O Trace Logs: 
 
 iotracectl-io-trace-log = I/O Trace Log
-iotracectl-status = Status anzeigen
+iotracectl-show-status = Status anzeigen
 
 iotracectl-prefetcher = I/O Trace Prefetcher
 iotracectl-replay = Wiedergabe von zuvor aufgezeichneten Dateioperationen
@@ -165,7 +165,7 @@ iotracectl-hook = Hook
 iotracectl-plugin = Plugin
 
 iotracectl-failed = fehler (Berechtigungen?)
-iotracectl-optimized = optimiert
+# iotracectl-optimized = optimiert
 
 iotracectl-error = fehler (Berechtigungen?)
 
@@ -344,11 +344,6 @@ rulesctl-help = Diese Kurzhilfe anzeigen
 rulesctl-completions = Generiert Shell Skripte für Autovervollständigung
 rulesctl-completions-shell = Ziel Shell
 
-module = Modul
-description = Beschreibung
-type = Typ
-enabled = Aktiviert
-
 precached-description = Linux Prozess Monitor und pre-caching Daemon
 daemon = Daemon
 
@@ -367,10 +362,10 @@ rulesctl-summary-2 = Ergebnis: { $count } Regeln analysiert
 rulesctl-rule-enabled = Regeln erfolgreich aktiviert, neu laden der Konfiguration veranlasst
 rulesctl-rule-disabled = Regeln erfolgreich deaktiviert, neu laden der Konfiguration veranlasst
 
-file = Datei
+# file = Datei
 name = Name
-description = Beschreibung
-enabled = Aktiviert
+# description = Beschreibung
+# enabled = Aktiviert
 version = Version
 num-rules = # Regeln
 
@@ -395,7 +390,7 @@ beginning-of-log = <Anfang>
 tab-pages = Seiten
 
 overview = Überblick
-events = Ereignisse
+# events = Ereignisse
 cached-files = Dateien im Cache ({ $count })
 statistics = Statistiken
 help = Hilfe

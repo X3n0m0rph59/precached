@@ -91,11 +91,6 @@ removed = removed
 
 iotracectl-param-hash = The hash value of the I/O trace
 
-module = Module
-description = Description
-type = Type
-enabled = Enabled
-
 na = n/a
 
 uniq-files = # Unique Files
@@ -119,7 +114,7 @@ iotracectl-removing-trace-logs = Removing I/O trace log files:
 iotracectl-optimizing-trace-logs = Optimizing I/O trace log files: 
 
 iotracectl-io-trace-log = I/O Trace Log
-iotracectl-status = Show status
+iotracectl-show-status = Show status
 
 iotracectl-prefetcher = I/O Trace Prefetcher
 iotracectl-replay = Replay file operations previously recorded by an I/O tracer
@@ -131,7 +126,7 @@ iotracectl-hook = Hook
 iotracectl-plugin = Plugin
 
 iotracectl-failed = failed (permission problem?)
-iotracectl-optimized = optimized
+# iotracectl-optimized = optimized
 
 iotracectl-error = error (permission problem?)
 
@@ -335,10 +330,10 @@ rulesctl-summary-2 = Summary: { $count } rules examined
 rulesctl-rule-enabled = Rules enabled successfully, reloading configuration now
 rulesctl-rule-disabled = Rules disabled successfully, reloading configuration now
 
-file = File
+# file = File
 name = Name
-description = Description
-enabled = Enabled
+# description = Description
+# enabled = Enabled
 version = Version
 num-rules = # Rules
 
@@ -363,7 +358,7 @@ beginning-of-log = <Beginning of Log>
 tab-pages = Tab Pages
 
 overview = Overview
-events = Events
+# events = Events
 cached-files = Cached Files ({ $count })
 statistics = Statistics
 help = Help

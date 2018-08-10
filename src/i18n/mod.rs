@@ -26,45 +26,102 @@ use std::env;
 use std::fs;
 use std::io::prelude::*;
 use std::io::{self, Write};
+use std::cell::RefCell;
+use std::thread;
+use std::boxed;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use lazy_static::lazy_static;
+use fluent::MessageContext;
 
 static LOCALES: &[&'static str] = &["locale"];
 
 lazy_static! {
-    pub static ref LANG: String = env::var("LANG").unwrap_or("C".to_string());
-    pub static ref CTX: fluent::MessageContext<'static> = initialize_i18n();
+    pub static ref LANG: String = env::var("LANG").unwrap_or_else(|_| "C".to_string());
+}
+
+thread_local! {
+    pub static I18N_STATE: RefCell<fluent::MessageContext<'static>> = RefCell::new(initialize_i18n());
 }
 
 #[macro_export]
 macro_rules! tr {
     ($msgid:expr) => ({
-        Box::leak(i18n::get_message_args($msgid, None)).as_str()
+        $crate::i18n::I18N_STATE.with(|s| {
+            let ctx = s.borrow();
+
+            match ctx.get_message($msgid) {
+                None => panic!("Could not translate: '{}'", $msgid),
+
+                Some(msg) => {
+                    let result = ctx.format(msg, None).unwrap();
+                    let b = Box::new(result.clone());
+
+                    Box::leak(b).as_str()
+                }
+            }
+        })
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
-        let mut args = $crate::std::collections::HashMap::new();
+        $crate::i18n::I18N_STATE.with(|s| {
+            let ctx = s.borrow();
 
-        $(
-            args.insert($k, fluent::types::FluentValue::from($v));
-        )*
+            let mut args = $crate::std::collections::HashMap::new();
 
-        Box::leak(i18n::get_message_args($msgid, Some(&args))).as_str()
+            $(
+                args.insert($k, fluent::types::FluentValue::from($v));
+            )*
+
+            match ctx.get_message($msgid) {
+                None => panic!("Could not translate: '{}'", $msgid),
+
+                Some(msg) => {
+                    let result = ctx.format(msg, Some(&args)).unwrap();                    
+                    let b = Box::new(result.clone());
+
+                    Box::leak(b).as_str()
+                }
+            }
+        })
     });
 }
 
 #[macro_export]
 macro_rules! println_tr {
     ($msgid:expr) => ({
-        println!("{}", Box::leak(i18n::get_message_args($msgid, None)).as_str());
+        $crate::i18n::I18N_STATE.with(|s| {
+            let ctx = s.borrow();
+
+            match ctx.get_message($msgid) {
+                None => panic!("Could not translate: '{}'", $msgid),
+
+                Some(msg) => {
+                    let result = ctx.format(msg, None).unwrap();
+                    println!("{}", result.clone().as_str());
+                }
+            }
+        })
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
-        let mut args = $crate::std::collections::HashMap::new();
+        $crate::i18n::I18N_STATE.with(|s| {
+            let ctx = s.borrow();
 
-        $(
-            args.insert($k, $crate::fluent::types::FluentValue::from($v));
-        )*
+            let mut args = $crate::std::collections::HashMap::new();
 
-        println!("{}", Box::leak(i18n::get_message_args($msgid, Some(&args))));
+            $(
+                args.insert($k, fluent::types::FluentValue::from($v));
+            )*
+
+            match ctx.get_message($msgid) {
+                None => panic!("Could not translate: '{}'", $msgid),
+
+                Some(msg) => {
+                    let result = ctx.format(msg, Some(&args)).unwrap();                
+                    println!("{}", result.clone().as_str());
+                }
+            }
+        })
     });
 }
 
@@ -91,26 +148,15 @@ fn initialize_i18n() -> fluent::MessageContext<'static> {
                 }
 
                 Ok(msgs) => {
-                    ctx.add_messages(&msgs);
+                    ctx.add_messages(&msgs).expect("Could not add translation message!");
                 }
             }
         }
 
         Ok(msgs) => {
-            ctx.add_messages(&msgs);
+            ctx.add_messages(&msgs).expect("Could not add translation message!");
         }
     }
 
     ctx
-}
-
-pub fn get_message_args(msg: &str, args: Option<&HashMap<&str, fluent::types::FluentValue>>) -> Box<String> {
-    match CTX.get_message(msg) {
-        None => panic!("Could not translate: '{}'", msg),
-
-        Some(msg) => {
-            let result = CTX.format(msg, args).unwrap();
-            Box::new(result.clone())
-        }
-    }
 }
