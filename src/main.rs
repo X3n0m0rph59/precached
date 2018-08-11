@@ -112,6 +112,7 @@ static RELOAD_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 static SIG_USR1: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Global '`SIG_USR2` received' flag
+/// SIGUSR2 is currently mapped to 'perform a profile transition'
 static SIG_USR2: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Signal handler for `SIGINT` and SIGTERM`

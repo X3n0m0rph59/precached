@@ -50,9 +50,29 @@ use std::io::Result;
 use std::path::Path;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, RwLock};
+use std::sync::atomic::Ordering;
 use std::thread;
-use storage;
-use util;
+use rayon::prelude::*;
+use log::{trace, debug, info, warn, error, log, LevelFilter};
+use serde::Serialize;
+use crossbeam::scope;
+use crate::constants;
+use crate::events;
+use crate::events::EventType;
+use crate::config_file;
+use crate::globals;
+use crate::globals::*;
+use crate::hooks::iotrace_prefetcher::IOtracePrefetcher;
+use crate::iotrace;
+use crate::manager::*;
+use crate::plugins::metrics::Metrics;
+use crate::plugins::plugin::{Plugin, PluginDescription};
+use crate::plugins::profiles::Profiles;
+use crate::process::Process;
+use crate::procmon;
+use crate::profiles::SystemProfile;
+use crate::util;
+use crate::EXIT_NOW;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
@@ -148,6 +168,11 @@ impl HotApplications {
                             apps.par_sort_by(|a, b| b.1.cmp(a.1));
 
                             for (hash, _count) in apps {
+                                if !Self::shall_cancel_prefetch(&globals_c, &manager_c) {
+                                    warn!("Cancelation request received, stopping prefetching!");
+                                    break;
+                                }
+
                                 if !Self::check_available_memory(&globals_c, &manager_c) {
                                     warn!("Available memory exhausted, stopping prefetching!");
                                     break;
@@ -205,6 +230,11 @@ impl HotApplications {
                 }
             }
         };
+    }
+
+    /// Check if we need to cancel the prefetching, e.g. because we received SIGTERM
+    fn shall_cancel_prefetch(_globals: &Globals, _manager: &Manager) -> bool {
+        EXIT_NOW.load(Ordering::Relaxed)
     }
 
     /// Check if we have enough available memory to perform prefetching
