@@ -27,6 +27,7 @@ use std::path::Path;
 use std::sync::atomic::Ordering;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, RwLock};
+use std::sync::atomic::Ordering;
 use std::thread;
 use rayon::prelude::*;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
@@ -48,6 +49,7 @@ use crate::process::Process;
 use crate::procmon;
 use crate::profiles::SystemProfile;
 use crate::util;
+use crate::EXIT_NOW;
 
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
@@ -143,7 +145,11 @@ impl HotApplications {
                             apps.par_sort_by(|a, b| b.1.cmp(a.1));
 
                             for (hash, _count) in apps {
+<<<<<<< HEAD
                                 if Self::shall_cancel_prefetch(&globals_c, &manager_c) {
+=======
+                                if !Self::shall_cancel_prefetch(&globals_c, &manager_c) {
+>>>>>>> a190237... Fix Bugs
                                     warn!("Cancelation request received, stopping prefetching!");
                                     break;
                                 }
@@ -207,7 +213,11 @@ impl HotApplications {
         };
     }
 
+<<<<<<< HEAD
     /// Check if we need to cancel the prefetching, e.g. because we received a SIGTERM
+=======
+    /// Check if we need to cancel the prefetching, e.g. because we received SIGTERM
+>>>>>>> a190237... Fix Bugs
     fn shall_cancel_prefetch(_globals: &Globals, _manager: &Manager) -> bool {
         EXIT_NOW.load(Ordering::Relaxed)
     }
