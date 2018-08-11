@@ -60,24 +60,10 @@ macro_rules! tr {
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
-<<<<<<< HEAD
-        i18n::I18N_STATE.with(|s| {
-            let bundle = s.borrow();
-
-            let mut args = $crate::std::collections::HashMap::new();
-
-            $(
-                args.insert($k, $crate::fluent::types::FluentValue::from($v));
-            )*
-
-            match bundle.format($msgid, Some(&args)) {
-                None => panic!("Could not translate: '{}'", $msgid),
-=======
         $crate::i18n::I18N_STATE.with(|s| {
             let ctx = s.borrow();
 
             let mut args = $crate::std::collections::HashMap::new();
->>>>>>> c9ccb8e... Port to Fluent Version 0.3
 
             $(
                 args.insert($k, fluent::types::FluentValue::from($v));
@@ -100,16 +86,6 @@ macro_rules! tr {
 #[macro_export]
 macro_rules! println_tr {
     ($msgid:expr) => ({
-<<<<<<< HEAD
-        i18n::I18N_STATE.with(|s| {
-            let bundle = s.borrow();
-
-            match bundle.format($msgid, None) {
-                None => panic!("Could not translate: '{}'", $msgid),
-
-                Some((msg, _errors)) => {
-                    println!("{}", msg.clone().as_str());
-=======
         $crate::i18n::I18N_STATE.with(|s| {
             let ctx = s.borrow();
 
@@ -119,27 +95,12 @@ macro_rules! println_tr {
                 Some(msg) => {
                     let result = ctx.format(msg, None).unwrap();
                     println!("{}", result.clone().as_str());
->>>>>>> c9ccb8e... Port to Fluent Version 0.3
                 }
             }
         })
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
-<<<<<<< HEAD
-        i18n::I18N_STATE.with(|s| {
-            let bundle = s.borrow();
-
-            $(
-                args.insert($k, $crate::fluent::types::FluentValue::from($v));
-            )*
-
-            match bundle.format($msgid, Some(&args)) {
-                None => panic!("Could not translate: '{}'", $msgid),
-
-                Some((msg, _errors)) => {
-                    println!("{}", msg.clone().as_str());
-=======
         $crate::i18n::I18N_STATE.with(|s| {
             let ctx = s.borrow();
 
@@ -155,7 +116,6 @@ macro_rules! println_tr {
                 Some(msg) => {
                     let result = ctx.format(msg, Some(&args)).unwrap();                
                     println!("{}", result.clone().as_str());
->>>>>>> c9ccb8e... Port to Fluent Version 0.3
                 }
             }
         })
@@ -185,27 +145,15 @@ fn initialize_i18n() -> FluentBundle<'static> {
                 }
 
                 Ok(msgs) => {
-<<<<<<< HEAD
-                    bundle.add_messages(&msgs).expect("Could not add translation message!");
-=======
                     ctx.add_messages(&msgs).expect("Could not add translation message!");
->>>>>>> c9ccb8e... Port to Fluent Version 0.3
                 }
             }
         }
 
         Ok(msgs) => {
-<<<<<<< HEAD
-            bundle.add_messages(&msgs).expect("Could not add translation message!");
-        }
-    }
-
-    bundle
-=======
             ctx.add_messages(&msgs).expect("Could not add translation message!");
         }
     }
 
     ctx
->>>>>>> c9ccb8e... Port to Fluent Version 0.3
 }
