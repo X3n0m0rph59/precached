@@ -20,7 +20,7 @@
 
 extern crate fluent;
 
-use fluent::MessageContext;
+use self::fluent::{MessageContext, types::FluentValue};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -29,9 +29,8 @@ use std::io::{self, Write};
 use std::cell::RefCell;
 use std::thread;
 use std::boxed;
-use log::{trace, debug, info, warn, error, log, LevelFilter};
-use lazy_static::lazy_static;
-use fluent::MessageContext;
+use log::LevelFilter;
+use lazy_static;
 
 static LOCALES: &[&'static str] = &["locale"];
 
@@ -46,7 +45,7 @@ thread_local! {
 #[macro_export]
 macro_rules! tr {
     ($msgid:expr) => ({
-        $crate::i18n::I18N_STATE.with(|s| {
+        i18n::I18N_STATE.with(|s| {
             let ctx = s.borrow();
 
             match ctx.get_message($msgid) {
@@ -63,13 +62,13 @@ macro_rules! tr {
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
-        $crate::i18n::I18N_STATE.with(|s| {
+        i18n::I18N_STATE.with(|s| {
             let ctx = s.borrow();
 
             let mut args = $crate::std::collections::HashMap::new();
 
             $(
-                args.insert($k, fluent::types::FluentValue::from($v));
+                args.insert($k, $crate::fluent::types::FluentValue::from($v));
             )*
 
             match ctx.get_message($msgid) {
@@ -89,7 +88,7 @@ macro_rules! tr {
 #[macro_export]
 macro_rules! println_tr {
     ($msgid:expr) => ({
-        $crate::i18n::I18N_STATE.with(|s| {
+        i18n::I18N_STATE.with(|s| {
             let ctx = s.borrow();
 
             match ctx.get_message($msgid) {
@@ -104,13 +103,13 @@ macro_rules! println_tr {
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
-        $crate::i18n::I18N_STATE.with(|s| {
+        i18n::I18N_STATE.with(|s| {
             let ctx = s.borrow();
 
             let mut args = $crate::std::collections::HashMap::new();
 
             $(
-                args.insert($k, fluent::types::FluentValue::from($v));
+                args.insert($k, $crate::fluent::types::FluentValue::from($v));
             )*
 
             match ctx.get_message($msgid) {
