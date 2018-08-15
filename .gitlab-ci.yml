@@ -2,7 +2,7 @@ image: ruby:2.3
 
 pages:
   script:
-  - gem install jekyll
+  - gem install jekyll jekyll-theme-prologue
   - jekyll build -d public
   artifacts:
     paths:
