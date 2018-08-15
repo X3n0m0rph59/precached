@@ -1,14 +1,3 @@
 theme: jekyll-theme-prologue
 name: precached
 description: A Linux process monitor and pre-caching daemon
-show_downloads: true
-github:
-  private: false
-  license:
-    name: "GPL3+"
-  source:
-    branch: "master"
-    path: "/"
-    repository_url: "https://github.com/X3n0m0rph59/precached.git"
-  zip_url: "https://github.com/X3n0m0rph59/precached/archive/master.zip"
-  tar_url: "https://github.com/X3n0m0rph59/precached/archive/master.tar.gz"
