@@ -1,7 +1,7 @@
 ---
 # See: https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 layout: home
-title: precached
+title: Precached Project Website
 icon: fa-home
 order: 1
 ---

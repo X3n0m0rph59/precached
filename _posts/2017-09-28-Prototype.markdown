@@ -1,4 +1,5 @@
 ---
+layout: blog
 title: "First Prototype Implementation released"
 date:   2017-09-28 15:45:00
 categories: update release

@@ -1,4 +1,5 @@
 ---
+layout: blog
 title: "Project Status Update #8"
 date:   2018-05-10 11:20:00
 categories: status update

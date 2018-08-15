@@ -1,4 +1,5 @@
 ---
+layout: blog
 title: "We are looking for Contributions"
 date:   2017-09-30 21:30:00
 categories: contributions

@@ -1,0 +1,31 @@
+---
+title: Installation
+cover-photo: images/precached.svg
+cover-photo-alt: cover image
+auto-header: none
+icon: fa-comment
+order: 3
+---
+
+<h3>Quick Installation Guide</h3>
+
+<h4>Installation on Fedora</h4>
+<code>
+  $ sudo dnf copr enable x3n0m0rph59/precached<br/>
+  $ sudo dnf install precached<br/>
+  $ sudo systemctl enable --now precached.service<br/>
+</code>
+
+<h4>Installation on Ubuntu</h4>
+<code>
+  $ sudo add-apt-repository ppa:x3n0m0rph59/precached<br/>
+  $ sudo apt update<br/>
+  $ sudo apt install precached<br/>
+</code>
+
+<h4>Installation from Source</h4>
+<code>
+  $ git clone https://github.com/X3n0m0rph59/precached.git<br/>
+  $ cd precached/<br/>
+  $ cargo build<br/>
+</code>
