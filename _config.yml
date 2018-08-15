@@ -1,3 +1,5 @@
 theme: jekyll-theme-prologue
 name: precached
 description: A Linux process monitor and pre-caching daemon
+baseurl: "/precached" # the subpath of your site, e.g. /blog
+url: "/" # the base hostname & protocol for your site
