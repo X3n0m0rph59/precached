@@ -3,3 +3,4 @@ name: precached
 description: A Linux process monitor and pre-caching daemon
 baseurl: "/precached"
 url: "/"
+collections: [sections]
