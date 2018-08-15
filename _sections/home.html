@@ -21,14 +21,3 @@ order: 2
 <h3>Authors</h3>
 
 <p>precached - Copyright (C) 2017-2018 the precached developers</p>
-
-<br/>
-
-<div id="home">
-  <h1>Blog Posts</h1>
-  <ul class="posts">
-    {% for post in site.posts %}
-      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
-    {% endfor %}
-  </ul>
-</div>
