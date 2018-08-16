@@ -1,7 +1,7 @@
 theme: jekyll-theme-prologue
 name: precached
 description: A Linux process monitor and pre-caching daemon
-avatar: images/precached.svg
+avatar: images/precached.png
 baseurl: "/precached"
-url: "/"
+url: "https://x3n0m0rph59.gitlab.io"
 collections: [sections]
