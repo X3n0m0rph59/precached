@@ -185,7 +185,7 @@ _Application load times (in seconds, M:SS) on first run after bootup
 _Application load times (in seconds) on first run after bootup
 
 For further information please see the
-[precached project website](https://x3n0m0rph59.github.io/precached/).
+[precached project website](https://x3n0m0rph59.gitlab.io/precached/).
 
 ### Related Software Projects
 

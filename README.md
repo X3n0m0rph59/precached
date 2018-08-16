@@ -30,7 +30,7 @@ programs while the system is idle.
 ### Install from Source
 
 ```shell
-    $ git clone https://github.com/X3n0m0rph59/precached.git
+    $ git clone https://gitlab.com/X3n0m0rph59/precached.git
     $ cd precached/
     $ cargo build --release
 ```
@@ -110,7 +110,7 @@ If you are new to Open Source software, you may want to read
 
 ### Website
 
-[Project Website](https://x3n0m0rph59.github.io/precached/)
+[Project Website](https://x3n0m0rph59.gitlab.io/precached/)
 
 ### Authors
 
