@@ -1,7 +1,7 @@
 ---
 layout: page
 title: License
-sidebar-link: false
+sidebar_link: false
 ---
 
                     GNU GENERAL PUBLIC LICENSE
