@@ -2,7 +2,7 @@
 layout: post
 title: "Benchmarks, Round 1"
 date:   2017-10-30 5:30:00
-categories: status update benchmarks
+tags: status update benchmarks
 ---
 
 # Benchmarks

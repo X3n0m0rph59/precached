@@ -2,7 +2,7 @@
 layout: post
 title: "Version 1.0"
 date:   2018-03-04 15:30:00
-categories: release
+tags: release
 ---
 
 # Version 1.0 has been tagged

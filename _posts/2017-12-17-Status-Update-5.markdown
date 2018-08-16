@@ -2,7 +2,7 @@
 layout: post
 title: "Project Status Update #5"
 date:   2017-12-17 10:47:00
-categories: status update
+tags: status update
 ---
 
 # Project Status Update No. 5

@@ -2,7 +2,7 @@
 layout: post
 title: "Version 1.2"
 date:   2018-05-25 11:00:00
-categories: release
+tags: release
 ---
 
 # Version 1.2 has been tagged
