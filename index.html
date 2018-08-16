@@ -5,9 +5,9 @@ icon: fa-home
 order: 1
 ---
 
-<h1>Precached Project Website</h1>
+<h1>Welcome to the Precached Project Website</h1>
 
-<h2>A Linux process monitor and pre-caching daemon</h2>
+<h2>Precached is a Linux process monitor and pre-caching daemon</h2>
 
 <p>Precached is written in Rust and utilizes the Linux Netlink connector
   interface to monitor the system for process events. It can act upon such
@@ -15,50 +15,6 @@ order: 1
   to speed up loading of programs and increase the perceived overall
   'snappiness' of the system. Additionally it supports offline prefetching of
   the most often used programs while the system is idle.</p>
-
-<h3>Quick Installation Guide</h3>
-
-<h4>Installation on Fedora</h4>
-<code>
-  $ sudo dnf copr enable x3n0m0rph59/precached<br/>
-  $ sudo dnf install precached<br/>
-  $ sudo systemctl enable --now precached.service<br/>
-</code>
-
-<h4>Installation on Ubuntu</h4>
-<code>
-  $ sudo add-apt-repository ppa:x3n0m0rph59/precached<br/>
-  $ sudo apt update<br/>
-  $ sudo apt install precached<br/>
-</code>
-
-<h4>Installation from Source</h4>
-<code>
-  $ git clone https://github.com/X3n0m0rph59/precached.git<br/>
-  $ cd precached/<br/>
-  $ cargo build<br/>
-</code>
-
-<h4>Screenshots</h4>
-<p>
-  <img src="{{ site.baseurl }}/images/iotracectl_01.png" alt="precached Screenshot" />
-  <img src="{{ site.baseurl }}/images/iotracectl_02.png" alt="precached Screenshot" />
-  <img src="{{ site.baseurl }}/images/iotracectl_03.png" alt="precached Screenshot" />
-  <img src="{{ site.baseurl }}/images/rulesctl_01.png" alt="precached Screenshot" />
-  <img src="{{ site.baseurl }}/images/rulesctl_02.png" alt="precached Screenshot" />
-  <img src="{{ site.baseurl }}/images/code.png" alt="precached Screenshot" />
-<!--
-  <img src="{{ site.baseurl }}/images/precached.png" alt="precached Screenshot" />
--->
-</p>
-
-<h1>Blog Posts</h1>
-
-<ul class="posts">
-{% for post in site.posts %}
-    <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
-{% endfor %}
-</ul>
   
 <h3>Authors</h3>
 
