@@ -1,5 +1,5 @@
 ---
-layout: blog
+layout: post
 title: "Project Artwork"
 date:   2017-10-11 16:20:00
 categories: update logo

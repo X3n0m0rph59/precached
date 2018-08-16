@@ -1,5 +1,5 @@
 ---
-layout: blog
+layout: post
 title: "Project Status Update #3"
 date:   2017-11-15 13:23:00
 categories: status update

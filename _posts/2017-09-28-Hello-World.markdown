@@ -1,5 +1,5 @@
 ---
-layout: blog
+layout: post
 title: "Project Site Now Online"
 date:   2017-09-28 08:00:59
 categories: update
