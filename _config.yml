@@ -1,7 +1,6 @@
 theme: jekyll-theme-hydeout
 name: precached
 description: A Linux process monitor and pre-caching daemon
-paginate: 5
 baseurl: "/precached"
 url: "https://x3n0m0rph59.gitlab.io"
-collections: [sections]
+paginate: 5
