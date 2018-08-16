@@ -4,11 +4,11 @@ Name:    precached
 Version: 1.3.0
 Release: 0%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
-URL:     https://x3n0m0rph59.github.io/precached/
+URL:     https://x3n0m0rph59.gitlab.io/precached/
 License: GPLv3+
 
-# Source0: https://github.com/X3n0m0rph59/precached.git
-Source0: https://github.com/X3n0m0rph59/%{OrigName}/archive/master.tar.gz
+# Source0: https://gitlab.com/X3n0m0rph59/precached.git
+Source0: https://gitlab.com/X3n0m0rph59/%{OrigName}/-/archive/master/%{OrigName}-master.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-build
 

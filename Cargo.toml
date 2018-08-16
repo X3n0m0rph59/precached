@@ -4,8 +4,8 @@ version = "1.3.0"
 build = "build.rs"
 authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
 description = "A Linux process monitor and pre-caching daemon"
-repository = "https://github.com/X3n0m0rph59/precached"
-homepage = "https://x3n0m0rph59.github.io/precached/"
+repository = "https://gitlab.com/X3n0m0rph59/precached"
+homepage = "https://x3n0m0rph59.gitlab.io/precached/"
 license = "GPLv3+"
 readme = "README.md"
 
@@ -15,9 +15,9 @@ dev = ["clippy"]
 
 [dependencies]
 procmon-sys = { version = "0.0.2", path = 'src/procmon-sys' }
-sys-info = { version = "*", git = "https://github.com/X3n0m0rph59/sys-info-rs", branch = "master" }
-threadpool = { version = "*", git = "https://github.com/X3n0m0rph59/rust-threadpool", branch = "master" }
-zmq = { version = "*", git = "https://github.com/X3n0m0rph59/rust-zmq", branch = "master" }
+sys-info = { version = "*", git = "https://gitlab.com/X3n0m0rph59/sys-info-rs", branch = "master" }
+threadpool = { version = "*", git = "https://gitlab.com/X3n0m0rph59/rust-threadpool", branch = "master" }
+zmq = { version = "*", git = "https://gitlab.com/X3n0m0rph59/rust-zmq", branch = "master" }
 # sys-info = { version = "*", path = "vendor/sys-info" }
 # threadpool = { version = "*", path = "vendor/threadpool" }
 # zmq = { version = "*", path = "vendor/zmq" }

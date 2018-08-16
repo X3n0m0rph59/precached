@@ -945,18 +945,18 @@ dependencies = [
  "serde 1.0.71 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.71 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
- "sys-info 0.5.6 (git+https://github.com/X3n0m0rph59/sys-info-rs)",
+ "sys-info 0.5.6 (git+https://gitlab.com/X3n0m0rph59/sys-info-rs)",
  "syslog 4.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "systemstat 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "term 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "term_size 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "termion 1.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "threadpool 1.7.1 (git+https://github.com/X3n0m0rph59/rust-threadpool)",
+ "threadpool 1.7.1 (git+https://gitlab.com/X3n0m0rph59/rust-threadpool)",
  "time 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "tui 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "users 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.9.0 (git+https://github.com/X3n0m0rph59/rust-zmq)",
+ "zmq 0.9.0 (git+https://gitlab.com/X3n0m0rph59/rust-zmq)",
  "zstd 0.4.19+zstd.1.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1231,7 +1231,7 @@ dependencies = [
 [[package]]
 name = "sys-info"
 version = "0.5.6"
-source = "git+https://github.com/X3n0m0rph59/sys-info-rs#2a8e401cafbf368045070421f8763f2dffd30ed0"
+source = "git+https://gitlab.com/X3n0m0rph59/sys-info-rs#2a8e401cafbf368045070421f8763f2dffd30ed0"
 dependencies = [
  "cc 1.0.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1320,7 +1320,7 @@ dependencies = [
 [[package]]
 name = "threadpool"
 version = "1.7.1"
-source = "git+https://github.com/X3n0m0rph59/rust-threadpool#01b2bd9122dce015e0fa7f4ab87ae7e4b4e7e85e"
+source = "git+https://gitlab.com/X3n0m0rph59/rust-threadpool#01b2bd9122dce015e0fa7f4ab87ae7e4b4e7e85e"
 dependencies = [
  "libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1529,18 +1529,18 @@ dependencies = [
 [[package]]
 name = "zmq"
 version = "0.9.0"
-source = "git+https://github.com/X3n0m0rph59/rust-zmq#941ef1aa05d347c03a61e779133fcbb510c11238"
+source = "git+https://gitlab.com/X3n0m0rph59/rust-zmq#941ef1aa05d347c03a61e779133fcbb510c11238"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq-sys 0.9.0 (git+https://github.com/X3n0m0rph59/rust-zmq)",
+ "zmq-sys 0.9.0 (git+https://gitlab.com/X3n0m0rph59/rust-zmq)",
 ]
 
 [[package]]
 name = "zmq-sys"
 version = "0.9.0"
-source = "git+https://github.com/X3n0m0rph59/rust-zmq#941ef1aa05d347c03a61e779133fcbb510c11238"
+source = "git+https://gitlab.com/X3n0m0rph59/rust-zmq#941ef1aa05d347c03a61e779133fcbb510c11238"
 dependencies = [
  "libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "metadeps 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1717,7 +1717,7 @@ dependencies = [
 "checksum strsim 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bb4f380125926a99e52bc279241539c018323fab05ad6368b56f93d9369ff550"
 "checksum syn 0.14.7 (registry+https://github.com/rust-lang/crates.io-index)" = "e2e13df71f29f9440b50261a5882c86eac334f1badb3134ec26f0de2f1418e44"
 "checksum synstructure 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "85bb9b7550d063ea184027c9b8c20ac167cd36d3e06b3a40bceb9d746dc1a7b7"
-"checksum sys-info 0.5.6 (git+https://github.com/X3n0m0rph59/sys-info-rs)" = "<none>"
+"checksum sys-info 0.5.6 (git+https://gitlab.com/X3n0m0rph59/sys-info-rs)" = "<none>"
 "checksum syslog 4.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7e5efafb659e873387a9a0e793a09dee1df860c377a54cfecb4af5715d8d51f1"
 "checksum systemstat 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "73ea86765e7360e93672afc2b2eb81df13653a8ca2343f6c525e77a4d1d8bdf3"
 "checksum term 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "5e6b677dd1e8214ea1ef4297f85dbcbed8e8cdddb561040cc998ca2551c37561"
@@ -1726,7 +1726,7 @@ dependencies = [
 "checksum termion 1.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "689a3bdfaab439fd92bc87df5c4c78417d3cbe537487274e9b0b2dce76e92096"
 "checksum textwrap 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "307686869c93e71f94da64286f9a9524c0f308a9e1c87a583de8e9c9039ad3f6"
 "checksum thread_local 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "279ef31c19ededf577bfd12dfae728040a21f635b06a24cd670ff510edd38963"
-"checksum threadpool 1.7.1 (git+https://github.com/X3n0m0rph59/rust-threadpool)" = "<none>"
+"checksum threadpool 1.7.1 (git+https://gitlab.com/X3n0m0rph59/rust-threadpool)" = "<none>"
 "checksum time 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)" = "d825be0eb33fda1a7e68012d51e9c7f451dc1a69391e7fdc197060bb8c56667b"
 "checksum toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
 "checksum toml 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "a0263c6c02c4db6c8f7681f9fd35e90de799ebd4cfdeab77a38f4ff6b3d8c0d9"
@@ -1756,8 +1756,8 @@ dependencies = [
 "checksum winapi-x86_64-pc-windows-gnu 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 "checksum wincolor 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b9dc3aa9dcda98b5a16150c54619c1ead22e3d3a5d458778ae914be760aa981a"
 "checksum yaml-rust 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "57ab38ee1a4a266ed033496cf9af1828d8d6e6c1cfa5f643a2809effcae4d628"
-"checksum zmq 0.9.0 (git+https://github.com/X3n0m0rph59/rust-zmq)" = "<none>"
-"checksum zmq-sys 0.9.0 (git+https://github.com/X3n0m0rph59/rust-zmq)" = "<none>"
+"checksum zmq 0.9.0 (git+https://gitlab.com/X3n0m0rph59/rust-zmq)" = "<none>"
+"checksum zmq-sys 0.9.0 (git+https://gitlab.com/X3n0m0rph59/rust-zmq)" = "<none>"
 "checksum zstd 0.4.19+zstd.1.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "e44f036c43e506ce5651cad4f340af6b0b6d405a1c440e4a553bc422df7a81a2"
 "checksum zstd-safe 1.4.4+zstd.1.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "9291dbf678d18ace21725e3409d07e0a80d512feb75f5e27ac472a4948e5ddd1"
 "checksum zstd-sys 1.4.4+zstd.1.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "de44a435b7bb72cb779af17a72d6e9dc039dbb11a85fa2f79abf4a74dc73c013"
