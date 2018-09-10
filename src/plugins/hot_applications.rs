@@ -144,7 +144,7 @@ impl HotApplications {
                             apps.par_sort_by(|a, b| b.1.cmp(a.1));
 
                             for (hash, _count) in apps {
-                                if !Self::shall_cancel_prefetch(&globals_c, &manager_c) {
+                                if Self::shall_cancel_prefetch(&globals_c, &manager_c) {
                                     warn!("Cancelation request received, stopping prefetching!");
                                     break;
                                 }
@@ -208,7 +208,7 @@ impl HotApplications {
         };
     }
 
-    /// Check if we need to cancel the prefetching, e.g. because we received SIGTERM
+    /// Check if we need to cancel the prefetching, e.g. because we received a SIGTERM
     fn shall_cancel_prefetch(_globals: &Globals, _manager: &Manager) -> bool {
         EXIT_NOW.load(Ordering::Relaxed)
     }
