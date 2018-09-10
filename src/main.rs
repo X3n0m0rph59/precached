@@ -115,7 +115,7 @@ static SIG_USR1: AtomicBool = ATOMIC_BOOL_INIT;
 /// SIGUSR2 is currently mapped to 'perform a profile transition'
 static SIG_USR2: AtomicBool = ATOMIC_BOOL_INIT;
 
-/// Signal handler for `SIGINT` and SIGTERM`
+/// Signal handler for `SIGINT` and `SIGTERM`
 extern "C" fn exit_signal(_: i32) {
     EXIT_NOW.store(true, Ordering::Relaxed);
 }
@@ -144,13 +144,12 @@ fn setup_signal_handlers() {
         signal::SigSet::empty(),
     );
 
-    #[allow(unused_must_use)]
     unsafe {
-        signal::sigaction(signal::SIGINT, &sig_action);
+        signal::sigaction(signal::SIGINT, &sig_action).unwrap();
     }
-    #[allow(unused_must_use)]
+
     unsafe {
-        signal::sigaction(signal::SIGTERM, &sig_action);
+        signal::sigaction(signal::SIGTERM, &sig_action).unwrap();
     }
 
     // SIGHUP
@@ -160,9 +159,8 @@ fn setup_signal_handlers() {
         signal::SigSet::empty(),
     );
 
-    #[allow(unused_must_use)]
     unsafe {
-        signal::sigaction(signal::SIGHUP, &sig_action);
+        signal::sigaction(signal::SIGHUP, &sig_action).unwrap();
     }
 
     // SIGUSR1
@@ -172,9 +170,8 @@ fn setup_signal_handlers() {
         signal::SigSet::empty(),
     );
 
-    #[allow(unused_must_use)]
     unsafe {
-        signal::sigaction(signal::SIGUSR1, &sig_action);
+        signal::sigaction(signal::SIGUSR1, &sig_action).unwrap();
     }
 
     // SIGUSR2
@@ -184,18 +181,28 @@ fn setup_signal_handlers() {
         signal::SigSet::empty(),
     );
 
-    #[allow(unused_must_use)]
     unsafe {
-        signal::sigaction(signal::SIGUSR2, &sig_action);
+        signal::sigaction(signal::SIGUSR2, &sig_action).unwrap();
     }
 
     // Ignore SIGPIPE
     let sig_action = signal::SigAction::new(signal::SigHandler::SigIgn, signal::SaFlags::empty(), signal::SigSet::empty());
 
-    #[allow(unused_must_use)]
     unsafe {
-        signal::sigaction(signal::SIGPIPE, &sig_action);
+        signal::sigaction(signal::SIGPIPE, &sig_action).unwrap();
     }
+
+    // Ignore SIGCHLD
+    // let sig_action = signal::SigAction::new(
+    //     signal::SigHandler::SigIgn,
+    //     signal::SaFlags::empty(),
+    //     signal::SigSet::empty()
+    // );
+
+    // #[allow(unused_must_use)]
+    // unsafe {
+    //     signal::sigaction(signal::SIGCHLD, &sig_action).unwrap();
+    // }
 }
 
 /// Print a license header to the console
