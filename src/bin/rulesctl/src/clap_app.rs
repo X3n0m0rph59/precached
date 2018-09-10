@@ -39,14 +39,12 @@ where
                 .short("a")
                 .long("ascii")
                 .help(tr!("rulesctl-produce-ascii")),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("unicode")
                 .short("u")
                 .long("unicode")
                 .help(tr!("rulesctl-produce-unicode")),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("config")
                 .short("c")
                 .long("config")
@@ -54,24 +52,20 @@ where
                 .help(tr!("rulesctl-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
                 .help(tr!("rulesctl-output-verbosity")),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("rulesctl-status")),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("list")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("rulesctl-list-rules")),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("show")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("info")
@@ -82,8 +76,7 @@ where
                         .required(true)
                         .help(tr!("rulesctl-show-help")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("enable")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("rulesctl-enable"))
@@ -93,8 +86,7 @@ where
                         .required(true)
                         .help(tr!("rulesctl-enable-help")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("disable")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("rulesctl-disable"))
@@ -104,18 +96,15 @@ where
                         .required(true)
                         .help(tr!("rulesctl-disable-help")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("reload")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("rulesctl-reload")),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("rulesctl-help")),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
                 .about(tr!("rulesctl-completions"))

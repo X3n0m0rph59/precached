@@ -37,14 +37,12 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                 .short("a")
                 .long("ascii")
                 .help(tr!("iotracectl-produce-ascii")),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("unicode")
                 .short("u")
                 .long("unicode")
                 .help(tr!("iotracectl-produce-unicode")),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("config")
                 .short("c")
                 .long("config")
@@ -52,14 +50,12 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                 .help(tr!("iotracectl-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
                 .help(tr!("iotracectl-output-verbosity")),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("iotracectl-show-status"))
@@ -70,8 +66,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             // .conflicts_with("short")
                             // .conflicts_with("terse")
                             .help(tr!("iotracectl-tabular"))),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("list")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("iotracectl-list"))
@@ -83,8 +78,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .conflicts_with("short")
                         .conflicts_with("terse")
                         .help(tr!("iotracectl-tabular")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("full")
                         .long("full")
                         .short("f")
@@ -92,8 +86,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .conflicts_with("short")
                         .conflicts_with("terse")
                         .help(tr!("iotracectl-full")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("short")
                         .long("short")
                         .short("s")
@@ -101,8 +94,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .conflicts_with("full")
                         .conflicts_with("terse")
                         .help(tr!("iotracectl-short")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("terse")
                         .long("terse")
                         .short("t")
@@ -110,24 +102,21 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .conflicts_with("full")
                         .conflicts_with("short")
                         .help(tr!("iotracectl-terse")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("hash")
                         .long("hash")
                         .short("p")
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-hash")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("executable")
                         .long("executable")
                         .short("e")
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-executable")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("optimized")
                         .long("optimized")
                         .short("o")
@@ -135,8 +124,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .required(false)
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -149,10 +137,8 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("filter-current"),
                             tr!("filter-outdated"),
                             tr!("filter-missing"),
-                        ])
-                        .help(tr!("iotracectl-filter-iotrace")),
-                )
-                .arg(
+                        ]).help(tr!("iotracectl-filter-iotrace")),
+                ).arg(
                     Arg::with_name("sort")
                         .long("sort")
                         .takes_value(true)
@@ -165,11 +151,9 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-numioops"),
                             tr!("sort-iosize"),
                             tr!("sort-optimized"),
-                        ])
-                        .default_value(tr!("sort-date"))
+                        ]).default_value(tr!("sort-date"))
                         .help(tr!("iotracectl-sort")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("order")
                         .long("order")
                         .takes_value(true)
@@ -179,12 +163,10 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-ascending"),
                             tr!("sort-desc"),
                             tr!("sort-descending"),
-                        ])
-                        .default_value(tr!("sort-ascending"))
+                        ]).default_value(tr!("sort-ascending"))
                         .help(tr!("iotracectl-sort-order")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("info")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("show")
@@ -195,31 +177,27 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .short("f")
                         .conflicts_with("short")
                         .help(tr!("iotracectl-full")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("short")
                         .long("short")
                         .short("s")
                         .conflicts_with("full")
                         .help(tr!("iotracectl-short")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("hash")
                         .long("hash")
                         .short("p")
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-hash")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("executable")
                         .long("executable")
                         .short("e")
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-executable")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("optimized")
                         .long("optimized")
                         .short("o")
@@ -227,8 +205,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .required(false)
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -241,10 +218,8 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("filter-current"),
                             tr!("filter-outdated"),
                             tr!("filter-missing"),
-                        ])
-                        .help(tr!("iotracectl-filter-iotrace")),
-                )
-                .arg(
+                        ]).help(tr!("iotracectl-filter-iotrace")),
+                ).arg(
                     Arg::with_name("sort")
                         .long("sort")
                         .takes_value(true)
@@ -257,11 +232,9 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-numioops"),
                             tr!("sort-iosize"),
                             tr!("sort-optimized"),
-                        ])
-                        .default_value("date")
+                        ]).default_value("date")
                         .help(tr!("iotracectl-sort")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("order")
                         .long("order")
                         .takes_value(true)
@@ -271,12 +244,10 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-ascending"),
                             tr!("sort-desc"),
                             tr!("sort-descending"),
-                        ])
-                        .default_value(tr!("sort-ascending"))
+                        ]).default_value(tr!("sort-ascending"))
                         .help(tr!("iotracectl-sort-order")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("dump")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("iotracectl-dump"))
@@ -288,8 +259,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .required(true)
                         .help(tr!("iotracectl-param-hash")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("analyze")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("iotracectl-analyze"))
@@ -300,8 +270,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .takes_value(true)
                         .required(true)
                         .help(tr!("iotracectl-param-hash")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("tabular")
                             .long("tabular")
                             // .short("t")
@@ -309,16 +278,14 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             // .conflicts_with("short")
                             .conflicts_with("terse")
                             .help(tr!("iotracectl-tabular")),
-                )
-                .arg(Arg::with_name("terse")
+                ).arg(Arg::with_name("terse")
                             .long("terse")
                             .short("t")
                             // .conflicts_with("tabular")
                             // .conflicts_with("full")
                             // .conflicts_with("short")
                             .help(tr!("iotracectl-terse"))),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("sizes")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("iotracectl-sizes"))
@@ -328,31 +295,27 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .short("f")
                         .conflicts_with("short")
                         .help(tr!("iotracectl-full")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("short")
                         .long("short")
                         .short("s")
                         .conflicts_with("full")
                         .help(tr!("iotracectl-short")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("hash")
                         .long("hash")
                         .short("p")
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-hash")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("executable")
                         .long("executable")
                         .short("e")
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-executable")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("optimized")
                         .long("optimized")
                         .short("o")
@@ -360,8 +323,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .required(false)
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -374,11 +336,9 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("filter-current"),
                             tr!("filter-outdated"),
                             tr!("filter-missing"),
-                        ])
-                        .help(tr!("iotracectl-filter-iotrace")),
+                        ]).help(tr!("iotracectl-filter-iotrace")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("optimize")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("iotracectl-optimize"))
@@ -389,16 +349,14 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-hash")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("executable")
                         .long("executable")
                         .short("e")
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-executable")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("optimized")
                         .long("optimized")
                         .short("o")
@@ -406,8 +364,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .required(false)
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -420,10 +377,8 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("filter-current"),
                             tr!("filter-outdated"),
                             tr!("filter-missing"),
-                        ])
-                        .help(tr!("iotracectl-filter-iotrace")),
-                )
-                .arg(
+                        ]).help(tr!("iotracectl-filter-iotrace")),
+                ).arg(
                     Arg::with_name("sort")
                         .long("sort")
                         .takes_value(true)
@@ -436,11 +391,9 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-numioops"),
                             tr!("sort-iosize"),
                             tr!("sort-optimized"),
-                        ])
-                        .default_value("date")
+                        ]).default_value("date")
                         .help(tr!("iotracectl-sort")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("order")
                         .long("order")
                         .takes_value(true)
@@ -450,18 +403,15 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-ascending"),
                             tr!("sort-desc"),
                             tr!("sort-descending"),
-                        ])
-                        .default_value(tr!("sort-ascending"))
+                        ]).default_value(tr!("sort-ascending"))
                         .help(tr!("iotracectl-sort-order")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("dryrun")
                         .long("dry-run")
                         .short("n")
                         .help(tr!("iotracectl-dry-run")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("remove")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("delete")
@@ -473,16 +423,14 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-hash")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("executable")
                         .long("executable")
                         .short("e")
                         .takes_value(true)
                         .required(false)
                         .help(tr!("iotracectl-filter-executable")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("optimized")
                         .long("optimized")
                         .short("o")
@@ -490,8 +438,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .required(false)
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -504,10 +451,8 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("filter-current"),
                             tr!("filter-outdated"),
                             tr!("filter-missing"),
-                        ])
-                        .help(tr!("iotracectl-filter-iotrace")),
-                )
-                .arg(
+                        ]).help(tr!("iotracectl-filter-iotrace")),
+                ).arg(
                     Arg::with_name("sort")
                         .long("sort")
                         .takes_value(true)
@@ -520,11 +465,9 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-numioops"),
                             tr!("sort-iosize"),
                             tr!("sort-optimized"),
-                        ])
-                        .default_value("date")
+                        ]).default_value("date")
                         .help(tr!("iotracectl-sort")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("order")
                         .long("order")
                         .takes_value(true)
@@ -534,18 +477,15 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-ascending"),
                             tr!("sort-desc"),
                             tr!("sort-descending"),
-                        ])
-                        .default_value(tr!("sort-ascending"))
+                        ]).default_value(tr!("sort-ascending"))
                         .help(tr!("iotracectl-sort-order")),
-                )
-                .arg(
+                ).arg(
                     Arg::with_name("dryrun")
                         .long("dry-run")
                         .short("n")
                         .help(tr!("iotracectl-dry-run")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("clear")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("iotracectl-clear"))
@@ -555,13 +495,11 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .short("n")
                         .help(tr!("iotracectl-dry-run")),
                 ),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("iotracectl-help")),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
                 .about(tr!("iotracectl-completions"))

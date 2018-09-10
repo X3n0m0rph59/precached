@@ -108,8 +108,7 @@ impl Process {
                     Some(c) => Some(String::from(&c["filename"])),
                     None => None,
                 }
-            })
-            .collect();
+            }).collect();
 
         Ok(result)
     }
@@ -132,8 +131,7 @@ impl Process {
                     }),
                     None => None,
                 }
-            })
-            .collect();
+            }).collect();
 
         Ok(result)
     }

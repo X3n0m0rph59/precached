@@ -46,22 +46,19 @@ impl Config {
                     .short("v")
                     .multiple(true)
                     .help("Sets the level of log verbosity"),
-            )
-            .arg(
+            ).arg(
                 Arg::with_name("config")
                     .short("c")
                     .long("config")
                     .value_name("file")
                     .help("Location of the configuration file")
                     .takes_value(true),
-            )
-            .arg(
+            ).arg(
                 Arg::with_name("foreground")
                     .short("f")
                     .long("foreground")
                     .help("Stay in the foreground (do not daemonize)"),
-            )
-            .get_matches();
+            ).get_matches();
 
         Config {
             verbosity: matches.occurrences_of("v") as u8,

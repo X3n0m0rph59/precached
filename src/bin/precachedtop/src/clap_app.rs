@@ -41,19 +41,16 @@ where
                 .help(tr!("precachedtop-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
                 .help(tr!("precachedtop-output-verbosity")),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precachedtop-help")),
-        )
-        .subcommand(
+        ).subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
                 .about(tr!("precachedtop-completions"))

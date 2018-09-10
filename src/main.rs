@@ -415,8 +415,7 @@ fn main() {
                 let event = procmon.wait_for_event();
                 sender.send(event).unwrap();
             }
-        })
-        .unwrap();
+        }).unwrap();
 
     // spawn the IPC event loop thread
     let queue_c = globals.ipc_event_queue.clone();
@@ -446,8 +445,7 @@ fn main() {
                     }
                 }
             }
-        })
-        .unwrap();
+        }).unwrap();
 
     util::insert_message_into_ftrace_stream(format!("precached started"));
     util::notify(&String::from("precached started!"), &manager);
