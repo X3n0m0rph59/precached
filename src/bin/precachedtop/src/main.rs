@@ -77,10 +77,10 @@ use term::Attr;
 use termion::event::{Event, Key, MouseEvent};
 use termion::input::{MouseTerminal, TermRead};
 use termion::raw::IntoRawMode;
-use tui::backend::{RawBackend, TermionBackend};
-use tui::layout::{Direction, Group, Rect, Size};
+use tui::backend::{MouseBackend, RawBackend, TermionBackend};
+use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Widget};
+use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Text, Widget};
 use tui::Terminal;
 
 #[macro_use]
@@ -245,211 +245,210 @@ impl Application {
     {
         // trace!("Rendering started...");
 
-        let size = app.size;
+        let size = app.size; //terminal.size().unwrap();
 
-        Group::default()
-            .direction(Direction::Vertical)
-            .sizes(&[Size::Max(3), Size::Percent(90)])
-            .margin(0)
-            .render(terminal, &size, |ref mut terminal, chunks| {
-                Block::default().borders(Borders::ALL).render(terminal, &size);
+        // terminal.clear().unwrap();
+        terminal
+            .draw(|mut f| {
+                let chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Max(1), Constraint::Percentage(97)].as_ref())
+                    .margin(0)
+                    .split(size);
+
+                Block::default().borders(Borders::ALL).render(&mut f, size);
                 Tabs::default()
                     .block(Block::default().borders(Borders::ALL).title(tr!("tab-pages")))
                     .titles(&[
                         tr!("overview"),
                         tr!("events"),
                         tr!("cached-files", 
-                            "count" => format!("{}", app.cached_files.len())),
+                                "count" => format!("{}", app.cached_files.len())),
                         tr!("statistics"),
                         tr!("help"),
-                    ])
-                    .select(app.tab_index)
+                    ]).select(app.tab_index)
                     .style(Style::default().fg(Color::White))
                     .highlight_style(Style::default().fg(Color::Yellow))
-                    .render(terminal, &chunks[0]);
+                    .render(&mut f, size);
 
                 match app.tab_index {
                     0 => {
-                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
-                        Group::default()
+                        let chunks = Layout::default()
                             .direction(Direction::Vertical)
-                            .sizes(&[Size::Percent(20), Size::Percent(25), Size::Percent(25), Size::Percent(30)])
-                            .margin(0)
-                            .render(terminal, &chunks[1], |terminal, chunks| {
-                                let items: Vec<String>;
-                                if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
-                                    // Show error
-                                    items = vec![format!("Connection Error!")];
-                                } else {
-                                    // Render tracked processes
-                                    items = self
-                                        .tracked_processes
-                                        .par_iter()
-                                        .map(|v| {
-                                            let v = v.clone();
-                                            format!("{}\t{}", v.pid, v.comm)
-                                        })
-                                        .collect();
-                                }
+                            .constraints(
+                                [
+                                    Constraint::Percentage(35),
+                                    Constraint::Percentage(35),
+                                    Constraint::Percentage(20),
+                                    Constraint::Percentage(10),
+                                ]
+                                    .as_ref(),
+                            ).margin(1)
+                            .split(chunks[1]);
 
-                                SelectableList::default()
-                                    .block(Block::default().borders(Borders::ALL).title(tr!("tracked-processes")))
-                                    .items(&items)
-                                    .select(self.sel_index_processes)
-                                    .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
-                                    .render(terminal, &chunks[0]);
+                        let items: Vec<String>;
+                        if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
+                            // Show error
+                            items = vec![format!("Connection Error!")];
+                        } else {
+                            // Render tracked processes
+                            items = self
+                                .tracked_processes
+                                .par_iter()
+                                .map(|v| {
+                                    let v = v.clone();
+                                    format!("{}\t{}", v.pid, v.comm)
+                                }).collect();
+                        }
 
-                                let trace_items: Vec<String>;
-                                if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
-                                    // Show error
-                                    trace_items = vec![format!("Connection Error!")];
-                                } else {
-                                    // Render traced processes
-                                    trace_items = self
-                                        .active_traces
-                                        .par_iter()
-                                        .map(|v| {
-                                            let v = v.clone();
-                                            format!("{}\t{:?}", format_date(v.start_time), v.exe)
-                                        })
-                                        .collect();
-                                }
+                        SelectableList::default()
+                            .block(Block::default().borders(Borders::ALL).title(tr!("tracked-processes")))
+                            .items(&items)
+                            .select(Some(self.sel_index_processes))
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .render(&mut f, chunks[0]);
 
-                                SelectableList::default()
-                                    .block(Block::default().borders(Borders::ALL)
-                                    .title(tr!("active-traces")))
-                                    .items(&trace_items)
-                                    // .select(self.sel_index_active_traces)
-                                    .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
-                                    .render(terminal, &chunks[1]);
+                        let trace_items: Vec<String>;
+                        if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
+                            // Show error
+                            trace_items = vec![format!("Connection Error!")];
+                        } else {
+                            // Render traced processes
+                            trace_items = self
+                                .active_traces
+                                .par_iter()
+                                .map(|v| {
+                                    let v = v.clone();
+                                    format!("{}\t{:?}", format_date(v.start_time), v.exe)
+                                }).collect();
+                        }
 
-                                // Render prefetcher thread states
-                                let mut prefetcher: Vec<String> = vec![];
+                        SelectableList::default()
+                            .block(Block::default().borders(Borders::ALL)
+                            .title(tr!("active-traces")))
+                            .items(&trace_items)
+                            // .select(self.sel_index_active_traces)
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .render(&mut f, chunks[1]);
 
-                                if let Some(stats) = self.prefetch_stats.clone() {
-                                    let mut ctr = 0;
+                        // Render prefetcher thread states
+                        let mut prefetcher: Vec<String> = vec![];
 
-                                    for t in stats.thread_states {
-                                        prefetcher.push(format!("Thread #{}: {:?}", ctr, t));
+                        if let Some(stats) = self.prefetch_stats.clone() {
+                            let mut ctr = 0;
 
-                                        ctr += 1;
-                                    }
-                                } else {
-                                    prefetcher.push(String::from(tr!("no-data")));
-                                }
+                            for t in stats.thread_states {
+                                prefetcher.push(format!("Thread #{}: {:?}", ctr, t));
 
-                                SelectableList::default()
-                                    .block(Block::default().borders(Borders::ALL)
-                                    .title(tr!("prefetcher-threads")))
-                                    .items(&prefetcher)
-                                    // .select(self.sel_index)
-                                    .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
-                                    .render(terminal, &chunks[2]);
+                                ctr += 1;
+                            }
+                        } else {
+                            prefetcher.push(String::from(tr!("no-data")));
+                        }
 
-                                // Render daemon internal events
-                                let mut events: Vec<String> = self
-                                    .events
-                                    .par_iter()
-                                    .map(|v| {
-                                        let v = v.clone();
-                                        format!("{}\t{}", format_date(v.datetime), v.msg)
-                                    })
-                                    .collect();
+                        SelectableList::default()
+                            .block(Block::default().borders(Borders::ALL)
+                            .title(tr!("prefetcher-threads")))
+                            .items(&prefetcher)
+                            // .select(self.sel_index)
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .render(&mut f, chunks[2]);
 
-                                events.reverse();
+                        // Render daemon internal events
+                        let mut events: Vec<String> = self
+                            .events
+                            .par_iter()
+                            .map(|v| {
+                                let v = v.clone();
+                                format!("{}\t{}", format_date(v.datetime), v.msg)
+                            }).collect();
 
-                                SelectableList::default()
-                                    .block(Block::default().borders(Borders::ALL)
-                                    .title(tr!("events")))
-                                    .items(&events)
-                                    // .select(self.sel_index_events)
-                                    .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
-                                    .render(terminal, &chunks[3]);
-                            });
+                        events.reverse();
+
+                        SelectableList::default()
+                            .block(Block::default().borders(Borders::ALL)
+                            .title(tr!("events")))
+                            .items(&events)
+                            // .select(self.sel_index_events)
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .render(&mut f, chunks[3]);
                     }
 
                     1 => {
-                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
-                        Group::default()
-                            .direction(Direction::Horizontal)
-                            .sizes(&[Size::Percent(100)])
-                            .margin(0)
-                            .render(terminal, &chunks[1], |terminal, chunks| {
-                                // Render daemon internal events
-                                let mut events: Vec<String> = self
-                                    .events
-                                    .par_iter()
-                                    .map(|v| {
-                                        let v = v.clone();
-                                        format!("{}\t{}", format_date(v.datetime), v.msg)
-                                    })
-                                    .collect();
+                        let chunks = Layout::default()
+                            .direction(Direction::Vertical)
+                            .constraints([Constraint::Percentage(100)].as_ref())
+                            .margin(1)
+                            .split(chunks[1]);
 
-                                events.reverse();
+                        let mut events: Vec<String> = self
+                            .events
+                            .par_iter()
+                            .map(|v| {
+                                let v = v.clone();
+                                format!("{}\t{}", format_date(v.datetime), v.msg)
+                            }).collect();
 
-                                SelectableList::default()
-                                    .block(Block::default().borders(Borders::ALL).title(tr!("events")))
-                                    .items(&events)
-                                    .select(self.sel_index_events)
-                                    .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
-                                    .render(terminal, &chunks[0]);
-                            });
+                        events.reverse();
+
+                        SelectableList::default()
+                            .block(Block::default().borders(Borders::NONE).title(tr!("events")))
+                            .items(&events)
+                            .select(Some(self.sel_index_events))
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .render(&mut f, chunks[0]);
                     }
 
                     2 => {
-                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
-                        Group::default()
-                            .direction(Direction::Horizontal)
-                            .sizes(&[Size::Percent(100)])
-                            .margin(0)
-                            .render(terminal, &chunks[1], |terminal, chunks| {
-                                // Render cached files
-                                let cached_files: Vec<String> = self
-                                    .cached_files
-                                    .par_iter()
-                                    .map(|v| String::from(v.to_string_lossy()))
-                                    .collect();
+                        let chunks = Layout::default()
+                            .direction(Direction::Vertical)
+                            .constraints([Constraint::Percentage(100)].as_ref())
+                            .margin(1)
+                            .split(chunks[1]);
 
-                                SelectableList::default()
-                                    .block(Block::default().borders(Borders::ALL).title(tr!("cached")))
-                                    .items(&cached_files)
-                                    .select(self.sel_index_files)
-                                    .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
-                                    .render(terminal, &chunks[0]);
-                            });
+                        let cached_files: Vec<String> = self
+                            .cached_files
+                            .par_iter()
+                            .map(|v| String::from(v.to_string_lossy()))
+                            .collect();
+
+                        SelectableList::default()
+                            .block(Block::default().borders(Borders::NONE).title(tr!("cached")))
+                            .items(&cached_files)
+                            .select(Some(self.sel_index_files))
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .render(&mut f, chunks[0]);
                     }
 
                     3 => {
-                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
-                        Group::default()
-                            .direction(Direction::Horizontal)
-                            .sizes(&[Size::Percent(100)])
-                            .margin(2)
-                            .render(terminal, &chunks[1], |terminal, chunks| {
-                                Block::default().title(tr!("stats")).render(terminal, &chunks[0]);
+                        let chunks = Layout::default()
+                            .direction(Direction::Vertical)
+                            .constraints([Constraint::Max(1), Constraint::Percentage(100)].as_ref())
+                            .margin(1)
+                            .split(chunks[1]);
 
-                                Paragraph::default().text("... Stats ...").render(terminal, &chunks[0]);
-                            });
+                        Block::default().title(tr!("stats")).render(&mut f, chunks[0]);
+
+                        let text = [Text::Data("Not implemented")];
+                        Paragraph::new(text.iter()).render(&mut f, chunks[1]);
                     }
 
                     4 => {
-                        Block::default().borders(Borders::ALL).render(terminal, &chunks[1]);
-                        Group::default()
-                            .direction(Direction::Horizontal)
-                            .sizes(&[Size::Percent(100)])
-                            .margin(2)
-                            .render(terminal, &chunks[1], |terminal, chunks| {
-                                Block::default().title(tr!("help")).render(terminal, &chunks[0]);
+                        let chunks = Layout::default()
+                            .direction(Direction::Vertical)
+                            .constraints([Constraint::Max(1), Constraint::Percentage(100)].as_ref())
+                            .margin(1)
+                            .split(chunks[1]);
 
-                                Paragraph::default()
-                                    .text(&format!("\n\n{}", tr!("license-text")))
-                                    .render(terminal, &chunks[0]);
-                            });
+                        Block::default().title(tr!("help")).render(&mut f, chunks[0]);
+
+                        let text = [Text::Data(tr!("license-text"))];
+                        Paragraph::new(text.iter()).render(&mut f, chunks[1]);
                     }
 
                     _ => {}
                 }
-            });
+            }).unwrap();
 
         trace!("Rendering finished");
     }
@@ -483,13 +482,14 @@ fn do_request(socket: &zmq::Socket, command: ipc::IpcCommand) -> Result<ipc::Ipc
 
 /// The main loop
 fn main_loop(_config: &mut Config) {
-    let backend = RawBackend::new().unwrap();
+    let backend = MouseBackend::new().unwrap();
     let mut terminal = Terminal::new(backend).unwrap();
 
     terminal.clear().unwrap();
     terminal.hide_cursor().unwrap();
 
     let mut app = Application::new();
+    app.size = terminal.size().unwrap();
 
     let (tx, rx): (Sender<ipc::IpcMessage>, Receiver<ipc::IpcMessage>) = mpsc::channel();
 
@@ -561,8 +561,7 @@ fn main_loop(_config: &mut Config) {
             }
 
             info!("Exiting the IPC event loop!");
-        })
-        .unwrap();
+        }).unwrap();
 
     let (tx_events, rx_events): (Sender<Event>, Receiver<Event>) = mpsc::channel();
 
@@ -586,12 +585,9 @@ fn main_loop(_config: &mut Config) {
             }
 
             info!("Exiting input thread!");
-        })
-        .unwrap();
+        }).unwrap();
 
     'MAIN_LOOP: loop {
-        // terminal.clear().unwrap();
-
         if EXIT_NOW.load(Ordering::Relaxed) {
             trace!("Leaving the main event loop...");
             break 'MAIN_LOOP;
@@ -613,8 +609,9 @@ fn main_loop(_config: &mut Config) {
             app.size = size;
         }
 
+        // terminal.clear().unwrap();
         app.render(&mut terminal, &app);
-        terminal.draw().unwrap();
+        // terminal.flush().unwrap();
 
         thread::sleep(Duration::from_millis(constants::MAIN_LOOP_DELAY_MILLIS));
     }
