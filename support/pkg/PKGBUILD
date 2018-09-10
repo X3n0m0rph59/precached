@@ -51,7 +51,7 @@ package() {
   install -m 755 "target/release/iotracectl" "$pkgdir/usr/bin/"
   install -m 755 "target/release/precachedtop" "$pkgdir/usr/bin/"
   install -m 755 "target/release/rulesctl" "$pkgdir/usr/bin/"
-  install -m 755 "target/release/precached-trigger" "$pkgdir/usr/bin/"
+  install -m 4755 "target/release/precached-trigger" "$pkgdir/usr/bin/"
   install -m 755 "target/release/precached-debug" "$pkgdir/usr/bin/"
 
   install -m 644 "support/config/precached.conf" "$pkgdir/etc/precached/"
