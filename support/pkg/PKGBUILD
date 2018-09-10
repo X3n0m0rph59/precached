@@ -17,7 +17,7 @@ backup=()
 options=()
 install=
 changelog=
-source=("git+https://gitlab.com/X3n0m0rph59/precached.git")
+source=("git+https://gitlab.com/X3n0m0rph59/precached.git#branch=v1.3")
 noextract=()
 md5sums=() #autofill using updpkgsums
 
