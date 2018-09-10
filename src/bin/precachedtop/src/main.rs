@@ -429,7 +429,7 @@ impl Application {
 
                         Block::default().title(tr!("stats")).render(&mut f, chunks[0]);
 
-                        let text = [Text::Data("Not implemented")];
+                        let text = [Text::raw("Not implemented")];
                         Paragraph::new(text.iter()).render(&mut f, chunks[1]);
                     }
 
@@ -442,7 +442,7 @@ impl Application {
 
                         Block::default().title(tr!("help")).render(&mut f, chunks[0]);
 
-                        let text = [Text::Data(tr!("license-text"))];
+                        let text = [Text::raw(tr!("license-text"))];
                         Paragraph::new(text.iter()).render(&mut f, chunks[1]);
                     }
 
