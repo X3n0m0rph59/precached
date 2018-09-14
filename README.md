@@ -1,6 +1,6 @@
 # Precached - A Linux process monitor and pre-caching daemon
 
-[![Build Status](https://travis-ci.org/X3n0m0rph59/precached.svg?branch=v1.3)](https://travis-ci.org/X3n0m0rph59/precached) [![Package Status](https://copr.fedorainfracloud.org/coprs/x3n0m0rph59/precached/package/precached/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/x3n0m0rph59/precached/package/precached/)
+[![Build Status](https://travis-ci.org/X3n0m0rph59/precached.svg?branch=v1.4)](https://travis-ci.org/X3n0m0rph59/precached) [![Package Status](https://copr.fedorainfracloud.org/coprs/x3n0m0rph59/precached/package/precached/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/x3n0m0rph59/precached/package/precached/)
 
 Precached is written in Rust and utilizes the Linux Netlink connector interface
 to monitor the system for process events. It can act upon such events via
@@ -10,6 +10,16 @@ system. Additionally it supports offline prefetching of the most often used
 programs while the system is idle.
 
 ## Quick Installation Guide
+
+### Install on Manjaro or other Arch Linux based Distros
+
+```shell
+    $ git clone https://gitlab.com/X3n0m0rph59/precached.git
+    $ cd support/pkg/
+    $ updpkgsums
+    $ makepgkg -si
+    $ sudo systemctl enable --now precached.service
+```
 
 ### Install on Fedora
 
@@ -25,6 +35,7 @@ programs while the system is idle.
     $ sudo add-apt-repository ppa:x3n0m0rph59/precached
     $ sudo apt update
     $ sudo apt install precached
+    $ sudo systemctl enable --now precached.service
 ```
 
 ### Install from Source
