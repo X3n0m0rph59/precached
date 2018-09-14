@@ -701,7 +701,7 @@ mod tests {
         let rule = tokenize(&rule);
         println!("{:?}", rule);
 
-        let (event, filter, action, params) = parse_rule(&rule).unwrap();
+        let (_event, _filter, _action, params) = parse_rule(&rule).unwrap();
         println!("{:?}", params);
 
         let result = get_param_value(&params, "Severity").unwrap();
@@ -720,7 +720,7 @@ mod tests {
         let rule = tokenize(&rule);
         println!("{:?}", rule);
 
-        let (event, filter, action, params) = parse_rule(&rule).unwrap();
+        let (_event, _filter, _action, params) = parse_rule(&rule).unwrap();
         println!("{:?}", params);
 
         let result = get_param_value(&params, "Severity").unwrap();
@@ -739,7 +739,7 @@ mod tests {
         let rule = tokenize(&rule);
         println!("{:?}", rule);
 
-        let (event, filter, action, params) = parse_rule(&rule).unwrap();
+        let (event, _filter, action, params) = parse_rule(&rule).unwrap();
         println!("{:?}", params);
 
         assert_eq!(event, Event::UserLogin(None, None));

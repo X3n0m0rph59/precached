@@ -1402,7 +1402,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     let state_dir = daemon_config
         .state_dir
-        .unwrap_or(Path::new(constants::STATE_DIR).to_path_buf());
+        .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
     let traces_path = state_dir.join(Path::new(constants::IOTRACE_DIR).to_path_buf());
 
     let mut index = 0;
@@ -1421,7 +1421,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Cell::new(&tr!("status")),
     ]));
 
-    match util::walk_directories(&vec![traces_path], &mut |path| {
+    match util::walk_directories(&[traces_path], &mut |path| {
         trace!("{:?}", path);
 
         match util::remove_file(&path, dry_run) {
@@ -1522,7 +1522,7 @@ pub fn print_usage_blacklist(config: &mut Config) {
 }
 
 /// Generate shell completions
-fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
+fn generate_completions(config: &mut Config) {
     let matches = config.matches.subcommand_matches("completions").unwrap();
 
     let shell = match matches.value_of("SHELL").unwrap() {
@@ -1622,7 +1622,7 @@ fn main() {
             }
 
             "completions" => {
-                generate_completions(&mut config_c, daemon_config.clone());
+                generate_completions(&mut config_c);
             }
 
             &_ => {
