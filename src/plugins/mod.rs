@@ -40,7 +40,6 @@ pub mod notifications;
 pub mod statistics;
 pub mod user_session;
 // pub mod forkbomb_mitigation;
-// pub mod rule_plugin;
 pub mod ftrace_messages;
 pub mod inotify_multiplexer;
 pub mod janitor;

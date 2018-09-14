@@ -1,5 +1,5 @@
 .\" Manpage for precached-debug.
-.TH man 8 "08 May 2018" "1.0" "precached-debug man page"
+.TH man 8 "13. September 2018" "1.4.0" "precached-debug man page"
 .SH NAME
  precached-debug - Debug tool for precached
 .SH SYNOPSIS
@@ -15,7 +15,10 @@
 .SH OPTIONS
  -c, --config <file>  The precached config file to use [default: /etc/precached/precached.conf]
 .SH SUBCOMMANDS 
- help      Display this short help text
+ status          Show the current status of the precached daemon
+ help            Display this short help text
+ test-tracing    Test the I/O tracing subsystem of precached
+ cleanup         Cleanup all files created during testing
 
 
  precached-debug

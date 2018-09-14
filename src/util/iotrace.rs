@@ -99,6 +99,23 @@ pub fn optimize_io_trace_log(
     Ok(())
 }
 
+pub fn blacklist_io_trace_log(
+    filename: &Path,
+    io_trace: &mut iotrace::IOTraceLog,
+    blacklist: bool,
+    dry_run: bool,
+) -> Result<()> {
+    trace!("Blacklisting I/O trace log...");
+    
+    io_trace.blacklisted = blacklist;
+    
+    if !dry_run {
+        io_trace.save(filename, 0, 0, true)?;
+    }
+
+    Ok(())
+}
+
 /// Returns a `Vec` of `IOTraceLogFlag` flags describing the I/O trace log `io_trace`
 pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>, bool, Color) {
     let mut flags = Vec::new();

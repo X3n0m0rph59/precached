@@ -15,6 +15,10 @@ iotracectl-analyze = I/O Trace Logs analysieren (fehlende Dateien anzeigen)
 iotracectl-sizes = Belegung des Virtuellen Speichers berechnen
 iotracectl-optimize = I/O Trace Logs optimieren
 iotracectl-dry-run = Keine Aktion ausführen, nur so tun als ob
+iotracectl-blacklist = Verwaltet die dynamische Blackliste
+iotracectl-blacklist-list = Einträge der dynamischen Blackliste auflisten
+iotracectl-blacklist-add = I/O Trace Logs zu der dynamischen Blackliste hinzufügen
+iotracectl-blacklist-remove = I/O Trace Logs aus der dynamischen Blackliste entfernen
 iotracectl-remove = I/O Trace Logs entfernen
 iotracectl-clear = Alle I/O Trace Logs löschen und das precached I/O Tracing Subsystem zurücksetzen
 iotracectl-help = Diese Kurzhilfe anzeigen
@@ -32,6 +36,7 @@ iotracectl-info = Metadaten von I/O Trace Logs ausgeben
 iotracectl-filter-hash = Filtern anhand des Hashwerts
 iotracectl-filter-executable = Filtern anhand der ausführbaren Datei
 iotracectl-filter-optimized = Filtern anhand des Optimierungsstatus
+iotracectl-filter-blacklisted = Filtern anhand des Blackliststatus
 iotracectl-filter-iotrace = Filtern anhand von Flags
 iotracectl-sort = Sortieren nach Feld
 iotracectl-sort-order = Sortierreihenfolge
@@ -51,6 +56,7 @@ sort-numfiles = numfiles
 sort-numioops = numioops
 sort-iosize = iosize
 sort-optimized = optimized
+sort-blacklisted = blacklisted
 
 sort-asc = asc
 sort-ascending = ascending
@@ -82,6 +88,7 @@ ok = OK
 missing-file = Datei fehlt
 
 unknown = Unknown
+blacklisted = Blacklisted
 valid = Valid
 invalid = Invalid
 fresh = Fresh
@@ -151,6 +158,7 @@ iotracectl-type-1 = Hook
 
 iotracectl-removing-trace-logs = Entferne I/O Trace Logs: 
 iotracectl-optimizing-trace-logs = Optimiere I/O Trace Logs: 
+iotracectl-blacklisting-trace-logs = Blacklist-Status ändern: 
 
 iotracectl-io-trace-log = I/O Trace Log
 iotracectl-show-status = Status anzeigen
@@ -184,6 +192,7 @@ iotracectl-iotrace-info = I/O Trace Log:       { $filename }
                           Num I/O Ops:         { $numioops }
                           I/O Größe:           { $iosize }
                           Optimiert:           { $optimized }
+                          Blacklisted:         { $blacklisted }
                           Flags:               { $flags }
 
 iotracectl-iotrace-info-full = I/O Trace Log:       { $filename }
@@ -198,6 +207,7 @@ iotracectl-iotrace-info-full = I/O Trace Log:       { $filename }
                                Num I/O Ops:         { $numioops }
                                I/O Größe:           { $iosize }
                                Optimiert:           { $optimized }
+                               Blacklisted:         { $blacklisted }
                                Flags:               { $flags }
 
 iotracectl-iotrace-info-short = Ausführbare Datei:  { $executable }
@@ -214,6 +224,8 @@ iotracectl-num-files = # Dateien
 iotracectl-num-ioops = # I/O Ops
 iotracectl-iosize = I/O Größe
 iotracectl-optimized = Optimiert
+iotracectl-blacklisted = Blacklisted
+iotracectl-unblacklisted = Nicht geblacklistet
 iotracectl-flags = Flags
 
 iotracectl-no-traces = Keine I/O Trace Logs gefunden
@@ -223,8 +235,9 @@ iotracectl-summary-2 = Ergebnis: { $total } I/O trace logs analysiert, { $matchi
 iotracectl-summary-3 = Ergebnis: { $total } I/O trace logs analysiert, { $matching } wären entfernt worden, { $errors } Fehler
 iotracectl-summary-4 = Ergebnis: { $total } I/O trace logs analysiert, { $matching } optimiert, { $errors } Fehler
 iotracectl-summary-5 = Ergebnis: { $total } I/O trace logs analysiert, { $matching } wären optimiert worden, { $errors } Fehler
+iotracectl-summary-6 = Ergebnis: { $total } I/O trace logs analysiert, { $matching } Statusänderungen, { $errors } Fehler
+iotracectl-summary-7 = Ergebnis: { $total } I/O trace logs analysiert, { $matching } hätten Statusänderungen gehabt, { $errors } Fehler
 
-###############################################################################
 
 success = Erfolgreich
 could-not-send-signal = Konnte Signal nicht senden! { $error }
@@ -250,7 +263,7 @@ precached-trigger-transition-profile = Den precached Daemon anweisen, zum nächs
 precached-trigger-completions = Generiert Shell Skripte für Autovervollständigung
 precached-trigger-completions-shell = Ziel Shell
 
-###############################################################################
+
 
 precached-debug-about = Debugging Tool für den precached Daemon
 
@@ -276,7 +289,7 @@ precached-debug-help = Diese Kurzhilfe anzeigen
 precached-debug-completions = Generiert Shell Skripte für Autovervollständigung
 precached-debug-completions-shell = Ziel Shell
 
-###############################################################################
+
 
 precachedctl-about = Verwaltungstool für den precached Daemon
 
@@ -324,7 +337,7 @@ precachedctl-daemon-not-running = precached läuft NICHT, Signal konnte nicht ge
 
 precachedctl-could-not-send-signal = Signal konnte nicht gesendet werden! { $error }
 
-###############################################################################
+
 
 rulesctl-about = Regeln des precached Daemons verwalten
 rulesctl-produce-ascii = ASCII Linien Ausgabe erzeugen (Standard) anstatt Unicode zu benutzen
@@ -378,7 +391,7 @@ rulesctl-daemon-not-running = precached läuft NICHT, Signal konnte nicht gesend
 
 rulesctl-could-not-send-signal = Signal konnte nicht gesendet werden! { $error }
 
-###############################################################################
+
 
 precachedtop-config-file = Die precached Konfigurationsdatei
 precachedtop-output-verbosity = Legt die Ausgabe-Verbosität fest
@@ -403,6 +416,3 @@ cached = Dateien im Cache
 stats = Statistiken
 
 active-traces = Aktive Tracer
-
-
-###############################################################################

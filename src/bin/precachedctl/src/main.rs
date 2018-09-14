@@ -235,7 +235,7 @@ fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
 
 /// Print help message on how to use this command
 pub fn print_help(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
+    // println!("NOTE: Usage information: precachedctl --help");
 
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
@@ -245,7 +245,7 @@ pub fn print_help(config: &mut Config) {
 
 /// Print usage message on how to use this command
 pub fn print_usage(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
+    // println!("NOTE: Usage information: precachedctl --help");
 
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
@@ -255,7 +255,7 @@ pub fn print_usage(config: &mut Config) {
 
 /// Print help message on how to use this command
 pub fn print_help_plugins(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
+    // println!("NOTE: Usage information: precachedctl --help");
 
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
@@ -265,7 +265,7 @@ pub fn print_help_plugins(config: &mut Config) {
 
 /// Print usage message on how to use this command
 pub fn print_usage_plugins(config: &mut Config) {
-    // println!("NOTE: Usage information: iotracectl --help");
+    // println!("NOTE: Usage information: precachedctl --help");
 
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();

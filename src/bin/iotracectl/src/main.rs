@@ -43,7 +43,7 @@ extern crate toml;
 extern crate zstd;
 
 use chrono::{DateTime, Local, TimeZone, Utc};
-use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use clap::{App, AppSettings, Arg, Shell, SubCommand, ArgMatches};
 use iotrace::{IOOperation, IOTraceLogFlag};
 use pbr::ProgressBar;
 use prettytable::cell::Cell;
@@ -65,6 +65,7 @@ mod i18n;
 mod clap_app;
 mod constants;
 mod iotrace;
+mod plugins;
 mod process;
 mod util;
 
@@ -141,9 +142,7 @@ fn default_table_format(config: &Config) -> TableFormat {
 }
 
 /// Returns true if all of the supplied command-line filters match the given I/O trace
-fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::IOTraceLog, config: &Config) -> bool {
-    let matches = config.matches.subcommand_matches(subcommand).unwrap();
-
+fn filter_matches(matches: &ArgMatches, _filename: &String, io_trace: &iotrace::IOTraceLog, _config: &Config) -> bool {
     if matches.is_present("hash") {
         if let Some(hash) = matches.value_of("hash") {
             if io_trace.hash != hash {
@@ -172,6 +171,22 @@ fn filter_matches(subcommand: &String, _filename: &String, io_trace: &iotrace::I
                 }
             } else {
                 error!("Could not parse command line argument 'optimized'");
+            }
+        }
+    }
+
+    if matches.is_present("blacklisted") {
+        if let Some(flag) = matches.value_of("blacklisted") {
+            if flag == tr!("true") {
+                if !io_trace.blacklisted {
+                    return false;
+                }
+            } else if flag == tr!("false") {
+                if io_trace.blacklisted {
+                    return false;
+                }
+            } else {
+                error!("Could not parse command line argument 'blacklisted'");
             }
         }
     }
@@ -253,6 +268,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             "numioops" => format!("{}", io_trace.trace_log.len()),
             "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
             "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
+            "blacklisted" => tr!(&format!("{}", io_trace.blacklisted)),
             "flags" => format!("{:?}", flags)
         );
 
@@ -277,20 +293,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
     {
         let (w, _h) = term_size::dimensions().unwrap();
 
-        let max_len;
-        match w {
-            0...80 => {
-                max_len = 10;
-            }
-
-            81...132 => {
-                max_len = 20;
-            }
-
-            _ => {
-                max_len = 60;
-            }
-        }
+        let max_len = w / 4;
 
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
@@ -307,6 +310,9 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             Cell::new(tr!(&format!("{}", io_trace.trace_log_optimized)))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(map_bool_to_color(io_trace.trace_log_optimized))),
+            Cell::new(tr!(&format!("{}", io_trace.blacklisted)))
+                .with_style(Attr::Bold)
+                .with_style(Attr::ForegroundColor(map_bool_to_color_blacklist(io_trace.blacklisted))),
             Cell::new(&format!("{}", flags))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(color)),
@@ -351,6 +357,14 @@ fn map_bool_to_color(b: bool) -> Color {
         GREEN
     } else {
         YELLOW
+    }
+}
+
+fn map_bool_to_color_blacklist(b: bool) -> Color {
+    if b {
+        RED
+    } else {
+        GREEN
     }
 }
 
@@ -426,6 +440,7 @@ enum SortField {
     Numioops,
     Iosize,
     Optimized,
+    Blacklisted,
 }
 
 #[derive(Debug, PartialEq)]
@@ -484,7 +499,7 @@ fn get_io_traces_filtered_and_sorted<T>(
     daemon_config: util::ConfigFile,
     display_progress: bool,
     pb: &mut ProgressBar<T>,
-    subcommand: &String,
+    matches: &ArgMatches,
     sort_field: SortField,
     sort_order: SortOrder,
 ) -> Result<(Vec<(iotrace::IOTraceLog, PathBuf)>, usize, usize, usize), String>
@@ -516,7 +531,7 @@ where
                 errors += 1;
             }
 
-            Ok(io_trace) => if filter_matches(subcommand, &filename, &io_trace, &config) {
+            Ok(io_trace) => if filter_matches(matches, &filename, &io_trace, &config) {
                 result.push((io_trace, path.to_path_buf()));
                 matching += 1;
             },
@@ -595,11 +610,20 @@ where
         }
 
         SortField::Optimized => {
-            // Sort by creation date
+            // Sort by optimization status
             if sort_order == SortOrder::Ascending {
                 result.sort_by(|a, b| a.0.trace_log_optimized.cmp(&b.0.trace_log_optimized));
             } else {
                 result.sort_by(|a, b| a.0.trace_log_optimized.cmp(&b.0.trace_log_optimized).reverse());
+            }
+        }
+
+        SortField::Blacklisted => {
+            // Sort by blacklisted status
+            if sort_order == SortOrder::Ascending {
+                result.sort_by(|a, b| a.0.blacklisted.cmp(&b.0.blacklisted));
+            } else {
+                result.sort_by(|a, b| a.0.blacklisted.cmp(&b.0.blacklisted).reverse());
             }
         }
     }
@@ -631,7 +655,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         daemon_config,
         display_progress,
         &mut pb,
-        &String::from("list"),
+        &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
     ).unwrap();
@@ -655,6 +679,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Cell::new(tr!("iotracectl-num-ioops")),
         Cell::new(tr!("iotracectl-iosize")),
         Cell::new(tr!("iotracectl-optimized")),
+        Cell::new(tr!("iotracectl-blacklisted")),
         Cell::new(tr!("iotracectl-flags")),
     ]));
 
@@ -706,6 +731,7 @@ fn print_io_trace_info(filename: &Path, io_trace: &iotrace::IOTraceLog, _index: 
         "numioops" => format!("{}", io_trace.trace_log.len()),
         "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
         "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
+        "blacklisted" => tr!(&format!("{}", io_trace.blacklisted)),
         "flags" => format!("{:?}", flags.0)
     );
 
@@ -736,7 +762,7 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
         daemon_config,
         display_progress,
         &mut pb,
-        &String::from("info"),
+        &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
     ).unwrap();
@@ -812,6 +838,7 @@ fn dump_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 "numioops" => format!("{}", io_trace.trace_log.len()),
                 "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
                 "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
+                "blacklisted" => tr!(&format!("{}", io_trace.blacklisted)),
                 "flags" => format!("{:?}", flags.0)
             );
 
@@ -928,6 +955,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 "numioops" => format!("{}", io_trace.trace_log.len()),
                 "iosize" => format!("{} KiB", io_trace.accumulated_size / 1024),
                 "optimized" => tr!(&format!("{}", io_trace.trace_log_optimized)),
+                "blacklisted" => tr!(&format!("{}", io_trace.blacklisted)),
                 "flags" => format!("{:?}", flags.0)
             );
 
@@ -1015,7 +1043,7 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
         daemon_config,
         display_progress,
         &mut pb,
-        &String::from("sizes"),
+        &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
     ).unwrap();
@@ -1164,7 +1192,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         daemon_config,
         display_progress,
         &mut pb,
-        &String::from("optimize"),
+        &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
     ).unwrap();
@@ -1276,7 +1304,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         daemon_config,
         display_progress,
         &mut pb,
-        &String::from("remove"),
+        &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
     ).unwrap();
@@ -1473,6 +1501,26 @@ fn print_usage(config: &mut Config) {
     println!("");
 }
 
+/// Print help message on how to use this command
+pub fn print_help_blacklist(config: &mut Config) {
+    // println!("NOTE: Usage information: iotracectl --help");
+
+    #[allow(unused_must_use)]
+    config.clap.print_help().unwrap();
+
+    println!("");
+}
+
+/// Print usage message on how to use this command
+pub fn print_usage_blacklist(config: &mut Config) {
+    // println!("NOTE: Usage information: iotracectl --help");
+
+    #[allow(unused_must_use)]
+    config.clap.print_help().unwrap();
+
+    println!("");
+}
+
 /// Generate shell completions
 fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
     let matches = config.matches.subcommand_matches("completions").unwrap();
@@ -1537,6 +1585,28 @@ fn main() {
 
             "optimize" => {
                 optimize_io_traces(&config, daemon_config.clone());
+            }
+
+            "blacklist" => if let Some(subcommand) = config.matches.subcommand_matches("blacklist").unwrap().subcommand_name() {
+                match subcommand {
+                    "add" => {
+                        plugins::blacklist::blacklist_io_traces(&config, daemon_config, true);
+                    }
+
+                    "remove" => {
+                        plugins::blacklist::blacklist_io_traces(&config, daemon_config, false);
+                    }
+
+                    "help" => {
+                        plugins::blacklist::print_help(&mut config_c);
+                    }
+
+                    &_ => {
+                        plugins::blacklist::print_usage(&mut config_c);
+                    }
+                }
+            } else {
+                print_usage_blacklist(&mut config_c);
             }
 
             "remove" | "delete" => {

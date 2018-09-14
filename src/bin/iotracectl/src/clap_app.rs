@@ -27,9 +27,11 @@ use util;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b> {
     App::new("iotracectl")
-        .version("1.3.1")
+        .version("1.4.0")
         .author(tr!("iotracectl-mail-contact"))
         .about(tr!("iotracectl-about"))
+        // .versionless_subcommands(true)
+        // .subcommand_required_else_help(true)
         .setting(AppSettings::GlobalVersion)
         .setting(AppSettings::DeriveDisplayOrder)
         .arg(
@@ -125,6 +127,14 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
                 ).arg(
+                    Arg::with_name("blacklisted")
+                        .long("blacklisted")
+                        .short("b")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[tr!("true"), tr!("false")])
+                        .help(tr!("iotracectl-filter-blacklisted")),
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -151,6 +161,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-numioops"),
                             tr!("sort-iosize"),
                             tr!("sort-optimized"),
+                            tr!("sort-blacklisted"),
                         ]).default_value(tr!("sort-date"))
                         .help(tr!("iotracectl-sort")),
                 ).arg(
@@ -206,6 +217,14 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
                 ).arg(
+                    Arg::with_name("blacklisted")
+                        .long("blacklisted")
+                        .short("b")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[tr!("true"), tr!("false")])
+                        .help(tr!("iotracectl-filter-blacklisted")),
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -232,6 +251,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-numioops"),
                             tr!("sort-iosize"),
                             tr!("sort-optimized"),
+                            tr!("sort-blacklisted"),
                         ]).default_value("date")
                         .help(tr!("iotracectl-sort")),
                 ).arg(
@@ -324,6 +344,14 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
                 ).arg(
+                    Arg::with_name("blacklisted")
+                        .long("blacklisted")
+                        .short("b")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[tr!("true"), tr!("false")])
+                        .help(tr!("iotracectl-filter-blacklisted")),
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -365,6 +393,14 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
                 ).arg(
+                    Arg::with_name("blacklisted")
+                        .long("blacklisted")
+                        .short("b")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[tr!("true"), tr!("false")])
+                        .help(tr!("iotracectl-filter-blacklisted")),
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -391,6 +427,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-numioops"),
                             tr!("sort-iosize"),
                             tr!("sort-optimized"),
+                            tr!("sort-blacklisted"),
                         ]).default_value("date")
                         .help(tr!("iotracectl-sort")),
                 ).arg(
@@ -411,6 +448,176 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .short("n")
                         .help(tr!("iotracectl-dry-run")),
                 ),
+        ).subcommand(
+            SubCommand::with_name("blacklist")
+                .setting(AppSettings::DeriveDisplayOrder)
+                .setting(AppSettings::NeedsSubcommandHelp)
+                .about(tr!("iotracectl-blacklist"))
+                .subcommand(
+                    SubCommand::with_name("add")
+                        .setting(AppSettings::DeriveDisplayOrder)                
+                        .about(tr!("iotracectl-blacklist-add"))
+                        .arg(
+                            Arg::with_name("hash")
+                                .long("hash")
+                                .short("p")
+                                .takes_value(true)
+                                .required(false)
+                                .help(tr!("iotracectl-filter-hash")),
+                        ).arg(
+                            Arg::with_name("executable")
+                                .long("executable")
+                                .short("e")
+                                .takes_value(true)
+                                .required(false)
+                                .help(tr!("iotracectl-filter-executable")),
+                        ).arg(
+                            Arg::with_name("optimized")
+                                .long("optimized")
+                                .short("o")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[tr!("true"), tr!("false")])
+                                .help(tr!("iotracectl-filter-optimized")),
+                        ).arg(
+                            Arg::with_name("blacklisted")
+                                .long("blacklisted")
+                                .short("b")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[tr!("true"), tr!("false")])
+                                .help(tr!("iotracectl-filter-blacklisted")),
+                        ).arg(
+                            Arg::with_name("flags")
+                                .long("flags")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[
+                                    tr!("filter-valid"),
+                                    tr!("filter-invalid"),
+                                    tr!("filter-fresh"),
+                                    tr!("filter-expired"),
+                                    tr!("filter-current"),
+                                    tr!("filter-outdated"),
+                                    tr!("filter-missing"),
+                                ]).help(tr!("iotracectl-filter-iotrace")),
+                        ).arg(
+                            Arg::with_name("sort")
+                                .long("sort")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[
+                                    tr!("sort-executable"),
+                                    tr!("sort-hash"),
+                                    tr!("sort-date"),
+                                    tr!("sort-numfiles"),
+                                    tr!("sort-numioops"),
+                                    tr!("sort-iosize"),
+                                    tr!("sort-optimized"),
+                                    tr!("sort-blacklisted"),
+                                ]).default_value("date")
+                                .help(tr!("iotracectl-sort")),
+                        ).arg(
+                            Arg::with_name("order")
+                                .long("order")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[
+                                    tr!("sort-asc"),
+                                    tr!("sort-ascending"),
+                                    tr!("sort-desc"),
+                                    tr!("sort-descending"),
+                                ]).default_value(tr!("sort-ascending"))
+                                .help(tr!("iotracectl-sort-order")),
+                        ).arg(
+                            Arg::with_name("dryrun")
+                                .long("dry-run")
+                                .short("n")
+                                .help(tr!("iotracectl-dry-run")),
+                        )
+                    ).subcommand(
+                    SubCommand::with_name("remove")
+                        .setting(AppSettings::DeriveDisplayOrder)                
+                        .about(tr!("iotracectl-blacklist-remove"))
+                        .arg(
+                            Arg::with_name("hash")
+                                .long("hash")
+                                .short("p")
+                                .takes_value(true)
+                                .required(false)
+                                .help(tr!("iotracectl-filter-hash")),
+                        ).arg(
+                            Arg::with_name("executable")
+                                .long("executable")
+                                .short("e")
+                                .takes_value(true)
+                                .required(false)
+                                .help(tr!("iotracectl-filter-executable")),
+                        ).arg(
+                            Arg::with_name("optimized")
+                                .long("optimized")
+                                .short("o")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[tr!("true"), tr!("false")])
+                                .help(tr!("iotracectl-filter-optimized")),
+                        ).arg(
+                            Arg::with_name("blacklisted")
+                                .long("blacklisted")
+                                .short("b")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[tr!("true"), tr!("false")])
+                                .help(tr!("iotracectl-filter-blacklisted")),
+                        ).arg(
+                            Arg::with_name("flags")
+                                .long("flags")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[
+                                    tr!("filter-valid"),
+                                    tr!("filter-invalid"),
+                                    tr!("filter-fresh"),
+                                    tr!("filter-expired"),
+                                    tr!("filter-current"),
+                                    tr!("filter-outdated"),
+                                    tr!("filter-missing"),
+                                ]).help(tr!("iotracectl-filter-iotrace")),
+                        ).arg(
+                            Arg::with_name("sort")
+                                .long("sort")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[
+                                    tr!("sort-executable"),
+                                    tr!("sort-hash"),
+                                    tr!("sort-date"),
+                                    tr!("sort-numfiles"),
+                                    tr!("sort-numioops"),
+                                    tr!("sort-iosize"),
+                                    tr!("sort-optimized"),
+                                    tr!("sort-blacklisted"),
+                                ]).default_value("date")
+                                .help(tr!("iotracectl-sort")),
+                        ).arg(
+                            Arg::with_name("order")
+                                .long("order")
+                                .takes_value(true)
+                                .required(false)
+                                .possible_values(&[
+                                    tr!("sort-asc"),
+                                    tr!("sort-ascending"),
+                                    tr!("sort-desc"),
+                                    tr!("sort-descending"),
+                                ]).default_value(tr!("sort-ascending"))
+                                .help(tr!("iotracectl-sort-order")),
+                        ).arg(
+                            Arg::with_name("dryrun")
+                                .long("dry-run")
+                                .short("n")
+                                .help(tr!("iotracectl-dry-run")),
+                        )
+                    ),
         ).subcommand(
             SubCommand::with_name("remove")
                 .setting(AppSettings::DeriveDisplayOrder)
@@ -439,6 +646,14 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .possible_values(&[tr!("true"), tr!("false")])
                         .help(tr!("iotracectl-filter-optimized")),
                 ).arg(
+                    Arg::with_name("blacklisted")
+                        .long("blacklisted")
+                        .short("b")
+                        .takes_value(true)
+                        .required(false)
+                        .possible_values(&[tr!("true"), tr!("false")])
+                        .help(tr!("iotracectl-filter-blacklisted")),
+                ).arg(
                     Arg::with_name("flags")
                         .long("flags")
                         .takes_value(true)
@@ -465,6 +680,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                             tr!("sort-numioops"),
                             tr!("sort-iosize"),
                             tr!("sort-optimized"),
+                            tr!("sort-blacklisted"),
                         ]).default_value("date")
                         .help(tr!("iotracectl-sort")),
                 ).arg(
