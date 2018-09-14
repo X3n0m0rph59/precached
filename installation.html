@@ -6,6 +6,15 @@ sidebar_link: true
 
 <h3>Quick Installation Guide</h3>
 
+<h4>Installation on Manjaro or other Arch Linux based Distros</h4>
+<code>
+  $ git clone https://gitlab.com/X3n0m0rph59/precached.git<br/>
+  $ cd support/pkg/<br/>
+  $ updpkgsums<br/>
+  $ makepgkg -si<br/>
+  $ sudo systemctl enable --now precached.service<br/>
+</code>
+
 <h4>Installation on Fedora</h4>
 <code>
   $ sudo dnf copr enable x3n0m0rph59/precached<br/>
@@ -18,6 +27,7 @@ sidebar_link: true
   $ sudo add-apt-repository ppa:x3n0m0rph59/precached<br/>
   $ sudo apt update<br/>
   $ sudo apt install precached<br/>
+  $ sudo systemctl enable --now precached.service<br/>
 </code>
 
 <h4>Installation from Source</h4>
