@@ -1,0 +1,17 @@
+---
+layout: post
+title: "Version 1.3.2"
+date:   2018-09-14 19:10:00
+tags: release
+---
+
+# Version 1.3.2 has been tagged
+
+We just tagged the 1.3.2 release!
+
+Some new and noteworthy features are:
+
+* Updated all dependencies to their current revisions
+* A few minor issues have been fixed
+
+The precached team
