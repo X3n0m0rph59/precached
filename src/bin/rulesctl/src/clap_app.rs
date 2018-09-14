@@ -29,7 +29,7 @@ where
     'a: 'b,
 {
     App::new("rulesctl")
-        .version("1.3.1")
+        .version("1.3.2")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
         .about(tr!("rulesctl-about"))
         .setting(AppSettings::GlobalVersion)

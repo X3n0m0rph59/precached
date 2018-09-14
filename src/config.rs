@@ -38,7 +38,7 @@ pub struct Config {
 impl Config {
     pub fn new() -> Config {
         let matches = App::new("precached")
-            .version("1.3.1")
+            .version("1.3.2")
             .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
             .about("A Linux process monitor and pre-caching daemon")
             .arg(
