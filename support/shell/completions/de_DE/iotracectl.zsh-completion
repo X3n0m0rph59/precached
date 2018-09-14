@@ -52,8 +52,10 @@ _arguments "${_arguments_options[@]}" \
 '--executable=[Filtern anhand der ausführbaren Datei]' \
 '-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
 '--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'-b+[Filtern anhand des Blackliststatus]: :(true false)' \
+'--blacklisted=[Filtern anhand des Blackliststatus]: :(true false)' \
 '--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
-'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized blacklisted)' \
 '--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
 '(-f --full -s --short -t --terse)--tabular[Das tabellarische Ausgabeformat benutzen]' \
 '(--tabular -s --short -t --terse)-f[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
@@ -76,8 +78,10 @@ _arguments "${_arguments_options[@]}" \
 '--executable=[Filtern anhand der ausführbaren Datei]' \
 '-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
 '--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'-b+[Filtern anhand des Blackliststatus]: :(true false)' \
+'--blacklisted=[Filtern anhand des Blackliststatus]: :(true false)' \
 '--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
-'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized blacklisted)' \
 '--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
 '(-s --short)-f[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
 '(-s --short)--full[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
@@ -97,8 +101,10 @@ _arguments "${_arguments_options[@]}" \
 '--executable=[Filtern anhand der ausführbaren Datei]' \
 '-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
 '--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'-b+[Filtern anhand des Blackliststatus]: :(true false)' \
+'--blacklisted=[Filtern anhand des Blackliststatus]: :(true false)' \
 '--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
-'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized blacklisted)' \
 '--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
 '(-s --short)-f[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
 '(-s --short)--full[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
@@ -141,6 +147,8 @@ _arguments "${_arguments_options[@]}" \
 '--executable=[Filtern anhand der ausführbaren Datei]' \
 '-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
 '--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'-b+[Filtern anhand des Blackliststatus]: :(true false)' \
+'--blacklisted=[Filtern anhand des Blackliststatus]: :(true false)' \
 '--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
 '(-s --short)-f[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
 '(-s --short)--full[Das volle Ausgabeformat benutzen (alle Felder anzeigen)]' \
@@ -160,8 +168,10 @@ _arguments "${_arguments_options[@]}" \
 '--executable=[Filtern anhand der ausführbaren Datei]' \
 '-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
 '--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'-b+[Filtern anhand des Blackliststatus]: :(true false)' \
+'--blacklisted=[Filtern anhand des Blackliststatus]: :(true false)' \
 '--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
-'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized blacklisted)' \
 '--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
 '-n[Keine Aktion ausführen, nur so tun als ob]' \
 '--dry-run[Keine Aktion ausführen, nur so tun als ob]' \
@@ -171,7 +181,22 @@ _arguments "${_arguments_options[@]}" \
 '--version[Prints version information]' \
 && ret=0
 ;;
-(delete)
+(blacklist)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_iotracectl__blacklist_commands" \
+"*::: :->blacklist" \
+&& ret=0
+case $state in
+    (blacklist)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:iotracectl-blacklist-command-$line[1]:"
+        case $line[1] in
+            (add)
 _arguments "${_arguments_options[@]}" \
 '-p+[Filtern anhand des Hashwerts]' \
 '--hash=[Filtern anhand des Hashwerts]' \
@@ -179,8 +204,10 @@ _arguments "${_arguments_options[@]}" \
 '--executable=[Filtern anhand der ausführbaren Datei]' \
 '-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
 '--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'-b+[Filtern anhand des Blackliststatus]: :(true false)' \
+'--blacklisted=[Filtern anhand des Blackliststatus]: :(true false)' \
 '--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
-'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized blacklisted)' \
 '--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
 '-n[Keine Aktion ausführen, nur so tun als ob]' \
 '--dry-run[Keine Aktion ausführen, nur so tun als ob]' \
@@ -198,8 +225,64 @@ _arguments "${_arguments_options[@]}" \
 '--executable=[Filtern anhand der ausführbaren Datei]' \
 '-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
 '--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'-b+[Filtern anhand des Blackliststatus]: :(true false)' \
+'--blacklisted=[Filtern anhand des Blackliststatus]: :(true false)' \
 '--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
-'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized blacklisted)' \
+'--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
+'-n[Keine Aktion ausführen, nur so tun als ob]' \
+'--dry-run[Keine Aktion ausführen, nur so tun als ob]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(delete)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filtern anhand des Hashwerts]' \
+'--hash=[Filtern anhand des Hashwerts]' \
+'-e+[Filtern anhand der ausführbaren Datei]' \
+'--executable=[Filtern anhand der ausführbaren Datei]' \
+'-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'-b+[Filtern anhand des Blackliststatus]: :(true false)' \
+'--blacklisted=[Filtern anhand des Blackliststatus]: :(true false)' \
+'--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized blacklisted)' \
+'--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
+'-n[Keine Aktion ausführen, nur so tun als ob]' \
+'--dry-run[Keine Aktion ausführen, nur so tun als ob]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(remove)
+_arguments "${_arguments_options[@]}" \
+'-p+[Filtern anhand des Hashwerts]' \
+'--hash=[Filtern anhand des Hashwerts]' \
+'-e+[Filtern anhand der ausführbaren Datei]' \
+'--executable=[Filtern anhand der ausführbaren Datei]' \
+'-o+[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'--optimized=[Filtern anhand des Optimierungsstatus]: :(true false)' \
+'-b+[Filtern anhand des Blackliststatus]: :(true false)' \
+'--blacklisted=[Filtern anhand des Blackliststatus]: :(true false)' \
+'--flags=[Filtern anhand von Flags]: :(valid invalid fresh expired current outdated missing)' \
+'--sort=[Sortieren nach Feld]: :(executable hash date numfiles numioops iosize optimized blacklisted)' \
 '--order=[Sortierreihenfolge]: :(asc ascending desc descending)' \
 '-n[Keine Aktion ausführen, nur so tun als ob]' \
 '--dry-run[Keine Aktion ausführen, nur so tun als ob]' \
@@ -251,6 +334,7 @@ _iotracectl_commands() {
 "analyze:I/O Trace Logs analysieren (fehlende Dateien anzeigen)" \
 "sizes:Belegung des Virtuellen Speichers berechnen" \
 "optimize:I/O Trace Logs optimieren" \
+"blacklist:Verwaltet die dynamische Blackliste" \
 "remove:I/O Trace Logs entfernen" \
 "clear:Alle I/O Trace Logs löschen und das precached I/O Tracing Subsystem zurücksetzen" \
 "help:Diese Kurzhilfe anzeigen" \
@@ -258,12 +342,28 @@ _iotracectl_commands() {
     )
     _describe -t commands 'iotracectl commands' commands "$@"
 }
+(( $+functions[_iotracectl__blacklist__add_commands] )) ||
+_iotracectl__blacklist__add_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl blacklist add commands' commands "$@"
+}
 (( $+functions[_iotracectl__analyze_commands] )) ||
 _iotracectl__analyze_commands() {
     local commands; commands=(
         
     )
     _describe -t commands 'iotracectl analyze commands' commands "$@"
+}
+(( $+functions[_iotracectl__blacklist_commands] )) ||
+_iotracectl__blacklist_commands() {
+    local commands; commands=(
+        "add:I/O Trace Logs zu der dynamischen Blackliste hinzufügen" \
+"remove:I/O Trace Logs aus der dynamischen Blackliste entfernen" \
+"help:Prints this message or the help of the given subcommand(s)" \
+    )
+    _describe -t commands 'iotracectl blacklist commands' commands "$@"
 }
 (( $+functions[_iotracectl__clear_commands] )) ||
 _iotracectl__clear_commands() {
@@ -300,6 +400,13 @@ _iotracectl__dump_commands() {
     )
     _describe -t commands 'iotracectl dump commands' commands "$@"
 }
+(( $+functions[_iotracectl__blacklist__help_commands] )) ||
+_iotracectl__blacklist__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl blacklist help commands' commands "$@"
+}
 (( $+functions[_iotracectl__help_commands] )) ||
 _iotracectl__help_commands() {
     local commands; commands=(
@@ -327,6 +434,13 @@ _iotracectl__optimize_commands() {
         
     )
     _describe -t commands 'iotracectl optimize commands' commands "$@"
+}
+(( $+functions[_iotracectl__blacklist__remove_commands] )) ||
+_iotracectl__blacklist__remove_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'iotracectl blacklist remove commands' commands "$@"
 }
 (( $+functions[_iotracectl__remove_commands] )) ||
 _iotracectl__remove_commands() {

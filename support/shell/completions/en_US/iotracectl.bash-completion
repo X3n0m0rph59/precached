@@ -13,8 +13,14 @@ _iotracectl() {
                 cmd="iotracectl"
                 ;;
             
+            add)
+                cmd+="__add"
+                ;;
             analyze)
                 cmd+="__analyze"
+                ;;
+            blacklist)
+                cmd+="__blacklist"
                 ;;
             clear)
                 cmd+="__clear"
@@ -59,7 +65,7 @@ _iotracectl() {
 
     case "${cmd}" in
         iotracectl)
-            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status list info dump analyze sizes optimize remove clear help completions  show  delete"
+            opts=" -a -u -v -h -V -c  --ascii --unicode --help --version --config   status list info dump analyze sizes optimize blacklist remove clear help completions  show  delete"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -105,6 +111,154 @@ _iotracectl() {
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             return 0
             ;;
+        iotracectl__blacklist)
+            opts=" -h -V  --help --version   add remove help"
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__blacklist__add)
+            opts=" -n -h -V -p -e -o -b  --dry-run --help --version --hash --executable --optimized --blacklisted --flags --sort --order  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                --optimized)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --blacklisted)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -b)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --flags)
+                    COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated missing" -- ${cur}))
+                    return 0
+                    ;;
+                --sort)
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized blacklisted" -- ${cur}))
+                    return 0
+                    ;;
+                --order)
+                    COMPREPLY=($(compgen -W "asc ascending desc descending" -- ${cur}))
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__blacklist__help)
+            opts=" -h -V  --help --version  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        iotracectl__blacklist__remove)
+            opts=" -n -h -V -p -e -o -b  --dry-run --help --version --hash --executable --optimized --blacklisted --flags --sort --order  "
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                return 0
+            fi
+            case "${prev}" in
+                
+                --hash)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                    -p)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                --executable)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                    -e)
+                    COMPREPLY=($(compgen -f ${cur}))
+                    return 0
+                    ;;
+                --optimized)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --blacklisted)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -b)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --flags)
+                    COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated missing" -- ${cur}))
+                    return 0
+                    ;;
+                --sort)
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized blacklisted" -- ${cur}))
+                    return 0
+                    ;;
+                --order)
+                    COMPREPLY=($(compgen -W "asc ascending desc descending" -- ${cur}))
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
         iotracectl__clear)
             opts=" -n -h -V  --dry-run --help --version  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
@@ -136,7 +290,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__delete)
-            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --flags --sort --order  "
+            opts=" -n -h -V -p -e -o -b  --dry-run --help --version --hash --executable --optimized --blacklisted --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -167,12 +321,20 @@ _iotracectl() {
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
                     return 0
                     ;;
+                --blacklisted)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -b)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
                 --flags)
                     COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated missing" -- ${cur}))
                     return 0
                     ;;
                 --sort)
-                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized blacklisted" -- ${cur}))
                     return 0
                     ;;
                 --order)
@@ -225,7 +387,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__info)
-            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --flags --sort --order  "
+            opts=" -f -s -h -V -p -e -o -b  --full --short --help --version --hash --executable --optimized --blacklisted --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -256,12 +418,20 @@ _iotracectl() {
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
                     return 0
                     ;;
+                --blacklisted)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -b)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
                 --flags)
                     COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated missing" -- ${cur}))
                     return 0
                     ;;
                 --sort)
-                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized blacklisted" -- ${cur}))
                     return 0
                     ;;
                 --order)
@@ -276,7 +446,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__list)
-            opts=" -f -s -t -h -V -p -e -o  --tabular --full --short --terse --help --version --hash --executable --optimized --flags --sort --order  "
+            opts=" -f -s -t -h -V -p -e -o -b  --tabular --full --short --terse --help --version --hash --executable --optimized --blacklisted --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -307,12 +477,20 @@ _iotracectl() {
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
                     return 0
                     ;;
+                --blacklisted)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -b)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
                 --flags)
                     COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated missing" -- ${cur}))
                     return 0
                     ;;
                 --sort)
-                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized blacklisted" -- ${cur}))
                     return 0
                     ;;
                 --order)
@@ -327,7 +505,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__optimize)
-            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --flags --sort --order  "
+            opts=" -n -h -V -p -e -o -b  --dry-run --help --version --hash --executable --optimized --blacklisted --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -358,12 +536,20 @@ _iotracectl() {
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
                     return 0
                     ;;
+                --blacklisted)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -b)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
                 --flags)
                     COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated missing" -- ${cur}))
                     return 0
                     ;;
                 --sort)
-                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized blacklisted" -- ${cur}))
                     return 0
                     ;;
                 --order)
@@ -378,7 +564,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__remove)
-            opts=" -n -h -V -p -e -o  --dry-run --help --version --hash --executable --optimized --flags --sort --order  "
+            opts=" -n -h -V -p -e -o -b  --dry-run --help --version --hash --executable --optimized --blacklisted --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -409,12 +595,20 @@ _iotracectl() {
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
                     return 0
                     ;;
+                --blacklisted)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -b)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
                 --flags)
                     COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated missing" -- ${cur}))
                     return 0
                     ;;
                 --sort)
-                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized blacklisted" -- ${cur}))
                     return 0
                     ;;
                 --order)
@@ -429,7 +623,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__show)
-            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --flags --sort --order  "
+            opts=" -f -s -h -V -p -e -o -b  --full --short --help --version --hash --executable --optimized --blacklisted --flags --sort --order  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -460,12 +654,20 @@ _iotracectl() {
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
                     return 0
                     ;;
+                --blacklisted)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -b)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
                 --flags)
                     COMPREPLY=($(compgen -W "valid invalid fresh expired current outdated missing" -- ${cur}))
                     return 0
                     ;;
                 --sort)
-                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized" -- ${cur}))
+                    COMPREPLY=($(compgen -W "executable hash date numfiles numioops iosize optimized blacklisted" -- ${cur}))
                     return 0
                     ;;
                 --order)
@@ -480,7 +682,7 @@ _iotracectl() {
             return 0
             ;;
         iotracectl__sizes)
-            opts=" -f -s -h -V -p -e -o  --full --short --help --version --hash --executable --optimized --flags  "
+            opts=" -f -s -h -V -p -e -o -b  --full --short --help --version --hash --executable --optimized --blacklisted --flags  "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
                 return 0
@@ -508,6 +710,14 @@ _iotracectl() {
                     return 0
                     ;;
                     -o)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                --blacklisted)
+                    COMPREPLY=($(compgen -W "true false" -- ${cur}))
+                    return 0
+                    ;;
+                    -b)
                     COMPREPLY=($(compgen -W "true false" -- ${cur}))
                     return 0
                     ;;
