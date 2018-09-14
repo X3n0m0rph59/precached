@@ -614,7 +614,8 @@ impl IOtracePrefetcher {
                                                         let static_blacklist_plugin =
                                                             p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
-                                                        static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
+                                                        static_blacklist
+                                                            .append(&mut static_blacklist_plugin.get_blacklist().clone());
                                                     }
                                                 };
 

@@ -455,7 +455,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                 .about(tr!("iotracectl-blacklist"))
                 .subcommand(
                     SubCommand::with_name("add")
-                        .setting(AppSettings::DeriveDisplayOrder)                
+                        .setting(AppSettings::DeriveDisplayOrder)
                         .about(tr!("iotracectl-blacklist-add"))
                         .arg(
                             Arg::with_name("hash")
@@ -537,7 +537,7 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         )
                     ).subcommand(
                     SubCommand::with_name("remove")
-                        .setting(AppSettings::DeriveDisplayOrder)                
+                        .setting(AppSettings::DeriveDisplayOrder)
                         .about(tr!("iotracectl-blacklist-remove"))
                         .arg(
                             Arg::with_name("hash")

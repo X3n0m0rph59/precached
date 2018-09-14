@@ -125,7 +125,7 @@ pub enum IOTraceLogFlag {
 
 pub fn map_io_trace_flag_to_string(flag: IOTraceLogFlag) -> &'static str {
     match flag {
-        IOTraceLogFlag::Unknown => tr!("unknown"),        
+        IOTraceLogFlag::Unknown => tr!("unknown"),
         IOTraceLogFlag::Valid => tr!("valid"),
         IOTraceLogFlag::Invalid => tr!("invalid"),
         IOTraceLogFlag::Fresh => tr!("fresh"),
@@ -137,13 +137,13 @@ pub fn map_io_trace_flag_to_string(flag: IOTraceLogFlag) -> &'static str {
 }
 
 // May be used as default initializer for serde fields
-fn true_value() -> bool { 
+fn true_value() -> bool {
     true
 }
 
 // May be used as default initializer for serde fields
 fn false_value() -> bool {
-     false 
+    false
 }
 
 /// Represents an I/O trace log `.trace` file
@@ -169,9 +169,9 @@ pub struct IOTraceLog {
     /// The total amount of data in bytes that the I/O trace log references
     pub accumulated_size: u64,
     /// Specifies whether the trace log has been optimized already
-    pub trace_log_optimized: bool,    
+    pub trace_log_optimized: bool,
     /// Specifies whether the trace log has been blacklisted
-    #[serde(default="false_value")]
+    #[serde(default = "false_value")]
     pub blacklisted: bool,
 }
 

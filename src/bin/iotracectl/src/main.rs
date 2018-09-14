@@ -43,7 +43,7 @@ extern crate toml;
 extern crate zstd;
 
 use chrono::{DateTime, Local, TimeZone, Utc};
-use clap::{App, AppSettings, Arg, Shell, SubCommand, ArgMatches};
+use clap::{App, AppSettings, Arg, ArgMatches, Shell, SubCommand};
 use iotrace::{IOOperation, IOTraceLogFlag};
 use pbr::ProgressBar;
 use prettytable::cell::Cell;
@@ -1607,7 +1607,7 @@ fn main() {
                 }
             } else {
                 print_usage_blacklist(&mut config_c);
-            }
+            },
 
             "remove" | "delete" => {
                 remove_io_traces(&config, daemon_config.clone());

@@ -99,16 +99,11 @@ pub fn optimize_io_trace_log(
     Ok(())
 }
 
-pub fn blacklist_io_trace_log(
-    filename: &Path,
-    io_trace: &mut iotrace::IOTraceLog,
-    blacklist: bool,
-    dry_run: bool,
-) -> Result<()> {
+pub fn blacklist_io_trace_log(filename: &Path, io_trace: &mut iotrace::IOTraceLog, blacklist: bool, dry_run: bool) -> Result<()> {
     trace!("Blacklisting I/O trace log...");
-    
+
     io_trace.blacklisted = blacklist;
-    
+
     if !dry_run {
         io_trace.save(filename, 0, 0, true)?;
     }

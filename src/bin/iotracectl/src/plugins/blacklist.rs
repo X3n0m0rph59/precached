@@ -18,24 +18,24 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate nix;
 extern crate clap;
 extern crate lazy_static;
+extern crate nix;
 
-use std::io;
-use std::fs::read_dir;
+use clap::{App, AppSettings, Arg, SubCommand};
+use constants;
+use i18n;
+use iotrace;
 use pbr::ProgressBar;
 use prettytable::cell::Cell;
 use prettytable::format::*;
 use prettytable::row::Row;
 use prettytable::Table;
+use std::fs::read_dir;
+use std::io;
+use std::path::{Path, PathBuf};
 use term::color::*;
 use term::Attr;
-use std::path::{Path, PathBuf};
-use clap::{App, AppSettings, Arg, SubCommand};
-use constants;
-use i18n;
-use iotrace;
 use util;
 use {default_table_format, Config, PROGRESS_BAR_INDICATORS};
 use {get_io_traces_filtered_and_sorted, parse_sort_field, parse_sort_order};
@@ -77,10 +77,20 @@ pub fn blacklist_io_traces(config: &Config, daemon_config: util::ConfigFile, bla
     }
 
     let matches = if blacklist {
-                        config.matches.subcommand_matches("blacklist").unwrap().subcommand_matches("add").unwrap()
-                  } else {
-                        config.matches.subcommand_matches("blacklist").unwrap().subcommand_matches("remove").unwrap()
-                  };
+        config
+            .matches
+            .subcommand_matches("blacklist")
+            .unwrap()
+            .subcommand_matches("add")
+            .unwrap()
+    } else {
+        config
+            .matches
+            .subcommand_matches("blacklist")
+            .unwrap()
+            .subcommand_matches("remove")
+            .unwrap()
+    };
 
     let (result, total, matching, mut errors) = get_io_traces_filtered_and_sorted(
         config,
@@ -100,10 +110,22 @@ pub fn blacklist_io_traces(config: &Config, daemon_config: util::ConfigFile, bla
     }
 
     let dry_run = if blacklist {
-                        config.matches.subcommand_matches("blacklist").unwrap().subcommand_matches("add").unwrap().is_present("dryrun")
-                  } else {
-                        config.matches.subcommand_matches("blacklist").unwrap().subcommand_matches("remove").unwrap().is_present("dryrun")
-                  };
+        config
+            .matches
+            .subcommand_matches("blacklist")
+            .unwrap()
+            .subcommand_matches("add")
+            .unwrap()
+            .is_present("dryrun")
+    } else {
+        config
+            .matches
+            .subcommand_matches("blacklist")
+            .unwrap()
+            .subcommand_matches("remove")
+            .unwrap()
+            .is_present("dryrun")
+    };
 
     let mut table = Table::new();
     table.set_format(default_table_format(&config));
@@ -135,20 +157,20 @@ pub fn blacklist_io_traces(config: &Config, daemon_config: util::ConfigFile, bla
 
             Ok(_) => {
                 let cell = if blacklist {
-                                Cell::new(&tr!("iotracectl-blacklisted"))
-                                    .with_style(Attr::Bold)
-                                    .with_style(Attr::ForegroundColor(YELLOW))
-                            } else {
-                                Cell::new(&tr!("iotracectl-unblacklisted"))
-                                    .with_style(Attr::Bold)
-                                    .with_style(Attr::ForegroundColor(GREEN))
-                            };
+                    Cell::new(&tr!("iotracectl-blacklisted"))
+                        .with_style(Attr::Bold)
+                        .with_style(Attr::ForegroundColor(YELLOW))
+                } else {
+                    Cell::new(&tr!("iotracectl-unblacklisted"))
+                        .with_style(Attr::Bold)
+                        .with_style(Attr::ForegroundColor(GREEN))
+                };
 
                 // Print in "tabular" format (the default)
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    cell,                           
+                    cell,
                 ]));
             }
         }
