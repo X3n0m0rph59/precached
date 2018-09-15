@@ -15,7 +15,7 @@ programs while the system is idle.
 
 ```shell
     $ git clone https://gitlab.com/X3n0m0rph59/precached.git
-    $ cd support/pkg/
+    $ cd precached/support/pkg/
     $ updpkgsums
     $ makepgkg -si
     $ sudo systemctl enable --now precached.service
