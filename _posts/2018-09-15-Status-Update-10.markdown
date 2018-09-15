@@ -31,9 +31,8 @@ I/O trace logs are the following:
 * Blacklisted I/O trace logs are excempt from online- and offline prefetching
 * They retain their I/O trace information for immediate reuse, in case the are
   un-blacklisted
-* Invalidated but blacklisted I/O trace logs will still be updated (re-traced)
-  to allow for an immediate reuse after they are un-blacklisted
-* Expired but blacklisted I/O trace logs will be kept, unlike expired "active"
-  I/O trace logs
+* Invalidated but blacklisted I/O trace logs will no longer be updated (re-traced)
+* Expired but blacklisted I/O trace logs will be kept (not garbage collected), 
+  unlike expired "active" I/O trace logs
 
 The precached team
