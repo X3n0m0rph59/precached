@@ -133,6 +133,12 @@ impl IOtraceLogManager {
             result = true;
         }
 
+        // do not prune blacklisted traces, even if they otherwise
+        // would have been pruned
+        if io_trace.blacklisted {
+            result = false;
+        }
+
         result
     }
 
@@ -146,7 +152,7 @@ impl IOtraceLogManager {
         let mut pruned = 0;
         let mut errors = 0;
 
-        match util::walk_directories(&vec![traces_path], &mut |path| {
+        match util::walk_directories(&[traces_path], &mut |path| {
             match iotrace::IOTraceLog::from_file(path) {
                 Err(e) => {
                     error!("Skipped invalid I/O trace file, file not readable: {}", e);

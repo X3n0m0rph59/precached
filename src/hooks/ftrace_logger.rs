@@ -448,15 +448,20 @@ impl FtraceLogger {
                                 Err(_e) => Ok(true),
 
                                 Ok(io_trace) => {
-                                    let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
-
-                                    if err
-                                        || flags.contains(&iotrace::IOTraceLogFlag::Expired)
-                                        || flags.contains(&iotrace::IOTraceLogFlag::Outdated)
-                                    {
-                                        Ok(true)
-                                    } else {
+                                    if (io_trace.blacklisted) {
+                                        // do not overwrite a dynamically blacklisted I/O trace log
                                         Ok(false)
+                                    } else {
+                                        let (flags, err, _) = util::get_io_trace_flags_and_err(&io_trace);
+
+                                        if err
+                                            || flags.contains(&iotrace::IOTraceLogFlag::Expired)
+                                            || flags.contains(&iotrace::IOTraceLogFlag::Outdated)
+                                        {
+                                            Ok(true)
+                                        } else {
+                                            Ok(false)
+                                        }
                                     }
                                 }
                             }
