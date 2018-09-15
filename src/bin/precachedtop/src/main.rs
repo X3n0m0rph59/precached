@@ -324,8 +324,7 @@ impl Application {
                         }
 
                         SelectableList::default()
-                            .block(Block::default().borders(Borders::ALL)
-                            .title(tr!("active-traces")))
+                            .block(Block::default().borders(Borders::ALL).title(tr!("active-traces")))
                             .items(&trace_items)
                             // .select(self.sel_index_active_traces)
                             .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -347,8 +346,7 @@ impl Application {
                         }
 
                         SelectableList::default()
-                            .block(Block::default().borders(Borders::ALL)
-                            .title(tr!("prefetcher-threads")))
+                            .block(Block::default().borders(Borders::ALL).title(tr!("prefetcher-threads")))
                             .items(&prefetcher)
                             // .select(self.sel_index)
                             .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
@@ -366,8 +364,7 @@ impl Application {
                         events.reverse();
 
                         SelectableList::default()
-                            .block(Block::default().borders(Borders::ALL)
-                            .title(tr!("events")))
+                            .block(Block::default().borders(Borders::ALL).title(tr!("events")))
                             .items(&events)
                             // .select(self.sel_index_events)
                             .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))

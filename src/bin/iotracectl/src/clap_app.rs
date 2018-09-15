@@ -61,13 +61,15 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("iotracectl-show-status"))
-                .arg(Arg::with_name("tabular")
-                            .long("tabular")
-                            // .short("t")
-                            // .conflicts_with("full")
-                            // .conflicts_with("short")
-                            // .conflicts_with("terse")
-                            .help(tr!("iotracectl-tabular"))),
+                .arg(
+                    Arg::with_name("tabular")
+                        .long("tabular")
+                        // .short("t")
+                        // .conflicts_with("full")
+                        // .conflicts_with("short")
+                        // .conflicts_with("terse")
+                        .help(tr!("iotracectl-tabular")),
+                ),
         ).subcommand(
             SubCommand::with_name("list")
                 .setting(AppSettings::DeriveDisplayOrder)
@@ -292,19 +294,21 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                         .help(tr!("iotracectl-param-hash")),
                 ).arg(
                     Arg::with_name("tabular")
-                            .long("tabular")
-                            // .short("t")
-                            // .conflicts_with("full")
-                            // .conflicts_with("short")
-                            .conflicts_with("terse")
-                            .help(tr!("iotracectl-tabular")),
-                ).arg(Arg::with_name("terse")
-                            .long("terse")
-                            .short("t")
-                            // .conflicts_with("tabular")
-                            // .conflicts_with("full")
-                            // .conflicts_with("short")
-                            .help(tr!("iotracectl-terse"))),
+                        .long("tabular")
+                        // .short("t")
+                        // .conflicts_with("full")
+                        // .conflicts_with("short")
+                        .conflicts_with("terse")
+                        .help(tr!("iotracectl-tabular")),
+                ).arg(
+                    Arg::with_name("terse")
+                        .long("terse")
+                        .short("t")
+                        // .conflicts_with("tabular")
+                        // .conflicts_with("full")
+                        // .conflicts_with("short")
+                        .help(tr!("iotracectl-terse")),
+                ),
         ).subcommand(
             SubCommand::with_name("sizes")
                 .setting(AppSettings::DeriveDisplayOrder)
@@ -534,8 +538,8 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                                 .long("dry-run")
                                 .short("n")
                                 .help(tr!("iotracectl-dry-run")),
-                        )
-                    ).subcommand(
+                        ),
+                ).subcommand(
                     SubCommand::with_name("remove")
                         .setting(AppSettings::DeriveDisplayOrder)
                         .about(tr!("iotracectl-blacklist-remove"))
@@ -616,8 +620,8 @@ pub fn get_app<'a, 'b>() -> App<'a, 'b> {
                                 .long("dry-run")
                                 .short("n")
                                 .help(tr!("iotracectl-dry-run")),
-                        )
-                    ),
+                        ),
+                ),
         ).subcommand(
             SubCommand::with_name("remove")
                 .setting(AppSettings::DeriveDisplayOrder)

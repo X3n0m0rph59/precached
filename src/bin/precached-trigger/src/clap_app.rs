@@ -65,12 +65,12 @@ where
                 .about(tr!("precached-trigger-status"))
                 .arg(
                     Arg::with_name("tabular")
-                            .long("tabular")
-                            // .short("t")
-                            // .conflicts_with("full")
-                            // .conflicts_with("short")
-                            // .conflicts_with("terse")
-                            .help(tr!("precached-trigger-tabular")),
+                        .long("tabular")
+                        // .short("t")
+                        // .conflicts_with("full")
+                        // .conflicts_with("short")
+                        // .conflicts_with("terse")
+                        .help(tr!("precached-trigger-tabular")),
                 ),
         ).subcommand(
             SubCommand::with_name("help")

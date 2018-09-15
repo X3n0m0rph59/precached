@@ -159,42 +159,42 @@ fn create_iface(
 
     (
         f.interface("org.precached.precached1.statistics", ())
-        // The online property can be both set and get
-        // .add_p(f.property::<bool,_>("online", ())
-        //     .access(Access::ReadWrite)
-        //     .on_get(|i, m| {
-        //         let dev: &Arc<ProcessStats> = m.path.get_data();
-        //         i.append(dev.online.get());
-        //         Ok(())
-        //     })
-        //     .on_set(|i, m| {
-        //         let dev: &Arc<ProcessStats> = m.path.get_data();
-        //         let b: bool = i.read()?;
-        //         if b && dev.checking.get() {
-        //             return Err(MethodErr::failed(&"Device currently under check, cannot bring online"))
-        //         }
-        //         dev.online.set(b);
-        //         Ok(())
-        //     })
-        // )
-        // The "checking" property is read only
-        // .add_p(f.property::<bool,_>("checking", ())
-        //     .emits_changed(EmitsChangedSignal::False)
-        //     .on_get(|i, m| {
-        //         let dev: &Arc<ProcessStats> = m.path.get_data();
-        //         i.append(dev.checking.get());
-        //         Ok(())
-        //     })
-        // )
-
-        .add_p(f.property::<&str,_>("comm", ())
-            .emits_changed(EmitsChangedSignal::Const)
-            .on_get(|i, m| {
-                let process: &Arc<ProcessStats> = m.path.get_data();
-                i.append(&process.comm);
-                Ok(())
-            })
-        ), // ...add a method for starting a device check...
+            // The online property can be both set and get
+            // .add_p(f.property::<bool,_>("online", ())
+            //     .access(Access::ReadWrite)
+            //     .on_get(|i, m| {
+            //         let dev: &Arc<ProcessStats> = m.path.get_data();
+            //         i.append(dev.online.get());
+            //         Ok(())
+            //     })
+            //     .on_set(|i, m| {
+            //         let dev: &Arc<ProcessStats> = m.path.get_data();
+            //         let b: bool = i.read()?;
+            //         if b && dev.checking.get() {
+            //             return Err(MethodErr::failed(&"Device currently under check, cannot bring online"))
+            //         }
+            //         dev.online.set(b);
+            //         Ok(())
+            //     })
+            // )
+            // The "checking" property is read only
+            // .add_p(f.property::<bool,_>("checking", ())
+            //     .emits_changed(EmitsChangedSignal::False)
+            //     .on_get(|i, m| {
+            //         let dev: &Arc<ProcessStats> = m.path.get_data();
+            //         i.append(dev.checking.get());
+            //         Ok(())
+            //     })
+            // )
+            .add_p(
+                f.property::<&str, _>("comm", ())
+                    .emits_changed(EmitsChangedSignal::Const)
+                    .on_get(|i, m| {
+                        let process: &Arc<ProcessStats> = m.path.get_data();
+                        i.append(&process.comm);
+                        Ok(())
+                    }),
+            ), // ...add a method for starting a device check...
         // .add_m(f.method("check", (), move |m| {
         //     let dev: &Arc<ProcessStats> = m.path.get_data();
         //     if dev.checking.get() {

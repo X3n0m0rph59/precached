@@ -448,7 +448,7 @@ impl FtraceLogger {
                                 Err(_e) => Ok(true),
 
                                 Ok(io_trace) => {
-                                    if (io_trace.blacklisted) {
+                                    if io_trace.blacklisted {
                                         // do not overwrite a dynamically blacklisted I/O trace log
                                         Ok(false)
                                     } else {

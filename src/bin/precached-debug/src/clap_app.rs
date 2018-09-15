@@ -63,13 +63,15 @@ where
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precached-debug-status"))
-                .arg(Arg::with_name("tabular")
-                            .long("tabular")
-                            // .short("t")
-                            // .conflicts_with("full")
-                            // .conflicts_with("short")
-                            // .conflicts_with("terse")
-                            .help(tr!("precached-debug-tabular"))),
+                .arg(
+                    Arg::with_name("tabular")
+                        .long("tabular")
+                        // .short("t")
+                        // .conflicts_with("full")
+                        // .conflicts_with("short")
+                        // .conflicts_with("terse")
+                        .help(tr!("precached-debug-tabular")),
+                ),
         ).subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
@@ -80,10 +82,10 @@ where
                 .about(tr!("precached-debug-test-tracing"))
                 .arg(
                     Arg::with_name("sleep")
-                            .long("sleep")
-                            .short("s")
-                            // .conflicts_with("...")
-                            .help(tr!("precached-debug-test-tracing-help")),
+                        .long("sleep")
+                        .short("s")
+                        // .conflicts_with("...")
+                        .help(tr!("precached-debug-test-tracing-help")),
                 ),
         ).subcommand(
             SubCommand::with_name("cleanup")
