@@ -1,0 +1,17 @@
+---
+layout: post
+title: "Version 1.4.0"
+date:   2018-09-15 08:00:00
+tags: release
+---
+
+# Version 1.4.0 has been tagged
+
+We just tagged the 1.4.0 release!
+
+Some new and noteworthy features are:
+
+* Updated all dependencies to their current revisions
+* Added a dynamic blacklisting feature to blacklist I/O trace logs
+
+The precached team
