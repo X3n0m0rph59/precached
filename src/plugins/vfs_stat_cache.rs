@@ -156,7 +156,7 @@ impl VFSStatCache {
     }
 
     /// Get all files and directories that are currently contained in a whitelist,
-    /// either a statc whitelist or a dynamic whitelist. Returns a `Vec<String>`
+    /// either a static whitelist or a dynamic whitelist. Returns a `Vec<String>`
     /// filled with the globally whitelisted files
     fn get_globally_tracked_entries(&self, globals: &Globals, manager: &Manager) -> Vec<PathBuf> {
         let mut result = Vec::new();
