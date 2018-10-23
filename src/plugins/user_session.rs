@@ -181,7 +181,7 @@ impl UserSession {
 
     fn get_user_name_from_id(uid: Uid) -> Result<String, ()> {
         match get_user_by_uid(uid) {
-            Some(u) => Ok(String::from(u.name())),
+            Some(u) => Ok(String::from(u.name().to_string_lossy())),
             None => Err(()),
         }
     }

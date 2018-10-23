@@ -8,7 +8,7 @@ license = "GPLv3+"
 [lib]
 
 [dependencies]
-libc = "0.2.40"
+libc = "0.2.43"
 
 [build-dependencies]
-gcc = "0.3"
+cc = "1.0.25"

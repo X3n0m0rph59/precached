@@ -27,7 +27,7 @@ use util;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b> {
     App::new("iotracectl")
-        .version("1.4.0")
+        .version("1.4.1")
         .author(tr!("iotracectl-mail-contact"))
         .about(tr!("iotracectl-about"))
         // .versionless_subcommands(true)

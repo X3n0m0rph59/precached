@@ -18,10 +18,10 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern crate gcc;
+extern crate cc;
 
 fn main() {
-    gcc::Build::new()
+    cc::Build::new()
                 .file("src/c/procmon.c")
                 .include("src")
                 .compile("procmon");

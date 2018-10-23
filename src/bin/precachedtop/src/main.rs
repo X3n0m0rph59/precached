@@ -53,10 +53,10 @@ use nix::libc::pid_t;
 use nix::sys::signal::*;
 use nix::unistd::*;
 use pbr::ProgressBar;
-use prettytable::cell::Cell;
+use prettytable::Cell;
 use prettytable::format::Alignment;
 use prettytable::format::*;
-use prettytable::row::Row;
+use prettytable::Row;
 use prettytable::Table;
 use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
@@ -77,7 +77,8 @@ use term::Attr;
 use termion::event::{Event, Key, MouseEvent};
 use termion::input::{MouseTerminal, TermRead};
 use termion::raw::IntoRawMode;
-use tui::backend::{MouseBackend, RawBackend, TermionBackend};
+use termion::screen::AlternateScreen;
+use tui::backend::{Backend, TermionBackend};
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Text, Widget};
@@ -479,7 +480,11 @@ fn do_request(socket: &zmq::Socket, command: ipc::IpcCommand) -> Result<ipc::Ipc
 
 /// The main loop
 fn main_loop(_config: &mut Config) {
-    let backend = MouseBackend::new().unwrap();
+    // Terminal initialization
+    let stdout = io::stdout().into_raw_mode().unwrap();
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend).unwrap();
 
     terminal.clear().unwrap();

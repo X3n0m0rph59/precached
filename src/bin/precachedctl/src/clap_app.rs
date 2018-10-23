@@ -29,7 +29,7 @@ where
     'a: 'b,
 {
     App::new("precachedctl")
-        .version("1.4.0")
+        .version("1.4.1")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
         // .versionless_subcommands(true)
         // .subcommand_required_else_help(true)

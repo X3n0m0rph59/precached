@@ -1,6 +1,6 @@
 # Maintainer: X3n0m0rph59 <x3n0m0rph59@gmail.com>
 pkgname=precached
-pkgver=1.4.0
+pkgver=1.4.1
 pkgrel=1
 pkgdesc="A Linux process monitor and pre-caching daemon"
 arch=('i686' 'x86_64')
