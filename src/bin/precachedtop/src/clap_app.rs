@@ -27,7 +27,7 @@ where
     'a: 'b,
 {
     App::new("precachedtop")
-        .version("1.4.1")
+        .version("1.5.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
         // .versionless_subcommands(true)
         // .subcommand_required_else_help(true)

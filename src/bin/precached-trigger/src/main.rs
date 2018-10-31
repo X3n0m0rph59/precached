@@ -18,7 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#![feature(rust_2018_preview)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
@@ -43,9 +42,9 @@ use nix::libc::pid_t;
 use nix::sys::signal::*;
 use nix::unistd::*;
 use pbr::ProgressBar;
-use prettytable::cell::Cell;
 use prettytable::format::*;
-use prettytable::row::Row;
+use prettytable::Cell;
+use prettytable::Row;
 use prettytable::Table;
 
 #[macro_use]

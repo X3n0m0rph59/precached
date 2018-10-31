@@ -27,7 +27,7 @@ where
     'a: 'b,
 {
     App::new("rulesctl")
-        .version("1.4.1")
+        .version("1.5.0")
         .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
         .about(tr!("rulesctl-about"))
         // .versionless_subcommands(true)

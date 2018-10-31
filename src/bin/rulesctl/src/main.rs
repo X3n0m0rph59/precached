@@ -18,7 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#![feature(rust_2018_preview)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
 

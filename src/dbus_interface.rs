@@ -18,19 +18,19 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::any::Any;
-use std::collections::HashMap;
+// use std::any::Any;
+// use std::collections::HashMap;
 use std::path;
 use std::result::Result;
 use std::sync::mpsc;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use dbus::tree::{Access, EmitsChangedSignal, Interface, MTFn, MethodErr, Signal};
 use dbus::{tree, BusType, Connection, Path};
 use crate::constants;
-use crate::events;
-use crate::events::EventType;
-use crate::config_file;
+// use crate::events;
+// use crate::events::EventType;
+// use crate::config_file;
 use crate::globals::*;
 use crate::hooks::process_tracker::*;
 use crate::iotrace::IOTraceLog;

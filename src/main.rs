@@ -25,13 +25,11 @@
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system
 
-#![feature(rust_2018_preview)]
-
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
-#![allow(dead_code)]
-#![allow(unused_imports)]
-#![allow(unused_must_use)]
+// #![allow(dead_code)]
+// #![allow(unused_imports)]
+// #![allow(unused_must_use)]
 
 use std::env;
 use std::io;
@@ -254,7 +252,7 @@ fn initialize_logging() {
 }
 
 /// Program entrypoint
-fn main() {
+fn main() -> Result<(),()> {
     // Initialize the logging subsystem
     initialize_logging();
 
@@ -271,7 +269,7 @@ fn main() {
         Ok(_) => info!("Successfully parsed configuration file!"),
         Err(s) => {
             error!("Error in configuration file: {}", s);
-            return;
+            return Err(());
         }
     }
 
@@ -281,7 +279,7 @@ fn main() {
         Ok(_) => info!("System check passed!"),
         Err(s) => {
             error!("System check FAILED: {}", s);
-            return;
+            return Err(());
         }
     }
 
@@ -291,7 +289,7 @@ fn main() {
         Ok(_) => info!("System configuration applied successfully!"),
         Err(s) => {
             error!("System configuration FAILED: {}", s);
-            return;
+            return Err(());
         }
     }
 
@@ -300,7 +298,7 @@ fn main() {
         Ok(_) => info!("Process properties changed successfully!"),
         Err(s) => {
             error!("Error while changing the daemon's process properties: {}", s);
-            return;
+            return Err(());
         }
     }
 
@@ -312,9 +310,9 @@ fn main() {
         match util::daemonize(globals.clone()) {
             Err(e) => {
                 error!("Could not become a daemon: {}", e);
-                return; // Must fail here, since we were asked to
-                        // daemonize, and maybe there is another
-                        // instance already running!
+                return Err(()); // Must fail here, since we were asked to
+                                // daemonize, and maybe there is another
+                                // instance already running!
             }
 
             Ok(()) => {
@@ -330,7 +328,7 @@ fn main() {
         Ok(inst) => inst,
         Err(s) => {
             error!("Could not create process events monitor: {}", s);
-            return;
+            return Err(());
         }
     };
 
@@ -339,7 +337,7 @@ fn main() {
     match inotify_watches.setup_default_inotify_watches(&mut globals, &manager) {
         Err(s) => {
             error!("Could not set-up inotify subsystem: {}", s);
-            return;
+            return Err(());
         }
 
         _ => {
@@ -352,7 +350,7 @@ fn main() {
     match dbus_interface.register_connection(&mut globals, &manager) {
         Err(s) => {
             error!("Could not create dbus interface: {}", s);
-            return;
+            return Err(());
         }
 
         _ => {
@@ -377,7 +375,7 @@ fn main() {
 
         Err(s) => {
             error!("Could not initialize the IPC interface: {}", s);
-            return;
+            return Err(());
         }
     }
 
@@ -469,7 +467,7 @@ fn main() {
                     error!("Error in configuration file: {}", s);
 
                     // TODO: Don't crash here, handle gracefully
-                    return;
+                    return Err(());
                 }
             }
         }
@@ -560,11 +558,16 @@ fn main() {
     // Clean up now
     trace!("Cleaning up...");
 
-    util::insert_message_into_ftrace_stream(format!("precached exiting"));
+    util::insert_message_into_ftrace_stream(format!("precached exiting")).unwrap_or_else(|_| {
+        error!("Could not insert a message into the ftrace stream!");
+    });
+    
     util::notify(&String::from("precached terminating!"), &manager);
 
     #[allow(unused_must_use)]
-    util::remove_file(Path::new(constants::DAEMON_PID_FILE), false);
+    util::remove_file(Path::new(constants::DAEMON_PID_FILE), false).unwrap_or_else(|_| {
+        error!("Could not remove pid file!");
+    });
 
     // Unregister plugins and hooks
     plugins::unregister_plugins(&mut globals, &mut manager);
@@ -574,4 +577,6 @@ fn main() {
     inotify_watches.teardown_default_inotify_watches(&mut globals, &manager);
 
     info!("Exiting now");
+
+    Ok(())
 }

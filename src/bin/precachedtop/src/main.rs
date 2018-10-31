@@ -18,10 +18,22 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#![feature(rust_2018_preview)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
+use chrono::{DateTime, Local, TimeZone, Utc};
+use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use log::{logger, trace, debug, info, warn, error, log, LevelFilter};
+use nix::libc::pid_t;
+use nix::sys::signal::*;
+use nix::unistd::*;
+use pbr::ProgressBar;
+use prettytable::Cell;
+use prettytable::format::Alignment;
+use prettytable::format::*;
+use prettytable::Row;
+use prettytable::Table;
+use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::fs::OpenOptions;
 use std::io;
@@ -35,20 +47,6 @@ use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use std::time::Duration;
-use log::{trace, debug, info, warn, error, log, LevelFilter};
-use serde_derive::{Serialize, Deserialize};
-use chrono::{DateTime, Local, TimeZone, Utc};
-use clap::{App, AppSettings, Arg, Shell, SubCommand};
-use nix::libc::pid_t;
-use nix::sys::signal::*;
-use nix::unistd::*;
-use pbr::ProgressBar;
-use prettytable::cell::Cell;
-use prettytable::format::Alignment;
-use prettytable::format::*;
-use prettytable::row::Row;
-use prettytable::Table;
-use rayon::prelude::*;
 use term::color::*;
 use term::Attr;
 use termion::event::{Event, Key, MouseEvent};
@@ -60,6 +58,8 @@ use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Text, Widget};
 use tui::Terminal;
+use serde_derive::{Serialize, Deserialize};
+use lazy_static::lazy_static;
 
 #[macro_use]
 mod i18n;
@@ -77,7 +77,7 @@ static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
 static GLOBAL_ERROR_STATE: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// Unicode characters used for drawing the progress bar
-pub const PROGRESS_BAR_INDICATORS: &str = "╢▉▉░╟";
+pub const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
 
 /// Delay in milliseconds after each iteration of the main loop
 pub const MAIN_LOOP_DELAY_MILLIS: u64 = 100;
@@ -95,7 +95,7 @@ where
 }
 
 impl<'a, 'b> Config<'a, 'b> {
-    pub fn new() -> Self {
+    pub fn new() -> Config<'a, 'b> {
         trace!("Parsing command line...");
 
         let clap = clap_app::get_app();
@@ -113,7 +113,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 fn print_license_header() {
     println_tr!("license-text");
-    println!();
+    println!("");
 }
 
 /// Represents a tracked process
@@ -184,7 +184,7 @@ struct Application {
 }
 
 impl Application {
-    pub fn new() -> Self {
+    pub fn new() -> Application {
         Application {
             size: Rect::default(),
 
@@ -859,7 +859,7 @@ fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!();
+    println!("");
 }
 
 /// Print usage message on how to use this command
@@ -869,7 +869,7 @@ fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!();
+    println!("");
 }
 
 /// Generate shell completions
@@ -895,7 +895,7 @@ pub fn main() {
     // }
 
     // TODO: Implement a suitable logger that integrates well into the TUI
-    pretty_env_logger::init(); //.expect("Could not initialize the logging subsystem!");
+    // logger::init(); //.expect("Could not initialize the logging subsystem!");
 
     trace!("Startup");
 

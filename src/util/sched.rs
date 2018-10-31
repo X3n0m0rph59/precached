@@ -23,7 +23,7 @@ pub fn set_cpu_affinity(cpu_index: usize) -> Result<(), nix::Error> {
     let pid = nix::unistd::Pid::from_raw(0);
 
     let mut cpuset = nix::sched::CpuSet::new();
-    cpuset.set(cpu_index);
+    cpuset.set(cpu_index)?;
 
     nix::sched::sched_setaffinity(pid, &cpuset)?;
 

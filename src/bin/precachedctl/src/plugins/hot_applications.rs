@@ -29,7 +29,7 @@ use log::{trace, debug, info, warn, error, log, LevelFilter};
 use clap::{App, AppSettings, Arg, SubCommand};
 use pbr::ProgressBar;
 use rayon::prelude::*;
-use prettytable::cell::Cell;
+use prettytable::Cell;
 use prettytable::format::Alignment;
 use prettytable::format::*;
 use prettytable::Row;

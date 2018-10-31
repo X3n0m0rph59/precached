@@ -18,7 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#![feature(rust_2018_preview)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
@@ -40,9 +39,9 @@ use chrono::{DateTime, Local, TimeZone, Utc};
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use clap::{App, AppSettings, Arg, Shell, SubCommand};
 use pbr::ProgressBar;
-use prettytable::cell::Cell;
 use prettytable::format::*;
-use prettytable::row::Row;
+use prettytable::Cell;
+use prettytable::Row;
 use prettytable::Table;
 
 #[macro_use]

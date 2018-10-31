@@ -18,8 +18,6 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#![feature(crate_in_paths)]
-
 use std::collections::HashMap;
 use std::fs;
 use std::io::Result;
