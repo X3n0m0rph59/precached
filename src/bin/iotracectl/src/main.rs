@@ -31,7 +31,7 @@ use term::color::*;
 use term::Attr;
 use chrono::{DateTime, Local, TimeZone, Utc};
 use log::{trace, debug, info, warn, error, log, LevelFilter};
-use clap::{App, AppSettings, Arg, Shell, SubCommand};
+use clap::{App, AppSettings, Arg, ArgMatches, Shell, SubCommand};
 use pbr::ProgressBar;
 use prettytable::Cell;
 use prettytable::format::*;
@@ -1601,11 +1601,7 @@ fn main() {
             }
 
             "completions" => {
-<<<<<<< HEAD
-                generate_completions(&mut config_c);
-=======
                 generate_completions(&mut config_c, &daemon_config.clone());
->>>>>>> e2ba375... Idiomatic Fixes
             }
 
             &_ => {

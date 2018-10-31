@@ -23,9 +23,9 @@ extern crate lazy_static;
 extern crate nix;
 
 use clap::{App, AppSettings, Arg, SubCommand};
-use constants;
-use i18n;
-use iotrace;
+use crate::constants;
+use crate::i18n;
+use crate::iotrace;
 use pbr::ProgressBar;
 use prettytable::Cell;
 use prettytable::format::*;
@@ -36,9 +36,9 @@ use std::io;
 use std::path::{Path, PathBuf};
 use term::color::*;
 use term::Attr;
-use util;
-use {default_table_format, Config, PROGRESS_BAR_INDICATORS};
-use {get_io_traces_filtered_and_sorted, parse_sort_field, parse_sort_order};
+use crate::util;
+use crate::{default_table_format, Config, PROGRESS_BAR_INDICATORS};
+use crate::{get_io_traces_filtered_and_sorted, parse_sort_field, parse_sort_order};
 
 /// Print help message on how to use this command
 pub fn print_help(config: &mut Config) {

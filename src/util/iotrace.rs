@@ -26,7 +26,7 @@ use term::color::*;
 use term::Attr;
 use chrono::{DateTime, Duration, Utc};
 use log::{trace, debug, info, warn, error, log, LevelFilter};
-use crate::iotrace::*;
+use crate::iotrace::{IOTraceLog, IOTraceLogFlag, TraceLogEntry, IOTraceLogEntryFlag, IOOperation};
 use crate::constants;
 use crate::util;
 
@@ -96,7 +96,7 @@ pub fn optimize_io_trace_log(
     Ok(())
 }
 
-pub fn blacklist_io_trace_log(filename: &Path, io_trace: &mut iotrace::IOTraceLog, blacklist: bool, dry_run: bool) -> Result<()> {
+pub fn blacklist_io_trace_log(filename: &Path, io_trace: &mut IOTraceLog, blacklist: bool, dry_run: bool) -> Result<()> {
     trace!("Blacklisting I/O trace log...");
 
     io_trace.blacklisted = blacklist;
