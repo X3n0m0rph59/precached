@@ -280,7 +280,8 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
             Cell::new(
                 &util::ellipsize_filename(&io_trace.exe.to_string_lossy().into_owned(), max_len)
                     .unwrap_or(String::from("<error>")),
-            ).with_style(Attr::Bold),
+            )
+            .with_style(Attr::Bold),
             Cell::new(&io_trace.hash),
             Cell::new(&format_date(io_trace.created_at)),
             Cell::new_align(&format!("{}", io_trace.file_map.len()), Alignment::RIGHT),
@@ -432,23 +433,25 @@ fn parse_sort_field(matches: &clap::ArgMatches) -> SortField {
     match matches.value_of("sort") {
         None => SortField::None,
 
-        Some(field) => if field == tr!("sort-executable") {
-            SortField::Executable
-        } else if field == tr!("sort-hash") {
-            SortField::Hash
-        } else if field == tr!("sort-date") {
-            SortField::Date
-        } else if field == tr!("sort-numfiles") {
-            SortField::Numfiles
-        } else if field == tr!("sort-numioops") {
-            SortField::Numioops
-        } else if field == tr!("sort-iosize") {
-            SortField::Iosize
-        } else if field == tr!("sort-optimized") {
-            SortField::Optimized
-        } else {
-            SortField::None
-        },
+        Some(field) => {
+            if field == tr!("sort-executable") {
+                SortField::Executable
+            } else if field == tr!("sort-hash") {
+                SortField::Hash
+            } else if field == tr!("sort-date") {
+                SortField::Date
+            } else if field == tr!("sort-numfiles") {
+                SortField::Numfiles
+            } else if field == tr!("sort-numioops") {
+                SortField::Numioops
+            } else if field == tr!("sort-iosize") {
+                SortField::Iosize
+            } else if field == tr!("sort-optimized") {
+                SortField::Optimized
+            } else {
+                SortField::None
+            }
+        }
     }
 }
 
@@ -456,17 +459,19 @@ fn parse_sort_order(matches: &clap::ArgMatches) -> SortOrder {
     match matches.value_of("order") {
         None => SortOrder::Ascending,
 
-        Some(order) => if order == tr!("sort-asc") {
-            SortOrder::Ascending
-        } else if order == tr!("sort-ascending") {
-            SortOrder::Ascending
-        } else if order == tr!("sort-desc") {
-            SortOrder::Descending
-        } else if order == tr!("sort-descending") {
-            SortOrder::Descending
-        } else {
-            SortOrder::Ascending
-        },
+        Some(order) => {
+            if order == tr!("sort-asc") {
+                SortOrder::Ascending
+            } else if order == tr!("sort-ascending") {
+                SortOrder::Ascending
+            } else if order == tr!("sort-desc") {
+                SortOrder::Descending
+            } else if order == tr!("sort-descending") {
+                SortOrder::Descending
+            } else {
+                SortOrder::Ascending
+            }
+        }
     }
 }
 
@@ -510,10 +515,12 @@ where
                 errors += 1;
             }
 
-            Ok(io_trace) => if filter_matches(matches, &filename, &io_trace, &config) {
-                result.push((io_trace, path.to_path_buf()));
-                matching += 1;
-            },
+            Ok(io_trace) => {
+                if filter_matches(matches, &filename, &io_trace, &config) {
+                    result.push((io_trace, path.to_path_buf()));
+                    matching += 1;
+                }
+            }
         }
 
         if display_progress {
@@ -637,7 +644,8 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
-    ).unwrap();
+    )
+    .unwrap();
 
     if display_progress {
         pb.finish_println("\n");
@@ -744,7 +752,8 @@ fn print_info_about_io_traces(config: &Config, daemon_config: util::ConfigFile) 
         &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
-    ).unwrap();
+    )
+    .unwrap();
 
     if display_progress {
         pb.finish_println("\n");
@@ -1025,7 +1034,8 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
         &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
-    ).unwrap();
+    )
+    .unwrap();
 
     if display_progress {
         pb.finish_println("\n");
@@ -1174,7 +1184,8 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
-    ).unwrap();
+    )
+    .unwrap();
 
     let mut pb = ProgressBar::new(matching as u64);
 
@@ -1286,7 +1297,8 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
-    ).unwrap();
+    )
+    .unwrap();
 
     let mut pb = ProgressBar::new(matching as u64);
 
@@ -1566,27 +1578,29 @@ fn main() {
                 optimize_io_traces(&config, daemon_config.clone());
             }
 
-            "blacklist" => if let Some(subcommand) = config.matches.subcommand_matches("blacklist").unwrap().subcommand_name() {
-                match subcommand {
-                    "add" => {
-                        plugins::blacklist::blacklist_io_traces(&config, daemon_config, true);
-                    }
+            "blacklist" => {
+                if let Some(subcommand) = config.matches.subcommand_matches("blacklist").unwrap().subcommand_name() {
+                    match subcommand {
+                        "add" => {
+                            plugins::blacklist::blacklist_io_traces(&config, daemon_config, true);
+                        }
 
-                    "remove" => {
-                        plugins::blacklist::blacklist_io_traces(&config, daemon_config, false);
-                    }
+                        "remove" => {
+                            plugins::blacklist::blacklist_io_traces(&config, daemon_config, false);
+                        }
 
-                    "help" => {
-                        plugins::blacklist::print_help(&mut config_c);
-                    }
+                        "help" => {
+                            plugins::blacklist::print_help(&mut config_c);
+                        }
 
-                    &_ => {
-                        plugins::blacklist::print_usage(&mut config_c);
+                        &_ => {
+                            plugins::blacklist::print_usage(&mut config_c);
+                        }
                     }
+                } else {
+                    print_usage_blacklist(&mut config_c);
                 }
-            } else {
-                print_usage_blacklist(&mut config_c);
-            },
+            }
 
             "remove" | "delete" => {
                 remove_io_traces(&config, daemon_config.clone());

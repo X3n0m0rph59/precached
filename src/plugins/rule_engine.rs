@@ -407,7 +407,8 @@ impl RuleEngine {
                     }
                 }
             }
-        }).unwrap();
+        })
+        .unwrap();
     }
 }
 

@@ -49,13 +49,13 @@ use log4rs_syslog::SyslogAppender;
 use ansi_term::Style;
 use nix::sys::signal;
 
-mod constants;
-mod globals;
 mod config;
 mod config_file;
+mod constants;
+mod events;
+mod globals;
 mod manager;
 mod procmon;
-mod events;
 #[macro_use]
 mod i18n;
 mod dbus_interface;
@@ -252,7 +252,7 @@ fn initialize_logging() {
 }
 
 /// Program entrypoint
-fn main() -> Result<(),()> {
+fn main() -> Result<(), ()> {
     // Initialize the logging subsystem
     initialize_logging();
 
@@ -399,7 +399,8 @@ fn main() -> Result<(),()> {
                 let event = procmon.wait_for_event();
                 sender.send(event).unwrap();
             }
-        }).unwrap();
+        })
+        .unwrap();
 
     // spawn the IPC event loop thread
     let queue_c = globals.ipc_event_queue.clone();
@@ -429,7 +430,8 @@ fn main() -> Result<(),()> {
                     }
                 }
             }
-        }).unwrap();
+        })
+        .unwrap();
 
     util::insert_message_into_ftrace_stream(format!("precached started"));
     util::notify(&String::from("precached started!"), &manager);
@@ -561,7 +563,7 @@ fn main() -> Result<(),()> {
     util::insert_message_into_ftrace_stream(format!("precached exiting")).unwrap_or_else(|_| {
         error!("Could not insert a message into the ftrace stream!");
     });
-    
+
     util::notify(&String::from("precached terminating!"), &manager);
 
     #[allow(unused_must_use)]

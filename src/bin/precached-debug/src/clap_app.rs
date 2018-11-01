@@ -39,12 +39,14 @@ where
                 .short("a")
                 .long("ascii")
                 .help(tr!("precached-debug-produce-ascii")),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("unicode")
                 .short("u")
                 .long("unicode")
                 .help(tr!("precached-debug-produce-unicode")),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("config")
                 .short("c")
                 .long("config")
@@ -52,12 +54,14 @@ where
                 .help(tr!("precached-debug-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
                 .help(tr!("precached-debug-output-verbosity")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precached-debug-status"))
@@ -70,11 +74,13 @@ where
                         // .conflicts_with("terse")
                         .help(tr!("precached-debug-tabular")),
                 ),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precached-debug-help")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("test-tracing")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precached-debug-test-tracing"))
@@ -85,11 +91,13 @@ where
                         // .conflicts_with("...")
                         .help(tr!("precached-debug-test-tracing-help")),
                 ),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("cleanup")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precached-debug-cleanup")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
                 .about(tr!("precached-debug-completions"))

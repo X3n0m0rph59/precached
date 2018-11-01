@@ -244,7 +244,8 @@ fn list_rules(config: &Config, _daemon_config: &util::ConfigFile) {
             cnt += 1;
             idx += 1;
         }
-    }).unwrap();
+    })
+    .unwrap();
 
     table.printstd();
 

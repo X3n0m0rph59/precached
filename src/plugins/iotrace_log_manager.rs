@@ -157,13 +157,15 @@ impl IOtraceLogManager {
                     errors += 1;
                 }
 
-                Ok(io_trace) => if Self::shall_io_trace_be_pruned(&io_trace, min_len, min_prefetch_size) {
-                    debug!("Pruning I/O trace log: {:?}", path);
+                Ok(io_trace) => {
+                    if Self::shall_io_trace_be_pruned(&io_trace, min_len, min_prefetch_size) {
+                        debug!("Pruning I/O trace log: {:?}", path);
 
-                    util::remove_file(path, false);
+                        util::remove_file(path, false);
 
-                    pruned += 1;
-                },
+                        pruned += 1;
+                    }
+                }
             }
 
             counter += 1;

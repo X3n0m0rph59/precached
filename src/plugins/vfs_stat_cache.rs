@@ -85,7 +85,8 @@ impl VFSStatCache {
                         }
 
                         let _metadata = path.metadata();
-                    }).unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
+                    })
+                    .unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
                 });
 
                 info!("Finished reading of statx() metadata for whitelisted files");
@@ -118,7 +119,8 @@ impl VFSStatCache {
                         }
 
                         let _metadata = path.metadata();
-                    }).unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
+                    })
+                    .unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
                 });
 
                 info!("Finished reading of statx() metadata for whitelisted files");
@@ -270,29 +272,31 @@ impl Plugin for VFSStatCache {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
-            events::EventType::PrimeCaches => if self.memory_freed {
-                let pm = manager.plugin_manager.read().unwrap();
+            events::EventType::PrimeCaches => {
+                if self.memory_freed {
+                    let pm = manager.plugin_manager.read().unwrap();
 
-                match pm.get_plugin_by_name(&String::from("profiles")) {
-                    None => {
-                        warn!("Plugin not loaded: 'profiles', skipped");
-                    }
+                    match pm.get_plugin_by_name(&String::from("profiles")) {
+                        None => {
+                            warn!("Plugin not loaded: 'profiles', skipped");
+                        }
 
-                    Some(p) => {
-                        let p = p.read().unwrap();
-                        let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
+                        Some(p) => {
+                            let p = p.read().unwrap();
+                            let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
-                        if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
-                            self.prime_statx_cache_for_top_iotraces(globals, manager);
-                            self.prime_statx_cache_from_whitelist(globals, manager);
+                            if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
+                                self.prime_statx_cache_for_top_iotraces(globals, manager);
+                                self.prime_statx_cache_from_whitelist(globals, manager);
 
-                            self.memory_freed = false;
-                        } else {
-                            warn!("Ignored 'PrimeCaches' request, current system profile does not allow offline prefetching");
+                                self.memory_freed = false;
+                            } else {
+                                warn!("Ignored 'PrimeCaches' request, current system profile does not allow offline prefetching");
+                            }
                         }
                     }
                 }
-            },
+            }
 
             events::EventType::MemoryFreed => {
                 self.memory_freed = true;

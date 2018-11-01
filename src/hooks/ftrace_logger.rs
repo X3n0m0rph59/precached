@@ -591,7 +591,8 @@ impl hook::Hook for FtraceLogger {
                             util::set_realtime_priority();
 
                             Self::ftrace_trace_log_parser(&mut globals_c, &manager_c);
-                        }).unwrap(),
+                        })
+                        .unwrap(),
                 );
             }
 

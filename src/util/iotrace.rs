@@ -167,14 +167,16 @@ pub fn get_io_trace_log_entry_flags_and_err(entry: &TraceLogEntry) -> (Vec<IOTra
     // TODO: Perform consistency checks
     //       * Timestamp of I/O operation newer than target file?
     match entry.operation {
-        IOOperation::Open(ref filename, ref _fd) => if util::is_file_accessible(filename) {
-            flags.push(IOTraceLogEntryFlag::OK);
-            color = GREEN;
-        } else {
-            flags.push(IOTraceLogEntryFlag::MissingFile);
-            err = true;
-            color = RED;
-        },
+        IOOperation::Open(ref filename, ref _fd) => {
+            if util::is_file_accessible(filename) {
+                flags.push(IOTraceLogEntryFlag::OK);
+                color = GREEN;
+            } else {
+                flags.push(IOTraceLogEntryFlag::MissingFile);
+                err = true;
+                color = RED;
+            }
+        }
         _ => { /* Do nothing */ }
     }
 

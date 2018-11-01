@@ -175,9 +175,11 @@ impl Plugin for Statistics {
                 info!("Statistics: System enters idle state");
             }
 
-            events::EventType::IdlePeriod => if self.sys_left_idle_period {
-                self.sys_left_idle_period = false;
-            },
+            events::EventType::IdlePeriod => {
+                if self.sys_left_idle_period {
+                    self.sys_left_idle_period = false;
+                }
+            }
 
             events::EventType::LeaveIdle => {
                 info!("Statistics: System busy");

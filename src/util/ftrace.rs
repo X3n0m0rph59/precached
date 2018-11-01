@@ -302,7 +302,8 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     echo(
         &filename,
         String::from("r:getnameprobe getname filename=+0(+0($retval)):string"),
-    ).unwrap();
+    )
+    .unwrap();
 
     let filename = Path::new(TRACING_DIR)
         .join("events")

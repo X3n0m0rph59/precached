@@ -123,7 +123,8 @@ fn create_io_trace_stats_iface(
                         i.append(&stats.io_trace_log.hash);
                         Ok(())
                     }),
-            ).add_p(
+            )
+            .add_p(
                 f.property::<&str, _>("exe", ())
                     .emits_changed(EmitsChangedSignal::False)
                     .on_get(|i, m| {
@@ -131,7 +132,8 @@ fn create_io_trace_stats_iface(
                         i.append(&stats.io_trace_log.exe.to_string_lossy().into_owned());
                         Ok(())
                     }),
-            ).add_p(
+            )
+            .add_p(
                 f.property::<&str, _>("accumulated_size", ())
                     .emits_changed(EmitsChangedSignal::False)
                     .on_get(|i, m| {

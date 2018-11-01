@@ -39,12 +39,14 @@ where
                 .short("a")
                 .long("ascii")
                 .help(tr!("precached-trigger-produce-ascii")),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("unicode")
                 .short("u")
                 .long("unicode")
                 .help(tr!("precached-trigger-produce-unicode")),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("config")
                 .short("c")
                 .long("config")
@@ -52,12 +54,14 @@ where
                 .help(tr!("precached-trigger-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
                 .help(tr!("precached-trigger-output-verbosity")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precached-trigger-status"))
@@ -70,15 +74,18 @@ where
                         // .conflicts_with("terse")
                         .help(tr!("precached-trigger-tabular")),
                 ),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precached-trigger-help")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("transition-profile")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precached-trigger-transition-profile")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
                 .about(tr!("precached-trigger-completions"))

@@ -38,12 +38,14 @@ where
                 .short("a")
                 .long("ascii")
                 .help(tr!("precachedctl-produce-ascii")),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("unicode")
                 .short("u")
                 .long("unicode")
                 .help(tr!("precachedctl-produce-unicode")),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("config")
                 .short("c")
                 .long("config")
@@ -51,37 +53,44 @@ where
                 .help(tr!("precachedctl-config-file"))
                 .default_value(constants::CONFIG_FILE)
                 .takes_value(true),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
                 .help(tr!("precachedctl-output-verbosity")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("status")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precachedctl-status"))
                 .arg(Arg::with_name("long").short("l").help("Use long display format")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("reload")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("reload-config")
                 .about(tr!("precachedctl-reload-config")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("stop")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("shutdown")
                 .about(tr!("precachedctl-shutdown")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("housekeeping")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("do-housekeeping")
                 .about(tr!("precachedctl-do-housekeeping")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("prime-caches")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .alias("prime-caches-now")
                 .about(tr!("precachedctl-prime-caches")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("plugins")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .setting(AppSettings::NeedsSubcommandHelp)
@@ -94,12 +103,14 @@ where
                             SubCommand::with_name("internal-state")
                                 .setting(AppSettings::DeriveDisplayOrder)
                                 .about(tr!("precachedctl-plugins-analyze-internal-state")),
-                        ).subcommand(
+                        )
+                        .subcommand(
                             SubCommand::with_name("statistics")
                                 .setting(AppSettings::DeriveDisplayOrder)
                                 .about(tr!("precachedctl-plugins-statistics")),
                         ),
-                ).subcommand(
+                )
+                .subcommand(
                     SubCommand::with_name("hot-applications")
                         .setting(AppSettings::DeriveDisplayOrder)
                         .about(tr!("precachedctl-plugins-hot-applications"))
@@ -107,22 +118,26 @@ where
                             SubCommand::with_name("top")
                                 .setting(AppSettings::DeriveDisplayOrder)
                                 .about(tr!("precachedctl-plugins-hot-applications-top")),
-                        ).subcommand(
+                        )
+                        .subcommand(
                             SubCommand::with_name("list")
                                 .setting(AppSettings::DeriveDisplayOrder)
                                 .alias("show")
                                 .about(tr!("precachedctl-plugins-hot-applications-show")),
-                        ).subcommand(
+                        )
+                        .subcommand(
                             SubCommand::with_name("optimize")
                                 .setting(AppSettings::DeriveDisplayOrder)
                                 .about(tr!("precachedctl-plugins-hot-applications-optimize")),
                         ),
                 ),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("help")
                 .setting(AppSettings::DeriveDisplayOrder)
                 .about(tr!("precachedctl-help")),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
                 .about(tr!("precachedctl-completions"))

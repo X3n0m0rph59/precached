@@ -328,7 +328,8 @@ impl IpcServer {
                     .map(|v| ProcessEntry {
                         pid: v.pid,
                         comm: v.comm.to_string(),
-                    }).collect();
+                    })
+                    .collect();
 
                 let cmd = IpcMessage::new(IpcCommand::SendTrackedProcesses(v));
                 let buf = serde_json::to_string(&cmd).unwrap();

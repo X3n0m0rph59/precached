@@ -244,7 +244,8 @@ impl Application {
                                 "count" => format!("{}", app.cached_files.len())),
                         tr!("statistics"),
                         tr!("help"),
-                    ]).select(app.tab_index)
+                    ])
+                    .select(app.tab_index)
                     .style(Style::default().fg(Color::White))
                     .highlight_style(Style::default().fg(Color::Yellow))
                     .render(&mut f, size);
@@ -260,8 +261,9 @@ impl Application {
                                     Constraint::Percentage(20),
                                     Constraint::Percentage(10),
                                 ]
-                                    .as_ref(),
-                            ).margin(1)
+                                .as_ref(),
+                            )
+                            .margin(1)
                             .split(chunks[1]);
 
                         let items: Vec<String>;
@@ -276,7 +278,8 @@ impl Application {
                                 .map(|v| {
                                     let v = v.clone();
                                     format!("{}\t{}", v.pid, v.comm)
-                                }).collect();
+                                })
+                                .collect();
                         }
 
                         SelectableList::default()
@@ -298,7 +301,8 @@ impl Application {
                                 .map(|v| {
                                     let v = v.clone();
                                     format!("{}\t{:?}", format_date(v.start_time), v.exe)
-                                }).collect();
+                                })
+                                .collect();
                         }
 
                         SelectableList::default()
@@ -337,7 +341,8 @@ impl Application {
                             .map(|v| {
                                 let v = v.clone();
                                 format!("{}\t{}", format_date(v.datetime), v.msg)
-                            }).collect();
+                            })
+                            .collect();
 
                         events.reverse();
 
@@ -362,7 +367,8 @@ impl Application {
                             .map(|v| {
                                 let v = v.clone();
                                 format!("{}\t{}", format_date(v.datetime), v.msg)
-                            }).collect();
+                            })
+                            .collect();
 
                         events.reverse();
 
@@ -423,7 +429,8 @@ impl Application {
 
                     _ => {}
                 }
-            }).unwrap();
+            })
+            .unwrap();
 
         trace!("Rendering finished");
     }
@@ -540,7 +547,8 @@ fn main_loop(_config: &mut Config) {
             }
 
             info!("Exiting the IPC event loop!");
-        }).unwrap();
+        })
+        .unwrap();
 
     let (tx_events, rx_events): (Sender<Event>, Receiver<Event>) = mpsc::channel();
 
@@ -564,7 +572,8 @@ fn main_loop(_config: &mut Config) {
             }
 
             info!("Exiting input thread!");
-        }).unwrap();
+        })
+        .unwrap();
 
     'MAIN_LOOP: loop {
         if EXIT_NOW.load(Ordering::Relaxed) {

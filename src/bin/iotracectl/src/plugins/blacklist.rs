@@ -100,7 +100,8 @@ pub fn blacklist_io_traces(config: &Config, daemon_config: util::ConfigFile, bla
         &matches,
         parse_sort_field(&matches),
         parse_sort_order(&matches),
-    ).unwrap();
+    )
+    .unwrap();
 
     let mut pb = ProgressBar::new(matching as u64);
 

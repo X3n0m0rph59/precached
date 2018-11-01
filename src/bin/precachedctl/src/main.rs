@@ -310,81 +310,87 @@ fn main() {
                 do_prime_caches(&config, daemon_config);
             }
 
-            "plugins" => if let Some(plugin) = config.matches.subcommand_matches("plugins").unwrap().subcommand_name() {
-                match plugin {
-                    "analyze" => if let Some(subcommand) = config
-                        .matches
-                        .subcommand_matches("plugins")
-                        .unwrap()
-                        .subcommand_matches("analyze")
-                        .unwrap()
-                        .subcommand_name()
-                    {
-                        match subcommand {
-                            "internal-state" => {
-                                plugins::analyze::display_internal_state(&config, &daemon_config);
-                            }
+            "plugins" => {
+                if let Some(plugin) = config.matches.subcommand_matches("plugins").unwrap().subcommand_name() {
+                    match plugin {
+                        "analyze" => {
+                            if let Some(subcommand) = config
+                                .matches
+                                .subcommand_matches("plugins")
+                                .unwrap()
+                                .subcommand_matches("analyze")
+                                .unwrap()
+                                .subcommand_name()
+                            {
+                                match subcommand {
+                                    "internal-state" => {
+                                        plugins::analyze::display_internal_state(&config, &daemon_config);
+                                    }
 
-                            "statistics" => {
-                                plugins::analyze::display_global_stats(&config, &daemon_config);
-                            }
+                                    "statistics" => {
+                                        plugins::analyze::display_global_stats(&config, &daemon_config);
+                                    }
 
-                            "help" => {
-                                plugins::analyze::print_help(&mut config_c);
-                            }
+                                    "help" => {
+                                        plugins::analyze::print_help(&mut config_c);
+                                    }
 
-                            &_ => {
+                                    &_ => {
+                                        plugins::analyze::print_usage(&mut config_c);
+                                    }
+                                };
+                            } else {
                                 plugins::analyze::print_usage(&mut config_c);
                             }
-                        };
-                    } else {
-                        plugins::analyze::print_usage(&mut config_c);
-                    },
+                        }
 
-                    "hot-applications" => if let Some(subcommand) = config
-                        .matches
-                        .subcommand_matches("plugins")
-                        .unwrap()
-                        .subcommand_matches("hot-applications")
-                        .unwrap()
-                        .subcommand_name()
-                    {
-                        match subcommand {
-                            "top" => {
-                                plugins::hot_applications::list(&config, daemon_config, false);
-                            }
+                        "hot-applications" => {
+                            if let Some(subcommand) = config
+                                .matches
+                                .subcommand_matches("plugins")
+                                .unwrap()
+                                .subcommand_matches("hot-applications")
+                                .unwrap()
+                                .subcommand_name()
+                            {
+                                match subcommand {
+                                    "top" => {
+                                        plugins::hot_applications::list(&config, daemon_config, false);
+                                    }
 
-                            "list" | "show" => {
-                                plugins::hot_applications::list(&config, daemon_config, true);
-                            }
+                                    "list" | "show" => {
+                                        plugins::hot_applications::list(&config, daemon_config, true);
+                                    }
 
-                            "optimize" => {
-                                plugins::hot_applications::optimize(&config, daemon_config);
-                            }
+                                    "optimize" => {
+                                        plugins::hot_applications::optimize(&config, daemon_config);
+                                    }
 
-                            "help" => {
-                                plugins::hot_applications::print_help(&mut config_c);
-                            }
+                                    "help" => {
+                                        plugins::hot_applications::print_help(&mut config_c);
+                                    }
 
-                            &_ => {
+                                    &_ => {
+                                        plugins::hot_applications::print_usage(&mut config_c);
+                                    }
+                                };
+                            } else {
                                 plugins::hot_applications::print_usage(&mut config_c);
                             }
-                        };
-                    } else {
-                        plugins::hot_applications::print_usage(&mut config_c);
-                    },
+                        }
 
-                    "help" => {
-                        print_help_plugins(&mut config_c);
-                    }
+                        "help" => {
+                            print_help_plugins(&mut config_c);
+                        }
 
-                    &_ => {
-                        print_usage_plugins(&mut config_c);
-                    }
-                };
-            } else {
-                print_usage_plugins(&mut config_c);
-            },
+                        &_ => {
+                            print_usage_plugins(&mut config_c);
+                        }
+                    };
+                } else {
+                    print_usage_plugins(&mut config_c);
+                }
+            }
 
             "help" => {
                 print_help(&mut config_c);

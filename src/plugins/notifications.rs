@@ -72,17 +72,19 @@ impl Notifications {
                         CString::new("precached notification").unwrap().as_ptr(),
                         CString::new(message).unwrap().as_ptr(),
                         ptr::null_mut(),
-                    ].as_ptr(),
+                    ]
+                    .as_ptr(),
                     vec![
                         CString::new("DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus")
                             .unwrap()
                             .as_ptr(),
                         ptr::null_mut(),
-                    ].as_ptr(),
+                    ]
+                    .as_ptr(),
                 )
             };
             if result < 0 {
-                unsafe { 
+                unsafe {
                     let msg = CString::new("libc::execve() failed!").unwrap();
                     libc::perror(msg.as_ptr());
                 };
@@ -92,20 +94,20 @@ impl Notifications {
             unsafe { libc::exit(1) };
 
         /*match Notification::new()
-                .summary("Category:system")
-                .body(message)
-                //.icon("precached")
-                .appname("precached")
-                .hint(Hint::Category("system".to_owned()))
-                // .hint(Hint::Resident(true)) // this is not supported by all implementations
-                // .timeout(0) // this however is
-                .show() {
-
-                Err(e) => {
-                    warn!("Could not send a notification to the primary user's desktop! {}", e);
-                },
-                _ => { /* Successfully displayed the notification, just do nothing */ }
-            }*/
+            .summary("Category:system")
+            .body(message)
+            //.icon("precached")
+            .appname("precached")
+            .hint(Hint::Category("system".to_owned()))
+            // .hint(Hint::Resident(true)) // this is not supported by all implementations
+            // .timeout(0) // this however is
+            .show() {
+        
+            Err(e) => {
+                warn!("Could not send a notification to the primary user's desktop! {}", e);
+            },
+            _ => { /* Successfully displayed the notification, just do nothing */ }
+        }*/
 
         // Command::new("/usr/bin/notify-send")
         //             .env("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus")

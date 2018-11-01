@@ -138,11 +138,13 @@ impl IOtraceLogCache {
             None => {
                 error!("I/O trace log is not cached: {:?}", filename);
             }
-            Some(mapping) => if !util::free_mapping(mapping) {
-                error!("Could not free cached I/O trace log {:?}", filename);
-            } else {
-                info!("Removed single I/O trace log file from cache: {:?}", filename);
-            },
+            Some(mapping) => {
+                if !util::free_mapping(mapping) {
+                    error!("Could not free cached I/O trace log {:?}", filename);
+                } else {
+                    info!("Removed single I/O trace log file from cache: {:?}", filename);
+                }
+            }
         }
     }
 
@@ -188,7 +190,8 @@ impl IOtraceLogCache {
                                 }
                             }
                         }
-                    }).unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
+                    })
+                    .unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
 
                     sc.lock().unwrap().send(mapped_files).unwrap();
                 });
