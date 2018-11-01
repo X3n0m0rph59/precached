@@ -778,7 +778,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     match last_filename {
                         // Error may happen if the previous open* syscall failed
                         None => {
-                            error!("Could not get associated file name for the current trace event! '{}'", l);
+                            info!("Could not get associated file name for the current trace event! '{}'", l);
 
                             // reset_filename = true;
                         }

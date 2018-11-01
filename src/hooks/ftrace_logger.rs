@@ -222,7 +222,7 @@ impl FtraceLogger {
                                             // the beginning. Either we lost a process creation event, or maybe
                                             // it was started before our daemon was running
 
-                                            warn!(
+                                            info!(
                                                 "Spurious trace log entry for untracked process '{}' with pid {} processed!",
                                                 comm.clone().unwrap_or_else(|| String::from("<not available>")),
                                                 pid

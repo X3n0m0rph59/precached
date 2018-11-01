@@ -27,7 +27,7 @@ appenders:
   #     pattern: "{d(%Y-%m-%d %H:%M:%S %Z)} [{l}]: {M}:{L} - {m}{n}"
 
 root:
-  level: info
+  level: warn
   appenders:
     - stdout
     - syslog
