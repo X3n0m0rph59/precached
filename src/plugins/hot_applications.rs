@@ -166,7 +166,9 @@ impl HotApplications {
                                 }
                             }
 
-                            tx.send(cached_apps);
+                            tx.send(cached_apps).unwrap_or_else(|_| {
+                                error!("Could not send data to sibling thread!");
+                            });
                         });
 
                         self.cached_apps = rx.recv().unwrap();
@@ -377,7 +379,9 @@ impl HotApplications {
 
     /// Save the internal state of our plugin
     pub fn save_state(&mut self, globals: &Globals, _manager: &Manager) {
-        Self::serialize(&self.app_histogram, globals);
+        Self::serialize(&self.app_histogram, globals).unwrap_or_else(|_| {
+            error!("Could not save state!");
+        });
     }
 
     /// Serialization helper function

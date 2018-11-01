@@ -149,7 +149,9 @@ impl IOtracePrefetcher {
                 }
 
                 iotrace::IOOperation::Stat(ref file) => {
-                    util::prime_metadata_cache(file);
+                    util::prime_metadata_cache(file).unwrap_or_else(|_| {
+                        error!("Could not prime metadata caches!");
+                    });
                 }
 
                 iotrace::IOOperation::Fstat(ref _fd) => {

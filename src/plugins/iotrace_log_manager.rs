@@ -161,7 +161,9 @@ impl IOtraceLogManager {
                     if Self::shall_io_trace_be_pruned(&io_trace, min_len, min_prefetch_size) {
                         debug!("Pruning I/O trace log: {:?}", path);
 
-                        util::remove_file(path, false);
+                        util::remove_file(path, false).unwrap_or_else(|_| {
+                            error!("Could not remove a file!");
+                        });
 
                         pruned += 1;
                     }

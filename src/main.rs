@@ -27,8 +27,8 @@
 
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
-// #![allow(dead_code)]
-// #![allow(unused_imports)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
 // #![allow(unused_must_use)]
 
 use std::env;
@@ -433,7 +433,10 @@ fn main() -> Result<(), ()> {
         })
         .unwrap();
 
-    util::insert_message_into_ftrace_stream(format!("precached started"));
+    util::insert_message_into_ftrace_stream(format!("precached started")).unwrap_or_else(|_| {
+        error!("Could not insert a message into the ftrace stream!");
+    });
+    
     util::notify(&String::from("precached started!"), &manager);
 
     // ... on the main thread again

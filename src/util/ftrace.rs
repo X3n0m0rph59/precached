@@ -372,15 +372,23 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
     // echo(&format!("{}/current_tracer", TRACING_DIR), String::from("nop"))?;
 
     let filename = Path::new(TRACING_DIR).join("tracing_on");
-    echo(&filename, String::from("0"));
+    echo(&filename, String::from("0")).unwrap_or_else(|_| {
+        error!("Could not write data!");
+    });
 
     let filename = Path::new(TRACING_DIR).join("set_event");
-    echo(&filename, String::from(" "));
+    echo(&filename, String::from(" ")).unwrap_or_else(|_| {
+        error!("Could not write data!");
+    });
 
-    rmdir(Path::new(TRACING_DIR));
+    rmdir(Path::new(TRACING_DIR)).unwrap_or_else(|_| {
+        error!("Could not write data!");
+    });
 
     let filename = Path::new(TRACING_DIR).join("kprobe_events");
-    echo(&filename, String::from(" "));
+    echo(&filename, String::from(" ")).unwrap_or_else(|_| {
+        error!("Could not write data!");
+    });
 
     Ok(())
 }
