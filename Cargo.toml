@@ -1,6 +1,6 @@
 [package]
 name = "precached"
-version = "1.4.1"
+version = "1.4.2"
 build = "build.rs"
 authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
 description = "A Linux process monitor and pre-caching daemon"

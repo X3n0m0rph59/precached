@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017-2018 the precached developers
+    Copyright (C) 2017-2019 the precached developers
 
     This file is part of precached.
 
@@ -27,7 +27,7 @@ use util;
 
 pub fn get_app<'a, 'b>() -> App<'a, 'b> {
     App::new("iotracectl")
-        .version("1.4.1")
+        .version("1.4.2")
         .author(tr!("iotracectl-mail-contact"))
         .about(tr!("iotracectl-about"))
         // .versionless_subcommands(true)
