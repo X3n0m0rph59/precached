@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017-2018 the precached developers
+    Copyright (C) 2017-2019 the precached developers
 
     This file is part of precached.
 
@@ -42,7 +42,7 @@ use std::io::BufReader;
 use std::io::Read;
 use std::io::{stdin, stdout, Write};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
@@ -71,10 +71,10 @@ mod process;
 mod util;
 
 /// Global 'shall we exit now' flag
-static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
+static EXIT_NOW: AtomicBool = AtomicBool::new(false);
 
 /// Signals a global error condition, like a lost connection to the daemon
-static GLOBAL_ERROR_STATE: AtomicBool = ATOMIC_BOOL_INIT;
+static GLOBAL_ERROR_STATE: AtomicBool = AtomicBool::new(false);
 
 /// Unicode characters used for drawing the progress bar
 pub const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";

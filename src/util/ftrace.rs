@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017-2018 the precached developers
+    Copyright (C) 2017-2019 the precached developers
 
     This file is part of precached.
 
@@ -28,7 +28,7 @@ use std::io::BufReader;
 use std::io::Read;
 use std::os::unix::ffi::OsStringExt;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 use regex::Regex;
@@ -47,7 +47,7 @@ use crate::process::Process;
 use crate::util;
 
 /// Global 'shall we exit now' flag
-pub static FTRACE_EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
+pub static FTRACE_EXIT_NOW: AtomicBool = AtomicBool::new(false);
 
 lazy_static! {
     /// Regex used to extract a file name from an ftrace event
@@ -460,7 +460,7 @@ pub fn get_printk_formats() -> io::Result<HashMap<String, String>> {
         }
 
         // ignore possible headers starting with a comment sign
-        if l.trim_left().starts_with('#') {
+        if l.trim_start().starts_with('#') {
             continue;
         }
 

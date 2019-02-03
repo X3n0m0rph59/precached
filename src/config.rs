@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017-2018 the precached developers
+    Copyright (C) 2017-2019 the precached developers
 
     This file is part of precached.
 
@@ -37,7 +37,7 @@ pub struct Config {
 impl Config {
     pub fn new() -> Self {
         let matches = App::new("precached")
-            .version("1.5.0")
+            .version(env!("CARGO_PKG_VERSION"))
             .author("X3n0m0rph59 <x3n0m0rph59@gmail.com>")
             .about("A Linux process monitor and pre-caching daemon")
             .arg(

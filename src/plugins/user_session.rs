@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017-2018 the precached developers
+    Copyright (C) 2017-2019 the precached developers
 
     This file is part of precached.
 
@@ -141,7 +141,7 @@ impl UserSession {
         // Enumerate logged users
         for e in utmps {
             if e.ut_type == util::UtmpxRecordType::UserProcess {
-                let user_name = String::from(e.ut_user.trim_right_matches('\0')); // cut off the terminating '\0' characters
+                let user_name = String::from(e.ut_user.trim_end_matches('\0')); // cut off the terminating '\0' characters
 
                 logged_users.push(user_name);
             }

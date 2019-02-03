@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017-2018 the precached developers
+    Copyright (C) 2017-2019 the precached developers
 
     This file is part of precached.
 
@@ -25,8 +25,9 @@
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system
 
-#![cfg_attr(feature = "clippy", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
+#![feature(proc_macro_hygiene, decl_macro)]
+// #![cfg_attr(feature = "clippy", feature(plugin))]
+// #![cfg_attr(feature = "clippy", plugin(clippy))]
 #![allow(dead_code)]
 #![allow(unused_imports)]
 // #![allow(unused_must_use)]
@@ -34,7 +35,7 @@
 use std::env;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
@@ -48,6 +49,8 @@ use log4rs::encode::pattern::PatternEncoder;
 use log4rs_syslog::SyslogAppender;
 use ansi_term::Style;
 use nix::sys::signal;
+use failure::{Error, Fail, format_err};
+use failure_derive::*;
 
 mod config;
 mod config_file;
@@ -78,19 +81,27 @@ use crate::manager::*;
 use crate::procmon::ProcMon;
 use crate::events::EventType;
 
+#[derive(Debug, Fail)]
+enum DaemonError {
+    #[fail(display = "RuntimeError: {}", description)]
+    RuntimeError {
+        description: String
+    }
+}
+
 /// Global 'shall we exit now' flag
-static EXIT_NOW: AtomicBool = ATOMIC_BOOL_INIT;
+static EXIT_NOW: AtomicBool = AtomicBool::new(false);
 
 /// Global 'reload of daemon config pending' flag
-static RELOAD_NOW: AtomicBool = ATOMIC_BOOL_INIT;
+static RELOAD_NOW: AtomicBool = AtomicBool::new(false);
 
 /// Global '`SIG_USR1` received' flag
 /// SUGUSR1 is currently mapped to the `DoHousekeeping` event
-static SIG_USR1: AtomicBool = ATOMIC_BOOL_INIT;
+static SIG_USR1: AtomicBool = AtomicBool::new(false);
 
 /// Global '`SIG_USR2` received' flag
 /// SIGUSR2 is currently mapped to 'perform a profile transition'
-static SIG_USR2: AtomicBool = ATOMIC_BOOL_INIT;
+static SIG_USR2: AtomicBool = AtomicBool::new(false);
 
 /// Signal handler for `SIGINT` and `SIGTERM`
 extern "C" fn exit_signal(_: i32) {
@@ -113,7 +124,7 @@ extern "C" fn usr2_signal(_: i32) {
 }
 
 /// Set up signal handlers for the daemon process
-fn setup_signal_handlers() {
+fn setup_signal_handlers() -> Result<(), Error> {
     // SIGINT and SIGTERM
     let sig_action = signal::SigAction::new(
         signal::SigHandler::Handler(exit_signal),
@@ -122,11 +133,11 @@ fn setup_signal_handlers() {
     );
 
     unsafe {
-        signal::sigaction(signal::SIGINT, &sig_action).unwrap();
+        signal::sigaction(signal::SIGINT, &sig_action)?;
     }
 
     unsafe {
-        signal::sigaction(signal::SIGTERM, &sig_action).unwrap();
+        signal::sigaction(signal::SIGTERM, &sig_action)?;
     }
 
     // SIGHUP
@@ -137,7 +148,7 @@ fn setup_signal_handlers() {
     );
 
     unsafe {
-        signal::sigaction(signal::SIGHUP, &sig_action).unwrap();
+        signal::sigaction(signal::SIGHUP, &sig_action)?;
     }
 
     // SIGUSR1
@@ -148,7 +159,7 @@ fn setup_signal_handlers() {
     );
 
     unsafe {
-        signal::sigaction(signal::SIGUSR1, &sig_action).unwrap();
+        signal::sigaction(signal::SIGUSR1, &sig_action)?;
     }
 
     // SIGUSR2
@@ -159,14 +170,14 @@ fn setup_signal_handlers() {
     );
 
     unsafe {
-        signal::sigaction(signal::SIGUSR2, &sig_action).unwrap();
+        signal::sigaction(signal::SIGUSR2, &sig_action)?;
     }
 
     // Ignore SIGPIPE
     let sig_action = signal::SigAction::new(signal::SigHandler::SigIgn, signal::SaFlags::empty(), signal::SigSet::empty());
 
     unsafe {
-        signal::sigaction(signal::SIGPIPE, &sig_action).unwrap();
+        signal::sigaction(signal::SIGPIPE, &sig_action)?;
     }
 
     // Ignore SIGCHLD
@@ -178,14 +189,16 @@ fn setup_signal_handlers() {
 
     // #[allow(unused_must_use)]
     // unsafe {
-    //     signal::sigaction(signal::SIGCHLD, &sig_action).unwrap();
+    //     signal::sigaction(signal::SIGCHLD, &sig_action)?;
     // }
+
+    Ok(())
 }
 
 /// Print a license header to the console
 fn print_license_header() {
     println!(
-        "precached Copyright (C) 2017-2018 the precached team
+        "precached Copyright (C) 2017-2019 the precached team
 This program comes with ABSOLUTELY NO WARRANTY;
 This is free software, and you are welcome to redistribute it
 under certain conditions.
@@ -205,56 +218,62 @@ fn print_disabled_plugins_notice(globals: &mut Globals) {
 // }
 
 /// Process daemon internal events
-fn process_internal_events(globals: &mut Globals, manager: &Manager) {
+fn process_internal_events(globals: &mut Globals, manager: &Manager) -> Result<(), Error> {
     while let Some(internal_event) = globals.event_queue.pop_front() {
         {
             // dispatch daemon internal events to plugins
-            let plugin_manager = manager.plugin_manager.read().unwrap();
+            let plugin_manager = manager.plugin_manager.read().expect("Could not get a lock!");
             plugin_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
 
         {
             // dispatch daemon internal events to hooks
-            let hook_manager = manager.hook_manager.read().unwrap();
+            let hook_manager = manager.hook_manager.read().expect("Could not get a lock!");
             hook_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
 
         {
             // dispatch daemon internal events to connected IPC clients
-            let mut ipc_queue = globals.ipc_event_queue.write().unwrap();
+            let mut ipc_queue = globals.ipc_event_queue.write().expect("Could not get a lock!");
             ipc_queue.push_back(internal_event);
 
             // limit the size of the ipc event queue to a reasonable amount
             ipc_queue.truncate(constants::MAX_IPC_EVENT_BACKLOG);
         }
     }
+
+    Ok(())
 }
 
 /// Process events that come in via the procmon interface of the Linux kernel
-fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager: &mut Manager) {
+fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager: &mut Manager) -> Result<(), Error> {
     trace!("Processing procmon event...");
 
     // dispatch the procmon event to all registered hooks
-    let m = manager.hook_manager.read().unwrap();
+    let m = manager.hook_manager.read().expect("Could not get a lock!");
 
     m.dispatch_event(event, globals, manager);
+
+    Ok(())
 }
 
 /// Initialize the logging subsystem
-fn initialize_logging() {
+fn initialize_logging() -> Result<(), Error> {
     let mut deserializers = log4rs::file::Deserializers::new();
     log4rs_syslog::register(&mut deserializers);
 
-    log4rs::init_file("/etc/precached/log4rs.yaml", deserializers).expect("Could not initialize the logging subsystem!");
+    log4rs::init_file("/etc/precached/log4rs.yaml", deserializers)?;
 
-    // log4rs::init_file("support/config/log4rs.yaml", deserializers)
-    //                   .expect("Could not initialize the logging subsystem!");
+    Ok(())
 }
 
-/// Program entrypoint
-fn main() -> Result<(), ()> {
+use failure::*;
+use failure_derive::*;
+
+/// Initialize and run the main loop
+fn run() -> Result<(), failure::Error> {
     // Initialize the logging subsystem
-    initialize_logging();
+    initialize_logging()?;
 
     if unsafe { nix::libc::isatty(1) } == 1 {
         print_license_header();
@@ -268,8 +287,8 @@ fn main() -> Result<(), ()> {
     match config_file::parse_config_file(&mut globals) {
         Ok(_) => info!("Successfully parsed configuration file!"),
         Err(s) => {
-            error!("Error in configuration file: {}", s);
-            return Err(());
+            error!("Error in configuration file: {}", s);            
+            return Err(format_err!("An unrecoverable error occured!"));
         }
     }
 
@@ -279,7 +298,7 @@ fn main() -> Result<(), ()> {
         Ok(_) => info!("System check passed!"),
         Err(s) => {
             error!("System check FAILED: {}", s);
-            return Err(());
+            return Err(format_err!("An unrecoverable error occured!"));
         }
     }
 
@@ -289,7 +308,7 @@ fn main() -> Result<(), ()> {
         Ok(_) => info!("System configuration applied successfully!"),
         Err(s) => {
             error!("System configuration FAILED: {}", s);
-            return Err(());
+            return Err(format_err!("An unrecoverable error occured!"));
         }
     }
 
@@ -298,7 +317,7 @@ fn main() -> Result<(), ()> {
         Ok(_) => info!("Process properties changed successfully!"),
         Err(s) => {
             error!("Error while changing the daemon's process properties: {}", s);
-            return Err(());
+            return Err(format_err!("An unrecoverable error occured!"));
         }
     }
 
@@ -310,9 +329,11 @@ fn main() -> Result<(), ()> {
         match util::daemonize(globals.clone()) {
             Err(e) => {
                 error!("Could not become a daemon: {}", e);
-                return Err(()); // Must fail here, since we were asked to
-                                // daemonize, and maybe there is another
-                                // instance already running!
+
+                // We must fail here, since we were asked to
+                // daemonize, and maybe there is another
+                // instance already running!
+                return Err(format_err!("An unrecoverable error occured!"));                         
             }
 
             Ok(()) => {
@@ -322,13 +343,13 @@ fn main() -> Result<(), ()> {
     }
 
     // Register signal handlers
-    setup_signal_handlers();
+    setup_signal_handlers()?;
 
     let procmon = match ProcMon::new() {
         Ok(inst) => inst,
         Err(s) => {
             error!("Could not create process events monitor: {}", s);
-            return Err(());
+            return Err(format_err!("An unrecoverable error occured!"));
         }
     };
 
@@ -337,7 +358,7 @@ fn main() -> Result<(), ()> {
     match inotify_watches.setup_default_inotify_watches(&mut globals, &manager) {
         Err(s) => {
             error!("Could not set-up inotify subsystem: {}", s);
-            return Err(());
+            return Err(format_err!("An unrecoverable error occured!"));
         }
 
         _ => {
@@ -350,7 +371,7 @@ fn main() -> Result<(), ()> {
     match dbus_interface.register_connection(&mut globals, &manager) {
         Err(s) => {
             error!("Could not create dbus interface: {}", s);
-            return Err(());
+            return Err(format_err!("An unrecoverable error occured!"));
         }
 
         _ => {
@@ -375,7 +396,7 @@ fn main() -> Result<(), ()> {
 
         Err(s) => {
             error!("Could not initialize the IPC interface: {}", s);
-            return Err(());
+            return Err(format_err!("An unrecoverable error occured!"));
         }
     }
 
@@ -399,8 +420,7 @@ fn main() -> Result<(), ()> {
                 let event = procmon.wait_for_event();
                 sender.send(event).unwrap();
             }
-        })
-        .unwrap();
+        })?;
 
     // spawn the IPC event loop thread
     let queue_c = globals.ipc_event_queue.clone();
@@ -430,8 +450,7 @@ fn main() -> Result<(), ()> {
                     }
                 }
             }
-        })
-        .unwrap();
+        })?;
 
     util::insert_message_into_ftrace_stream(format!("precached started")).unwrap_or_else(|_| {
         error!("Could not insert a message into the ftrace stream!");
@@ -472,7 +491,7 @@ fn main() -> Result<(), ()> {
                     error!("Error in configuration file: {}", s);
 
                     // TODO: Don't crash here, handle gracefully
-                    return Err(());
+                    return Err(format_err!("An unrecoverable error occured!"));
                 }
             }
         }
@@ -512,13 +531,13 @@ fn main() -> Result<(), ()> {
 
         // Dispatch procmon events
         match event {
-            Some(e) => process_procmon_event(&e, &mut globals, &mut manager),
+            Some(e) => process_procmon_event(&e, &mut globals, &mut manager)?,
 
             None => { /* We woke up because of a timeout, just do nothing */ }
         };
 
         // Dispatch daemon internal events
-        process_internal_events(&mut globals, &manager);
+        process_internal_events(&mut globals, &manager)?;
 
         // Let the task scheduler run it's queued jobs
         match util::SCHEDULER.try_lock() {
@@ -535,7 +554,7 @@ fn main() -> Result<(), ()> {
             trace!("Leaving the main loop...");
 
             events::queue_internal_event(EventType::Shutdown, &mut globals);
-            process_internal_events(&mut globals, &manager);
+            process_internal_events(&mut globals, &manager)?;
 
             break 'MAIN_LOOP;
         }
@@ -584,4 +603,17 @@ fn main() -> Result<(), ()> {
     info!("Exiting now");
 
     Ok(())
+}
+
+/// Program entrypoint
+fn main() {
+    if let Err(ref e) = run() {
+        println!("A runtime Error occured, root cause: {}", e.find_root_cause());
+
+        for e in e.iter_causes() {
+            println!("Caused by: {}", e);
+        }
+
+        ::std::process::exit(1);
+    }
 }

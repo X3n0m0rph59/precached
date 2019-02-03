@@ -1,6 +1,6 @@
 /*
     Precached - A Linux process monitor and pre-caching daemon
-    Copyright (C) 2017-2018 the precached developers
+    Copyright (C) 2017-2019 the precached developers
 
     This file is part of precached.
 
@@ -47,6 +47,12 @@ pub mod rule_engine;
 pub mod rule_event_bridge;
 pub mod triggers;
 
+#[cfg(feature = "web-frontend")]
+pub mod web_frontend;
+#[cfg(feature = "web-frontend")]
+pub mod web;
+
+
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     introspection::register_plugin(globals, manager);
     profiles::register_plugin(globals, manager);
@@ -69,6 +75,9 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     user_session::register_plugin(globals, manager);
     ftrace_messages::register_plugin(globals, manager);
     janitor::register_plugin(globals, manager);
+
+    #[cfg(feature = "web-frontend")]
+    web_frontend::register_plugin(globals, manager);
 }
 
 pub fn unregister_plugins(_globals: &mut Globals, manager: &mut Manager) {
