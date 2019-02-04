@@ -19,6 +19,7 @@ programs while the system is idle.
     $ updpkgsums
     $ makepgkg -si
     $ sudo systemctl enable --now precached.service
+    $ systemctl --user enable --now precached-trigger.service
 ```
 
 ### Install on Fedora
@@ -27,6 +28,7 @@ programs while the system is idle.
     $ sudo dnf copr enable x3n0m0rph59/precached
     $ sudo dnf install precached
     $ sudo systemctl enable --now precached.service
+    $ systemctl --user enable --now precached-trigger.service
 ```
 
 ### Install on Ubuntu
@@ -36,6 +38,7 @@ programs while the system is idle.
     $ sudo apt update
     $ sudo apt install precached
     $ sudo systemctl enable --now precached.service
+    $ systemctl --user enable --now precached-trigger.service
 ```
 
 ### Install from Source
@@ -44,6 +47,11 @@ programs while the system is idle.
     $ git clone https://gitlab.com/X3n0m0rph59/precached.git
     $ cd precached/
     $ cargo build --release
+
+    # ... copy files ...
+
+    $ sudo systemctl enable --now precached.service
+    $ systemctl --user enable --now precached-trigger.service
 ```
 
 ## Why You may want to use precached

@@ -156,133 +156,133 @@ pub fn enable_ftrace_tracing() -> io::Result<()> {
     echo(&filename, filter.clone()).unwrap();
 
     // read syscall family
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_read")
-        .join("enable");
-    echo(&filename, String::from("1")).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_read")
+    //     .join("enable");
+    // echo(&filename, String::from("1")).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_read")
-        .join("filter");
-    echo(&filename, filter.clone()).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_read")
+    //     .join("filter");
+    // echo(&filename, filter.clone()).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_readv")
-        .join("enable");
-    echo(&filename, String::from("1")).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_readv")
+    //     .join("enable");
+    // echo(&filename, String::from("1")).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_readv")
-        .join("filter");
-    echo(&filename, filter.clone()).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_readv")
+    //     .join("filter");
+    // echo(&filename, filter.clone()).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_preadv2")
-        .join("enable");
-    echo(&filename, String::from("1")).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_preadv2")
+    //     .join("enable");
+    // echo(&filename, String::from("1")).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_preadv2")
-        .join("filter");
-    echo(&filename, filter.clone()).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_preadv2")
+    //     .join("filter");
+    // echo(&filename, filter.clone()).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_pread64")
-        .join("enable");
-    echo(&filename, String::from("1")).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_pread64")
+    //     .join("enable");
+    // echo(&filename, String::from("1")).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_pread64")
-        .join("filter");
-    echo(&filename, filter.clone()).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_pread64")
+    //     .join("filter");
+    // echo(&filename, filter.clone()).unwrap();
 
-    // mmap syscall
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_mmap")
-        .join("enable");
-    echo(&filename, String::from("1")).unwrap();
+    // // mmap syscall
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_mmap")
+    //     .join("enable");
+    // echo(&filename, String::from("1")).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_mmap")
-        .join("filter");
-    echo(&filename, filter.clone()).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_mmap")
+    //     .join("filter");
+    // echo(&filename, filter.clone()).unwrap();
 
-    // stat(x) syscall
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_statx")
-        .join("enable");
-    echo(&filename, String::from("1")).unwrap();
+    // // stat(x) syscall
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_statx")
+    //     .join("enable");
+    // echo(&filename, String::from("1")).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_statx")
-        .join("filter");
-    echo(&filename, filter.clone()).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_statx")
+    //     .join("filter");
+    // echo(&filename, filter.clone()).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_newstat")
-        .join("enable");
-    echo(&filename, String::from("1")).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_newstat")
+    //     .join("enable");
+    // echo(&filename, String::from("1")).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_newstat")
-        .join("filter");
-    echo(&filename, filter.clone()).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_newstat")
+    //     .join("filter");
+    // echo(&filename, filter.clone()).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_newfstat")
-        .join("enable");
-    echo(&filename, String::from("1")).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_newfstat")
+    //     .join("enable");
+    // echo(&filename, String::from("1")).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_newfstat")
-        .join("filter");
-    echo(&filename, filter.clone()).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_newfstat")
+    //     .join("filter");
+    // echo(&filename, filter.clone()).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_newfstatat")
-        .join("enable");
-    echo(&filename, String::from("1")).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_newfstatat")
+    //     .join("enable");
+    // echo(&filename, String::from("1")).unwrap();
 
-    let filename = Path::new(TRACING_DIR)
-        .join("events")
-        .join("syscalls")
-        .join("sys_exit_newfstatat")
-        .join("filter");
-    echo(&filename, filter.clone()).unwrap();
+    // let filename = Path::new(TRACING_DIR)
+    //     .join("events")
+    //     .join("syscalls")
+    //     .join("sys_exit_newfstatat")
+    //     .join("filter");
+    // echo(&filename, filter.clone()).unwrap();
 
     // getdents syscall
     // let filename = Path::new(TRACING_DIR).join("events").join("syscalls").join("sys_exit_getdents").join("enable");
@@ -809,66 +809,66 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             }
 
             // sys_read syscall
-            if l.contains("sys_read") || l.contains("sys_readv") || l.contains("sys_preadv2") || l.contains("sys_pread64") {
-                // debug!("{:#?}", l);
+            // if l.contains("sys_read") || l.contains("sys_readv") || l.contains("sys_preadv2") || l.contains("sys_pread64") {
+            //     // debug!("{:#?}", l);
 
-                if !fields.is_empty() {
-                    // get last part of trace buffer line
-                    let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
-                    let tmp = tmp[tmp.len() - 1];
+            //     if !fields.is_empty() {
+            //         // get last part of trace buffer line
+            //         let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
+            //         let tmp = tmp[tmp.len() - 1];
 
-                    let fd = i32::from_str_radix(tmp, 16).unwrap_or(-1);
-                    if !cb(
-                        pid,
-                        IOEvent {
-                            syscall: SysCall::Read(fd),
-                        },
-                    ) {
-                        break 'LINE_LOOP; // callback returned false, exit requested
-                    }
-                } else {
-                    error!("Error while parsing current event from trace buffer! Event: '{}'", l);
-                }
-            }
+            //         let fd = i32::from_str_radix(tmp, 16).unwrap_or(-1);
+            //         if !cb(
+            //             pid,
+            //             IOEvent {
+            //                 syscall: SysCall::Read(fd),
+            //             },
+            //         ) {
+            //             break 'LINE_LOOP; // callback returned false, exit requested
+            //         }
+            //     } else {
+            //         error!("Error while parsing current event from trace buffer! Event: '{}'", l);
+            //     }
+            // }
 
             // sys_mmap syscall
-            if l.contains("sys_mmap") {
-                // debug!("{:#?}", l);
+            // if l.contains("sys_mmap") {
+            //     // debug!("{:#?}", l);
 
-                if !fields.is_empty() {
-                    // get last part of trace buffer line
-                    let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
-                    let tmp = tmp[tmp.len() - 1];
+            //     if !fields.is_empty() {
+            //         // get last part of trace buffer line
+            //         let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
+            //         let tmp = tmp[tmp.len() - 1];
 
-                    let addr = usize::from_str_radix(tmp, 16).unwrap_or(0);
-                    if !cb(
-                        pid,
-                        IOEvent {
-                            syscall: SysCall::Mmap(addr),
-                        },
-                    ) {
-                        break 'LINE_LOOP; // callback returned false, exit requested
-                    }
-                } else {
-                    error!("Error while parsing current event from trace buffer! Event: '{}'", l);
-                }
-            }
+            //         let addr = usize::from_str_radix(tmp, 16).unwrap_or(0);
+            //         if !cb(
+            //             pid,
+            //             IOEvent {
+            //                 syscall: SysCall::Mmap(addr),
+            //             },
+            //         ) {
+            //             break 'LINE_LOOP; // callback returned false, exit requested
+            //         }
+            //     } else {
+            //         error!("Error while parsing current event from trace buffer! Event: '{}'", l);
+            //     }
+            // }
 
             // sys_stat(x) syscall family
-            if l.contains("sys_statx") || l.contains("sys_newstat") {
-                // debug!("{:#?}", l);
+            // if l.contains("sys_statx") || l.contains("sys_newstat") {
+            //     // debug!("{:#?}", l);
 
-                // TODO: Implement this!
-                // warn!("{:#?}", l);
-            }
+            //     // TODO: Implement this!
+            //     // warn!("{:#?}", l);
+            // }
 
-            // sys_fstat(at) syscall family
-            if l.contains("sys_newfstat") || l.contains("sys_newfstatat") {
-                // debug!("{:#?}", l);
+            // // sys_fstat(at) syscall family
+            // if l.contains("sys_newfstat") || l.contains("sys_newfstatat") {
+            //     // debug!("{:#?}", l);
 
-                // TODO: Implement this!
-                // warn!("{:#?}", l);
-            }
+            //     // TODO: Implement this!
+            //     // warn!("{:#?}", l);
+            // }
 
             // sys_getdents(64) syscall family
             // if l.contains("sys_getdents") || l.contains("sys_getdents64") {
