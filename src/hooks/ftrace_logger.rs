@@ -270,7 +270,7 @@ impl FtraceLogger {
                                                 pid
                                             );
                                         } else {
-                                            warn!("Could not add tracking entry for process with pid: {}", pid);
+                                            info!("Could not add tracking entry for process with pid: {}", pid);
                                         }
                                     }
                                 }
