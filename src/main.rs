@@ -25,7 +25,7 @@
 //! such events via multiple means. E.g. it can pre-fault
 //! pages to speed up the system
 
-#![feature(proc_macro_hygiene, decl_macro)]
+// #![feature(proc_macro_hygiene, decl_macro)]
 // #![cfg_attr(feature = "clippy", feature(plugin))]
 // #![cfg_attr(feature = "clippy", plugin(clippy))]
 #![allow(dead_code)]
