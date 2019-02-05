@@ -6,6 +6,7 @@ support/rules/99-ping-logger.rules etc/precached/rules.d
 support/systemd/precached.service lib/systemd/system
 support/systemd/precached-prime-caches.service lib/systemd/system
 support/systemd/precached-prime-caches.timer lib/systemd/system
+support/systemd/precached-trigger.service lib/systemd/user
 support/dbus/org.precached.precached1.conf etc/dbus-1/system.d
 support/desktop/precached-trigger.desktop etc/xdg/autostart
 support/shell/completions/en_US/iotracectl.bash-completion usr/share/bash-completion/completions/iotracectl

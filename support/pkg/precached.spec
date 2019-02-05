@@ -2,7 +2,7 @@
 
 Name:    precached-git
 Version: 1.5.1
-Release: 0%{?dist}
+Release: 1%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.gitlab.io/precached/
 License: GPLv3+
@@ -48,6 +48,7 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/xdg/autostart/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
+%{__mkdir_p} %{buildroot}%{_userunitdir}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_sharedstatedir}/%{OrigName}/iotrace/
 %{__mkdir_p} %{buildroot}%{_docdir}/%{OrigName}/
@@ -74,6 +75,7 @@ cp -a %{_builddir}/%{name}-%{version}/support/rules/99-ping-logger.rules %{build
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.service %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.timer %{buildroot}/%{_unitdir}/
+cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-trigger.service %{buildroot}/%{_userunitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/
 cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -ra %{_builddir}/%{name}-%{version}/support/config/examples %{buildroot}/%{_docdir}/%{OrigName}/
@@ -156,6 +158,7 @@ esac
 %{_unitdir}/precached.service
 %{_unitdir}/precached-prime-caches.service
 %{_unitdir}/precached-prime-caches.timer
+%{_userunitdir}/precached-trigger.service
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/org.precached.precached1.conf
 %{_datarootdir}/metainfo/org.precache.precached.appdata.xml
 %{_datarootdir}/metainfo/org.precache.precached-trigger.appdata.xml
@@ -188,6 +191,9 @@ esac
 %{_datarootdir}/%{OrigName}/i18n/en_UK
 
 %changelog
+* Tue Feb 05 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.5.1-1
+- rebuilt
+
 * Sun Feb 03 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.5.1-0
 - rebuilt
 
