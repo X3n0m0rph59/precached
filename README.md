@@ -14,7 +14,7 @@ programs while the system is idle.
 ### Install on Manjaro or other Arch Linux based Distros
 
 ```shell
-    $ yaourt -Sy precached-git
+    $ yaourt -Sy precached
     $ sudo systemctl enable --now precached.service
     $ systemctl --user enable --now precached-trigger.service
 ```
