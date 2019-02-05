@@ -14,10 +14,7 @@ programs while the system is idle.
 ### Install on Manjaro or other Arch Linux based Distros
 
 ```shell
-    $ git clone https://gitlab.com/X3n0m0rph59/precached.git
-    $ cd precached/support/pkg/
-    $ updpkgsums
-    $ makepgkg -si
+    $ yaourt -Sy precached-git
     $ sudo systemctl enable --now precached.service
     $ systemctl --user enable --now precached-trigger.service
 ```
