@@ -1,0 +1,21 @@
+---
+layout: post
+title: "Version 1.5.1"
+date:   2019-02-05 09:00:00
+tags: release
+---
+
+# Version 1.5.1 has been tagged
+
+We just tagged the 1.5.1 release!
+
+This marks the first official release in the 1.5.x branch.
+
+Some new and noteworthy features are:
+
+* Much reduced CPU time consumption
+* Thus improved battery life on laptops
+* Arch Linux and derivatives: AUR package support
+* Updated all dependencies to their current revisions
+
+The precached team
