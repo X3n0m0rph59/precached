@@ -4,6 +4,8 @@ ruby RUBY_VERSION
 # This will help ensure the proper Jekyll version is running.
 gem "jekyll", "3.4.0"
 
+gems "jekyll-paginate"
+
 gem "jekyll-theme-hydeout", "~> 3.4"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
