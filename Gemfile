@@ -4,7 +4,7 @@ ruby RUBY_VERSION
 # This will help ensure the proper Jekyll version is running.
 gem "jekyll", "3.4.0"
 
-gems "jekyll-paginate"
+gems "jekyll-paginate-v2", "2.1.0"
 
 gem "jekyll-theme-hydeout", "~> 3.4"
 
