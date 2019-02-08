@@ -145,7 +145,7 @@ impl HotApplications {
 
                             for (hash, _count) in apps {
                                 if Self::shall_cancel_prefetch(&globals_c, &manager_c) {
-                                    warn!("Cancelation request received, stopping prefetching!");
+                                    warn!("Cancellation request received, stopping prefetching!");
                                     break;
                                 }
 

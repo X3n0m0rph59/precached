@@ -586,7 +586,7 @@ impl hook::Hook for FtraceLogger {
 
                 self.tracer_thread = Some(
                     thread::Builder::new()
-                        .name(String::from("ftrace"))
+                        .name(String::from("precached-trace"))
                         .spawn(move || {
                             util::set_cpu_affinity(0).unwrap_or_else(|_| {
                                 error!("Could not set CPU affinity!");

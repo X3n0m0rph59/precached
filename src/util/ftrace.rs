@@ -532,12 +532,13 @@ fn trace_is_from_blacklisted_process(line: &str) -> bool {
         // TODO: Add a configuration option to make this
         //       tunable via .conf file by the end user
         line.contains("precached")
-            || line.contains("prefetch")
-            || line.contains("worker")
-            || line.contains("ftrace")
-            || line.contains("ipc")
+            // || line.contains("precached-prefetch")
+            // || line.contains("precached-worker")
+            // || line.contains("precached-trace")
+            // || line.contains("precached-ipc")
+            //
             || line.contains("journal")
-            || line.contains("syslog")
+            || line.contains("syslog")            
     }
 }
 
@@ -766,7 +767,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     // let printk_formats = get_printk_formats().unwrap();
                     //
                     // match printk_formats.get(&addr) {
-                    //     None    => { error!("Could not get associated file name for the current trace event!") }
+                    //     None    => { error!("Could not get associated file name of the current trace event!") }
                     //     Some(f) => {
                     //         if cb(pid, IOEvent { syscall: SysCall::Open(f.clone(), 0) }) == false {
                     //             break 'LINE_LOOP; // callback returned false, exit requested
@@ -778,7 +779,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     match last_filename {
                         // Error may happen if the previous open* syscall failed
                         None => {
-                            info!("Could not get associated file name for the current trace event! '{}'", l);
+                            // info!("Could not get associated file name of the current trace event! '{}'", l);
 
                             // reset_filename = true;
                         }

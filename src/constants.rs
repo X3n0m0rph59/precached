@@ -55,6 +55,9 @@ pub const ZSTD_COMPRESSION_RATIO: i32 = 0; // 0 == auto select (default: 3),
 /// Thread niceness (main process)
 // pub const MAIN_THREAD_NICENESS: i32 = 10;
 
+/// Thread niceness (prefetcher threads)
+pub const PREFETCHER_THREAD_NICENESS: i32 = -4;
+
 /// Thread niceness (worker threads)
 pub const WORKER_THREAD_NICENESS: i32 = 4;
 
@@ -113,7 +116,7 @@ pub const MEM_FREED_THRESHOLD: isize = 64 * 1024 * 1024; // 64 MiB
 pub const IDLE_PERIOD_WINDOW: u64 = 5;
 
 /// The size of the prefetcher thread pool
-// pub const NUM_PREFETCHER_THREADS: usize = 4;
+pub const NUM_PREFETCHER_THREADS: usize = 4;
 
 /// Maximum allowed size of a single file we are allowed to prefetch
 pub const MAX_ALLOWED_PREFETCH_SIZE: usize = 256 * 1024 * 1024; // 256 MiB

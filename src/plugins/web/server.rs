@@ -66,7 +66,7 @@ impl WebServer {
         let (_addr, server) = warp::serve(routes).bind_with_graceful_shutdown(([127, 0, 0, 1], 8023), rx);
 
         // spawn the tokio event loop thread
-        let _handle = thread::Builder::new().name("tokio event loop".to_string()).spawn(move || {
+        let _handle = thread::Builder::new().name("precached-tokio-event-loop".to_string()).spawn(move || {
             tokio::run(future::lazy(|| {
                 tokio::spawn(server);
                 Ok(())
