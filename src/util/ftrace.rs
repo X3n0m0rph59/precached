@@ -378,16 +378,16 @@ pub fn disable_ftrace_tracing() -> io::Result<()> {
 
     let filename = Path::new(TRACING_DIR).join("set_event");
     echo(&filename, String::from(" ")).unwrap_or_else(|_| {
-        error!("Could not write data!");
+        warn!("Could not write data!");
     });
 
     rmdir(Path::new(TRACING_DIR)).unwrap_or_else(|_| {
-        error!("Could not write data!");
+        warn!("Could not remove tracing instance!");
     });
 
-    let filename = Path::new(TRACING_DIR).join("kprobe_events");
+    let filename = Path::new(TRACING_BASE_DIR).join("kprobe_events");
     echo(&filename, String::from(" ")).unwrap_or_else(|_| {
-        error!("Could not write data!");
+        warn!("Could not write data!");
     });
 
     Ok(())

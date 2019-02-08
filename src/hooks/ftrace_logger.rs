@@ -573,11 +573,12 @@ impl hook::Hook for FtraceLogger {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::Startup => {
-                // Set up the system to use ftrace
-                match util::enable_ftrace_tracing() {
-                    Err(e) => error!("Could not enable the Linux ftrace subsystem! {}", e),
-                    Ok(()) => info!("Successfully enabled the Linux ftrace subsystem!"),
-                }
+                // NOTE: This code is handled in the 'main.rs' file now 
+                // // Set up the system to use ftrace
+                // match util::enable_ftrace_tracing() {
+                //     Err(e) => error!("Could not enable the Linux ftrace subsystem! {}", e),
+                //     Ok(()) => info!("Successfully enabled the Linux ftrace subsystem!"),
+                // }
 
                 // Start the thread that reads events from the Linux ftrace ringbuffer
                 let mut globals_c = globals.clone();
@@ -618,11 +619,12 @@ impl hook::Hook for FtraceLogger {
                 //     }
                 // }
 
-                // Undo the operations done on daemon startup to set up the system to use ftrace
-                match util::disable_ftrace_tracing() {
-                    Err(e) => error!("Could not disable the Linux ftrace subsystem! {}", e),
-                    Ok(()) => info!("Successfully disabled the Linux ftrace subsystem!"),
-                }
+                // NOTE: This code is handled in the 'main.rs' file now 
+                // // Undo the operations done on daemon startup to set up the system to use ftrace
+                // match util::disable_ftrace_tracing() {
+                //     Err(e) => error!("Could not disable the Linux ftrace subsystem! {}", e),
+                //     Ok(()) => info!("Successfully disabled the Linux ftrace subsystem!"),
+                // }
             }
             _ => { /* Ignore other events */ }
         }
