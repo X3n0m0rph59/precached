@@ -48,10 +48,9 @@ pub mod rule_event_bridge;
 pub mod triggers;
 
 #[cfg(feature = "web-frontend")]
-pub mod web_frontend;
-#[cfg(feature = "web-frontend")]
 pub mod web;
-
+#[cfg(feature = "web-frontend")]
+pub mod web_frontend;
 
 pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     introspection::register_plugin(globals, manager);

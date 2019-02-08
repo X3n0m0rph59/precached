@@ -102,7 +102,7 @@ impl Notifications {
             // .hint(Hint::Resident(true)) // this is not supported by all implementations
             // .timeout(0) // this however is
             .show() {
-        
+
             Err(e) => {
                 warn!("Could not send a notification to the primary user's desktop! {}", e);
             },

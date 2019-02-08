@@ -345,10 +345,7 @@ impl IOtracePrefetcher {
                             let max = prefetch_pool.max_count();
                             let count_total = io_trace.trace_log.len();
 
-                            let (sender, receiver): (
-                                Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>,
-                                _,
-                            ) = channel();
+                            let (sender, receiver): (Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>, _) = channel();
 
                             for n in 0..max {
                                 let sc = Mutex::new(sender.clone());

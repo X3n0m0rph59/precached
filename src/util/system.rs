@@ -60,7 +60,7 @@ pub fn set_process_properties() -> Result<bool, &'static str> {
                             libc::IOPRIO_PRIO_VALUE(IOPRIO_CLASS_RT, 0)
                         )
                     };
-    
+
     if result < 0 {
         return Err(&"Could not set I/O scheduling class and priority!")
     }*/

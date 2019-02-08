@@ -53,8 +53,7 @@ pub struct WebFrontend {}
 
 impl WebFrontend {
     pub fn new() -> Self {
-        WebFrontend {
-        }
+        WebFrontend {}
     }
 
     pub fn start_web_server(&mut self) {
@@ -98,12 +97,12 @@ impl Plugin for WebFrontend {
     fn internal_event(&mut self, event: &events::InternalEvent, _globals: &mut Globals, _manager: &Manager) {
         match event.event_type {
             events::EventType::Startup => {
-                self.start_web_server();    
-            },
+                self.start_web_server();
+            }
 
             events::EventType::Shutdown => {
                 self.stop_web_server();
-            },
+            }
 
             _ => {
                 // Ignore all other events

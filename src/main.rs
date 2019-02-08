@@ -84,9 +84,7 @@ use crate::events::EventType;
 #[derive(Debug, Fail)]
 enum DaemonError {
     #[fail(display = "RuntimeError: {}", description)]
-    RuntimeError {
-        description: String
-    }
+    RuntimeError { description: String },
 }
 
 /// Global 'shall we exit now' flag
@@ -287,7 +285,7 @@ fn run() -> Result<(), failure::Error> {
     match config_file::parse_config_file(&mut globals) {
         Ok(_) => info!("Successfully parsed configuration file!"),
         Err(s) => {
-            error!("Error in configuration file: {}", s);            
+            error!("Error in configuration file: {}", s);
             return Err(format_err!("An unrecoverable error occured!"));
         }
     }
@@ -333,7 +331,7 @@ fn run() -> Result<(), failure::Error> {
                 // We must fail here, since we were asked to
                 // daemonize, and maybe there is another
                 // instance already running!
-                return Err(format_err!("An unrecoverable error occured!"));                         
+                return Err(format_err!("An unrecoverable error occured!"));
             }
 
             Ok(()) => {
@@ -407,55 +405,51 @@ fn run() -> Result<(), failure::Error> {
     // events::queue_internal_event(EventType::PrimeCaches, &mut globals);
 
     // spawn the event loop thread
-    let handle = thread::Builder::new()
-        .name("event loop".to_string())
-        .spawn(move || {
-            'EVENT_LOOP: loop {
-                if EXIT_NOW.load(Ordering::Relaxed) {
-                    trace!("Leaving the event loop...");
-                    break 'EVENT_LOOP;
-                }
-
-                // blocking call into procmon_sys
-                let event = procmon.wait_for_event();
-                sender.send(event).unwrap();
+    let handle = thread::Builder::new().name("event loop".to_string()).spawn(move || {
+        'EVENT_LOOP: loop {
+            if EXIT_NOW.load(Ordering::Relaxed) {
+                trace!("Leaving the event loop...");
+                break 'EVENT_LOOP;
             }
-        })?;
+
+            // blocking call into procmon_sys
+            let event = procmon.wait_for_event();
+            sender.send(event).unwrap();
+        }
+    })?;
 
     // spawn the IPC event loop thread
     let queue_c = globals.ipc_event_queue.clone();
     let manager_c = manager.clone();
 
-    let _handle_ipc = thread::Builder::new()
-        .name("ipc".to_string())
-        .spawn(move || {
-            'EVENT_LOOP: loop {
-                if EXIT_NOW.load(Ordering::Relaxed) {
-                    trace!("Leaving the IPC event loop...");
-                    break 'EVENT_LOOP;
-                }
+    let _handle_ipc = thread::Builder::new().name("ipc".to_string()).spawn(move || {
+        'EVENT_LOOP: loop {
+            if EXIT_NOW.load(Ordering::Relaxed) {
+                trace!("Leaving the IPC event loop...");
+                break 'EVENT_LOOP;
+            }
 
-                // blocking call
-                let event = ipc_server.listen();
+            // blocking call
+            let event = ipc_server.listen();
 
-                // we got an event, try to lock the shared data structure...
-                match queue_c.write() {
-                    Ok(mut queue) => match event {
-                        Err(e) => error!("Invalid IPC request: {}", e),
-                        Ok(event) => ipc_server.process_messages(&event, &mut queue, &manager_c),
-                    },
+            // we got an event, try to lock the shared data structure...
+            match queue_c.write() {
+                Ok(mut queue) => match event {
+                    Err(e) => error!("Invalid IPC request: {}", e),
+                    Ok(event) => ipc_server.process_messages(&event, &mut queue, &manager_c),
+                },
 
-                    Err(e) => {
-                        warn!("Could not lock a shared data structure: {}", e);
-                    }
+                Err(e) => {
+                    warn!("Could not lock a shared data structure: {}", e);
                 }
             }
-        })?;
+        }
+    })?;
 
     util::insert_message_into_ftrace_stream(format!("precached started")).unwrap_or_else(|_| {
         error!("Could not insert a message into the ftrace stream!");
     });
-    
+
     util::notify(&String::from("precached started!"), &manager);
 
     // ... on the main thread again

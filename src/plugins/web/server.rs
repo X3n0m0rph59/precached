@@ -41,9 +41,7 @@ pub struct WebServer {
 
 impl WebServer {
     pub fn new() -> Self {
-        WebServer {
-            tx: None,
-        }
+        WebServer { tx: None }
     }
 
     pub fn index() -> String {
@@ -58,27 +56,22 @@ impl WebServer {
     }
 
     pub fn startup(&mut self) -> Result<(), &'static str> {
-        let index = warp::any().map(|| { Self::index() });
-        let about = path!("about").map(|| { Self::about() });
+        let index = warp::any().map(|| Self::index());
+        let about = path!("about").map(|| Self::about());
 
-        let routes = about
-                     .or(index);
+        let routes = about.or(index);
 
         let (tx, rx) = channel();
 
-        let (_addr, server) = warp::serve(routes)
-            .bind_with_graceful_shutdown(([127, 0, 0, 1], 8023), rx);
+        let (_addr, server) = warp::serve(routes).bind_with_graceful_shutdown(([127, 0, 0, 1], 8023), rx);
 
         // spawn the tokio event loop thread
-        let _handle = thread::Builder::new()
-            .name("tokio event loop".to_string())
-            .spawn(move || {
-                    tokio::run(future::lazy(|| {
-                        tokio::spawn(server);
-                        Ok(())
-                    }));
-                }
-            );
+        let _handle = thread::Builder::new().name("tokio event loop".to_string()).spawn(move || {
+            tokio::run(future::lazy(|| {
+                tokio::spawn(server);
+                Ok(())
+            }));
+        });
 
         self.tx = Some(tx);
 

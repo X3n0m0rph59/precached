@@ -590,7 +590,7 @@ impl hook::Hook for FtraceLogger {
                             util::set_cpu_affinity(0).unwrap_or_else(|_| {
                                 error!("Could not set CPU affinity!");
                             });
-                            
+
                             util::set_realtime_priority();
 
                             Self::ftrace_trace_log_parser(&mut globals_c, &manager_c);
