@@ -591,7 +591,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         // short read, maybe EOF?
         // wait for new data to arrive
         if len < 1 {
-            // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+            thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
             continue;
         }
 
