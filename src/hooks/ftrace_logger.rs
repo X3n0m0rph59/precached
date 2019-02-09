@@ -387,10 +387,10 @@ impl FtraceLogger {
                         if active_tracers.contains_key(&event.pid) {
                             // We received a trace request multiple times for process `event.pid`.
                             // It is already being traced by us.
-                            warn!(
-                                "Spurious request received, to trace process '{}' with pid {} that is already being traced!",
-                                comm, event.pid
-                            );
+                            // warn!(
+                            //     "Spurious request received, to trace process '{}' with pid {} that is already being traced!",
+                            //     comm, event.pid
+                            // );
                         } else if let Ok(result) = Self::shall_new_tracelog_be_created(event.pid, globals, manager) {
                             if result {
                                 // Begin tracing the process `event.pid`.
