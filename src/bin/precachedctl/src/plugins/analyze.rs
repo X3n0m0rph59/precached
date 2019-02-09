@@ -389,8 +389,8 @@ pub fn display_global_stats(config: &Config, _daemon_config: &util::ConfigFile) 
 
                                     let field_defs = vec![(
                                         String::from("Not implemented"),
-                                        fmt_option(Some(123)),
-                                        fmt_cell(Some(123), Some(ValueRange::new(0..usize::max_value(), 0..0, 0..0))),
+                                        fmt_option(Some(0)),
+                                        fmt_cell(Some(0), Some(ValueRange::new(0..usize::max_value(), 0..0, 0..0))),
                                     )];
 
                                     for (index, &(ref f, ref v, ref cell)) in field_defs.iter().enumerate() {
