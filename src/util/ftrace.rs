@@ -21,6 +21,7 @@
 use nix::unistd::{gettid, Pid};
 use std::collections::HashMap;
 use std::ffi::CString;
+use std::fs::File;
 use std::fs::OpenOptions;
 use std::io;
 use std::io::BufRead;
@@ -556,7 +557,8 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
 
     let filename = Path::new(TRACING_DIR).join("trace_pipe");
-    let mut trace_pipe = OpenOptions::new().read(true).open(&filename)?;
+    let trace_pipe = File::open(&filename)?;
+    let reader = BufReader::new(trace_pipe);
 
     // filled in with `getnameprobe` kprobe event data
     let mut last_filename = None;
@@ -565,14 +567,17 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
     // let mut last_dirname = None;
 
     let mut counter = 0;
-    'LINE_LOOP: loop {
+
+    for li in reader.lines() {
+        counter += 1;
+
         // do we have a pending exit request?
         if FTRACE_EXIT_NOW.load(Ordering::Relaxed) {
             info!("Leaving the ftrace parser loop, while processing trace data...");
-            break 'LINE_LOOP;
+            break;
         }
 
-        if counter % 250 == 0 {
+        if counter % 500 == 0 {
             // prune expired tracers
             // NOTE: We have to use `lock()` here instead of `try_lock()`
             //       because we don't want to miss events in any case.
@@ -583,330 +588,320 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
                     check_expired_tracers(&mut active_tracers, &iotrace_dir, min_len, min_prefetch_size, globals);
                 }
             }
-        }
+        }        
 
-        let mut data = Vec::new();
-        let len = trace_pipe.read_to_end(&mut data)?;
-
-        // short read, maybe EOF?
-        // wait for new data to arrive
-        if len < 1 {
-            // thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
-            continue;
-        }
-
-        let data = String::from_utf8_lossy(&data);
-        let mut data_present = false;
-
-        // info!("Data: '{:?}'", data);
-
-        for l in data.lines() {
-            let l = l.trim();
-
-            // indicates whether we got data in this iteration of the loop
-            data_present = false;
-
-            // ignore invalid lines (handled further below now)
-            // if l.is_empty() || l.len() < 1 {
-            //     warn!("Not processing data in current line: '{}'", l);
-            //     thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
-            //     continue;
-            // }
-
-            // ignore the headers starting with a comment sign
-            if l.starts_with('#') {
-                warn!("Not processing data in current line: '{}'", l);
-                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
-                continue;
+        match li {
+            Err(e) => {
+                error!("Error while processing trace event: {}", e);
             }
 
-            // ignore "lost events" events
-            if REGEX_FILTER.is_match(l) {
-                warn!("Not processing data in current line: '{}'", l);
-                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
-                continue;
-            }
+            Ok(l) => {
+                let l = l.trim();
+                // debug!("Data: '{:?}'", l);
 
-            // bail out if the event is caused by a blacklisted process
-            if trace_is_from_blacklisted_process(l) {
-                // warn!("Not processing data in current line: '{}'", l);
-                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
-                continue;
-            }
+                // ignore invalid lines (handled further below now)
+                // if l.is_empty() || l.len() < 1 {
+                //     warn!("Not processing data in current line: '{}'", l);
+                //     thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                //     continue;
+                // }
 
-            // check validity of parsed data
-            let fields: Vec<&str> = l.split("  ").collect();
-            let idx = fields.len() - 1;
-
-            if fields.len() <= 1 {
-                // warn!("Not processing data in current line: '{}'", l);
-                thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
-                continue;
-            }
-
-            if fields.len() >= 3 &&
-                !fields[idx].contains("sys_open") && !fields[idx].contains("sys_openat") &&
-                !fields[idx].contains("sys_open_by_handle_at") && !fields[idx].contains("sys_read") &&
-                !fields[idx].contains("sys_readv") && !fields[idx].contains("sys_preadv2") &&
-                !fields[idx].contains("sys_pread64") &&
-                !fields[idx].contains("sys_mmap") && !fields[idx].contains("sys_statx") &&
-                !fields[idx].contains("sys_newstat") && !fields[idx].contains("sys_newfstat") &&
-                !fields[idx].contains("sys_newfstatat") &&
-                // !fields[idx].contains("sys_getdents") && !fields[idx].contains("sys_getdents64") &&
-                !fields[idx].contains("getnameprobe") && !fields[idx].contains("getdirnameprobe")
-                && !fields[idx].contains("tracing_mark_write:")
-            {
-                warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
-            } else {
-                data_present = true;
-            }
-
-            // ping event
-            if l.contains("tracing_mark_write: ping!") {
-                // debug!("{:#?}", l);
-
-                if !cb(
-                    0,
-                    IOEvent {
-                        syscall: SysCall::CustomEvent(String::from("ping!")),
-                    },
-                ) {
-                    break 'LINE_LOOP; // callback returned false, exit requested
-                }
-            }
-
-            // extract process' pid off of current trace entry
-            let mut pid: libc::pid_t = 0;
-            let s = String::from(fields[0]);
-
-            match s.rfind('-') {
-                None => {
-                    error!("Could not parse the process id field from current trace data: '{}'", l);
+                // ignore the headers starting with a comment sign
+                if l.starts_with('#') {
+                    warn!("Not processing data in current line: '{}'", l);
+                    thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                    continue;
                 }
 
-                Some(lidx) => {
-                    let pid_s = String::from(&s[lidx + 1..]);
+                // ignore "lost events" events
+                if REGEX_FILTER.is_match(l) {
+                    warn!("Not processing data in current line: '{}'", l);
+                    thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                    continue;
+                }
 
-                    let pid_f: Vec<&str> = pid_s.split(' ').collect();
-                    if pid_f.is_empty() {
-                        match pid_s.parse() {
-                            Err(e) => {
-                                error!(
-                                    "Could not extract the process id from current trace data entry: {} pid_s: '{}'",
-                                    e, pid_s
-                                );
-                                continue;
+                // bail out if the event is caused by a blacklisted process
+                if trace_is_from_blacklisted_process(l) {
+                    // warn!("Not processing data in current line: '{}'", l);
+                    thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                    continue;
+                }
+
+                // check validity of parsed data
+                let fields: Vec<&str> = l.split("  ").collect();
+                let idx = fields.len() - 1;
+
+                if fields.len() <= 1 {
+                    // warn!("Not processing data in current line: '{}'", l);
+                    thread::sleep(Duration::from_millis(constants::FTRACE_THREAD_YIELD_MILLIS));
+                    continue;
+                }
+
+                if fields.len() >= 3 &&
+                    !fields[idx].contains("sys_open") && !fields[idx].contains("sys_openat") &&
+                    !fields[idx].contains("sys_open_by_handle_at") && !fields[idx].contains("sys_read") &&
+                    !fields[idx].contains("sys_readv") && !fields[idx].contains("sys_preadv2") &&
+                    !fields[idx].contains("sys_pread64") &&
+                    !fields[idx].contains("sys_mmap") && !fields[idx].contains("sys_statx") &&
+                    !fields[idx].contains("sys_newstat") && !fields[idx].contains("sys_newfstat") &&
+                    !fields[idx].contains("sys_newfstatat") &&
+                    // !fields[idx].contains("sys_getdents") && !fields[idx].contains("sys_getdents64") &&
+                    !fields[idx].contains("getnameprobe") && !fields[idx].contains("getdirnameprobe")
+                    && !fields[idx].contains("tracing_mark_write:")
+                {
+                    warn!("Unexpected data seen in trace stream! Payload: '{}'", l);
+                }
+
+                // ping event
+                if l.contains("tracing_mark_write: ping!") {
+                    // debug!("{:#?}", l);
+
+                    if !cb(
+                        0,
+                        IOEvent {
+                            syscall: SysCall::CustomEvent(String::from("ping!")),
+                        },
+                    ) {
+                        break; // callback returned false, exit requested
+                    }
+                }
+
+                // extract process' pid off of current trace entry
+                let mut pid: libc::pid_t = 0;
+                let s = String::from(fields[0]);
+
+                match s.rfind('-') {
+                    None => {
+                        error!("Could not parse the process id field from current trace data: '{}'", l);
+                    }
+
+                    Some(lidx) => {
+                        let pid_s = String::from(&s[lidx + 1..]);
+
+                        let pid_f: Vec<&str> = pid_s.split(' ').collect();
+                        if pid_f.is_empty() {
+                            match pid_s.parse() {
+                                Err(e) => {
+                                    error!(
+                                        "Could not extract the process id from current trace data entry: {} pid_s: '{}'",
+                                        e, pid_s
+                                    );
+                                    continue;
+                                }
+
+                                Ok(p) => {
+                                    pid = p;
+                                    // trace!("pid: {}", p);
+                                }
+                            }
+                        } else {
+                            // found excess text at the end of pid string, handle it
+                            match String::from(pid_f[0]).parse() {
+                                Err(e) => {
+                                    error!(
+                                        "Could not extract the process id from current trace data entry: {} pid_s: '{}'",
+                                        e, pid_s
+                                    );
+                                    continue;
+                                }
+
+                                Ok(p) => {
+                                    pid = p;
+                                    // trace!("pid: {}", p);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Don't trace our own threads
+                if Pid::from_raw(pid) == gettid() {
+                    continue;
+                }
+
+                // getnameprobe kprobe event
+                if l.contains("getnameprobe") {
+                    match REGEX_FILENAME.captures(l) {
+                        None => error!("Could not extract file name! Event: '{}'", l),
+
+                        Some(c) => {
+                            last_filename = Some(PathBuf::from(Path::new(&c["filename"])));
+                            // trace!("Last filename: '{:?}'", last_filename);
+                        }
+                    }
+                }
+
+                // getdirnameprobe kprobe event
+                // if l.contains("getdirnameprobe") {
+                //     warn!("{:?}", l);
+
+                //     match REGEX_DIRNAME.captures(l) {
+                //         None => {
+                //             error!("Could not extract directory name! Event: '{}'", l)
+                //         }
+                //         Some(c) => {
+                //             last_dirname = Some(String::from(&c["dirname"]));
+                //         }
+                //     }
+                // }
+
+                // sys_open syscall
+                if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at"))
+                    && !l.contains("getnameprobe")
+                {
+                    if !fields.is_empty() {
+                        // debug !("{:#?}", l);
+
+                        // let comm = String::from(fields[0]);
+                        // let addr = String::from(fields[5]);
+
+                        // let printk_formats = get_printk_formats().unwrap();
+                        //
+                        // match printk_formats.get(&addr) {
+                        //     None    => { error!("Could not get associated file name of the current trace event!") }
+                        //     Some(f) => {
+                        //         if cb(pid, IOEvent { syscall: SysCall::Open(f.clone(), 0) }) == false {
+                        //             break 'LINE_LOOP; // callback returned false, exit requested
+                        //         }
+                        //     }
+                        // }
+
+                        let mut reset_filename = false;
+                        match last_filename {
+                            // Error may happen if the previous open* syscall failed
+                            None => {
+                                // info!("Could not get associated file name of the current trace event! '{}'", l);
+
+                                // reset_filename = true;
                             }
 
-                            Ok(p) => {
-                                pid = p;
-                                // trace!("pid: {}", p);
+                            Some(ref c) => {
+                                // trace!("c: '{:?}'", c.clone());
+
+                                if !cb(
+                                    pid,
+                                    IOEvent {
+                                        syscall: SysCall::Open(c.clone(), 0),
+                                    },
+                                ) {
+                                    break; // callback returned false, exit requested
+                                }
+
+                                reset_filename = true;
                             }
+                        }
+
+                        // reset the filename so that we won't use it multiple times accidentally
+                        if reset_filename {
+                            last_filename = None;
                         }
                     } else {
-                        // found excess text at the end of pid string, handle it
-                        match String::from(pid_f[0]).parse() {
-                            Err(e) => {
-                                error!(
-                                    "Could not extract the process id from current trace data entry: {} pid_s: '{}'",
-                                    e, pid_s
-                                );
-                                continue;
-                            }
-
-                            Ok(p) => {
-                                pid = p;
-                                // trace!("pid: {}", p);
-                            }
-                        }
+                        error!("Error while parsing current event from trace buffer! Event: '{}'", l);
                     }
                 }
+
+                // sys_read syscall
+                // if l.contains("sys_read") || l.contains("sys_readv") || l.contains("sys_preadv2") || l.contains("sys_pread64") {
+                //     // debug!("{:#?}", l);
+
+                //     if !fields.is_empty() {
+                //         // get last part of trace buffer line
+                //         let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
+                //         let tmp = tmp[tmp.len() - 1];
+
+                //         let fd = i32::from_str_radix(tmp, 16).unwrap_or(-1);
+                //         if !cb(
+                //             pid,
+                //             IOEvent {
+                //                 syscall: SysCall::Read(fd),
+                //             },
+                //         ) {
+                //             break 'LINE_LOOP; // callback returned false, exit requested
+                //         }
+                //     } else {
+                //         error!("Error while parsing current event from trace buffer! Event: '{}'", l);
+                //     }
+                // }
+
+                // sys_mmap syscall
+                // if l.contains("sys_mmap") {
+                //     // debug!("{:#?}", l);
+
+                //     if !fields.is_empty() {
+                //         // get last part of trace buffer line
+                //         let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
+                //         let tmp = tmp[tmp.len() - 1];
+
+                //         let addr = usize::from_str_radix(tmp, 16).unwrap_or(0);
+                //         if !cb(
+                //             pid,
+                //             IOEvent {
+                //                 syscall: SysCall::Mmap(addr),
+                //             },
+                //         ) {
+                //             break 'LINE_LOOP; // callback returned false, exit requested
+                //         }
+                //     } else {
+                //         error!("Error while parsing current event from trace buffer! Event: '{}'", l);
+                //     }
+                // }
+
+                // sys_stat(x) syscall family
+                // if l.contains("sys_statx") || l.contains("sys_newstat") {
+                //     // debug!("{:#?}", l);
+
+                //     // TODO: Implement this!
+                //     // warn!("{:#?}", l);
+                // }
+
+                // // sys_fstat(at) syscall family
+                // if l.contains("sys_newfstat") || l.contains("sys_newfstatat") {
+                //     // debug!("{:#?}", l);
+
+                //     // TODO: Implement this!
+                //     // warn!("{:#?}", l);
+                // }
+
+                // sys_getdents(64) syscall family
+                // if l.contains("sys_getdents") || l.contains("sys_getdents64") {
+                //     // debug!("{:#?}", l);
+
+                //     let mut reset_dirname = false;
+                //     match last_dirname {
+                //         None => {
+                //             warn!(
+                //                 "Could not get associated directory name of the current trace event! '{}'",
+                //                 l
+                //             )
+                //         }
+
+                //         Some(ref c) => {
+                //             if cb(pid, IOEvent { syscall: SysCall::Getdents(PathBuf::from(c.clone())) }) == false {
+                //                 break 'LINE_LOOP; // callback returned false, exit requested
+                //             }
+
+                //             reset_dirname = true;
+                //         }
+                //     }
+
+                //     // reset the filename so that we won't use it multiple times accidentally
+                //     if reset_dirname {
+                //         last_dirname = None;
+                //     }
+                // }
             }
-
-            // Don't trace our own threads
-            if Pid::from_raw(pid) == gettid() {
-                continue;
-            }
-
-            // getnameprobe kprobe event
-            if l.contains("getnameprobe") {
-                match REGEX_FILENAME.captures(l) {
-                    None => error!("Could not extract file name! Event: '{}'", l),
-
-                    Some(c) => {
-                        last_filename = Some(PathBuf::from(Path::new(&c["filename"])));
-                        // trace!("Last filename: '{:?}'", last_filename);
-                    }
-                }
-            }
-
-            // getdirnameprobe kprobe event
-            // if l.contains("getdirnameprobe") {
-            //     warn!("{:?}", l);
-
-            //     match REGEX_DIRNAME.captures(l) {
-            //         None => {
-            //             error!("Could not extract directory name! Event: '{}'", l)
-            //         }
-            //         Some(c) => {
-            //             last_dirname = Some(String::from(&c["dirname"]));
-            //         }
-            //     }
-            // }
-
-            // sys_open syscall
-            if (l.contains("sys_open") || l.contains("sys_openat") || l.contains("sys_open_by_handle_at"))
-                && !l.contains("getnameprobe")
-            {
-                if !fields.is_empty() {
-                    // debug !("{:#?}", l);
-
-                    // let comm = String::from(fields[0]);
-                    // let addr = String::from(fields[5]);
-
-                    // let printk_formats = get_printk_formats().unwrap();
-                    //
-                    // match printk_formats.get(&addr) {
-                    //     None    => { error!("Could not get associated file name of the current trace event!") }
-                    //     Some(f) => {
-                    //         if cb(pid, IOEvent { syscall: SysCall::Open(f.clone(), 0) }) == false {
-                    //             break 'LINE_LOOP; // callback returned false, exit requested
-                    //         }
-                    //     }
-                    // }
-
-                    let mut reset_filename = false;
-                    match last_filename {
-                        // Error may happen if the previous open* syscall failed
-                        None => {
-                            // info!("Could not get associated file name of the current trace event! '{}'", l);
-
-                            // reset_filename = true;
-                        }
-
-                        Some(ref c) => {
-                            // trace!("c: '{:?}'", c.clone());
-
-                            if !cb(
-                                pid,
-                                IOEvent {
-                                    syscall: SysCall::Open(c.clone(), 0),
-                                },
-                            ) {
-                                break 'LINE_LOOP; // callback returned false, exit requested
-                            }
-
-                            reset_filename = true;
-                        }
-                    }
-
-                    // reset the filename so that we won't use it multiple times accidentally
-                    if reset_filename {
-                        last_filename = None;
-                    }
-                } else {
-                    error!("Error while parsing current event from trace buffer! Event: '{}'", l);
-                }
-            }
-
-            // sys_read syscall
-            // if l.contains("sys_read") || l.contains("sys_readv") || l.contains("sys_preadv2") || l.contains("sys_pread64") {
-            //     // debug!("{:#?}", l);
-
-            //     if !fields.is_empty() {
-            //         // get last part of trace buffer line
-            //         let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
-            //         let tmp = tmp[tmp.len() - 1];
-
-            //         let fd = i32::from_str_radix(tmp, 16).unwrap_or(-1);
-            //         if !cb(
-            //             pid,
-            //             IOEvent {
-            //                 syscall: SysCall::Read(fd),
-            //             },
-            //         ) {
-            //             break 'LINE_LOOP; // callback returned false, exit requested
-            //         }
-            //     } else {
-            //         error!("Error while parsing current event from trace buffer! Event: '{}'", l);
-            //     }
-            // }
-
-            // sys_mmap syscall
-            // if l.contains("sys_mmap") {
-            //     // debug!("{:#?}", l);
-
-            //     if !fields.is_empty() {
-            //         // get last part of trace buffer line
-            //         let tmp: Vec<&str> = fields[fields.len() - 1].split_whitespace().collect();
-            //         let tmp = tmp[tmp.len() - 1];
-
-            //         let addr = usize::from_str_radix(tmp, 16).unwrap_or(0);
-            //         if !cb(
-            //             pid,
-            //             IOEvent {
-            //                 syscall: SysCall::Mmap(addr),
-            //             },
-            //         ) {
-            //             break 'LINE_LOOP; // callback returned false, exit requested
-            //         }
-            //     } else {
-            //         error!("Error while parsing current event from trace buffer! Event: '{}'", l);
-            //     }
-            // }
-
-            // sys_stat(x) syscall family
-            // if l.contains("sys_statx") || l.contains("sys_newstat") {
-            //     // debug!("{:#?}", l);
-
-            //     // TODO: Implement this!
-            //     // warn!("{:#?}", l);
-            // }
-
-            // // sys_fstat(at) syscall family
-            // if l.contains("sys_newfstat") || l.contains("sys_newfstatat") {
-            //     // debug!("{:#?}", l);
-
-            //     // TODO: Implement this!
-            //     // warn!("{:#?}", l);
-            // }
-
-            // sys_getdents(64) syscall family
-            // if l.contains("sys_getdents") || l.contains("sys_getdents64") {
-            //     // debug!("{:#?}", l);
-
-            //     let mut reset_dirname = false;
-            //     match last_dirname {
-            //         None => {
-            //             warn!(
-            //                 "Could not get associated directory name of the current trace event! '{}'",
-            //                 l
-            //             )
-            //         }
-
-            //         Some(ref c) => {
-            //             if cb(pid, IOEvent { syscall: SysCall::Getdents(PathBuf::from(c.clone())) }) == false {
-            //                 break 'LINE_LOOP; // callback returned false, exit requested
-            //             }
-
-            //             reset_dirname = true;
-            //         }
-            //     }
-
-            //     // reset the filename so that we won't use it multiple times accidentally
-            //     if reset_dirname {
-            //         last_dirname = None;
-            //     }
-            // }
+        }   
+    }
+    
+    // prune expired tracers before exit
+    // NOTE: We have to use `lock()` here instead of `try_lock()`
+    //       because we don't want to miss events in any case.
+    //       Will deadlock with `.try_lock()`
+    match crate::hooks::ftrace_logger::ACTIVE_TRACERS.lock() {
+        Err(e) => error!("Could not take a lock on a shared data structure! {}", e),
+        Ok(mut active_tracers) => {
+            check_expired_tracers(&mut active_tracers, &iotrace_dir, min_len, min_prefetch_size, globals);
         }
-
-        if !data_present {
-            unsafe {
-                libc::sched_yield();
-            }
-        }
-
-        counter += 1;
     }
 
     Ok(())
