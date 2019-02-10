@@ -112,8 +112,11 @@ pub const MEM_FREED_RECOVERY_WINDOW: u64 = 5;
 /// Amount of memory that has to be freed for the signal `MemoryFreed` to be sent
 pub const MEM_FREED_THRESHOLD: isize = 64 * 1024 * 1024; // 64 MiB
 
+/// Load of the system below which we consider the system to be idle
+pub const SYSTEM_IDLE_LOAD_THRESHOLD: f32 = 1.35;
+
 /// Time in seconds that has to elapse before we signal "system enters idle period"
-pub const IDLE_PERIOD_WINDOW: u64 = 5;
+pub const IDLE_PERIOD_WINDOW: u64 = 10;
 
 /// The size of the prefetcher thread pool
 pub const NUM_PREFETCHER_THREADS: usize = 4;

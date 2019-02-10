@@ -265,18 +265,15 @@ impl Metrics {
             }
         }
 
-        let num_cpus = num_cpus::get();
-
         // Idle time tracking
         let sys = System::new();
 
-        if sys.load_average().unwrap().one <= (num_cpus / 2) as f32 {
-            if self.enter_idle_event_sent == false {
-                events::queue_internal_event(EventType::EnterIdle, globals);
+        if sys.load_average().unwrap().one <= constants::SYSTEM_IDLE_LOAD_THRESHOLD &&
+           self.enter_idle_event_sent == false {            
+            events::queue_internal_event(EventType::EnterIdle, globals);
 
-                self.enter_idle_event_sent = true;
-                self.system_was_idle_at_least_once = true;
-            }
+            self.enter_idle_event_sent = true;
+            self.system_was_idle_at_least_once = true;
         } else {
             // rearm event
             self.enter_idle_event_sent = false;

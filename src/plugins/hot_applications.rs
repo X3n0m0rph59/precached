@@ -457,8 +457,17 @@ impl Plugin for HotApplications {
             }
 
             events::EventType::PrimeCaches => {
+                info!("Starting offline prefetching now");
                 self.prefetch_data(globals, manager);
             }
+
+            // events::EventType::ProfileChanged(profile) => {
+            //     if profile == SystemProfile::UpAndRunning {
+            //         self.prefetch_data(globals, manager);
+            //     } else {
+            //         warn!("Current system profile does not allow offline prefetching");
+            //     }
+            // }
 
             events::EventType::AvailableMemoryLowWatermark => {
                 let pm = manager.plugin_manager.read().unwrap();
@@ -475,7 +484,7 @@ impl Plugin for HotApplications {
                         if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
                             self.prefetch_data(globals, manager);
                         } else {
-                            warn!("Ignored 'Low Memory' condition, current system profile does not allow offline prefetching");
+                            warn!("Ignored 'Memory: Lower Watermark' condition, current system profile does not allow offline prefetching");
                         }
                     }
                 }
