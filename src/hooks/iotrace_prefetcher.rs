@@ -51,9 +51,9 @@ pub enum ThreadState {
     Uninitialized,
     Idle,
     Error(PathBuf),
-    PrefetchingFile(PathBuf),
-    PrefetchingFileMetadata(PathBuf),
-    UnmappingFile(PathBuf),
+    PrefetchedFile(PathBuf),
+    PrefetchedFileMetadata(PathBuf),
+    UnmappedFile(PathBuf),
 }
 
 /// Register this hook implementation with the system
@@ -118,10 +118,6 @@ impl IOtracePrefetcher {
                         // &system_mapped_files,
                         static_whitelist,
                     ) {
-                        {
-                            *(thread_state.write().unwrap()) = ThreadState::PrefetchingFile(file.clone());
-                        }
-
                         match util::cache_file(file, true) {
                             Err(e) => {
                                 // I/O trace log maybe need to be optimized.
@@ -141,7 +137,7 @@ impl IOtracePrefetcher {
                                 already_prefetched.insert(file.clone(), Some(mapping));
 
                                 {
-                                    *(thread_state.write().unwrap()) = ThreadState::Idle;
+                                    *(thread_state.write().unwrap()) = ThreadState::PrefetchedFile(file.clone());
                                 }
                             }
                         }
@@ -192,10 +188,6 @@ impl IOtracePrefetcher {
                     trace!("Unmapping: {:?}", file);
 
                     if let Some(mapping) = our_mapped_files.get(file) {
-                        {
-                            *(thread_state.write().unwrap()) = ThreadState::UnmappingFile(file.clone());
-                        }
-
                         if let &Some(ref mapping) = mapping {
                             let mapping_c = mapping.clone();
                             if util::free_mapping(&mapping) {
@@ -203,7 +195,7 @@ impl IOtracePrefetcher {
                                 result.push(mapping_c.filename);
 
                                 {
-                                    *(thread_state.write().unwrap()) = ThreadState::Idle;
+                                    *(thread_state.write().unwrap()) = ThreadState::UnmappedFile(file.clone());
                                 }
                             } else {
                                 error!("Could not unmap file: {:?}", file);
@@ -232,10 +224,6 @@ impl IOtracePrefetcher {
                 iotrace::IOOperation::Open(ref file, ref _fd) => {
                     trace!("Prefetching metadata for: {:?}", file);
 
-                    {
-                        *(thread_state.write().unwrap()) = ThreadState::PrefetchingFileMetadata(file.clone());
-                    }
-
                     // Check if filename is valid
                     if !util::is_filename_valid(file) {
                         continue;
@@ -248,6 +236,10 @@ impl IOtracePrefetcher {
 
                     let path = Path::new(file);
                     let _metadata = path.metadata();
+
+                    {
+                        *(thread_state.write().unwrap()) = ThreadState::PrefetchedFileMetadata(file.clone());
+                    }
                 }
 
                 _ => { /* Do nothing */ }

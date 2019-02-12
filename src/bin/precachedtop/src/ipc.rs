@@ -44,9 +44,9 @@ pub enum ThreadState {
     Uninitialized,
     Idle,
     Error(PathBuf),
-    PrefetchingFile(PathBuf),
-    PrefetchingFileMetadata(PathBuf),
-    UnmappingFile(PathBuf),
+    PrefetchedFile(PathBuf),
+    PrefetchedFileMetadata(PathBuf),
+    UnmappedFile(PathBuf),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
