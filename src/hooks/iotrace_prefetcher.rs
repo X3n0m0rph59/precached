@@ -124,8 +124,8 @@ impl IOtracePrefetcher {
 
                         match util::cache_file(file, true) {
                             Err(e) => {
-                                // I/O trace log maybe needs to be optimized.
-                                warn!("Could not prefetch file: {:?}: {}", file, e);
+                                // I/O trace log maybe need to be optimized.
+                                info!("Could not prefetch file: {:?}: {}", file, e);
 
                                 // inhibit further prefetching of that file
                                 already_prefetched.insert(file.clone(), None);
