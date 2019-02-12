@@ -77,7 +77,7 @@ impl IOtracePrefetcher {
     pub fn new() -> Self {
         let mut thread_states = vec![];
 
-        for _ in 0..num_cpus::get() {
+        for _ in 0..4 {
             thread_states.push(Arc::new(RwLock::new(ThreadState::Uninitialized)));
         }
 

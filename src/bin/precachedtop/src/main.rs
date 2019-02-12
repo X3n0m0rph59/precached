@@ -258,8 +258,8 @@ impl Application {
                                 [
                                     Constraint::Percentage(35),
                                     Constraint::Percentage(35),
-                                    Constraint::Percentage(20),
-                                    Constraint::Percentage(10),
+                                    Constraint::Percentage(12),
+                                    Constraint::Percentage(18),
                                 ]
                                 .as_ref(),
                             )
@@ -277,7 +277,7 @@ impl Application {
                                 .par_iter()
                                 .map(|v| {
                                     let v = v.clone();
-                                    format!("{}\t{}", v.pid, v.comm)
+                                    format!("{} {}", v.pid, v.comm)
                                 })
                                 .collect();
                         }
@@ -300,7 +300,7 @@ impl Application {
                                 .par_iter()
                                 .map(|v| {
                                     let v = v.clone();
-                                    format!("{}\t{:?}", format_date(v.start_time), v.exe)
+                                    format!("{} {:?}", format_date(v.start_time), v.exe)
                                 })
                                 .collect();
                         }
@@ -340,7 +340,7 @@ impl Application {
                             .par_iter()
                             .map(|v| {
                                 let v = v.clone();
-                                format!("{}\t{}", format_date(v.datetime), v.msg)
+                                format!("{} {}", format_date(v.datetime), v.msg)
                             })
                             .collect();
 
@@ -366,7 +366,7 @@ impl Application {
                             .par_iter()
                             .map(|v| {
                                 let v = v.clone();
-                                format!("{}\t{}", format_date(v.datetime), v.msg)
+                                format!("{} {}", format_date(v.datetime), v.msg)
                             })
                             .collect();
 
