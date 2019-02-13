@@ -4,7 +4,7 @@ Documentation=man:precached(8) man:precachedctl(8) man:iotracectl(8) man:precach
 After=default.target
 
 [Service]
-ExecStart=/usr/sbin/precached-trigger transition-profile
+ExecStart=/usr/bin/precached-trigger transition-profile
 Type=oneshot
 StandardOutput=journal
 

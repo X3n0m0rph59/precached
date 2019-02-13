@@ -5,7 +5,8 @@ Requisite=precached.service
 After=graphical.target
 
 [Timer]
-OnActiveSec=25
+OnActiveSec=5
+Unit=precached-prime-caches.service
 
 [Install]
 WantedBy=timers.target
