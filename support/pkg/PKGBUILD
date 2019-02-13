@@ -37,6 +37,8 @@ package() {
   mkdir -p "$pkgdir/usr/share/doc/precached/examples"
   mkdir -p "$pkgdir/usr/lib/systemd/system/"
   mkdir -p "$pkgdir/usr/lib/systemd/user/"
+  mkdir -p "$pkgdir/usr/lib/systemd/system-preset/"
+  mkdir -p "$pkgdir/usr/lib/systemd/user-preset/"
   mkdir -p "$pkgdir/etc/dbus-1/system.d/"
   mkdir -p "$pkgdir/usr/share/man/man8/"
   mkdir -p "$pkgdir/usr/share/man/man5/"
