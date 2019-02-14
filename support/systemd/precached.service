@@ -18,7 +18,6 @@ LimitCORE=infinity
 LimitMEMLOCK=infinity
 LimitNOFILE=infinity
 PrivateDevices=yes
-PrivateNetwork=yes
 PrivateTmp=yes
 ProtectSystem=full
 
