@@ -584,7 +584,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             }
         }
 
-        let mut data: [u8; 4096*8] = [0; 4096*8];
+        let mut data: [u8; 4096*16] = [0; 4096*16];
         let len = trace_pipe.read(&mut data)?;
 
         // short read, maybe EOF?
