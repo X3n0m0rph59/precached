@@ -20,7 +20,6 @@ LimitNOFILE=infinity
 PrivateDevices=yes
 PrivateNetwork=yes
 PrivateTmp=yes
-ProtectHome=yes
 ProtectSystem=full
 
 [Install]
