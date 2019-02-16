@@ -26,7 +26,7 @@ override_dh_update_autotools_config:
 override_dh_auto_build:
 	export CARGO_HOME=".cargo"
 	export CARGO_TARGET_DIR="target/"
-	cargo build --all --release --verbose --no-default-features
+	CARGO_INCREMENTAL=0 cargo build --all --release --verbose --no-default-features
 
 override_dh_auto_clean:
 	$(RM) -r target/
@@ -35,7 +35,7 @@ override_dh_auto_install:
 	# We pick stuff directly from target/
 		
 override_dh_installinit:
-	dh_systemd_enable --name=precached.service precached.service
+	# dh_systemd_enable --name=precached.service precached.service
 		
 override_dh_auto_test:
 	# we don't run tests at the moment
