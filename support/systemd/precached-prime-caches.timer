@@ -5,6 +5,7 @@ Requisite=precached.service
 After=graphical.target
 
 [Timer]
+AccuracySec=1
 OnActiveSec=5
 Unit=precached-prime-caches.service
 

@@ -1,6 +1,6 @@
 # Precached - A Linux process monitor and pre-caching daemon
 
-[![Build Status](https://travis-ci.org/X3n0m0rph59/precached.svg?branch=master)](https://travis-ci.org/X3n0m0rph59/precached) [![Package Status](https://copr.fedorainfracloud.org/coprs/x3n0m0rph59/precached/package/precached/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/x3n0m0rph59/precached/package/precached/)
+[![Build Status](https://travis-ci.org/X3n0m0rph59/precached.svg?branch=master)](https://travis-ci.org/X3n0m0rph59/precached)
 
 Precached is written in Rust and utilizes the Linux Netlink connector interface
 to monitor the system for process events. It can act upon such events via
@@ -15,8 +15,6 @@ programs while the system is idle.
 
 ```shell
     $ yaourt -Sy precached
-    $ sudo systemctl enable --now precached.service
-    $ systemctl --user enable --now precached-trigger.service
 ```
 
 ### Install on Fedora
@@ -24,18 +22,13 @@ programs while the system is idle.
 ```shell
     $ sudo dnf copr enable x3n0m0rph59/precached
     $ sudo dnf install precached
-    $ sudo systemctl enable --now precached.service
-    $ systemctl --user enable --now precached-trigger.service
 ```
 
 ### Install on Ubuntu
 
 ```shell
     $ sudo add-apt-repository ppa:x3n0m0rph59/precached
-    $ sudo apt update
-    $ sudo apt install precached
-    $ sudo systemctl enable --now precached.service
-    $ systemctl --user enable --now precached-trigger.service
+    $ sudo apt update && sudo apt install precached
 ```
 
 ### Install from Source
@@ -48,6 +41,7 @@ programs while the system is idle.
     # ... copy files ...
 
     $ sudo systemctl enable --now precached.service
+    $ sudo systemctl enable --now precached-prime-caches.timer
     $ systemctl --user enable --now precached-trigger.service
 ```
 
