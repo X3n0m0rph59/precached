@@ -908,6 +908,17 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
         counter += 1;
     }
 
+    // prune expired tracers
+    // NOTE: We have to use `lock()` here instead of `try_lock()`
+    //       because we don't want to miss events in any case.
+    //       Will deadlock with `.try_lock()`
+    match crate::hooks::ftrace_logger::ACTIVE_TRACERS.lock() {
+        Err(e) => error!("Could not take a lock on a shared data structure! {}", e),
+        Ok(mut active_tracers) => {
+            check_expired_tracers(&mut active_tracers, &iotrace_dir, min_len, min_prefetch_size, globals);
+        }
+    }
+
     Ok(())
 }
 
