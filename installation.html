@@ -9,25 +9,18 @@ sidebar_link: true
 <h4>Installation on Manjaro or other Arch Linux based Distros</h4>
 <code>
   $ yaourt -Sy precached<br/>
-  $ sudo systemctl enable --now precached.service<br/>
-  $ systemctl --user enable --now precached-trigger.service<br/>
 </code>
 
 <h4>Installation on Fedora</h4>
 <code>
   $ sudo dnf copr enable x3n0m0rph59/precached<br/>
   $ sudo dnf install precached<br/>
-  $ sudo systemctl enable --now precached.service<br/>
-  $ systemctl --user enable --now precached-trigger.service<br/>
 </code>
 
 <h4>Installation on Ubuntu</h4>
 <code>
   $ sudo add-apt-repository ppa:x3n0m0rph59/precached<br/>
-  $ sudo apt update<br/>
-  $ sudo apt install precached<br/>
-  $ sudo systemctl enable --now precached.service<br/>
-  $ systemctl --user enable --now precached-trigger.service<br/>
+  $ sudo apt update &amp;&amp; sudo apt install precached<br/>  
 </code>
 
 <h4>Installation from Source</h4>
@@ -37,5 +30,6 @@ sidebar_link: true
   $ cargo build<br/>
   # ... copy files ...
   $ sudo systemctl enable --now precached.service<br/>
+  $ sudo systemctl enable --now precached-prime-caches.timer<br/>
   $ systemctl --user enable --now precached-trigger.service<br/>
 </code>
