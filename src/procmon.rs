@@ -24,7 +24,7 @@ use log::{trace, debug, info, warn, error, log, LevelFilter};
 
 #[derive(Debug, Clone)]
 pub struct ProcMon {
-    nls: libc::int32_t,
+    nls: i32,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
@@ -46,22 +46,22 @@ pub struct Event {
 
 fn map_int_to_event_type(i: u32) -> EventType {
     match i {
-        0x00000000 => EventType::Nothing,
-        0x00000001 => EventType::Fork,
-        0x00000002 => EventType::Exec,
-        0x80000000 => EventType::Exit,
+        0x0000_0000 => EventType::Nothing,
+        0x0000_0001 => EventType::Fork,
+        0x0000_0002 => EventType::Exec,
+        0x8000_0000 => EventType::Exit,
         _ => EventType::Invalid,
     }
 }
 
 impl ProcMon {
     pub fn new() -> Result<Self> {
-        let nls: libc::int32_t = unsafe { procmon_sys::nl_connect() };
+        let nls: i32 = unsafe { procmon_sys::nl_connect() };
         unsafe {
             procmon_sys::set_proc_ev_listen(nls, true);
         }
 
-        Ok(ProcMon { nls: nls })
+        Ok(ProcMon { nls })
     }
 
     pub fn wait_for_event(&self) -> Event {

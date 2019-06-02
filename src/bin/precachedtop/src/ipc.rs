@@ -104,7 +104,7 @@ impl IpcMessage {
     pub fn new(command: IpcCommand) -> IpcMessage {
         IpcMessage {
             datetime: Utc::now(),
-            command: command,
+            command,
         }
     }
 }

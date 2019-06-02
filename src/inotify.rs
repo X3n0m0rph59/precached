@@ -129,7 +129,7 @@ pub struct EventMaskWrapper {
 
 impl EventMaskWrapper {
     pub fn new(event_mask: inotify::EventMask) -> EventMaskWrapper {
-        EventMaskWrapper { event_mask: event_mask }
+        EventMaskWrapper { event_mask }
     }
 }
 

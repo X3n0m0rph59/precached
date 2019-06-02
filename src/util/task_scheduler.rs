@@ -26,17 +26,17 @@ use crate::util;
 
 pub struct TaskScheduler {
     /// Jobs that ought to be run in the context of one of the worker threads
-    backlog: Vec<Arc<Box<Fn() + Sync + Send + 'static>>>,
+    backlog: Vec<Arc<Box<dyn Fn() + Sync + Send + 'static>>>,
 
     /// Jobs that ought to be run in the context of the process' main thread
-    main_backlog: Vec<Box<Fn() + Sync + Send + 'static>>,
+    main_backlog: Vec<Box<dyn Fn() + Sync + Send + 'static>>,
 }
 
 impl TaskScheduler {
     pub fn new() -> Self {
         TaskScheduler {
-            main_backlog: Vec::<Box<Fn() + Sync + Send + 'static>>::new(),
-            backlog: Vec::<Arc<Box<Fn() + Sync + Send + 'static>>>::new(),
+            main_backlog: Vec::<Box<dyn Fn() + Sync + Send + 'static>>::new(),
+            backlog: Vec::<Arc<Box<dyn Fn() + Sync + Send + 'static>>>::new(),
         }
     }
 

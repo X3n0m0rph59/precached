@@ -185,26 +185,26 @@ impl Introspection {
         // Produce final report
         InternalState {
             // Plugin: Profiles
-            profiles_current_profile: profiles_current_profile,
+            profiles_current_profile,
 
             // Plugin: Janitor
-            janitor_janitor_needs_to_run: janitor_janitor_needs_to_run,
-            janitor_janitor_ran_once: janitor_janitor_ran_once,
-            janitor_daemon_startup_time: janitor_daemon_startup_time,
-            janitor_last_housekeeping_performed: janitor_last_housekeeping_performed,
+            janitor_janitor_needs_to_run,
+            janitor_janitor_ran_once,
+            janitor_daemon_startup_time,
+            janitor_last_housekeeping_performed,
 
             // Plugin: Hot Applications
-            hot_applications_app_histogram_entries_count: hot_applications_app_histogram_entries_count,
-            hot_applications_cached_apps_count: hot_applications_cached_apps_count,
+            hot_applications_app_histogram_entries_count,
+            hot_applications_cached_apps_count,
 
             // Plugin: Static Blacklist
-            static_blacklist_blacklist_entries_count: static_blacklist_blacklist_entries_count,
-            static_blacklist_program_blacklist_entries_count: static_blacklist_program_blacklist_entries_count,
+            static_blacklist_blacklist_entries_count,
+            static_blacklist_program_blacklist_entries_count,
 
             // Plugin: Static Whitelist
-            static_whitelist_mapped_files_count: static_whitelist_mapped_files_count,
-            static_whitelist_whitelist_entries_count: static_whitelist_whitelist_entries_count,
-            static_whitelist_program_whitelist_entries_count: static_whitelist_program_whitelist_entries_count,
+            static_whitelist_mapped_files_count,
+            static_whitelist_whitelist_entries_count,
+            static_whitelist_program_whitelist_entries_count,
         }
     }
 }
@@ -241,11 +241,11 @@ impl Plugin for Introspection {
         }
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
 
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }

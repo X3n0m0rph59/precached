@@ -87,7 +87,7 @@ macro_rules! tr {
                 }
             } else {
                 panic!("i18n has not been initialized!");
-            } 
+            }
         })
     });
 }
@@ -163,7 +163,9 @@ pub fn initialize_i18n() {
                     let mut bundle = FluentBundle::new(LOCALES);
                     let res = Box::new(FluentResource::try_new(msgs.to_string()).expect("Could not parse translations!"));
 
-                    bundle.add_resource(Box::leak(res)).expect("Could not add translation message!");
+                    bundle
+                        .add_resource(Box::leak(res))
+                        .expect("Could not add translation message!");
 
                     I18N_STATE.with(|r| {
                         let mut o = r.borrow_mut();
@@ -177,7 +179,9 @@ pub fn initialize_i18n() {
             let mut bundle = FluentBundle::new(LOCALES);
             let res = Box::new(FluentResource::try_new(msgs.to_string()).expect("Could not parse translations!"));
 
-            bundle.add_resource(Box::leak(res)).expect("Could not add translation message!");
+            bundle
+                .add_resource(Box::leak(res))
+                .expect("Could not add translation message!");
 
             I18N_STATE.with(|r| {
                 let mut o = r.borrow_mut();

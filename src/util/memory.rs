@@ -41,8 +41,8 @@ impl MemoryMapping {
     pub fn new(filename: &Path, addr: usize, len: usize) -> MemoryMapping {
         MemoryMapping {
             filename: PathBuf::from(filename),
-            addr: addr,
-            len: len,
+            addr,
+            len,
         }
     }
 }

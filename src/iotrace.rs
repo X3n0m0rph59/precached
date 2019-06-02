@@ -36,12 +36,12 @@ use crate::util;
 /// Represents an I/O operation in an I/O trace log entry
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum IOOperation {
-    Open(PathBuf, libc::int32_t),
+    Open(PathBuf, i32),
     Stat(PathBuf),
-    Fstat(libc::int32_t),
+    Fstat(i32),
     Getdents(PathBuf),
-    Read(libc::int32_t),
-    Mmap(libc::int32_t),
+    Read(i32),
+    Mmap(i32),
 }
 
 /// An entry in an I/O trace log
@@ -61,8 +61,8 @@ impl TraceLogEntry {
     pub fn new(operation: IOOperation, size: u64) -> TraceLogEntry {
         TraceLogEntry {
             timestamp: Utc::now(),
-            operation: operation,
-            size: size,
+            operation,
+            size,
         }
     }
 }
@@ -199,8 +199,8 @@ impl IOTraceLog {
             Ok(IOTraceLog {
                 hash: String::from(format!("{}", hashval)),
                 exe: exe.clone(),
-                comm: comm,
-                cmdline: cmdline,
+                comm,
+                cmdline,
                 created_at: Utc::now(),
                 trace_stopped_at: Utc::now(),
                 file_map: initial_file_map,

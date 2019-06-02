@@ -125,7 +125,7 @@ impl IpcMessage {
     pub fn new(command: IpcCommand) -> IpcMessage {
         IpcMessage {
             datetime: Utc::now(),
-            command: command,
+            command,
         }
     }
 }
@@ -139,7 +139,7 @@ impl IpcEvent {
     pub fn new(event: events::EventType) -> IpcEvent {
         IpcEvent {
             datetime: Utc::now(),
-            event: event,
+            event,
         }
     }
 }

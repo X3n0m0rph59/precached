@@ -256,20 +256,19 @@ impl Metrics {
         } else {
             let duration_without_mem_freed = self.last_mem_freed_time.elapsed();
 
-            if duration_without_mem_freed >= Duration::from_secs(constants::MEM_FREED_RECOVERY_WINDOW) {
-                if self.mem_freed_event_sent == false {
-                    events::queue_internal_event(EventType::MemoryFreed, globals);
+            if duration_without_mem_freed >= Duration::from_secs(constants::MEM_FREED_RECOVERY_WINDOW)
+                && self.mem_freed_event_sent == false
+            {
+                events::queue_internal_event(EventType::MemoryFreed, globals);
 
-                    self.mem_freed_event_sent = true;
-                }
+                self.mem_freed_event_sent = true;
             }
         }
 
         // Idle time tracking
         let sys = System::new();
 
-        if sys.load_average().unwrap().one <= constants::SYSTEM_IDLE_LOAD_THRESHOLD &&
-           self.enter_idle_event_sent == false {            
+        if sys.load_average().unwrap().one <= constants::SYSTEM_IDLE_LOAD_THRESHOLD && self.enter_idle_event_sent == false {
             events::queue_internal_event(EventType::EnterIdle, globals);
 
             self.enter_idle_event_sent = true;
@@ -319,11 +318,11 @@ impl Plugin for Metrics {
         }
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
 
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }

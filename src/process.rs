@@ -81,7 +81,7 @@ impl Process {
                 let exe_name = PathBuf::from(r.to_str().unwrap().trim());
 
                 Process {
-                    pid: pid,
+                    pid,
                     comm: comm.clone(),
                     exe_name: exe_name.clone(),
                     is_dead: false,

@@ -56,7 +56,7 @@ impl IOTraceLogStats {
     fn new(filename: &String, io_trace_log: IOTraceLog) -> IOTraceLogStats {
         IOTraceLogStats {
             path: format!("/IOTraceLog/{}", filename).into(),
-            io_trace_log: io_trace_log,
+            io_trace_log,
         }
     }
 }
@@ -76,7 +76,7 @@ impl ProcessStats {
             path: format!("/Process/{}", pid).into(),
             process: process.clone(),
             comm: process.get_comm().unwrap_or_else(|_| String::from("<not available>")),
-            pid: pid,
+            pid,
         }
     }
 }

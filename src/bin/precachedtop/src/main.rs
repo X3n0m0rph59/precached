@@ -78,7 +78,7 @@ static EXIT_NOW: AtomicBool = AtomicBool::new(false);
 static GLOBAL_ERROR_STATE: AtomicBool = AtomicBool::new(false);
 
 /// Unicode characters used for drawing the progress bar
-pub const PROGRESS_BAR_INDICATORS: &'static str = "╢▉▉░╟";
+pub const PROGRESS_BAR_INDICATORS: &str = "╢▉▉░╟";
 
 /// Delay in milliseconds after each iteration of the main loop
 pub const MAIN_LOOP_DELAY_MILLIS: u64 = 100;
@@ -106,7 +106,7 @@ impl<'a, 'b> Config<'a, 'b> {
         Config {
             verbosity: matches.occurrences_of("v") as u8,
             clap: clap_c,
-            matches: matches,
+            matches,
         }
     }
 }
@@ -114,7 +114,7 @@ impl<'a, 'b> Config<'a, 'b> {
 /// Print a license header to the console
 fn print_license_header() {
     println_tr!("license-text");
-    println!("");
+    println!();
 }
 
 /// Represents a tracked process
@@ -869,7 +869,7 @@ fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -879,7 +879,7 @@ fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Generate shell completions

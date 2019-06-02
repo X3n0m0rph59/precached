@@ -31,17 +31,17 @@ pub enum SysCall {
     /// statx(2)
     Statx(PathBuf),
     /// fstat(at)(2)
-    Fstat(libc::int32_t),
+    Fstat(i32),
     /// getdents(2)
     Getdents(PathBuf),
     /// open(at)(2)
-    Open(PathBuf, libc::int32_t),
+    Open(PathBuf, i32),
     /// close(2)
-    Close(libc::int32_t),
+    Close(i32),
     /// (p)read(v)(2)
-    Read(libc::int32_t),
+    Read(i32),
     /// (p)write(v)(2)
-    Write(libc::int32_t),
+    Write(i32),
     /// mmap(2)
     Mmap(usize),
 }

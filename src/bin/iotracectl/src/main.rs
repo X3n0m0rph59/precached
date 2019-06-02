@@ -75,7 +75,7 @@ impl<'a, 'b> Config<'a, 'b> {
         Config {
             verbosity: matches.occurrences_of("v") as u8,
             clap: clap_c,
-            matches: matches,
+            matches,
         }
     }
 }
@@ -268,9 +268,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
     } else if matches.is_present("terse") {
         // Print in "terse" format
         println!("{}", io_trace.exe.to_string_lossy());
-    } else
-    /*if matches.is_present("tabular")*/
-    {
+    } else /*if matches.is_present("tabular")*/ {
         let (w, _h) = term_size::dimensions().unwrap();
 
         let max_len = w / 4;
@@ -313,9 +311,7 @@ fn print_io_trace_msg(message: &str, index: usize, config: &Config, table: &mut 
     } else if matches.is_present("terse") {
         // Print in "terse" format
         println!("{}", message);
-    } else
-    /*if matches.is_present("tabular")*/
-    {
+    } else /*if matches.is_present("tabular")*/ {
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
             Cell::new_align(&format!("{}", index), Alignment::RIGHT),
@@ -972,9 +968,7 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
                 if matches.is_present("terse") {
                     println!("{:?}", e.operation);
-                } else
-                /*if matches.is_present("tabular")*/
-                {
+                } else /*if matches.is_present("tabular")*/ {
                     let (flags, _err, color) = get_io_trace_entry_flags(&e);
 
                     // Print in "tabular" format (the default)
@@ -1500,7 +1494,7 @@ pub fn print_help_blacklist(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -1510,7 +1504,7 @@ pub fn print_usage_blacklist(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Generate shell completions

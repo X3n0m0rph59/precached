@@ -79,7 +79,7 @@ impl PerTracerData {
             start_time: Instant::now(),
             trace_time_expired: false,
             process_exited: false,
-            trace_log: trace_log,
+            trace_log,
         }
     }
 }
@@ -344,24 +344,20 @@ pub fn try_reset_ftrace_tracing() -> bool {
     let filename = Path::new(TRACING_DIR).join("tracing_on");
     echo(&filename, String::from("0")).unwrap_or_else(|_| {
         error_occurred = true;
-        ()
     });
 
     let filename = Path::new(TRACING_DIR).join("set_event");
     echo(&filename, String::from(" ")).unwrap_or_else(|_| {
         error_occurred = true;
-        ()
     });
 
     rmdir(Path::new(TRACING_DIR)).unwrap_or_else(|_| {
         error_occurred = true;
-        ()
     });
 
     let filename = Path::new(TRACING_BASE_DIR).join("kprobe_events");
     echo(&filename, String::from(" ")).unwrap_or_else(|_| {
         error_occurred = true;
-        ()
     });
 
     !error_occurred
@@ -542,7 +538,7 @@ fn trace_is_from_blacklisted_process(line: &str) -> bool {
 }
 
 /// Read events from `ftrace_pipe` (ftrace main loop)
-pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool, globals: &mut Globals) -> io::Result<()> {
+pub fn get_ftrace_events_from_pipe(cb: &mut dyn FnMut(libc::pid_t, IOEvent) -> bool, globals: &mut Globals) -> io::Result<()> {
     let config = globals.config.config_file.clone().unwrap();
     let iotrace_dir = config
         .state_dir
@@ -584,7 +580,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut FnMut(libc::pid_t, IOEvent) -> bool,
             }
         }
 
-        let mut data: [u8; 4096*16] = [0; 4096*16];
+        let mut data: [u8; 4096 * 16] = [0; 4096 * 16];
         let len = trace_pipe.read(&mut data)?;
 
         // short read, maybe EOF?

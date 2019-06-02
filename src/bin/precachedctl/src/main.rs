@@ -78,7 +78,7 @@ impl<'a, 'b> Config<'a, 'b> {
         Config {
             verbosity: matches.occurrences_of("v") as u8,
             clap: clap_c,
-            matches: matches,
+            matches,
         }
     }
 }

@@ -89,8 +89,8 @@ pub fn get_utmpx() -> Vec<UtmpxRecord> {
         let _ = file.seek(SeekFrom::Current(52));
 
         let record = UtmpxRecord {
-            ut_type: ut_type,
-            ut_pid: ut_pid,
+            ut_type,
+            ut_pid,
             ut_line: String::from_utf8_lossy(ut_line.as_ref()).into_owned(),
             ut_id: ut_id.as_ref().into(),
             ut_user: String::from_utf8_lossy(ut_user.as_ref()).into_owned(),

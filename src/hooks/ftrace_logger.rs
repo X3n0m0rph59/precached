@@ -573,7 +573,7 @@ impl hook::Hook for FtraceLogger {
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
             events::EventType::Startup => {
-                // NOTE: This code is handled in the 'main.rs' file now 
+                // NOTE: This code is handled in the 'main.rs' file now
                 // // Set up the system to use ftrace
                 // match util::enable_ftrace_tracing() {
                 //     Err(e) => error!("Could not enable the Linux ftrace subsystem! {}", e),
@@ -619,7 +619,7 @@ impl hook::Hook for FtraceLogger {
                 //     }
                 // }
 
-                // NOTE: This code is handled in the 'main.rs' file now 
+                // NOTE: This code is handled in the 'main.rs' file now
                 // // Undo the operations done on daemon startup to set up the system to use ftrace
                 // match util::disable_ftrace_tracing() {
                 //     Err(e) => error!("Could not disable the Linux ftrace subsystem! {}", e),
@@ -647,11 +647,11 @@ impl hook::Hook for FtraceLogger {
         }
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
 
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }

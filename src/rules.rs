@@ -251,10 +251,10 @@ impl RuleFile {
                     Ok((event, filter, action, params)) => {
                         // It seems that all went well
                         let rule_entry = RuleEntry {
-                            event: event,
-                            filter: filter,
-                            action: action,
-                            params: params,
+                            event,
+                            filter,
+                            action,
+                            params,
                         };
 
                         rules.push(rule_entry);
@@ -288,10 +288,7 @@ impl RuleFile {
                 description: description.unwrap(),
             };
 
-            let result = RuleFile {
-                metadata: metadata,
-                rules: rules,
-            };
+            let result = RuleFile { metadata, rules };
 
             Ok(result)
         }
@@ -694,7 +691,8 @@ mod tests {
 
     #[test]
     fn test_get_param_value_1() {
-        let rule = "UserLogin		  Noop              Log                 Severity:Warn,Message:\"User: $user logged in, with '$home_dir'\"";
+        let rule =
+            "UserLogin		  Noop              Log                 Severity:Warn,Message:\"User: $user logged in, with '$home_dir'\"";
 
         let rule = tokenize(&rule);
         println!("{:?}", rule);

@@ -98,9 +98,9 @@ impl Statistics {
 
         // produce final report
         GlobalStatistics {
-            static_whitelist_mapped_files_count: static_whitelist_mapped_files_count,
-            static_whitelist_whitelist_entries_count: static_whitelist_whitelist_entries_count,
-            static_whitelist_program_whitelist_entries_count: static_whitelist_program_whitelist_entries_count,
+            static_whitelist_mapped_files_count,
+            static_whitelist_whitelist_entries_count,
+            static_whitelist_program_whitelist_entries_count,
         }
     }
 }
@@ -194,11 +194,11 @@ impl Plugin for Statistics {
         }
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
 
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }

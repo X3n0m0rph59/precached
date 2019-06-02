@@ -160,11 +160,9 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
                     println!("\n");
                     println_tr!("precachedctl-plugins-hot-applications-hint");
                 }
-            } else {
-                if errors > 5 {
-                    println!("\n");
-                    println_tr!("precachedctl-plugins-hot-applications-hint");
-                }
+            } else if errors > 5 {
+                println!("\n");
+                println_tr!("precachedctl-plugins-hot-applications-hint");
             }
 
             println!("\n");

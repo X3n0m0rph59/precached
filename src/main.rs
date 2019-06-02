@@ -414,18 +414,20 @@ fn run() -> Result<(), failure::Error> {
     // events::queue_internal_event(EventType::PrimeCaches, &mut globals);
 
     // spawn the event loop thread
-    let handle = thread::Builder::new().name("precached-event-loop".to_string()).spawn(move || {
-        'EVENT_LOOP: loop {
-            if EXIT_NOW.load(Ordering::Relaxed) {
-                trace!("Leaving the event loop...");
-                break 'EVENT_LOOP;
-            }
+    let handle = thread::Builder::new()
+        .name("precached-event-loop".to_string())
+        .spawn(move || {
+            'EVENT_LOOP: loop {
+                if EXIT_NOW.load(Ordering::Relaxed) {
+                    trace!("Leaving the event loop...");
+                    break 'EVENT_LOOP;
+                }
 
-            // blocking call into procmon_sys
-            let event = procmon.wait_for_event();
-            sender.send(event).unwrap();
-        }
-    })?;
+                // blocking call into procmon_sys
+                let event = procmon.wait_for_event();
+                sender.send(event).unwrap();
+            }
+        })?;
 
     // spawn the IPC event loop thread
     let queue_c = globals.ipc_event_queue.clone();

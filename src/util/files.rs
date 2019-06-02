@@ -275,7 +275,7 @@ pub fn ellipsize_filename(filename: &str, max_len: usize) -> Result<String, &'st
 }
 
 /// Recursively enumerate files and directories in `dir`
-pub fn visit_dirs(dir: &Path, cb: &mut FnMut(&Path)) -> io::Result<()> {
+pub fn visit_dirs(dir: &Path, cb: &mut dyn FnMut(&Path)) -> io::Result<()> {
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();

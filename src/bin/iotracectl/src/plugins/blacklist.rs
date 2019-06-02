@@ -47,7 +47,7 @@ pub fn print_help(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 /// Print usage message on how to use this command
@@ -57,7 +57,7 @@ pub fn print_usage(config: &mut Config) {
     #[allow(unused_must_use)]
     config.clap.print_help().unwrap();
 
-    println!("");
+    println!();
 }
 
 pub fn blacklist_io_traces(config: &Config, daemon_config: util::ConfigFile, blacklist: bool) {

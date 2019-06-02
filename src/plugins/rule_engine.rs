@@ -83,12 +83,10 @@ impl RuleEngine {
 
                     Ok(val) => {
                         let home_dir_str = &home_dir.to_string_lossy().to_string();
-                        let message = Self::expand_variables(
+                        Self::expand_variables(
                             &val,
                             &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
-                        );
-
-                        message
+                        )
                     }
                 }
             }
@@ -156,12 +154,10 @@ impl RuleEngine {
 
                     Ok(val) => {
                         let home_dir_str = &home_dir.to_string_lossy().to_string();
-                        let message = Self::expand_variables(
+                        Self::expand_variables(
                             &val,
                             &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
-                        );
-
-                        message
+                        )
                     }
                 }
             }
@@ -453,11 +449,11 @@ impl Plugin for RuleEngine {
         }
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
 
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }

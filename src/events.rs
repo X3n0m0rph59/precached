@@ -99,7 +99,7 @@ impl InternalEvent {
     pub fn new(event_type: EventType) -> InternalEvent {
         InternalEvent {
             datetime: Utc::now(),
-            event_type: event_type,
+            event_type,
         }
     }
 }

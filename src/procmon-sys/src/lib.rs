@@ -28,7 +28,7 @@ pub struct Event {
 
 #[link(name="procmon")]
 extern {
-    pub fn nl_connect() -> libc::int32_t;
-    pub fn set_proc_ev_listen(nl_sock: libc::int32_t, enable: bool) -> libc::int32_t;
-    pub fn handle_proc_ev(nl_sock: libc::int32_t, event: *mut Event) -> libc::int32_t;
+    pub fn nl_connect() -> i32;
+    pub fn set_proc_ev_listen(nl_sock: i32, enable: bool) -> i32;
+    pub fn handle_proc_ev(nl_sock: i32, event: *mut Event) -> i32;
 }
