@@ -197,6 +197,9 @@ esac
 %{_datarootdir}/%{OrigName}/i18n/en_UK
 
 %changelog
+* Sun Jun 02 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.6.1-0
+- rebuilt
+
 * Tue Feb 16 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.6.0-0
 - rebuilt
 
