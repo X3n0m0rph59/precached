@@ -43,6 +43,7 @@ use prettytable::format::*;
 use prettytable::Cell;
 use prettytable::Row;
 use prettytable::Table;
+use crate::i18n::initialize_i18n;
 
 #[macro_use]
 mod i18n;
@@ -199,6 +200,9 @@ fn generate_completions(config: &mut Config) {
 
 /// Program entrypoint
 fn main() {
+    // Initialize translations
+    initialize_i18n();
+
     if unsafe { nix::libc::isatty(1) } == 1 {
         print_license_header();
     }

@@ -270,6 +270,9 @@ use failure_derive::*;
 
 /// Initialize and run the main loop
 fn run() -> Result<(), failure::Error> {
+    // Initialize translations
+    initialize_i18n();
+
     // Initialize the logging subsystem
     initialize_logging()?;
 

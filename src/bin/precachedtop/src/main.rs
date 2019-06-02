@@ -60,6 +60,7 @@ use tui::widgets::{Block, Borders, List, Paragraph, SelectableList, Tabs, Text, 
 use tui::Terminal;
 use serde_derive::{Serialize, Deserialize};
 use lazy_static::lazy_static;
+use crate::i18n::initialize_i18n;
 
 #[macro_use]
 mod i18n;
@@ -286,7 +287,7 @@ impl Application {
                             .block(Block::default().borders(Borders::ALL).title(tr!("tracked-processes")))
                             .items(&items)
                             .select(Some(self.sel_index_processes))
-                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::BOLD))
                             .render(&mut f, chunks[0]);
 
                         let trace_items: Vec<String>;
@@ -309,7 +310,7 @@ impl Application {
                             .block(Block::default().borders(Borders::ALL).title(tr!("active-traces")))
                             .items(&trace_items)
                             // .select(self.sel_index_active_traces)
-                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::BOLD))
                             .render(&mut f, chunks[1]);
 
                         // Render prefetcher thread states
@@ -331,7 +332,7 @@ impl Application {
                             .block(Block::default().borders(Borders::ALL).title(tr!("prefetcher-threads")))
                             .items(&prefetcher)
                             // .select(self.sel_index)
-                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::BOLD))
                             .render(&mut f, chunks[2]);
 
                         // Render daemon internal events
@@ -350,7 +351,7 @@ impl Application {
                             .block(Block::default().borders(Borders::ALL).title(tr!("events")))
                             .items(&events)
                             // .select(self.sel_index_events)
-                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::BOLD))
                             .render(&mut f, chunks[3]);
                     }
 
@@ -376,7 +377,7 @@ impl Application {
                             .block(Block::default().borders(Borders::NONE).title(tr!("events")))
                             .items(&events)
                             .select(Some(self.sel_index_events))
-                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::BOLD))
                             .render(&mut f, chunks[0]);
                     }
 
@@ -397,7 +398,7 @@ impl Application {
                             .block(Block::default().borders(Borders::NONE).title(tr!("cached")))
                             .items(&cached_files)
                             .select(Some(self.sel_index_files))
-                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::Bold))
+                            .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::BOLD))
                             .render(&mut f, chunks[0]);
                     }
 
@@ -898,6 +899,9 @@ fn generate_completions(config: &mut Config, _daemon_config: util::ConfigFile) {
 }
 
 pub fn main() {
+    // Initialize translations
+    initialize_i18n();
+
     // License is displayed in `help` section
     // if unsafe { nix::libc::isatty(1) } == 1 {
     //     print_license_header();

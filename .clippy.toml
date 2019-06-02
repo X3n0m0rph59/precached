@@ -1,1 +1,2 @@
 # Default Clippy Configuration
+if_same_then_else = false

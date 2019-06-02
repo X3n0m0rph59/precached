@@ -26,9 +26,10 @@ use std::io::{self, Write};
 use std::cell::RefCell;
 use std::thread;
 use std::boxed;
+use std::borrow::Borrow;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use lazy_static::lazy_static;
-use fluent::bundle::FluentBundle;
+use fluent_bundle::{FluentBundle, FluentResource, FluentValue};
 
 static LOCALES: &[&'static str] = &["locale"];
 
@@ -37,48 +38,56 @@ lazy_static! {
 }
 
 thread_local! {
-    pub static I18N_STATE: RefCell<FluentBundle<'static>> = RefCell::new(initialize_i18n());
+    pub static I18N_STATE: RefCell<Option<Box<FluentBundle<'static>>>> = RefCell::new(Option::None);
 }
 
 #[macro_export]
 macro_rules! tr {
     ($msgid:expr) => ({
         use crate::i18n::I18N_STATE;
-        I18N_STATE.with(|s| {
-            let bundle = s.borrow();
+        I18N_STATE.with(|state| {
+            let o = state.borrow();
 
-            match bundle.format($msgid, None) {
-                None => panic!("Could not translate: '{}'", $msgid),
+            if let Some(ref bundle) = *o {
+                match bundle.format($msgid, None) {
+                        None => panic!("Could not translate: '{}'", $msgid),
 
-                Some((msg, _errors)) => {
-                    let b = Box::new(msg.clone());
+                        Some((msg, _errors)) => {
+                            let b = Box::new(msg.clone());
 
-                    Box::leak(b).as_str()
-                }
+                            Box::leak(b).as_str()
+                        }
+                    }
+            } else {
+                panic!("i18n has not been initialized!");
             }
         })
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
         use crate::i18n::I18N_STATE;
-        I18N_STATE.with(|s| {
-            let bundle = s.borrow();
+        I18N_STATE.with(|state| {
+            let o = state.borrow();
 
-            let mut args = std::collections::HashMap::new();
+            if let Some(ref bundle) = *o {
+                let mut args = std::collections::HashMap::new();
 
-            $(
-                args.insert($k, fluent::types::FluentValue::from($v));
-            )*
+                $(
+                    args.insert($k, fluent_bundle::FluentValue::from($v));
+                )*
 
-            match bundle.format($msgid, Some(&args)) {
-                None => panic!("Could not translate: '{}'", $msgid),
+                match bundle.format($msgid, Some(&args)) {
+                    None => panic!("Could not translate: '{}'", $msgid),
 
-                Some((msg, _errors)) => {
-                    let b = Box::new(msg.clone());
+                    Some((msg, _errors)) => {
+                        let b = Box::new(msg.clone());
 
-                    Box::leak(b).as_str()
+                        Box::leak(b).as_str()
+                    }
                 }
-            }
+            } else {
+                panic!("i18n has not been initialized!");
+            } 
         })
     });
 }
@@ -87,44 +96,50 @@ macro_rules! tr {
 macro_rules! println_tr {
     ($msgid:expr) => ({
         use crate::i18n::I18N_STATE;
-        I18N_STATE.with(|s| {
-            let bundle = s.borrow();
+        I18N_STATE.with(|state| {
+            let o = state.borrow();
 
-            match bundle.format($msgid, None) {
-                None => panic!("Could not translate: '{}'", $msgid),
+            if let Some(ref bundle) = *o {
+                match bundle.format($msgid, None) {
+                    None => panic!("Could not translate: '{}'", $msgid),
 
-                Some((msg, _errors)) => {
-                    println!("{}", msg.clone().as_str());
+                    Some((msg, _errors)) => {
+                        println!("{}", msg.clone().as_str());
+                    }
                 }
+            } else {
+                panic!("i18n has not been initialized!");
             }
         })
     });
 
     ($msgid:expr, $($k: expr => $v: expr),*) => ({
         use crate::i18n::I18N_STATE;
-        I18N_STATE.with(|s| {
-            let bundle = s.borrow();
+        I18N_STATE.with(|state| {
+            let o = state.borrow();
 
-            let mut args = std::collections::HashMap::new();
+            if let Some(ref bundle) = *o {
+                let mut args = std::collections::HashMap::new();
 
-            $(
-                args.insert($k, fluent::types::FluentValue::from($v));
-            )*
+                $(
+                    args.insert($k, fluent_bundle::FluentValue::from($v));
+                )*
 
-            match bundle.format($msgid, Some(&args)) {
-                None => panic!("Could not translate: '{}'", $msgid),
+                match bundle.format($msgid, Some(&args)) {
+                    None => panic!("Could not translate: '{}'", $msgid),
 
-                Some((msg, _errors)) => {
-                    println!("{}", msg.clone().as_str());
+                    Some((msg, _errors)) => {
+                        println!("{}", msg.clone().as_str());
+                    }
                 }
+            } else {
+                panic!("i18n has not been initialized!");
             }
         })
     });
 }
 
-fn initialize_i18n() -> FluentBundle<'static> {
-    let mut bundle = FluentBundle::new(LOCALES);
-
+pub fn initialize_i18n() {
     // release builds shall use system dirs
     #[cfg(not(debug_assertions))]
     let prefix = "/usr/share/precached/";
@@ -145,15 +160,29 @@ fn initialize_i18n() -> FluentBundle<'static> {
                 }
 
                 Ok(msgs) => {
-                    bundle.add_messages(&msgs).expect("Could not add translation message!");
+                    let mut bundle = FluentBundle::new(LOCALES);
+                    let res = Box::new(FluentResource::try_new(msgs.to_string()).expect("Could not parse translations!"));
+
+                    bundle.add_resource(Box::leak(res)).expect("Could not add translation message!");
+
+                    I18N_STATE.with(|r| {
+                        let mut o = r.borrow_mut();
+                        *o = Some(Box::new(bundle));
+                    });
                 }
             }
         }
 
         Ok(msgs) => {
-            bundle.add_messages(&msgs).expect("Could not add translation message!");
+            let mut bundle = FluentBundle::new(LOCALES);
+            let res = Box::new(FluentResource::try_new(msgs.to_string()).expect("Could not parse translations!"));
+
+            bundle.add_resource(Box::leak(res)).expect("Could not add translation message!");
+
+            I18N_STATE.with(|r| {
+                let mut o = r.borrow_mut();
+                *o = Some(Box::new(bundle));
+            });
         }
     }
-
-    bundle
 }

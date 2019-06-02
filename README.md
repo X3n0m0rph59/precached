@@ -14,7 +14,7 @@ programs while the system is idle.
 ### Install on Manjaro or other Arch Linux based Distros
 
 ```shell
-    $ yaourt -Sy precached
+    $ yay -Sy precached
 ```
 
 ### Install on Fedora
