@@ -20,6 +20,8 @@ LimitNOFILE=infinity
 PrivateDevices=yes
 PrivateTmp=yes
 ProtectSystem=full
+KillMode=mixed
+TimeoutStopSec=10
 
 [Install]
 WantedBy=multi-user.target
