@@ -2,13 +2,13 @@
 
 Name:    precached
 Version: 1.6.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.gitlab.io/precached/
 License: GPLv3+
 
 # Source0: https://gitlab.com/X3n0m0rph59/precached.git
-Source0: https://gitlab.com/X3n0m0rph59/%{OrigName}/-/archive/master/%{OrigName}-master.tar.gz
+Source0: https://gitlab.com/X3n0m0rph59/%{OrigName}/-/archive/master/%{OrigName}-v1.6.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-build
 
@@ -193,10 +193,17 @@ esac
 %{_datarootdir}/%{OrigName}/i18n/de_DE.UTF-8
 %{_datarootdir}/%{OrigName}/i18n/de_DE.utf8
 %{_datarootdir}/%{OrigName}/i18n/de_DE/messages.fluent
+%{_datarootdir}/%{OrigName}/i18n/en_US.UTF-8
+%{_datarootdir}/%{OrigName}/i18n/en_US.utf8
 %{_datarootdir}/%{OrigName}/i18n/en_US/messages.fluent
 %{_datarootdir}/%{OrigName}/i18n/en_UK
+%{_datarootdir}/%{OrigName}/i18n/en_UK.UTF-8
+%{_datarootdir}/%{OrigName}/i18n/en_UK.utf8
 
 %changelog
+* Mon Jun 03 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.6.1-2
+- rebuilt
+
 * Sun Jun 02 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.6.1-1
 - rebuilt
 
