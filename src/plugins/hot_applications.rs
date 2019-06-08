@@ -212,7 +212,7 @@ impl HotApplications {
 
     /// Check if we need to cancel the prefetching, e.g. because we received a SIGTERM
     fn shall_cancel_prefetch(_globals: &Globals, _manager: &Manager) -> bool {
-        EXIT_NOW.load(Ordering::Relaxed)
+        EXIT_NOW.load(Ordering::SeqCst)
     }
 
     /// Check if we have enough available memory to perform prefetching

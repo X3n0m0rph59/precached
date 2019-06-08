@@ -103,22 +103,22 @@ static SIG_USR2: AtomicBool = AtomicBool::new(false);
 
 /// Signal handler for `SIGINT` and `SIGTERM`
 extern "C" fn exit_signal(_: i32) {
-    EXIT_NOW.store(true, Ordering::Relaxed);
+    EXIT_NOW.store(true, Ordering::SeqCst);
 }
 
 /// Signal handler for `SIGHUP`
 extern "C" fn reload_signal(_: i32) {
-    RELOAD_NOW.store(true, Ordering::Relaxed);
+    RELOAD_NOW.store(true, Ordering::SeqCst);
 }
 
 /// Signal handler for `SIGUSR1`
 extern "C" fn usr1_signal(_: i32) {
-    SIG_USR1.store(true, Ordering::Relaxed);
+    SIG_USR1.store(true, Ordering::SeqCst);
 }
 
 /// Signal handler for `SIGUSR2`
 extern "C" fn usr2_signal(_: i32) {
-    SIG_USR2.store(true, Ordering::Relaxed);
+    SIG_USR2.store(true, Ordering::SeqCst);
 }
 
 /// Set up signal handlers for the daemon process
@@ -418,7 +418,7 @@ fn run() -> Result<(), failure::Error> {
         .name("precached-event-loop".to_string())
         .spawn(move || {
             'EVENT_LOOP: loop {
-                if EXIT_NOW.load(Ordering::Relaxed) {
+                if EXIT_NOW.load(Ordering::SeqCst) {
                     trace!("Leaving the event loop...");
                     break 'EVENT_LOOP;
                 }
@@ -435,7 +435,7 @@ fn run() -> Result<(), failure::Error> {
 
     let _handle_ipc = thread::Builder::new().name("precached-ipc".to_string()).spawn(move || {
         'EVENT_LOOP: loop {
-            if EXIT_NOW.load(Ordering::Relaxed) {
+            if EXIT_NOW.load(Ordering::SeqCst) {
                 trace!("Leaving the IPC event loop...");
                 break 'EVENT_LOOP;
             }
@@ -482,8 +482,8 @@ fn run() -> Result<(), failure::Error> {
         };
 
         // Check if we shall reload the external text configuration file
-        if RELOAD_NOW.load(Ordering::Relaxed) {
-            RELOAD_NOW.store(false, Ordering::Relaxed);
+        if RELOAD_NOW.load(Ordering::SeqCst) {
+            RELOAD_NOW.store(false, Ordering::SeqCst);
             warn!("Reloading configuration now...");
 
             // Parse external configuration file
@@ -502,8 +502,8 @@ fn run() -> Result<(), failure::Error> {
         }
 
         // Check if we received a SIGUSR1 signal
-        if SIG_USR1.load(Ordering::Relaxed) {
-            SIG_USR1.store(false, Ordering::Relaxed);
+        if SIG_USR1.load(Ordering::SeqCst) {
+            SIG_USR1.store(false, Ordering::SeqCst);
             warn!("Received SIGUSR1: Triggering housekeeping tasks now...");
 
             // Queue event
@@ -511,8 +511,8 @@ fn run() -> Result<(), failure::Error> {
         }
 
         // Check if we received a SIGUSR2 signal
-        if SIG_USR2.load(Ordering::Relaxed) {
-            SIG_USR2.store(false, Ordering::Relaxed);
+        if SIG_USR2.load(Ordering::SeqCst) {
+            SIG_USR2.store(false, Ordering::SeqCst);
             warn!("Received SIGUSR2: Transitioning to next profile...");
 
             // Queue event
@@ -555,7 +555,7 @@ fn run() -> Result<(), failure::Error> {
             }
         }
 
-        if EXIT_NOW.load(Ordering::Relaxed) {
+        if EXIT_NOW.load(Ordering::SeqCst) {
             trace!("Leaving the main loop...");
 
             events::queue_internal_event(EventType::Shutdown, &mut globals);

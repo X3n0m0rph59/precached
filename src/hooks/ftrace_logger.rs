@@ -110,7 +110,7 @@ impl FtraceLogger {
                                         // info!("Ping!");
 
                                         // check if we have a pending "global daemon exit" request
-                                        return !EXIT_NOW.load(Ordering::Relaxed);
+                                        return !EXIT_NOW.load(Ordering::SeqCst);
                                     }
                                 }
 
@@ -285,7 +285,7 @@ impl FtraceLogger {
                 error!("Processing of a trace log entry failed: {}", e);
             }
 
-            if EXIT_NOW.load(Ordering::Relaxed) {
+            if EXIT_NOW.load(Ordering::SeqCst) {
                 debug!("Leaving the ftrace event loop...");
                 break 'FTRACE_EVENT_LOOP;
             } else {
@@ -605,7 +605,7 @@ impl hook::Hook for FtraceLogger {
                 //       Notify the ftrace thread that it shall terminate as soon as possible.
                 //       (This condition variable is queried in the ftrace event loop
                 //        in the util::ftrace module)
-                util::FTRACE_EXIT_NOW.store(true, Ordering::Relaxed);
+                util::FTRACE_EXIT_NOW.store(true, Ordering::SeqCst);
 
                 // BUG: Will deadlock! Needs fix
                 // match self.tracer_thread {

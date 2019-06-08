@@ -268,7 +268,7 @@ impl Application {
                             .split(chunks[1]);
 
                         let items: Vec<String>;
-                        if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
+                        if GLOBAL_ERROR_STATE.load(Ordering::SeqCst) {
                             // Show error
                             items = vec![format!("Connection Error!")];
                         } else {
@@ -291,7 +291,7 @@ impl Application {
                             .render(&mut f, chunks[0]);
 
                         let trace_items: Vec<String>;
-                        if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
+                        if GLOBAL_ERROR_STATE.load(Ordering::SeqCst) {
                             // Show error
                             trace_items = vec![format!("Connection Error!")];
                         } else {
@@ -502,16 +502,16 @@ fn main_loop(_config: &mut Config) {
             // Send initial connection request
             match do_request(&socket, ipc::IpcCommand::Connect) {
                 Ok(_data) => {
-                    GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
+                    GLOBAL_ERROR_STATE.store(false, Ordering::SeqCst);
                 }
 
                 Err(_e) => {
-                    GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
+                    GLOBAL_ERROR_STATE.store(true, Ordering::SeqCst);
                 }
             }
 
             'IPC_LOOP: loop {
-                if EXIT_NOW.load(Ordering::Relaxed) {
+                if EXIT_NOW.load(Ordering::SeqCst) {
                     trace!("Leaving the IPC event loop...");
                     break 'IPC_LOOP;
                 }
@@ -520,12 +520,12 @@ fn main_loop(_config: &mut Config) {
                     ($socket:ident, $command:expr) => {
                         match do_request(&$socket, $command) {
                             Ok(data) => {
-                                GLOBAL_ERROR_STATE.store(false, Ordering::Relaxed);
+                                GLOBAL_ERROR_STATE.store(false, Ordering::SeqCst);
                                 tx.send(data).unwrap();
                             }
 
                             Err(_e) => {
-                                GLOBAL_ERROR_STATE.store(true, Ordering::Relaxed);
+                                GLOBAL_ERROR_STATE.store(true, Ordering::SeqCst);
                             }
                         }
                     };
@@ -562,7 +562,7 @@ fn main_loop(_config: &mut Config) {
                 let stdin = io::stdin();
 
                 for c in stdin.events() {
-                    if EXIT_NOW.load(Ordering::Relaxed) {
+                    if EXIT_NOW.load(Ordering::SeqCst) {
                         trace!("Leaving the input event loop...");
                         break 'INPUT_LOOP;
                     }
@@ -577,7 +577,7 @@ fn main_loop(_config: &mut Config) {
         .unwrap();
 
     'MAIN_LOOP: loop {
-        if EXIT_NOW.load(Ordering::Relaxed) {
+        if EXIT_NOW.load(Ordering::SeqCst) {
             trace!("Leaving the main event loop...");
             break 'MAIN_LOOP;
         }
@@ -612,7 +612,7 @@ fn main_loop(_config: &mut Config) {
     terminal.clear().unwrap();
     terminal.show_cursor().unwrap();
 
-    if GLOBAL_ERROR_STATE.load(Ordering::Relaxed) {
+    if GLOBAL_ERROR_STATE.load(Ordering::SeqCst) {
         println!("Could not connect to the precached daemon! Please verify that precached is running, and that you have valid access rights to connect!");
     }
 }
@@ -694,7 +694,7 @@ fn process_event(app: &mut Application, evt: Event) {
         // 'q' for quit
         Event::Key(Key::Char('q')) => {
             // request to quit
-            EXIT_NOW.store(true, Ordering::Relaxed);
+            EXIT_NOW.store(true, Ordering::SeqCst);
         }
 
         // cursor up pressed

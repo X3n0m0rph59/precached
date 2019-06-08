@@ -562,7 +562,7 @@ pub fn get_ftrace_events_from_pipe(cb: &mut dyn FnMut(libc::pid_t, IOEvent) -> b
     let mut counter = 0;
     'LINE_LOOP: loop {
         // do we have a pending exit request?
-        if FTRACE_EXIT_NOW.load(Ordering::Relaxed) {
+        if FTRACE_EXIT_NOW.load(Ordering::SeqCst) {
             info!("Leaving the ftrace parser loop, while processing trace data...");
             break 'LINE_LOOP;
         }
