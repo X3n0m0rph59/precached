@@ -461,13 +461,14 @@ impl Plugin for HotApplications {
                 self.prefetch_data(globals, manager);
             }
 
-            // events::EventType::ProfileChanged(profile) => {
-            //     if profile == SystemProfile::UpAndRunning {
-            //         self.prefetch_data(globals, manager);
-            //     } else {
-            //         warn!("Current system profile does not allow offline prefetching");
-            //     }
-            // }
+            events::EventType::ProfileChanged(profile) => {
+                if profile == SystemProfile::UpAndRunning {
+                    self.prefetch_data(globals, manager);
+                } else {
+                    warn!("Current system profile does not allow offline prefetching");
+                }
+            }
+
             events::EventType::AvailableMemoryLowWatermark => {
                 let pm = manager.plugin_manager.read().unwrap();
 

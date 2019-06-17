@@ -126,7 +126,7 @@ impl StaticBlacklist {
                     !matches.is_empty()
                 } else {
                     // glob_set already available
-                    let matches = gs_opt.clone().unwrap().matches(&filename.to_string_lossy().into_owned());
+                    let matches = gs_opt.as_ref().unwrap().matches(&filename.to_string_lossy().into_owned());
 
                     !matches.is_empty()
                 }
@@ -158,7 +158,7 @@ impl StaticBlacklist {
                     !matches.is_empty()
                 } else {
                     // glob_set already available
-                    let matches = gs_opt.clone().unwrap().matches(&filename.to_string_lossy().into_owned());
+                    let matches = gs_opt.as_ref().unwrap().matches(&filename.to_string_lossy().into_owned());
 
                     !matches.is_empty()
                 }
