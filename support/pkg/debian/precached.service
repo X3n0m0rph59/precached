@@ -10,16 +10,15 @@ ExecReload=/usr/sbin/precachedctl reload
 ExecStop=/usr/sbin/precachedctl stop
 PIDFile=/run/precached.pid
 Type=forking
-Restart=always
+Restart=no
 Nice=0
 LimitAS=infinity
 LimitRSS=infinity
 LimitCORE=infinity
 LimitMEMLOCK=infinity
 LimitNOFILE=infinity
-PrivateDevices=yes
-PrivateTmp=yes
-ProtectSystem=full
+KillMode=mixed
+TimeoutStopSec=15
 
 [Install]
 WantedBy=multi-user.target
