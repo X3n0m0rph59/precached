@@ -17,9 +17,6 @@ LimitRSS=infinity
 LimitCORE=infinity
 LimitMEMLOCK=infinity
 LimitNOFILE=infinity
-PrivateDevices=yes
-PrivateTmp=yes
-ProtectSystem=full
 KillMode=mixed
 TimeoutStopSec=15
 
