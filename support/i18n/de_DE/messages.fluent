@@ -152,8 +152,8 @@ io-ops = I/O Operationen
 io-size = I/O Größe
 flags = Flags
 
-iotracectl-ftrace-trace-logger = ftrace basierter I/O Trace Logger
-iotracectl-ftrace-trace-logger-desc = Ein Tracer für Prozesse, welcher Dateisystemaktivitäten aufzeichnet
+iotracectl-fanotify-trace-logger = fanotify basierter I/O Trace Logger
+iotracectl-fanotify-trace-logger-desc = Ein Tracer für Prozesse, welcher Dateisystemaktivitäten aufzeichnet
 iotracectl-type-1 = Hook
 
 iotracectl-removing-trace-logs = Entferne I/O Trace Logs: 

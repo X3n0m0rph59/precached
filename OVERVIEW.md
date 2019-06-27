@@ -16,7 +16,7 @@ able to perform readahead on files that are *not currently cached*, when a
 process is executed (online prefetching, during application startup).
 
 The precached daemon records which files are accessed on application startup
-by using the Linux ftrace subsystem and later uses these generated I/O trace
+by using the Linux fanotify subsystem and later uses these generated I/O trace
 logs to dynamically load the previously accessed files into the kernel's page
 cache. Thus when using precached the most often used applications are
 *cache hot* most of the time and will load much faster compared to their
@@ -70,7 +70,7 @@ It spins up multiple threads:
 
 * precached main thread - Coordinates all other threads
 * event loop - Listens for procmon events and delivers them to the main thread
-* ftrace - This thread processes the event stream of the Linux ftrace subsystem
+* fanotify - This thread processes the event stream of the Linux fanotify subsystem
 * worker (4) - Thread pool that executes background tasks of lower priority (e.g.: task scheduler)
 * prefetch (4) - Thread pool that is used to asynchronously read data from slow mass storage devices into ram
 
@@ -81,7 +81,7 @@ easily extend its functionality in the future.
 
 #### Available Plugins and Hooks
 
-The following plugins are available for precached (as of 2018-05-10)
+The following plugins are available for precached (as of 2019-06-27)
 
 * Inotify Multiplexer (stable) - Translate low level inotify events to daemon internal events
 * I/O Trace Log Manager (stable) - Manage I/O trace logs, optimizes new trace logs, and removes invalid ones
@@ -102,13 +102,13 @@ The following plugins are available for precached (as of 2018-05-10)
 * VFS Stat(x) Cache (stable) - Prime the kernel’s dentry caches by walking directories and stat()ing files
 * Static Blacklist (stable) - Blacklist files that shall not be accessed by the precached daemon
 * Static Whitelist (stable) - Force caching of files or applications into memory
-* ftrace Messages (stable) - Insert custom messages into the Linux ftrace subsystems event stream
 * Janitor (stable) - Perform janitorial tasks when the system is idle, like cleanup of trace logs etc...
 * Fork Bomb Mitigation (not implemented/in development)
 
-The following hooks are available for precached (as of 2017-11-21)
+The following hooks are available for precached (as of 2019-06-27)
 
-* ftrace logger (stable) - Generate I/O trace logs by utilizing the Linux ftrace subsystem
+* fanotify logger (in development) - Generate I/O trace logs by utilizing the Linux fanotify subsystem
+* ftrace logger (deprecated) - Generate I/O trace logs by utilizing the Linux ftrace subsystem
 * ptrace logger (deprecated) - Generate I/O trace logs by `ptrace()` ing processes and trapping system calls
 * Fork Bomb detector (not implemented/in development)
 * I/O Trace Prefetcher (in development) - Prefetch files using a previously recorded I/O trace log

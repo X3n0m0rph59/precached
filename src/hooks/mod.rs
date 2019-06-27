@@ -25,18 +25,16 @@ pub use self::hook_manager::*;
 use crate::globals::*;
 use crate::manager::*;
 
-pub mod process_tracker;
-// pub mod ptrace_logger;
-pub mod ftrace_logger;
+pub mod fanotify_logger;
 pub mod iotrace_prefetcher;
+pub mod process_tracker;
 // pub mod markov_prefetcher;
 // pub mod forkbomb_detector;
 // pub mod rule_hook;
 
 pub fn register_default_hooks(globals: &mut Globals, manager: &mut Manager) {
     process_tracker::register_hook(globals, manager);
-    ftrace_logger::register_hook(globals, manager);
-    // ptrace_logger::register_hook(globals, manager);  // deprecated in favour of ftrace_logger
+    fanotify_logger::register_hook(globals, manager);
     iotrace_prefetcher::register_hook(globals, manager);
     // markov_prefetcher::register_hook(globals, manager);
     // forkbomb_detector::register_hook(globals, manager);

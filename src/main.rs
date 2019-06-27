@@ -380,12 +380,6 @@ fn run() -> Result<(), failure::Error> {
         }
     }
 
-    // Set up the system to use ftrace, so that hooks or plugins can access it from this point on
-    match util::enable_ftrace_tracing() {
-        Err(e) => error!("Could not enable the Linux ftrace subsystem! {}", e),
-        Ok(()) => info!("Successfully enabled the Linux ftrace subsystem!"),
-    }
-
     // Register hooks and plugins
     hooks::register_default_hooks(&mut globals, &mut manager);
     plugins::register_default_plugins(&mut globals, &mut manager);
@@ -415,7 +409,7 @@ fn run() -> Result<(), failure::Error> {
 
     // spawn the event loop thread
     let handle = thread::Builder::new()
-        .name("precached-event-loop".to_string())
+        .name("precached/event-loop".to_string())
         .spawn(move || {
             'EVENT_LOOP: loop {
                 if EXIT_NOW.load(Ordering::SeqCst) {
@@ -433,7 +427,7 @@ fn run() -> Result<(), failure::Error> {
     let queue_c = globals.ipc_event_queue.clone();
     let manager_c = manager.clone();
 
-    let _handle_ipc = thread::Builder::new().name("precached-ipc".to_string()).spawn(move || {
+    let _handle_ipc = thread::Builder::new().name("precached/ipc".to_string()).spawn(move || {
         'EVENT_LOOP: loop {
             if EXIT_NOW.load(Ordering::SeqCst) {
                 trace!("Leaving the IPC event loop...");
@@ -456,10 +450,6 @@ fn run() -> Result<(), failure::Error> {
             }
         }
     })?;
-
-    // util::insert_message_into_ftrace_stream(format!("precached started")).unwrap_or_else(|_| {
-    //     error!("Could not insert a message into the ftrace stream!");
-    // });
 
     util::notify(&String::from("precached started!"), &manager);
 
@@ -587,10 +577,6 @@ fn run() -> Result<(), failure::Error> {
     // Clean up now
     trace!("Cleaning up...");
 
-    // util::insert_message_into_ftrace_stream(format!("precached exiting")).unwrap_or_else(|_| {
-    //     error!("Could not insert a message into the ftrace stream!");
-    // });
-
     util::notify(&String::from("precached terminating!"), &manager);
 
     #[allow(unused_must_use)]
@@ -604,11 +590,6 @@ fn run() -> Result<(), failure::Error> {
 
     // unregister other subsystems
     inotify_watches.teardown_default_inotify_watches(&mut globals, &manager);
-
-    match util::disable_ftrace_tracing() {
-        Err(e) => error!("Could not disable the Linux ftrace subsystem! {}", e),
-        Ok(()) => info!("Successfully disabled the Linux ftrace subsystem!"),
-    }
 
     info!("Exiting now");
 

@@ -268,7 +268,9 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
     } else if matches.is_present("terse") {
         // Print in "terse" format
         println!("{}", io_trace.exe.to_string_lossy());
-    } else /*if matches.is_present("tabular")*/ {
+    } else
+    /*if matches.is_present("tabular")*/
+    {
         let (w, _h) = term_size::dimensions().unwrap();
 
         let max_len = w / 4;
@@ -311,7 +313,9 @@ fn print_io_trace_msg(message: &str, index: usize, config: &Config, table: &mut 
     } else if matches.is_present("terse") {
         // Print in "terse" format
         println!("{}", message);
-    } else /*if matches.is_present("tabular")*/ {
+    } else
+    /*if matches.is_present("tabular")*/
+    {
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
             Cell::new_align(&format!("{}", index), Alignment::RIGHT),
@@ -349,7 +353,7 @@ fn map_bool_to_color_blacklist(b: bool) -> Color {
 fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigFile) {
     let conf = daemon_config.disabled_plugins.unwrap_or(vec![]);
 
-    let ftrace_logger_enabled = !conf.contains(&String::from("ftrace_logger"));
+    let fanotify_logger_enabled = !conf.contains(&String::from("fanotify_logger"));
     // let ptrace_logger_enabled = !conf.contains(&String::from("ptrace_logger"));
 
     let iotrace_prefetcher_enabled = !conf.contains(&String::from("iotrace_prefetcher"));
@@ -369,12 +373,12 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
 
     // Print in "tabular" format (the default)
     table.add_row(Row::new(vec![
-        Cell::new(&tr!("iotracectl-ftrace-trace-logger")).with_style(Attr::Bold),
-        Cell::new(&tr!("iotracectl-ftrace-trace-logger-desc")).with_style(Attr::Italic(true)),
+        Cell::new(&tr!("iotracectl-fanotify-trace-logger")).with_style(Attr::Bold),
+        Cell::new(&tr!("iotracectl-fanotify-trace-logger-desc")).with_style(Attr::Italic(true)),
         Cell::new(&tr!("iotracectl-type-1")),
-        Cell::new(&tr!(&format!("{}", ftrace_logger_enabled)))
+        Cell::new(&tr!(&format!("{}", fanotify_logger_enabled)))
             .with_style(Attr::Bold)
-            .with_style(Attr::ForegroundColor(map_bool_to_color(ftrace_logger_enabled))),
+            .with_style(Attr::ForegroundColor(map_bool_to_color(fanotify_logger_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
@@ -968,7 +972,9 @@ fn analyze_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
                 if matches.is_present("terse") {
                     println!("{:?}", e.operation);
-                } else /*if matches.is_present("tabular")*/ {
+                } else
+                /*if matches.is_present("tabular")*/
+                {
                     let (flags, _err, color) = get_io_trace_entry_flags(&e);
 
                     // Print in "tabular" format (the default)

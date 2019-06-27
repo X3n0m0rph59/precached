@@ -36,7 +36,7 @@ use serde_derive::{Serialize, Deserialize};
 use crate::constants;
 use crate::events;
 use crate::globals::*;
-use crate::hooks::ftrace_logger::ACTIVE_TRACERS;
+use crate::hooks::fanotify_logger::ACTIVE_TRACERS;
 use crate::hooks::iotrace_prefetcher::{IOtracePrefetcher, ThreadState};
 use crate::hooks::process_tracker::ProcessTracker;
 use crate::manager::*;

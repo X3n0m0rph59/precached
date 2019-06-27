@@ -40,7 +40,6 @@ pub mod notifications;
 pub mod statistics;
 pub mod user_session;
 // pub mod forkbomb_mitigation;
-pub mod ftrace_messages;
 pub mod inotify_multiplexer;
 pub mod janitor;
 pub mod rule_engine;
@@ -72,7 +71,6 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     rule_engine::register_plugin(globals, manager);
     rule_event_bridge::register_plugin(globals, manager);
     user_session::register_plugin(globals, manager);
-    ftrace_messages::register_plugin(globals, manager);
     janitor::register_plugin(globals, manager);
 
     #[cfg(feature = "web-frontend")]

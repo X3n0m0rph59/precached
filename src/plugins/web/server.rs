@@ -67,7 +67,7 @@ impl WebServer {
 
         // spawn the tokio event loop thread
         let _handle = thread::Builder::new()
-            .name("precached-tokio-event-loop".to_string())
+            .name("precached/tokio-event-loop".to_string())
             .spawn(move || {
                 tokio::run(future::lazy(|| {
                     tokio::spawn(server);

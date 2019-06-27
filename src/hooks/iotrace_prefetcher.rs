@@ -682,7 +682,7 @@ impl hook::Hook for IOtracePrefetcher {
     }
 
     fn unregister(&mut self) {
-        info!("Unregistered Hook: 'I/O Trace Prefetcher");
+        info!("Unregistered Hook: 'I/O Trace Prefetcher'");
     }
 
     fn get_name(&self) -> &'static str {

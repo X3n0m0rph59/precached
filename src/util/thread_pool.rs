@@ -33,7 +33,7 @@ impl WorkerThreadPool {
         WorkerThreadPool {
             pool: threadpool::Builder::new()
                 .num_threads(2)
-                .thread_name(String::from("precached-worker"))
+                .thread_name(String::from("precached/worker"))
                 .thread_scheduling_class(threadpool::SchedulingClass::Normal(constants::WORKER_THREAD_NICENESS))
                 .build(),
         }
@@ -58,7 +58,7 @@ impl PrefetchThreadPool {
             pool: threadpool::Builder::new()
                 .num_threads(constants::NUM_PREFETCHER_THREADS)
                 //.num_threads(num_cpus::get())
-                .thread_name(String::from("precached-prefetch"))
+                .thread_name(String::from("precached/prefetch"))
                 // .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
                 .thread_scheduling_class(threadpool::SchedulingClass::Normal(constants::PREFETCHER_THREAD_NICENESS))
                 .spread_affinity(true)
