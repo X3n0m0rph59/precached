@@ -235,7 +235,12 @@ impl FanotifyLogger {
 
                                 // we have to close the file descriptor, that we got from fanotify ourselves
                                 if event.fd != FAN_NOFD {
-                                    unsafe { libc::close(event.fd) };
+                                    let pid = unsafe { libc::getpid() };
+
+                                    // do not close our own file descriptors
+                                    if event.pid != pid {
+                                        unsafe { libc::close(event.fd) };
+                                    }
                                 } else {
                                     warn!("Detected fanotify message queue overflow!");
                                 }
