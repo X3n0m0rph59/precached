@@ -99,7 +99,7 @@ impl FanotifyLogger {
                                 match hm.get_hook_by_name(&String::from("process_tracker")) {
                                     None => {
                                         error!("Hook not loaded: 'process_tracker', skipped");
-                                        return;
+                                        break;
                                     }
 
                                     Some(h) => {
@@ -124,7 +124,7 @@ impl FanotifyLogger {
                                             "Could not take a lock on a shared data structure! Lost an I/O trace event! {}",
                                             e
                                         );
-                                                return;
+                                                continue;
                                             }
 
                                             Ok(mut active_tracers) => {
