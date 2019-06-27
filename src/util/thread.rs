@@ -32,3 +32,7 @@ pub fn set_realtime_priority() {
         )
     };
 }
+
+pub fn set_nice_level(nice: i32) {
+    unsafe { libc::nice(nice) };
+}

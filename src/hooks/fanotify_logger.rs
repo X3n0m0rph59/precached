@@ -523,7 +523,7 @@ impl hook::Hook for FanotifyLogger {
                                 error!("Could not set CPU affinity!");
                             });
 
-                            util::set_realtime_priority();
+                            util::set_nice_level(constants::FANOTIFY_THREAD_NICENESS);
 
                             Self::fanotify_event_loop(&mut globals_c, &manager_c);
                         })

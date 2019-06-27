@@ -55,11 +55,14 @@ pub const ZSTD_COMPRESSION_RATIO: i32 = 0; // 0 == auto select (default: 3),
 /// Thread niceness (main process)
 // pub const MAIN_THREAD_NICENESS: i32 = 10;
 
+/// Thread niceness (fanotify threads)
+pub const FANOTIFY_THREAD_NICENESS: i32 = 4;
+
 /// Thread niceness (prefetcher threads)
 pub const PREFETCHER_THREAD_NICENESS: i32 = -4;
 
 /// Thread niceness (worker threads)
-pub const WORKER_THREAD_NICENESS: i32 = 4;
+pub const WORKER_THREAD_NICENESS: i32 = 8;
 
 /// Thread wait time (main loop)
 pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2000;
