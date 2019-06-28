@@ -27,23 +27,9 @@ pub enum SysCall {
 
     /// Used to deliver custom events, not an actual syscall
     CustomEvent(String),
-
-    /// statx(2)
-    Statx(PathBuf),
-    /// fstat(at)(2)
-    Fstat(i32),
-    /// getdents(2)
-    Getdents(PathBuf),
+    
     /// open(at)(2)
     Open(PathBuf, i32),
-    /// close(2)
-    Close(i32),
-    /// (p)read(v)(2)
-    Read(i32),
-    /// (p)write(v)(2)
-    Write(i32),
-    /// mmap(2)
-    Mmap(usize),
 }
 
 #[derive(Debug, Clone)]

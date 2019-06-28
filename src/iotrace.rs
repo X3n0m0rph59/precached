@@ -36,12 +36,7 @@ use crate::util;
 /// Represents an I/O operation in an I/O trace log entry
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum IOOperation {
-    Open(PathBuf, i32),
-    Stat(PathBuf),
-    Fstat(i32),
-    Getdents(PathBuf),
-    Read(i32),
-    Mmap(i32),
+    Open(PathBuf),
 }
 
 /// An entry in an I/O trace log
@@ -192,7 +187,7 @@ impl IOTraceLog {
             initial_file_map.insert(exe.clone(), 1);
 
             let initial_trace_log = vec![
-                TraceLogEntry::new(IOOperation::Open(exe.clone(), 0), util::get_file_size(&exe).unwrap_or(0)),
+                TraceLogEntry::new(IOOperation::Open(exe.clone()), util::get_file_size(&exe).unwrap_or(0)),
                 // TraceLogEntry::new(IOOperation::Read(0)),
             ];
 
@@ -258,7 +253,7 @@ impl IOTraceLog {
 
         // do we have to add a file map entry?
         match op {
-            IOOperation::Open(filename, fd) => {
+            IOOperation::Open(filename) => {
                 // TODO: make this finer grained, count every read operation
                 //       instead of just using the file open operation
                 size = util::get_file_size(&filename).unwrap_or(0);

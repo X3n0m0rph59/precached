@@ -50,10 +50,10 @@ pub fn optimize_io_trace_log(
 
     for e in &io_trace.trace_log {
         let entry = e.clone();
-        let mut current_file = None;
+        let current_file;
 
         match e.operation {
-            IOOperation::Open(ref filename, ref _fd) => {
+            IOOperation::Open(ref filename) => {
                 // Check if filename is a (valid) file
                 if !util::is_file(filename) {
                     // error!("Not a valid file!");
@@ -69,7 +69,8 @@ pub fn optimize_io_trace_log(
 
                 current_file = Some(PathBuf::from(filename));
             }
-            _ => { /* Ignore others */ }
+
+            // _ => { /* Ignore others */ }
         }
 
         // All tests passed successfully, append `e` to the optimized trace log
@@ -162,12 +163,12 @@ pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>
 pub fn get_io_trace_log_entry_flags_and_err(entry: &TraceLogEntry) -> (Vec<IOTraceLogEntryFlag>, bool, Color) {
     let mut flags = Vec::new();
     let mut err = false;
-    let mut color = RED;
+    let color;
 
     // TODO: Perform consistency checks
     //       * Timestamp of I/O operation newer than target file?
     match entry.operation {
-        IOOperation::Open(ref filename, ref _fd) => {
+        IOOperation::Open(ref filename) => {
             if util::is_file_accessible(filename) {
                 flags.push(IOTraceLogEntryFlag::OK);
                 color = GREEN;
@@ -177,7 +178,8 @@ pub fn get_io_trace_log_entry_flags_and_err(entry: &TraceLogEntry) -> (Vec<IOTra
                 color = RED;
             }
         }
-        _ => { /* Do nothing */ }
+        
+        // _ => { /* Do nothing */ }
     }
 
     if !err {

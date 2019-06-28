@@ -1066,7 +1066,7 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
         // Build a histogram of files (make unique)
         for entry in io_trace.trace_log {
             match entry.operation {
-                IOOperation::Open(path, _file) => {
+                IOOperation::Open(path) => {
                     let &mut (ref mut cnt, ref mut vm_size) = files_histogram.entry(path).or_insert((0, 0));
 
                     // count size of every file only once
@@ -1078,7 +1078,7 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
                     *vm_size = entry.size;
                 }
 
-                _ => { /* Ignore all others */ }
+                // _ => { /* Ignore all others */ }
             }
         }
 

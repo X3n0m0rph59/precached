@@ -105,7 +105,7 @@ impl IOtracePrefetcher {
         //       Don't just cache the whole file
         for entry in io_trace {
             match entry.operation {
-                iotrace::IOOperation::Open(ref file, ref _fd) => {
+                iotrace::IOOperation::Open(ref file) => {
                     trace!("Prefetching: {:?}", file);
 
                     // mmap and mlock file, if it is not contained in the blacklist
@@ -143,28 +143,6 @@ impl IOtracePrefetcher {
                         }
                     }
                 }
-
-                iotrace::IOOperation::Stat(ref file) => {
-                    util::prime_metadata_cache(file).unwrap_or_else(|_| {
-                        error!("Could not prime metadata caches!");
-                    });
-                }
-
-                iotrace::IOOperation::Fstat(ref _fd) => {
-                    // TODO: Implement this!
-                }
-
-                iotrace::IOOperation::Getdents(ref _fd) => {
-                    // TODO: Implement this!
-                }
-
-                iotrace::IOOperation::Read(ref _fd) => {
-                    // TODO: Implement this!
-                }
-
-                iotrace::IOOperation::Mmap(ref _fd) => {
-                    // TODO: Implement this!
-                } // _ => { /* Do nothing */ }
             }
 
             // yield timeslice after each prefetched entry
@@ -184,7 +162,7 @@ impl IOtracePrefetcher {
         for entry in io_trace {
             match entry.operation {
                 // TODO: Fix this when using a finer granularity for Prefetching
-                iotrace::IOOperation::Open(ref file, ref _fd) => {
+                iotrace::IOOperation::Open(ref file) => {
                     trace!("Unmapping: {:?}", file);
 
                     if let Some(mapping) = our_mapped_files.get(file) {
@@ -207,7 +185,7 @@ impl IOtracePrefetcher {
                     }
                 }
 
-                _ => { /* Do nothing */ }
+                // _ => { /* Do nothing */ }
             }
         }
 
@@ -221,7 +199,7 @@ impl IOtracePrefetcher {
     ) {
         for entry in io_trace {
             match entry.operation {
-                iotrace::IOOperation::Open(ref file, ref _fd) => {
+                iotrace::IOOperation::Open(ref file) => {
                     trace!("Prefetching metadata for: {:?}", file);
 
                     // Check if filename is valid
@@ -242,7 +220,7 @@ impl IOtracePrefetcher {
                     }
                 }
 
-                _ => { /* Do nothing */ }
+                // _ => { /* Do nothing */ }
             }
         }
     }

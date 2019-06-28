@@ -94,6 +94,11 @@ impl FanotifyLogger {
                     match notify.get_events() {
                         Ok(events) => {
                             for event in events.iter() {
+                                if EXIT_NOW.load(Ordering::SeqCst) {
+                                    debug!("Leaving the fanotify event loop...");
+                                    break 'FANOTIFY_EVENT_LOOP;
+                                }
+
                                 let hm = manager.hook_manager.read().unwrap();
 
                                 match hm.get_hook_by_name(&String::from("process_tracker")) {
@@ -148,7 +153,6 @@ impl FanotifyLogger {
                                                         ) {
                                                             iotrace_log.add_event(IOOperation::Open(
                                                                 PathBuf::from(event.filename.clone()),
-                                                                0,
                                                             ));
                                                         } else {
                                                             // trace!("File is blacklisted!");
@@ -228,7 +232,7 @@ impl FanotifyLogger {
                                     }
                                 }
 
-                                // we have to close the file descriptor, that we got from fanotify ourselves
+                                // we have to close the file descriptor ourselves, that we got from fanotify
                                 if event.fd != FAN_NOFD {
                                     let pid = unsafe { libc::getpid() };
 
@@ -245,11 +249,6 @@ impl FanotifyLogger {
                         Err(_e) => {
                             thread::sleep(Duration::from_millis(constants::FANOTIFY_THREAD_YIELD_MILLIS));
                         }
-                    }
-
-                    if EXIT_NOW.load(Ordering::SeqCst) {
-                        debug!("Leaving the fanotify event loop...");
-                        break 'FANOTIFY_EVENT_LOOP;
                     }
                 }
             }
@@ -525,7 +524,15 @@ impl hook::Hook for FanotifyLogger {
 
                             util::set_nice_level(constants::FANOTIFY_THREAD_NICENESS);
 
-                            Self::fanotify_event_loop(&mut globals_c, &manager_c);
+                            'FANOTIFY_LOOP: loop {
+                                Self::fanotify_event_loop(&mut globals_c, &manager_c);
+
+                                if EXIT_NOW.load(Ordering::SeqCst) {
+                                    break 'FANOTIFY_LOOP;
+                                }
+
+                                error!("Fanotify thread crashed, restarting...")
+                            }
                         })
                         .unwrap(),
                 );

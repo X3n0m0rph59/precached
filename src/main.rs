@@ -408,7 +408,7 @@ fn run() -> Result<(), failure::Error> {
     // events::queue_internal_event(EventType::PrimeCaches, &mut globals);
 
     // spawn the event loop thread
-    let handle = thread::Builder::new()
+    let _handle = thread::Builder::new()
         .name("precached/event-loop".to_string())
         .spawn(move || {
             'EVENT_LOOP: loop {
@@ -556,14 +556,14 @@ fn run() -> Result<(), failure::Error> {
     }
 
     // main thread blocks here
-    match handle.join() {
-        Ok(_) => {
-            trace!("Successfully joined the event loop thread!");
-        }
-        Err(_) => {
-            error!("Could not join the event loop thread!");
-        }
-    };
+    // match handle.join() {
+    //     Ok(_) => {
+    //         trace!("Successfully joined the event loop thread!");
+    //     }
+    //     Err(_) => {
+    //         error!("Could not join the event loop thread!");
+    //     }
+    // };
 
     // match handle_ipc.join() {
     //     Ok(_) => {
