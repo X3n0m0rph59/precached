@@ -81,7 +81,7 @@ impl Janitor {
         let pm = manager.plugin_manager.read().unwrap();
 
         // Optimize I/O trace logs
-        // info!("Janitor optimizing: I/O trace logs...");
+        info!("Janitor optimizing: I/O trace logs...");
 
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
             None => {
@@ -97,7 +97,7 @@ impl Janitor {
         }
 
         // Optimize "Hot Applications" histogram
-        // info!("Janitor optimizing: 'hot applications' histogram...");
+        info!("Janitor optimizing: 'hot applications' histogram...");
 
         match pm.get_plugin_by_name(&String::from("hot_applications")) {
             None => {

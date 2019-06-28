@@ -86,7 +86,7 @@ pub const IO_TRACE_TIME_SECS: u64 = 15;
 pub const IO_TRACE_EXPIRY_DAYS: i64 = 14;
 
 /// The minimum length an I/O trace log must have for it to be saved/kept
-pub const MIN_TRACE_LOG_LENGTH: usize = 4;
+pub const MIN_TRACE_LOG_LENGTH: usize = 15;
 
 /// The minimum amount of data an I/O trace log must reference for it to be kept
 pub const MIN_TRACE_LOG_PREFETCH_SIZE_BYTES: u64 = 4096; // 4 KiB
