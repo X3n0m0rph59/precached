@@ -2,7 +2,7 @@
 
 Name:    precached-git
 Version: 1.7.0
-Release: 6%{?dist}
+Release: 7%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.gitlab.io/precached/
 License: GPLv3+
@@ -201,25 +201,28 @@ esac
 %{_datarootdir}/%{OrigName}/i18n/en_UK.utf8
 
 %changelog
-* Wed Jun 28 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-6
+* Sat Jun 29 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-7
 - rebuilt
 
-* Wed Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-5
+* Fri Jun 28 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-6
 - rebuilt
 
-* Wed Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-4
+* Thu Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-5
 - rebuilt
 
-* Wed Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-3
+* Thu Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-4
 - rebuilt
 
-* Wed Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-2
+* Thu Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-3
 - rebuilt
 
-* Wed Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-1
+* Thu Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-2
 - rebuilt
 
-* Wed Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-0
+* Thu Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-1
+- rebuilt
+
+* Thu Jun 27 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-0
 - rebuilt
 
 * Sat Jun 17 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.6.2-0
