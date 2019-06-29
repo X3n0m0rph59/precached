@@ -11,7 +11,10 @@ Welcome to the precached project status update No. 11!
 
 It has been quiet for a while around precached, but now we are back with some 
 exciting news!
-In this cycle we improved the efficiency of precached by a large amount.
+In this cycle we could improve the efficiency of precached by a large amount.
+
+Precached now works on locked-down Linux systems, that means we now support 
+Fedora 30 with Secure Boot enabled!
 
 ## What has been achieved
 
