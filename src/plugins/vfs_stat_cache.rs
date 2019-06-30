@@ -213,7 +213,26 @@ impl VFSStatCache {
                             }
 
                             trace!("Prefetching metadata for '{}'", hash);
-                            iotrace_prefetcher_hook.prefetch_statx_metadata_by_hash(hash, globals, manager)
+
+                            match util::PREFETCH_POOL.lock() {
+                                Err(e) => error!(
+                                    "Could not take a lock on a shared data structure! Postponing work until later. {}",
+                                    e
+                                ),
+
+                                Ok(thread_pool) => {
+                                    // distribute prefetching work across the worker threads
+                                    let mut iotrace_prefetcher_hook_c = iotrace_prefetcher_hook.clone();
+
+                                    let hash_c = hash.clone();
+                                    let globals_c = globals.clone();
+                                    let manager_c = manager.clone();
+
+                                    thread_pool.submit_work(move || {
+                                        iotrace_prefetcher_hook_c.prefetch_statx_metadata_by_hash(&hash_c, &globals_c, &manager_c)
+                                    });
+                                }
+                            }
                         }
                     }
                 };
