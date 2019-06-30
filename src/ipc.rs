@@ -414,10 +414,8 @@ impl IpcServer {
             }
 
             Some(h) => {
-                let h = h.read().unwrap();
-                let mut iotrace_prefetcher = h.as_any().downcast_ref::<IOtracePrefetcher>().unwrap();
-
-                let v = iotrace_prefetcher.mapped_files.keys().cloned().collect();
+                let mapped_files = statistics::MAPPED_FILES.read().unwrap();
+                let v = (*mapped_files).iter().cloned().collect();
 
                 let cmd = IpcMessage::new(IpcCommand::SendCachedFiles(v));
                 let buf = serde_json::to_string(&cmd).unwrap();

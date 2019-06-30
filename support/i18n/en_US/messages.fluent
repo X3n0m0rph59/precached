@@ -384,4 +384,4 @@ events = Events
 cached = Cached Files
 stats = Statistics
 
-active-traces = Active Traces
+active-traces = Active Traces ({ $count })

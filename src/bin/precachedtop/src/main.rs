@@ -307,7 +307,7 @@ impl Application {
                         }
 
                         SelectableList::default()
-                            .block(Block::default().borders(Borders::ALL).title(tr!("active-traces")))
+                            .block(Block::default().borders(Borders::ALL).title(tr!("active-traces", "count" => format!("{}", trace_items.len()))))
                             .items(&trace_items)
                             // .select(self.sel_index_active_traces)
                             .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::BOLD))
@@ -782,7 +782,7 @@ fn process_event(app: &mut Application, evt: Event) {
                 0 => {
                     if app.tracked_processes.len() > 0 && app.sel_index_processes < app.tracked_processes.len() - 1 {
                         if app.sel_index_processes > 0 {
-                            app.sel_index_processes += 80;
+                            app.sel_index_processes -= 80;
                         } else {
                             app.sel_index_processes = 2;
                         }
@@ -793,9 +793,20 @@ fn process_event(app: &mut Application, evt: Event) {
                 1 => {
                     if app.events.len() > 0 && app.sel_index_events < app.events.len() - 1 {
                         if app.sel_index_events > 0 {
-                            app.sel_index_events += 80;
+                            app.sel_index_events -= 80;
                         } else {
-                            app.sel_index_events = 2;
+                            app.sel_index_events = 0;
+                        }
+                    }
+                }
+
+                // Page down on cached files view
+                2 => {
+                    if app.events.len() > 0 && app.sel_index_files < app.cached_files.len() - 1 {
+                        if app.sel_index_files > 0 {
+                            app.sel_index_files -= 80;
+                        } else {
+                            app.sel_index_files = 0;
                         }
                     }
                 }
@@ -821,9 +832,20 @@ fn process_event(app: &mut Application, evt: Event) {
                 1 => {
                     if app.events.len() > 0 && app.sel_index_events < app.events.len() - 1 {
                         if app.sel_index_events > 0 {
-                            app.sel_index_events += 1;
+                            app.sel_index_events += 80;
                         } else {
-                            app.sel_index_events = 0;
+                            app.sel_index_events = app.events.len();
+                        }
+                    }
+                }
+
+                // Page down on cached files view
+                2 => {
+                    if app.events.len() > 0 && app.sel_index_files < app.cached_files.len() - 1 {
+                        if app.sel_index_files > 0 {
+                            app.sel_index_files += 80;
+                        } else {
+                            app.sel_index_files = app.cached_files.len();
                         }
                     }
                 }

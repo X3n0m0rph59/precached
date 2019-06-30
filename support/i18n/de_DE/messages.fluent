@@ -415,4 +415,4 @@ events = Ereignisse
 cached = Dateien im Cache
 stats = Statistiken
 
-active-traces = Aktive Tracer
+active-traces = Aktive Tracer ({ $count })
