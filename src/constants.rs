@@ -59,7 +59,7 @@ pub const ZSTD_COMPRESSION_RATIO: i32 = 0; // 0 == auto select (default: 3),
 pub const FANOTIFY_THREAD_NICENESS: i32 = 4;
 
 /// Thread niceness (prefetcher threads)
-pub const PREFETCHER_THREAD_NICENESS: i32 = -4;
+pub const PREFETCHER_THREAD_NICENESS: i32 = -8;
 
 /// Thread niceness (worker threads)
 pub const WORKER_THREAD_NICENESS: i32 = 8;
@@ -68,7 +68,7 @@ pub const WORKER_THREAD_NICENESS: i32 = 8;
 pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2000;
 
 /// Thread wait time (fanotify loop)
-pub const FANOTIFY_THREAD_YIELD_MILLIS: u64 = 1;
+pub const FANOTIFY_THREAD_YIELD_MILLIS: u64 = 1000;
 
 /// Time that has to elapse before we may perform housekeeping after the precached process' startup
 pub const HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS: i64 = 5 * 60; // 5 Minutes
