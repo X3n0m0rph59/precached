@@ -38,6 +38,7 @@ use crate::plugins::hot_applications::HotApplications;
 use crate::plugins::iotrace_log_manager::IOtraceLogManager;
 use crate::plugins::static_blacklist::StaticBlacklist;
 use crate::plugins::static_whitelist::StaticWhitelist;
+use crate::plugins::statistics;
 use crate::process::Process;
 use crate::procmon;
 use crate::util;
@@ -101,8 +102,6 @@ impl IOtracePrefetcher {
         let mut already_prefetched = HashMap::new();
         already_prefetched.reserve(io_trace.len());
 
-        // TODO: Use a finer granularity for Prefetching
-        //       Don't just cache the whole file
         for entry in io_trace {
             match entry.operation {
                 iotrace::IOOperation::Open(ref file) => {
@@ -120,7 +119,7 @@ impl IOtracePrefetcher {
                     ) {
                         match util::cache_file(file, true) {
                             Err(e) => {
-                                // I/O trace log maybe need to be optimized.
+                                // I/O trace log maybe needs to be optimized.
                                 info!("Could not prefetch file: {:?}: {}", file, e);
 
                                 // inhibit further prefetching of that file
@@ -129,6 +128,9 @@ impl IOtracePrefetcher {
                                 {
                                     *(thread_state.write().unwrap()) = ThreadState::Error(file.clone());
                                 }
+
+                                let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
+                                stats_mapped_files.remove(&file.to_path_buf());
                             }
 
                             Ok(mapping) => {
@@ -139,6 +141,9 @@ impl IOtracePrefetcher {
                                 {
                                     *(thread_state.write().unwrap()) = ThreadState::PrefetchedFile(file.clone());
                                 }
+
+                                let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
+                                stats_mapped_files.insert(file.to_path_buf());
                             }
                         }
                     }
@@ -183,6 +188,9 @@ impl IOtracePrefetcher {
                         // This need not be corruption of data structures but simply a missing file,
                         // so just do nothing here
                     }
+
+                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
+                    stats_mapped_files.remove(&file.to_path_buf());
                 }
 
                 // _ => { /* Do nothing */ }
@@ -267,7 +275,7 @@ impl IOtracePrefetcher {
             return false;
         }
 
-        // If we got here, everything seems to be allright
+        // If we got here, everything seems to be alright
         true
     }
 
@@ -351,10 +359,14 @@ impl IOtracePrefetcher {
                             }
 
                             for _ in 0..max {
+
                                 // blocking call; wait for worker thread(s)
                                 let mapped_files = receiver.recv().unwrap();
                                 for (k, v) in mapped_files {
-                                    self.mapped_files.insert(k, v);
+                                    self.mapped_files.insert(k.clone(), v);
+
+                                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
+                                    stats_mapped_files.insert(k);
                                 }
                             }
                         }
@@ -410,10 +422,14 @@ impl IOtracePrefetcher {
                         }
 
                         for _ in 0..max {
+
                             // blocking call; wait for worker thread(s)
                             let unmapped_files = receiver.recv().unwrap();
                             for k in unmapped_files {
                                 self.mapped_files.remove(&k);
+
+                                let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
+                                stats_mapped_files.remove(&k);
                             }
                         }
                     }
