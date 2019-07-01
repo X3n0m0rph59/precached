@@ -31,6 +31,7 @@ use crate::events;
 use crate::config_file;
 use crate::globals::*;
 use crate::manager::*;
+use crate::plugins::statistics;
 use crate::plugins::metrics::Metrics;
 use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin::PluginDescription;
@@ -117,7 +118,10 @@ impl IOtraceLogCache {
                 // blocking call; wait for worker thread
                 let result = receiver.recv().unwrap();
                 for (k, v) in result {
-                    self.mapped_files.insert(k, v);
+                    self.mapped_files.insert(k.clone(), v);
+
+                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
+                    stats_mapped_files.insert(k.to_path_buf());
                 }
 
                 info!("Finished caching of single I/O trace log file {:?}", filename_c);
@@ -138,12 +142,16 @@ impl IOtraceLogCache {
             None => {
                 error!("I/O trace log is not cached: {:?}", filename);
             }
+
             Some(mapping) => {
                 if !util::free_mapping(mapping) {
                     error!("Could not free cached I/O trace log {:?}", filename);
                 } else {
                     info!("Removed single I/O trace log file from cache: {:?}", filename);
                 }
+
+                let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
+                stats_mapped_files.remove(&abs_path);
             }
         }
     }
@@ -183,10 +191,17 @@ impl IOtraceLogCache {
                             match util::cache_file(path, true) {
                                 Err(s) => {
                                     error!("Could not cache file {:?}: {}", path, s);
+
+                                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
+                                    stats_mapped_files.remove(path);
                                 }
+
                                 Ok(r) => {
                                     trace!("Successfully cached file {:?}", path);
                                     mapped_files.insert(path.to_path_buf(), r);
+
+                                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
+                                    stats_mapped_files.insert(path.to_path_buf());
                                 }
                             }
                         }
