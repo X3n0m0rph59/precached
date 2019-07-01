@@ -391,7 +391,8 @@ impl Application {
                         let cached_files: Vec<String> = self
                             .cached_files
                             .par_iter()
-                            .map(|v| String::from(v.to_string_lossy()))
+                            .enumerate()
+                            .map(|(i, v)| format!("{:5} {}", i, v.to_string_lossy()))
                             .collect();
 
                         SelectableList::default()
@@ -510,6 +511,7 @@ fn main_loop(_config: &mut Config) {
                 }
             }
 
+            let mut counter = 0;
             'IPC_LOOP: loop {
                 if EXIT_NOW.load(Ordering::SeqCst) {
                     trace!("Leaving the IPC event loop...");
@@ -544,7 +546,13 @@ fn main_loop(_config: &mut Config) {
                 request!(socket, ipc::IpcCommand::RequestInternalEvents);
 
                 // Request cached files
-                request!(socket, ipc::IpcCommand::RequestCachedFiles);
+                if counter % 5 == 0 {
+                    request!(socket, ipc::IpcCommand::RequestCachedFiles);
+                }
+
+                thread::sleep(Duration::from_millis(constants::IPC_LOOP_DELAY_MILLIS));
+
+                counter += 1;
             }
 
             info!("Exiting the IPC event loop!");
@@ -570,12 +578,15 @@ fn main_loop(_config: &mut Config) {
                     let evt = c.unwrap();
                     tx_events.send(evt).unwrap();
                 }
+
+                thread::sleep(Duration::from_millis(constants::INPUT_LOOP_DELAY_MILLIS));
             }
 
             info!("Exiting input thread!");
         })
         .unwrap();
 
+    let mut counter = 0;
     'MAIN_LOOP: loop {
         if EXIT_NOW.load(Ordering::SeqCst) {
             trace!("Leaving the main event loop...");
@@ -592,17 +603,22 @@ fn main_loop(_config: &mut Config) {
             process_event(&mut app, evt);
         }
 
-        let size = terminal.size().unwrap();
-        if size != app.size {
-            terminal.resize(size).unwrap();
-            app.size = size;
+        // Only render the TUI every nth iteration
+        if counter % 10 == 0 {
+            let size = terminal.size().unwrap();
+            if size != app.size {
+                terminal.resize(size).unwrap();
+                app.size = size;
+            }
+
+            // terminal.clear().unwrap();
+            app.render(&mut terminal, &app);
+            // terminal.flush().unwrap();
         }
 
-        // terminal.clear().unwrap();
-        app.render(&mut terminal, &app);
-        // terminal.flush().unwrap();
-
         thread::sleep(Duration::from_millis(constants::MAIN_LOOP_DELAY_MILLIS));
+
+        counter += 1;
     }
 
     // TODO: Implement this without hanging
@@ -703,33 +719,21 @@ fn process_event(app: &mut Application, evt: Event) {
                 // cursor up on main view
                 0 => {
                     if app.tracked_processes.len() > 0 {
-                        if app.sel_index_processes > 0 {
-                            app.sel_index_processes -= 1;
-                        } else {
-                            app.sel_index_processes = app.tracked_processes.len();
-                        }
+                        app.sel_index_processes = app.sel_index_processes.checked_sub(1).unwrap_or_else(|| 0);
                     }
                 }
 
                 // cursor up on events view
                 1 => {
                     if app.events.len() > 0 {
-                        if app.sel_index_events > 0 {
-                            app.sel_index_events -= 1;
-                        } else {
-                            app.sel_index_events = app.events.len();
-                        }
+                        app.sel_index_events = app.sel_index_events.checked_sub(1).unwrap_or_else(|| 0);
                     }
                 }
 
                 // cursor up on cached files view
                 2 => {
                     if app.cached_files.len() > 0 {
-                        if app.sel_index_files > 0 {
-                            app.sel_index_files -= 1;
-                        } else {
-                            app.sel_index_files = app.cached_files.len();
-                        }
+                        app.sel_index_files = app.sel_index_files.checked_sub(1).unwrap_or_else(|| 0);
                     }
                 }
 
@@ -745,7 +749,7 @@ fn process_event(app: &mut Application, evt: Event) {
                         if app.sel_index_processes > 0 {
                             app.sel_index_processes += 1;
                         } else {
-                            app.sel_index_processes = 0;
+                            app.sel_index_processes = app.tracked_processes.len() - 1;
                         }
                     }
                 }
@@ -756,7 +760,7 @@ fn process_event(app: &mut Application, evt: Event) {
                         if app.sel_index_events > 0 {
                             app.sel_index_events += 1;
                         } else {
-                            app.sel_index_events = 0;
+                            app.sel_index_events = app.events.len() - 1;
                         }
                     }
                 }
@@ -764,10 +768,10 @@ fn process_event(app: &mut Application, evt: Event) {
                 // cursor down on cached files view
                 2 => {
                     if app.cached_files.len() > 0 && app.sel_index_files < app.cached_files.len() - 1 {
-                        if app.sel_index_files > 0 {
+                        if app.sel_index_files < app.cached_files.len() - 1 {
                             app.sel_index_files += 1;
                         } else {
-                            app.sel_index_files = 0;
+                            app.sel_index_files = app.cached_files.len() - 1;
                         }
                     }
                 }
@@ -782,9 +786,9 @@ fn process_event(app: &mut Application, evt: Event) {
                 0 => {
                     if app.tracked_processes.len() > 0 && app.sel_index_processes < app.tracked_processes.len() - 1 {
                         if app.sel_index_processes > 0 {
-                            app.sel_index_processes -= 80;
+                            app.sel_index_processes = app.sel_index_processes.checked_sub(25).unwrap_or_else(|| 0);
                         } else {
-                            app.sel_index_processes = 2;
+                            app.sel_index_processes = 0;
                         }
                     }
                 }
@@ -793,7 +797,7 @@ fn process_event(app: &mut Application, evt: Event) {
                 1 => {
                     if app.events.len() > 0 && app.sel_index_events < app.events.len() - 1 {
                         if app.sel_index_events > 0 {
-                            app.sel_index_events -= 80;
+                            app.sel_index_events = app.sel_index_events.checked_sub(25).unwrap_or_else(|| 0);
                         } else {
                             app.sel_index_events = 0;
                         }
@@ -804,7 +808,7 @@ fn process_event(app: &mut Application, evt: Event) {
                 2 => {
                     if app.events.len() > 0 && app.sel_index_files < app.cached_files.len() - 1 {
                         if app.sel_index_files > 0 {
-                            app.sel_index_files -= 80;
+                            app.sel_index_files = app.sel_index_files.checked_sub(25).unwrap_or_else(|| 0);
                         } else {
                             app.sel_index_files = 0;
                         }
@@ -819,34 +823,88 @@ fn process_event(app: &mut Application, evt: Event) {
             match app.tab_index {
                 // Page down on main view
                 0 => {
-                    if app.tracked_processes.len() > 0 && app.sel_index_processes < app.tracked_processes.len() - 1 {
-                        if app.sel_index_processes > 0 {
-                            app.sel_index_processes += 80;
-                        } else {
-                            app.sel_index_processes = 0;
+                    if app.tracked_processes.len() > 0 && app.sel_index_processes < app.tracked_processes.len() - (25 + 1) {
+                        app.sel_index_processes += 25;
+
+                        if app.sel_index_processes > app.tracked_processes.len() - 1 {
+                            app.sel_index_processes = app.tracked_processes.len() - 1;
                         }
                     }
                 }
 
                 // Page down on events view
                 1 => {
-                    if app.events.len() > 0 && app.sel_index_events < app.events.len() - 1 {
-                        if app.sel_index_events > 0 {
-                            app.sel_index_events += 80;
-                        } else {
-                            app.sel_index_events = app.events.len();
+                    if app.events.len() > 0 && app.sel_index_events < app.events.len() - (25 + 1) {
+                        app.sel_index_events += 25;
+
+                        if app.sel_index_events > app.events.len() - 1 {
+                            app.sel_index_events = app.events.len() - 1;
                         }
                     }
                 }
 
                 // Page down on cached files view
                 2 => {
-                    if app.events.len() > 0 && app.sel_index_files < app.cached_files.len() - 1 {
-                        if app.sel_index_files > 0 {
-                            app.sel_index_files += 80;
-                        } else {
-                            app.sel_index_files = app.cached_files.len();
+                    if app.events.len() > 0 && app.sel_index_files < app.cached_files.len() - (25 + 1) {
+                        app.sel_index_files += 25;
+
+                        if app.sel_index_files > app.cached_files.len() - 1 {
+                            app.sel_index_files = app.cached_files.len() - 1;
                         }
+                    }
+                }
+
+                _ => { /* Do nothing */ }
+            }
+        }
+
+        Event::Key(Key::Home) => {
+             match app.tab_index {
+                // Home key on main view
+                0 => {
+                    if app.tracked_processes.len() > 0 {
+                        app.sel_index_processes = 0;
+                    }
+                }
+
+                // Home key on events view
+                1 => {
+                    if app.events.len() > 0 {
+                        app.sel_index_events = 0;
+                    }
+                }
+
+                // Home key on cached files view
+                2 => {
+                    if app.events.len() > 0 {
+                        app.sel_index_files = 0;
+                    }
+                }
+
+                _ => { /* Do nothing */ }
+            }
+        }
+
+        Event::Key(Key::End) => {
+            match app.tab_index {
+                // End key on main view
+                0 => {
+                    if app.tracked_processes.len() > 0 {
+                        app.sel_index_processes = app.tracked_processes.len() - 1;
+                    }
+                }
+
+                // End key on events view
+                1 => {
+                    if app.events.len() > 0 {
+                        app.sel_index_events = app.events.len() - 1;
+                    }
+                }
+
+                // End key on cached files view
+                2 => {
+                    if app.events.len() > 0 {
+                        app.sel_index_files = app.cached_files.len() - 1;
                     }
                 }
 

@@ -42,4 +42,11 @@ pub const DATETIME_FORMAT_DEFAULT: &str = "%Y-%m-%d %H:%M:%S";
 /// The size of the prefetcher thread pool
 pub const NUM_PREFETCHER_THREADS: usize = 4;
 
-pub const MAIN_LOOP_DELAY_MILLIS: u64 = 10;
+/// Delay after each iteration of the main loop
+pub const MAIN_LOOP_DELAY_MILLIS: u64 = 25;
+
+/// Delay after each iteration of the IPC loop
+pub const IPC_LOOP_DELAY_MILLIS: u64 = 400;
+
+/// Delay after each iteration of the input-events loop
+pub const INPUT_LOOP_DELAY_MILLIS: u64 = 25;
