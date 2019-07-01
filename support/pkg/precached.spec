@@ -13,11 +13,10 @@ Source0: https://gitlab.com/X3n0m0rph59/%{OrigName}/-/archive/master/%{OrigName}
 BuildRoot: %{_tmppath}/%{name}-build
 
 BuildRequires: systemd
-BuildRequires: dbus-devel
 BuildRequires: zeromq-devel
 BuildRequires: cargo
 
-Requires: dbus zeromq
+Requires: zeromq
 
 Conflicts: precached
 
@@ -45,7 +44,6 @@ cargo build --all --release --verbose
 %{__mkdir_p} %{buildroot}%{_datarootdir}/metainfo/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{OrigName}/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{OrigName}/rules.d/
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/xdg/autostart/
 %{__mkdir_p} %{buildroot}%{_unitdir}/
 %{__mkdir_p} %{buildroot}%{_userunitdir}/
@@ -80,7 +78,6 @@ cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.ser
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-prime-caches.timer %{buildroot}/%{_unitdir}/
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached.preset %{buildroot}/%{_presetdir}/50-precached.preset
 cp -a %{_builddir}/%{name}-%{version}/support/systemd/precached-user.preset %{buildroot}/%{_userpresetdir}/50-precached.preset
-cp -a %{_builddir}/%{name}-%{version}/support/dbus/org.precached.precached1.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/
 cp -a %{_builddir}/%{name}-%{version}/support/appstream/org.precache.precached.appdata.xml %{buildroot}/%{_datarootdir}/metainfo/
 cp -ra %{_builddir}/%{name}-%{version}/support/config/examples %{buildroot}/%{_docdir}/%{OrigName}/
 cp -a %{_builddir}/%{name}-%{version}/support/shell/completions/en_US/iotracectl.bash-completion %{buildroot}/%{_datarootdir}/bash-completion/completions/iotracectl
@@ -165,7 +162,6 @@ esac
 %{_unitdir}/precached-prime-caches.timer
 %{_presetdir}/50-precached.preset
 %{_userpresetdir}/50-precached.preset
-%config(noreplace) %{_sysconfdir}/dbus-1/system.d/org.precached.precached1.conf
 %{_datarootdir}/metainfo/org.precache.precached.appdata.xml
 %{_datarootdir}/metainfo/org.precache.precached-trigger.appdata.xml
 %{_sharedstatedir}/%{OrigName}/

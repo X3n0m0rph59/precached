@@ -3,7 +3,6 @@ sudo: false
 addons:
   apt:
     packages:
-      - libdbus-1-dev
       - libzmq3-dev
 language: rust
 cache: cargo

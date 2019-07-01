@@ -61,7 +61,6 @@ mod manager;
 mod procmon;
 #[macro_use]
 mod i18n;
-mod dbus_interface;
 
 mod hooks;
 mod plugins;
@@ -367,19 +366,6 @@ fn run() -> Result<(), failure::Error> {
         }
     }
 
-    // set-up dbus interface
-    let mut dbus_interface = dbus_interface::create_dbus_interface(&mut globals, &mut manager);
-    match dbus_interface.register_connection(&mut globals, &manager) {
-        Err(s) => {
-            error!("Could not create dbus interface: {}", s);
-            return Err(format_err!("An unrecoverable error occured!"));
-        }
-
-        _ => {
-            info!("Successfully initialized dbus interface");
-        }
-    }
-
     // Register hooks and plugins
     hooks::register_default_hooks(&mut globals, &mut manager);
     plugins::register_default_plugins(&mut globals, &mut manager);
@@ -509,9 +495,8 @@ fn run() -> Result<(), failure::Error> {
             events::queue_internal_event(EventType::TransitionToNextProfile, &mut globals);
         }
 
-        // call the main loop hooks of the inotify subsystem and the dbus interface
+        // call the main loop hooks of the inotify subsystem
         inotify_watches.main_loop_hook(&mut globals, &manager);
-        dbus_interface.main_loop_hook(&mut globals, &manager);
 
         // Allow plugins to integrate into the main loop
         plugins::call_main_loop_hook(&mut globals, &mut manager);

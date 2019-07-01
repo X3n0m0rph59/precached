@@ -101,7 +101,6 @@ to achieve even faster boot times (delayed prefetching).
 
 * Possibly implement fork-bomb mitigation
 * Markov-chain based prefetching
-* Implement a DBUS interface
 * ...
 
 ### Getting Involved

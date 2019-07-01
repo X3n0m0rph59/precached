@@ -39,8 +39,6 @@
 ​    <binary>precachedtop</binary>
 ​    <binary>iotracectl</binary>
 ​    <binary>rulesctl</binary>
-
-		<dbus type="system">org.precached.precached1</dbus>
 ​  </provides>
 ​
 ​  <releases>
