@@ -36,7 +36,6 @@ pub mod vfs_stat_cache;
 // pub mod markov_log_manager;
 pub mod hot_applications;
 pub mod metrics;
-pub mod notifications;
 pub mod statistics;
 pub mod user_session;
 // pub mod forkbomb_mitigation;
@@ -67,7 +66,6 @@ pub fn register_default_plugins(globals: &mut Globals, manager: &mut Manager) {
     hot_applications::register_plugin(globals, manager);
     vfs_stat_cache::register_plugin(globals, manager);
     // forkbomb_mitigation::register_plugin(globals, manager);
-    notifications::register_plugin(globals, manager);
     rule_engine::register_plugin(globals, manager);
     rule_event_bridge::register_plugin(globals, manager);
     user_session::register_plugin(globals, manager);
