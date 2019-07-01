@@ -149,9 +149,6 @@ impl IOtracePrefetcher {
                     }
                 }
             }
-
-            // yield timeslice after each prefetched entry
-            unsafe { libc::sched_yield() };
         }
 
         already_prefetched
