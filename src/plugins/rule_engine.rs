@@ -26,7 +26,6 @@ use crate::events;
 use crate::config_file;
 use crate::globals::*;
 use crate::manager::*;
-use crate::plugins::notifications::Notifications;
 use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin::PluginDescription;
 use crate::plugins::profiles::Profiles;
@@ -137,56 +136,56 @@ impl RuleEngine {
     }
 
     /// Implements the `Notify` rule action
-    fn rule_action_notify(&self, event: &rules::Event, rule: &rules::RuleEntry, _globals: &mut Globals, manager: &Manager) {
+    fn rule_action_notify(&self, _event: &rules::Event, _rule: &rules::RuleEntry, _globals: &mut Globals, _manager: &Manager) {
         trace!("Rule Action: Notify");
 
-        let message = match *event {
-            rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
-                // We are being invoked through `process_user_login_event(..)`
-                // So we have valid `user` and `home_dir` parameters
-                match rules::get_param_value(&rule.params, "Message") {
-                    Err(e) => {
-                        error!("Invalid message specified: '{}'", e);
+        // let message = match *event {
+        //     rules::Event::UserLogin(Some(ref user), Some(ref home_dir)) => {
+        //         // We are being invoked through `process_user_login_event(..)`
+        //         // So we have valid `user` and `home_dir` parameters
+        //         match rules::get_param_value(&rule.params, "Message") {
+        //             Err(e) => {
+        //                 error!("Invalid message specified: '{}'", e);
 
-                        // Default text is the name of the event
-                        format!("{:?}", event)
-                    }
+        //                 // Default text is the name of the event
+        //                 format!("{:?}", event)
+        //             }
 
-                    Ok(val) => {
-                        let home_dir_str = &home_dir.to_string_lossy().to_string();
-                        Self::expand_variables(
-                            &val,
-                            &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
-                        )
-                    }
-                }
-            }
+        //             Ok(val) => {
+        //                 let home_dir_str = &home_dir.to_string_lossy().to_string();
+        //                 Self::expand_variables(
+        //                     &val,
+        //                     &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
+        //                 )
+        //             }
+        //         }
+        //     }
 
-            _ => {
-                match rules::get_param_value(&rule.params, "Message") {
-                    Err(_e) => {
-                        // Default text is the name of the event
-                        format!("{:?}", event)
-                    }
+        //     _ => {
+        //         match rules::get_param_value(&rule.params, "Message") {
+        //             Err(_e) => {
+        //                 // Default text is the name of the event
+        //                 format!("{:?}", event)
+        //             }
 
-                    Ok(val) => val,
-                }
-            }
-        };
+        //             Ok(val) => val,
+        //         }
+        //     }
+        // };
 
-        let pm = manager.plugin_manager.read().unwrap();
+        // let pm = manager.plugin_manager.read().unwrap();
 
-        match pm.get_plugin_by_name(&String::from("notifications")) {
-            None => {
-                warn!("Plugin not loaded: 'notifications', skipped");
-            }
-            Some(p) => {
-                let p = p.read().unwrap();
-                let notifications = p.as_any().downcast_ref::<Notifications>().unwrap();
+        // match pm.get_plugin_by_name(&String::from("notifications")) {
+        //     None => {
+        //         warn!("Plugin not loaded: 'notifications', skipped");
+        //     }
+        //     Some(p) => {
+        //         let p = p.read().unwrap();
+        //         let notifications = p.as_any().downcast_ref::<Notifications>().unwrap();
 
-                notifications.notify(&message);
-            }
-        }
+        //         notifications.notify(&message);
+        //     }
+        // }
     }
 
     /// Perform variable expansion in strings

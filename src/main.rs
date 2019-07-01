@@ -437,8 +437,6 @@ fn run() -> Result<(), failure::Error> {
         }
     })?;
 
-    util::notify(&String::from("precached started!"), &manager);
-
     // ... on the main thread again
     'MAIN_LOOP: loop {
         trace!("Main thread going to sleep...");
@@ -561,8 +559,6 @@ fn run() -> Result<(), failure::Error> {
 
     // Clean up now
     trace!("Cleaning up...");
-
-    util::notify(&String::from("precached terminating!"), &manager);
 
     #[allow(unused_must_use)]
     util::remove_file(Path::new(constants::DAEMON_PID_FILE), false).unwrap_or_else(|_| {
