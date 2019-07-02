@@ -19,6 +19,7 @@
 */
 
 use std::result::Result;
+// use crate::constants;
 
 /// Check that the system conforms to the minimum requirements
 /// of precached, and we are able to run on this system
@@ -53,17 +54,17 @@ pub fn set_process_properties() -> Result<bool, &'static str> {
     //     return Err(&"Could not set scheduling class and priority!");
     // }
 
-    /*let result = unsafe {
-                        libc::ioprio_set(
-                            libc::getpid() as libc::pid_t,
-                            libc::IOPRIO_WHO_PROCESS,
-                            libc::IOPRIO_PRIO_VALUE(IOPRIO_CLASS_RT, 0)
-                        )
-                    };
+    // let result = unsafe {
+    //     raw_syscall::ioprio_set(
+    //         libc::getpid() as libc::pid_t,
+    //         1, // IOPRIO_WHO_PROCESS,
+    //         3 << 13 // IO_PRIO_CLASS_IDLE
+    //     )
+    // };
 
-    if result < 0 {
-        return Err(&"Could not set I/O scheduling class and priority!")
-    }*/
+    // if result < 0 {
+    //     return Err(&"Could not set I/O scheduling class and priority!")
+    // }
 
     // unsafe { libc::nice(constants::MAIN_THREAD_NICENESS) };
 

@@ -12,6 +12,7 @@ PIDFile=/run/precached.pid
 Type=forking
 Restart=no
 Nice=0
+IOSchedulingClass=idle
 LimitAS=infinity
 LimitRSS=infinity
 LimitCORE=infinity
