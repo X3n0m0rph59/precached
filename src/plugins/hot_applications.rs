@@ -28,6 +28,7 @@ use std::sync::atomic::Ordering;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, RwLock};
 use std::thread;
+use lazy_static::lazy_static;
 use rayon::prelude::*;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use serde::Serialize;
@@ -53,6 +54,11 @@ use crate::EXIT_NOW;
 static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
 
+lazy_static! {
+    /// Vector of currently cached apps
+    pub static ref CACHED_APPS: Arc<RwLock<Vec<String>>> = Arc::new(RwLock::new(Vec::new()));
+}
+
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
@@ -68,15 +74,12 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 pub struct HotApplications {
     /// Histogram of a hash of the corresponding I/O trace and a counter value
     pub app_histogram: HashMap<String, usize>,
-    /// Vector of currently cached apps
-    pub cached_apps: Vec<String>,
 }
 
 impl HotApplications {
     pub fn new() -> Self {
         HotApplications {
             app_histogram: HashMap::new(),
-            cached_apps: vec![],
         }
     }
 
@@ -87,7 +90,8 @@ impl HotApplications {
         hasher.write(&cmdline.clone().into_bytes());
         let hashval = hasher.finish();
 
-        self.cached_apps.contains(&format!("{}", hashval))
+        let cached_apps = CACHED_APPS.read().unwrap();
+        cached_apps.contains(&format!("{}", hashval))
     }
 
     /// Returns an ordered Vector of (&hash, &count) tuples in descending order of importance
@@ -123,12 +127,9 @@ impl HotApplications {
                 let mut iotrace_prefetcher_hook = iotrace_prefetcher_hook.clone();
 
                 let app_histogram_c = self.app_histogram.clone();
-                let cached_apps_c = self.cached_apps.clone();
 
                 let globals_c = globals.clone();
                 let manager_c = manager.clone();
-
-                let (tx, rx) = channel();
 
                 match util::POOL.lock() {
                     Err(e) => error!(
@@ -138,7 +139,7 @@ impl HotApplications {
 
                     Ok(thread_pool) => {
                         thread_pool.submit_work(move || {
-                            let mut cached_apps = cached_apps_c.clone();
+                            let mut cached_apps = CACHED_APPS.write().unwrap();
 
                             let mut apps: Vec<(&String, &usize)> = app_histogram_c.par_iter().collect();
                             apps.par_sort_by(|a, b| b.1.cmp(a.1));
@@ -165,13 +166,7 @@ impl HotApplications {
                                     debug!("Files for hash '{}' are already cached", hash);
                                 }
                             }
-
-                            tx.send(cached_apps).unwrap_or_else(|_| {
-                                error!("Could not send data to sibling thread!");
-                            });
                         });
-
-                        self.cached_apps = rx.recv().unwrap();
                     }
                 }
             }
@@ -198,12 +193,14 @@ impl HotApplications {
                         break; // free memory until we reached the lower threshold
                     }
 
-                    if self.cached_apps.contains(&hashval) {
+                    let mut cached_apps = CACHED_APPS.write().unwrap();
+
+                    if cached_apps.contains(&hashval) {
                         debug!("Unmapping files for hash '{}'", hashval);
                         iotrace_prefetcher_hook.free_memory_by_hash(&hashval, globals, manager);
 
                         // remove hashval from cached_apps vec
-                        self.cached_apps.retain(|val| *val != hashval);
+                        cached_apps.retain(|val| *val != hashval);
                     }
                 }
             }
