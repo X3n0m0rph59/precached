@@ -312,10 +312,10 @@ impl HotApplications {
     pub fn optimize_histogram(&mut self, globals: &Globals, manager: &Manager) {
         info!("Optimizing hot applications histogram...");
 
-        let config = globals.config.config_file.clone().unwrap();
+        let config = globals.get_config_file();
 
         let iotrace_dir = config
-            .state_dir
+            .state_dir.clone()
             .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf())
             .join(constants::IOTRACE_DIR);
 
@@ -390,9 +390,8 @@ impl HotApplications {
     fn serialize(t: &HashMap<String, usize>, globals: &Globals) -> Result<()> {
         let serialized = serde_json::to_string_pretty(&t).unwrap();
 
-        let config = globals.config.config_file.clone().unwrap();
-        let path = config
-            .state_dir
+        let path = globals.get_config_file()
+            .state_dir.clone()
             .unwrap_or_else(|| Path::new(&String::from(".")).to_path_buf())
             .join("hot_applications.state");
 
@@ -407,9 +406,8 @@ impl HotApplications {
     /// JSON representation, and de-serialize a `HashMap<String, usize>` from
     /// that JSON representation.
     fn deserialize(globals: &Globals) -> Result<HashMap<String, usize>> {
-        let config = globals.config.config_file.clone().unwrap();
-        let path = config
-            .state_dir
+        let path = globals.get_config_file()
+            .state_dir.clone()
             .unwrap_or_else(|| Path::new(&String::from(".")).to_path_buf())
             .join("hot_applications.state");
 

@@ -24,9 +24,9 @@ use crate::globals;
 
 /// Daemonizes the calling process
 pub fn daemonize(globals: globals::Globals) -> Result<(), DaemonizeError> {
-    let config = globals.config.config_file.unwrap_or_default();
-    let user = config.user.unwrap();
-    let group = config.group.unwrap();
+    let config = globals.get_config_file();
+    let user = config.user.as_ref().unwrap();
+    let group = config.group.as_ref().unwrap();
 
     let daemonize = Daemonize::new()
         .pid_file(constants::DAEMON_PID_FILE)

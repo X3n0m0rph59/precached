@@ -83,9 +83,8 @@ impl IOtraceLogCache {
                 let filename = filename.clone();
                 let filename_c = filename.clone();
 
-                let config = globals.config.config_file.clone().unwrap();
-                let iotrace_dir = config
-                    .state_dir
+                let iotrace_dir = globals.get_config_file()
+                    .state_dir.clone()
                     .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
                 let iotrace_dir = iotrace_dir.join(constants::IOTRACE_DIR);
                 let abs_path = iotrace_dir.join(&filename);
@@ -130,10 +129,9 @@ impl IOtraceLogCache {
     }
 
     /// Remove a single I/O trace log file `filename` from the caches
-    pub fn remove_iotrace_log_from_cache(&mut self, filename: &PathBuf, globals: &Globals, _manager: &Manager) {
-        let config = globals.config.config_file.clone().unwrap();
-        let iotrace_dir = config
-            .state_dir
+    pub fn remove_iotrace_log_from_cache(&mut self, filename: &PathBuf, globals: &Globals, _manager: &Manager) {        
+        let iotrace_dir = globals.get_config_file()
+            .state_dir.clone()
             .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
         let iotrace_dir = iotrace_dir.join(constants::IOTRACE_DIR);
         let abs_path = iotrace_dir.join(filename);

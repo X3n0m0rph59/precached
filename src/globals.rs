@@ -23,6 +23,7 @@ use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use crate::config::Config;
+use crate::config_file::ConfigFile;
 use crate::events;
 
 /// Global system state
@@ -61,4 +62,13 @@ impl Globals {
     // pub fn get_ipc_event_queue_mut(&mut self) -> &mut VecDeque<events::InternalEvent> {
     //     &mut self.ipc_event_queue
     // }
+
+    pub fn get_config_file(&self) -> &ConfigFile {
+        let config_file = self
+                .config
+                .config_file.as_ref()
+                .unwrap();
+        
+        config_file
+    }
 }

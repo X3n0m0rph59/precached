@@ -122,27 +122,18 @@ impl Metrics {
         let mem_info = sys_info::mem_info().expect("Could not fetch memory status information!");
         debug!("{:?}", mem_info);
 
-        let available_mem_critical_threshold = globals
-            .config
-            .clone()
-            .config_file
-            .unwrap_or_default()
+        let available_mem_critical_threshold = 
+            globals.get_config_file()
             .available_mem_critical_threshold
             .unwrap();
 
-        let available_mem_upper_threshold = globals
-            .config
-            .clone()
-            .config_file
-            .unwrap_or_default()
+        let available_mem_upper_threshold = 
+            globals.get_config_file()
             .available_mem_upper_threshold
             .unwrap();
 
-        let available_mem_lower_threshold = globals
-            .config
-            .clone()
-            .config_file
-            .unwrap_or_default()
+        let available_mem_lower_threshold = 
+            globals.get_config_file()
             .available_mem_lower_threshold
             .unwrap();
 

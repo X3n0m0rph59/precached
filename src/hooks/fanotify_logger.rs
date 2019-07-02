@@ -208,15 +208,14 @@ impl FanotifyLogger {
                                                         );
                                                     }
                                                 }
+                                                
+                                                let iotrace_dir = globals.get_config_file()
+                                                    .state_dir.clone().unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
-                                                let config = globals.config.config_file.clone().unwrap();
-                                                let iotrace_dir = config
-                                                    .state_dir
-                                                    .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
                                                 let min_len =
-                                                    config.min_trace_log_length.unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+                                                    globals.get_config_file().min_trace_log_length.unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
 
-                                                let min_prefetch_size = config
+                                                let min_prefetch_size = globals.get_config_file()
                                                     .min_trace_log_prefetch_size
                                                     .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
 
