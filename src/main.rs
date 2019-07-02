@@ -504,7 +504,6 @@ fn run() -> Result<(), failure::Error> {
             last = Instant::now();
 
             events::queue_internal_event(EventType::Ping, &mut globals);
-            events::queue_internal_event(EventType::GatherStatsAndMetrics, &mut globals);
         }
 
         // Dispatch procmon events
@@ -513,6 +512,9 @@ fn run() -> Result<(), failure::Error> {
 
             None => { /* We woke up because of a timeout, just do nothing */ }
         };
+
+        // Update memory statistics and metrics
+        events::queue_internal_event(EventType::GatherStatsAndMetrics, &mut globals);
 
         // Dispatch daemon internal events
         process_internal_events(&mut globals, &manager)?;
