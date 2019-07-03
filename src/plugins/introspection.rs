@@ -140,8 +140,9 @@ impl Introspection {
 
                 hot_applications_app_histogram_entries_count = Some(hot_applications_plugin.app_histogram.len());
 
-                let cached_apps = crate::plugins::hot_applications::CACHED_APPS.read().unwrap();
-                hot_applications_cached_apps_count = Some(cached_apps.len());
+                if let Ok(cached_apps) = crate::plugins::hot_applications::CACHED_APPS.read() {
+                    hot_applications_cached_apps_count = Some(cached_apps.len());
+                }
             }
         };
 
