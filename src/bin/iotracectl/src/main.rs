@@ -1076,9 +1076,7 @@ fn display_io_traces_sizes(config: &Config, daemon_config: util::ConfigFile) {
 
                     *cnt += 1;
                     *vm_size = entry.size;
-                }
-
-                // _ => { /* Ignore all others */ }
+                } // _ => { /* Ignore all others */ }
             }
         }
 

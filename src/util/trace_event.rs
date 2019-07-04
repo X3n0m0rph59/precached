@@ -27,7 +27,7 @@ pub enum SysCall {
 
     /// Used to deliver custom events, not an actual syscall
     CustomEvent(String),
-    
+
     /// open(at)(2)
     Open(PathBuf, i32),
 }

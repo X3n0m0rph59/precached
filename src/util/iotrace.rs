@@ -68,9 +68,7 @@ pub fn optimize_io_trace_log(
                 }
 
                 current_file = Some(PathBuf::from(filename));
-            }
-
-            // _ => { /* Ignore others */ }
+            } // _ => { /* Ignore others */ }
         }
 
         // All tests passed successfully, append `e` to the optimized trace log
@@ -177,9 +175,7 @@ pub fn get_io_trace_log_entry_flags_and_err(entry: &TraceLogEntry) -> (Vec<IOTra
                 err = true;
                 color = RED;
             }
-        }
-        
-        // _ => { /* Do nothing */ }
+        } // _ => { /* Do nothing */ }
     }
 
     if !err {

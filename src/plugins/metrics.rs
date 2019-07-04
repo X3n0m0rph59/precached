@@ -122,20 +122,11 @@ impl Metrics {
         let mem_info = sys_info::mem_info().expect("Could not fetch memory status information!");
         debug!("{:?}", mem_info);
 
-        let available_mem_critical_threshold = 
-            globals.get_config_file()
-            .available_mem_critical_threshold
-            .unwrap();
+        let available_mem_critical_threshold = globals.get_config_file().available_mem_critical_threshold.unwrap();
 
-        let available_mem_upper_threshold = 
-            globals.get_config_file()
-            .available_mem_upper_threshold
-            .unwrap();
+        let available_mem_upper_threshold = globals.get_config_file().available_mem_upper_threshold.unwrap();
 
-        let available_mem_lower_threshold = 
-            globals.get_config_file()
-            .available_mem_lower_threshold
-            .unwrap();
+        let available_mem_lower_threshold = globals.get_config_file().available_mem_lower_threshold.unwrap();
 
         // *free* memory events
         let free_percentage = (mem_info.free * 100 / mem_info.total) as u8;

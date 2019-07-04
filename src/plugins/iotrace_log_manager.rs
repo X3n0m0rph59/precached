@@ -60,8 +60,10 @@ impl IOtraceLogManager {
 
     // Returns the most recent I/O trace log for `hashval`.
     pub fn get_trace_log_by_hash(&self, hashval: &str, globals: &Globals) -> Result<iotrace::IOTraceLog> {
-        let iotrace_dir = globals.get_config_file()
-            .state_dir.clone()
+        let iotrace_dir = globals
+            .get_config_file()
+            .state_dir
+            .clone()
             .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
         let filename = iotrace_dir
@@ -81,8 +83,10 @@ impl IOtraceLogManager {
         hasher.write(&cmdline.into_bytes());
         let hashval = hasher.finish();
 
-        let iotrace_dir = globals.get_config_file()
-            .state_dir.clone()
+        let iotrace_dir = globals
+            .get_config_file()
+            .state_dir
+            .clone()
             .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
         let filename = iotrace_dir
@@ -263,13 +267,19 @@ impl IOtraceLogManager {
     }
 
     pub fn do_housekeeping(&self, globals: &Globals, _manager: &Manager) {
-        let state_dir = globals.get_config_file()
-            .state_dir.clone()
+        let state_dir = globals
+            .get_config_file()
+            .state_dir
+            .clone()
             .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
-        let min_len = globals.get_config_file().min_trace_log_length.unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+        let min_len = globals
+            .get_config_file()
+            .min_trace_log_length
+            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
 
-        let min_prefetch_size = globals.get_config_file()
+        let min_prefetch_size = globals
+            .get_config_file()
             .min_trace_log_prefetch_size
             .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
 
@@ -313,11 +323,15 @@ impl Plugin for IOtraceLogManager {
                     }
 
                     Ok(mut scheduler) => {
-                        let filename_c = filename.clone();                        
+                        let filename_c = filename.clone();
 
-                        let min_len = globals.get_config_file().min_trace_log_length.unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+                        let min_len = globals
+                            .get_config_file()
+                            .min_trace_log_length
+                            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
 
-                        let min_prefetch_size = globals.get_config_file()
+                        let min_prefetch_size = globals
+                            .get_config_file()
                             .min_trace_log_prefetch_size
                             .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
 

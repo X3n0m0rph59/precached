@@ -188,9 +188,7 @@ impl IOtracePrefetcher {
 
                     let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
                     stats_mapped_files.remove(&file.to_path_buf());
-                }
-
-                // _ => { /* Do nothing */ }
+                } // _ => { /* Do nothing */ }
             }
         }
 
@@ -223,9 +221,7 @@ impl IOtracePrefetcher {
                     {
                         *(thread_state.write().unwrap()) = ThreadState::PrefetchedFileMetadata(file.clone());
                     }
-                }
-
-                // _ => { /* Do nothing */ }
+                } // _ => { /* Do nothing */ }
             }
         }
     }
@@ -356,7 +352,6 @@ impl IOtracePrefetcher {
                             }
 
                             for _ in 0..max {
-
                                 // blocking call; wait for worker thread(s)
                                 let mapped_files = receiver.recv().unwrap();
                                 for (k, v) in mapped_files {
@@ -419,7 +414,6 @@ impl IOtracePrefetcher {
                         }
 
                         for _ in 0..max {
-
                             // blocking call; wait for worker thread(s)
                             let unmapped_files = receiver.recv().unwrap();
                             for k in unmapped_files {

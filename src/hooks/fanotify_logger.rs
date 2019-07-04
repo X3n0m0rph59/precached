@@ -151,9 +151,9 @@ impl FanotifyLogger {
                                                             &mut globals_c,
                                                             &manager_c,
                                                         ) {
-                                                            iotrace_log.add_event(IOOperation::Open(
-                                                                PathBuf::from(event.filename.clone()),
-                                                            ));
+                                                            iotrace_log.add_event(IOOperation::Open(PathBuf::from(
+                                                                event.filename.clone(),
+                                                            )));
                                                         } else {
                                                             // trace!("File is blacklisted!");
                                                         }
@@ -208,14 +208,20 @@ impl FanotifyLogger {
                                                         );
                                                     }
                                                 }
-                                                
-                                                let iotrace_dir = globals.get_config_file()
-                                                    .state_dir.clone().unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
-                                                let min_len =
-                                                    globals.get_config_file().min_trace_log_length.unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+                                                let iotrace_dir = globals
+                                                    .get_config_file()
+                                                    .state_dir
+                                                    .clone()
+                                                    .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
 
-                                                let min_prefetch_size = globals.get_config_file()
+                                                let min_len = globals
+                                                    .get_config_file()
+                                                    .min_trace_log_length
+                                                    .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+
+                                                let min_prefetch_size = globals
+                                                    .get_config_file()
                                                     .min_trace_log_prefetch_size
                                                     .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
 

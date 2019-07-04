@@ -307,7 +307,11 @@ impl Application {
                         }
 
                         SelectableList::default()
-                            .block(Block::default().borders(Borders::ALL).title(tr!("active-traces", "count" => format!("{}", trace_items.len()))))
+                            .block(
+                                Block::default()
+                                    .borders(Borders::ALL)
+                                    .title(tr!("active-traces", "count" => format!("{}", trace_items.len()))),
+                            )
                             .items(&trace_items)
                             // .select(self.sel_index_active_traces)
                             .highlight_style(Style::default().bg(Color::Yellow).modifier(Modifier::BOLD))
@@ -859,7 +863,7 @@ fn process_event(app: &mut Application, evt: Event) {
         }
 
         Event::Key(Key::Home) => {
-             match app.tab_index {
+            match app.tab_index {
                 // Home key on main view
                 0 => {
                     if app.tracked_processes.len() > 0 {
