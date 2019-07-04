@@ -286,7 +286,7 @@ impl IOtracePrefetcher {
                 trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
             }
             Some(p) => {
-                let p = p.write().unwrap();
+                let p = p.read().unwrap();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
@@ -382,7 +382,7 @@ impl IOtracePrefetcher {
                 trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
             }
             Some(p) => {
-                let p = p.write().unwrap();
+                let p = p.read().unwrap();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
@@ -446,7 +446,7 @@ impl IOtracePrefetcher {
                 trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
             }
             Some(p) => {
-                let p = p.write().unwrap();
+                let p = p.read().unwrap();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
@@ -530,7 +530,7 @@ impl IOtracePrefetcher {
                             }
 
                             Some(p) => {
-                                let p = p.write().unwrap();
+                                let p = p.read().unwrap();
                                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                                 match iotrace_log_manager_plugin.get_trace_log(
@@ -559,7 +559,7 @@ impl IOtracePrefetcher {
                                                     // trace!("Plugin not loaded: 'hot_applications', skipped");
                                                 }
                                                 Some(p) => {
-                                                    let p = p.write().unwrap();
+                                                    let p = p.read().unwrap();
                                                     let hot_applications_plugin =
                                                         p.as_any().downcast_ref::<HotApplications>().unwrap();
 
@@ -575,7 +575,7 @@ impl IOtracePrefetcher {
                                                         trace!("Plugin not loaded: 'static_whitelist', skipped");
                                                     }
                                                     Some(p) => {
-                                                        let p = p.write().unwrap();
+                                                        let p = p.read().unwrap();
                                                         let static_whitelist_plugin =
                                                             p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
@@ -589,7 +589,7 @@ impl IOtracePrefetcher {
                                                         trace!("Plugin not loaded: 'static_blacklist', skipped");
                                                     }
                                                     Some(p) => {
-                                                        let p = p.write().unwrap();
+                                                        let p = p.read().unwrap();
                                                         let static_blacklist_plugin =
                                                             p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
