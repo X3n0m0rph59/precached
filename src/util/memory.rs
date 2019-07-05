@@ -30,7 +30,7 @@ use log::{trace, debug, info, warn, error, log, LevelFilter};
 use crate::constants;
 
 /// Represents a file backed memory mapping
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MemoryMapping {
     pub filename: PathBuf,
     pub addr: usize,

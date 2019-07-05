@@ -28,6 +28,7 @@ use std::sync::atomic::Ordering;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, RwLock};
 use std::thread;
+use lockfree::set::Set;
 use lazy_static::lazy_static;
 use rayon::prelude::*;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
@@ -55,8 +56,8 @@ static NAME: &str = "hot_applications";
 static DESCRIPTION: &str = "Prefetches files based on a dynamically built histogram of most executed programs";
 
 lazy_static! {
-    /// Vector of currently cached apps
-    pub static ref CACHED_APPS: Arc<RwLock<Vec<String>>> = Arc::new(RwLock::new(Vec::new()));
+    /// Set of currently cached apps
+    pub static ref CACHED_APPS: Set<String> = Set::new();
 }
 
 /// Register this plugin implementation with the system
@@ -90,8 +91,7 @@ impl HotApplications {
         hasher.write(&cmdline.clone().into_bytes());
         let hashval = hasher.finish();
 
-        let cached_apps = CACHED_APPS.read().unwrap();
-        cached_apps.contains(&format!("{}", hashval))
+        CACHED_APPS.get(&format!("{}", hashval)).is_some()
     }
 
     /// Returns an ordered Vector of (&hash, &count) tuples in descending order of importance
@@ -139,8 +139,6 @@ impl HotApplications {
 
                     Ok(thread_pool) => {
                         thread_pool.submit_work(move || {
-                            let mut cached_apps = CACHED_APPS.write().unwrap();
-
                             let mut apps: Vec<(&String, &usize)> = app_histogram_c.par_iter().collect();
                             apps.par_sort_by(|a, b| b.1.cmp(a.1));
 
@@ -155,13 +153,13 @@ impl HotApplications {
                                     break;
                                 }
 
-                                if !cached_apps.contains(hash) {
+                                if !CACHED_APPS.get(hash).is_some() {
                                     let hash_c = (*hash).clone();
 
                                     info!("Prefetching files for hash: '{}'", hash);
                                     iotrace_prefetcher_hook.prefetch_data_by_hash(hash, &globals_c, &manager_c);
 
-                                    cached_apps.push(hash_c);
+                                    CACHED_APPS.insert(hash_c).unwrap_or_else(|e| warn!("Element already in set: {:?}", e));
                                 } else {
                                     debug!("Files for hash '{}' are already cached", hash);
                                 }
@@ -193,14 +191,11 @@ impl HotApplications {
                         break; // free memory until we reached the lower threshold
                     }
 
-                    let mut cached_apps = CACHED_APPS.write().unwrap();
-
-                    if cached_apps.contains(&hashval) {
+                    if CACHED_APPS.get(&hashval).is_some() {
                         debug!("Unmapping files for hash '{}'", hashval);
                         iotrace_prefetcher_hook.free_memory_by_hash(&hashval, globals, manager);
 
-                        // remove hashval from cached_apps vec
-                        cached_apps.retain(|val| *val != hashval);
+                        CACHED_APPS.remove(&hashval);
                     }
                 }
             }
@@ -494,10 +489,10 @@ impl Plugin for HotApplications {
                 self.free_memory(false, globals, manager);
             }
 
-            events::EventType::SystemIsSwapping => {
-                self.free_memory(true, globals, manager);
-            }
-
+            // May interfere with ZRAM, disable for now
+            // events::EventType::SystemIsSwapping => {
+            //     self.free_memory(true, globals, manager);
+            // }
             events::EventType::IdlePeriod => {
                 let pm = manager.plugin_manager.read().unwrap();
 

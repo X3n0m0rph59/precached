@@ -520,7 +520,7 @@ fn run() -> Result<(), failure::Error> {
         process_internal_events(&mut globals, &manager)?;
 
         // Let the task scheduler run it's queued jobs
-        match util::SCHEDULER.try_lock() {
+        match util::SCHEDULER.lock() {
             Err(e) => error!(
                 "Could not take a lock on the global task scheduler! Postponing work until later. {}",
                 e

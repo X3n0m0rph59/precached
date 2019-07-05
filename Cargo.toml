@@ -69,6 +69,7 @@ fluent-bundle = "0.6.0"
 failure = "0.1.5"
 failure_derive = "0.1.5"
 futures = "0.1.28"
+lockfree = "0.5.1"
 tokio = { version = "0.1.21", optional = true }
 warp = { version = "0.1.16", optional = true }
 handlebars = { version = "2.0.0-beta.1", optional = true }

@@ -21,8 +21,8 @@
 use std::any::Any;
 use std::time::{Duration, Instant};
 use std::path::{Path, PathBuf};
-use std::collections::HashSet;
 use std::sync::{Arc, RwLock};
+use lockfree::set::Set;
 use lazy_static::lazy_static;
 use serde_derive::{Serialize, Deserialize};
 use log::{trace, debug, info, warn, error, log, LevelFilter};
@@ -40,7 +40,7 @@ static NAME: &str = "statistics";
 static DESCRIPTION: &str = "Gather global system statistics and make them available to other plugins";
 
 lazy_static! {
-    pub static ref MAPPED_FILES: Arc<RwLock<HashSet<PathBuf>>> = Arc::new(RwLock::new(HashSet::new()));
+    pub static ref MAPPED_FILES: Set<PathBuf> = Set::new();
 }
 
 /// Register this plugin implementation with the system

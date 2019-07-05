@@ -24,6 +24,8 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex, RwLock};
+use lockfree::map::Map;
+use lazy_static::lazy_static;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use serde_derive::{Serialize, Deserialize};
 use crate::constants;
@@ -45,6 +47,10 @@ use crate::util;
 
 static NAME: &str = "iotrace_prefetcher";
 static DESCRIPTION: &str = "Replay file operations previously recorded by an I/O tracer";
+
+lazy_static! {
+    pub static ref MAPPED_FILES: Map<PathBuf, util::MemoryMapping> = Map::new();
+}
 
 /// The states a prefetcher thread can be in
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -68,7 +74,6 @@ pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
 
 #[derive(Debug, Clone)]
 pub struct IOtracePrefetcher {
-    pub mapped_files: HashMap<PathBuf, Option<util::MemoryMapping>>,
     pub prefetched_programs: Vec<String>,
 
     pub thread_states: Vec<Arc<RwLock<ThreadState>>>,
@@ -82,8 +87,7 @@ impl IOtracePrefetcher {
             thread_states.push(Arc::new(RwLock::new(ThreadState::Uninitialized)));
         }
 
-        IOtracePrefetcher {
-            mapped_files: HashMap::new(),
+        IOtracePrefetcher {            
             prefetched_programs: vec![],
 
             thread_states,
@@ -92,7 +96,6 @@ impl IOtracePrefetcher {
 
     fn prefetch_data(
         io_trace: &[iotrace::TraceLogEntry],
-        our_mapped_files: &HashMap<PathBuf, Option<util::MemoryMapping>>,
         prefetched_programs: &[String],
         // system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_blacklist: &[PathBuf],
@@ -112,7 +115,6 @@ impl IOtracePrefetcher {
                     if Self::shall_we_map_file(
                         file,
                         static_blacklist,
-                        our_mapped_files,
                         prefetched_programs,
                         // &system_mapped_files,
                         static_whitelist,
@@ -129,21 +131,23 @@ impl IOtracePrefetcher {
                                     *(thread_state.write().unwrap()) = ThreadState::Error(file.clone());
                                 }
 
-                                let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
-                                stats_mapped_files.remove(&file.to_path_buf());
+                                MAPPED_FILES.remove(&file.to_path_buf());
+                                statistics::MAPPED_FILES.remove(&file.to_path_buf());
                             }
 
                             Ok(mapping) => {
                                 trace!("Successfully prefetched file: {:?}", file);
 
-                                already_prefetched.insert(file.clone(), Some(mapping));
+                                already_prefetched.insert(file.clone(), Some(mapping.clone()));
 
                                 {
                                     *(thread_state.write().unwrap()) = ThreadState::PrefetchedFile(file.clone());
                                 }
 
-                                let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
-                                stats_mapped_files.insert(file.to_path_buf());
+                                MAPPED_FILES
+                                    .insert(file.to_path_buf(), mapping);
+                                statistics::MAPPED_FILES
+                                    .insert(file.to_path_buf()).unwrap_or_else(|e| warn!("Element already in set: {:?}", e));
                             }
                         }
                     }
@@ -156,7 +160,6 @@ impl IOtracePrefetcher {
 
     fn unmap_files(
         io_trace: &[iotrace::TraceLogEntry],
-        our_mapped_files: &HashMap<PathBuf, Option<util::MemoryMapping>>,
         thread_state: &mut Arc<RwLock<ThreadState>>,
     ) -> Vec<PathBuf> {
         let mut result = vec![];
@@ -167,27 +170,24 @@ impl IOtracePrefetcher {
                 iotrace::IOOperation::Open(ref file) => {
                     trace!("Unmapping: {:?}", file);
 
-                    if let Some(mapping) = our_mapped_files.get(file) {
-                        if let &Some(ref mapping) = mapping {
-                            let mapping_c = mapping.clone();
-                            if util::free_mapping(&mapping) {
-                                info!("Successfully unmapped file: {:?}", file);
-                                result.push(mapping_c.filename);
+                    if let Some(mapping) = MAPPED_FILES.get(file) {
+                        if util::free_mapping(&mapping.1) {
+                            info!("Successfully unmapped file: {:?}", file);
+                            result.push(mapping.0.clone());
 
-                                {
-                                    *(thread_state.write().unwrap()) = ThreadState::UnmappedFile(file.clone());
-                                }
-                            } else {
-                                error!("Could not unmap file: {:?}", file);
+                            {
+                                *(thread_state.write().unwrap()) = ThreadState::UnmappedFile(file.clone());
                             }
+                        } else {
+                            error!("Could not unmap file: {:?}", file);
                         }
                     } else {
                         // This need not be corruption of data structures but simply a missing file,
                         // so just do nothing here
                     }
 
-                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
-                    stats_mapped_files.remove(&file.to_path_buf());
+                    MAPPED_FILES.remove(&file.to_path_buf());
+                    statistics::MAPPED_FILES.remove(&file.to_path_buf());
                 } // _ => { /* Do nothing */ }
             }
         }
@@ -233,7 +233,6 @@ impl IOtracePrefetcher {
     fn shall_we_map_file(
         filename: &Path,
         static_blacklist: &[PathBuf],
-        our_mapped_files: &HashMap<PathBuf, Option<util::MemoryMapping>>,
         prefetched_programs: &[String],
         // system_mapped_files: &HashMap<String, util::MemoryMapping>,
         static_whitelist: &HashMap<PathBuf, util::MemoryMapping>,
@@ -254,7 +253,7 @@ impl IOtracePrefetcher {
         }
 
         // Have we already mapped this file?
-        if our_mapped_files.contains_key(&PathBuf::from(filename)) {
+        if MAPPED_FILES.get(&PathBuf::from(filename)).is_some() {
             return false;
         }
 
@@ -308,26 +307,20 @@ impl IOtracePrefetcher {
                                 }
                             };
 
-                            let our_mapped_files = self.mapped_files.clone();
                             let prefetched_programs = self.prefetched_programs.clone();
 
                             // distribute prefetching work evenly across the prefetcher threads
                             let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
                             let max = prefetch_pool.max_count();
-                            let count_total = io_trace.trace_log.len();
-
-                            let (sender, receiver): (Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>, _) = channel();
+                            let count_total = io_trace.trace_log.len();                            
 
                             for n in 0..max {
-                                let sc = Mutex::new(sender.clone());
-
                                 // calculate slice bounds for each thread
                                 let low = (count_total / max) * n;
                                 let high = (count_total / max) * n + (count_total / max);
 
                                 let trace_log = io_trace.trace_log[low..high].to_vec();
 
-                                let our_mapped_files_c = our_mapped_files.clone();
                                 let prefetched_programs_c = prefetched_programs.clone();
                                 // let system_mapped_files_c = system_mapped_files_histogram.clone();
                                 let static_blacklist_c = static_blacklist.clone();
@@ -337,29 +330,15 @@ impl IOtracePrefetcher {
 
                                 prefetch_pool.execute(move || {
                                     // submit prefetching work to an idle thread
-                                    let mapped_files = Self::prefetch_data(
-                                        &trace_log,
-                                        &our_mapped_files_c,
+                                    Self::prefetch_data(
+                                        &trace_log,                                        
                                         &prefetched_programs_c,
                                         // &system_mapped_files_c,
                                         &static_blacklist_c,
                                         &static_whitelist_c,
                                         &mut thread_state,
                                     );
-
-                                    sc.lock().unwrap().send(mapped_files).unwrap();
                                 })
-                            }
-
-                            for _ in 0..max {
-                                // blocking call; wait for worker thread(s)
-                                let mapped_files = receiver.recv().unwrap();
-                                for (k, v) in mapped_files {
-                                    self.mapped_files.insert(k.clone(), v);
-
-                                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
-                                    stats_mapped_files.insert(k);
-                                }
                             }
                         }
                     }
@@ -383,45 +362,24 @@ impl IOtracePrefetcher {
                 match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
                     Err(e) => trace!("I/O trace '{}' not available: {}", hashval, e),
                     Ok(io_trace) => {
-                        let our_mapped_files = self.mapped_files.clone();
-
                         // distribute prefetching work evenly across the prefetcher threads
                         let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
                         let max = prefetch_pool.max_count();
                         let count_total = io_trace.trace_log.len();
 
-                        let (sender, receiver): (Sender<Vec<PathBuf>>, _) = channel();
-
                         for n in 0..max {
-                            let sc = Mutex::new(sender.clone());
-
                             // calculate slice bounds for each thread
                             let low = (count_total / max) * n;
                             let high = (count_total / max) * n + (count_total / max);
 
                             let trace_log = io_trace.trace_log[low..high].to_vec();
 
-                            let our_mapped_files_c = our_mapped_files.clone();
-
                             let mut thread_state = self.thread_states[n].clone();
 
                             prefetch_pool.execute(move || {
                                 // submit memory freeing work to an idle thread
-                                let unmapped_files = Self::unmap_files(&trace_log, &our_mapped_files_c, &mut thread_state);
-
-                                sc.lock().unwrap().send(unmapped_files).unwrap();
+                                Self::unmap_files(&trace_log, &mut thread_state);
                             })
-                        }
-
-                        for _ in 0..max {
-                            // blocking call; wait for worker thread(s)
-                            let unmapped_files = receiver.recv().unwrap();
-                            for k in unmapped_files {
-                                self.mapped_files.remove(&k);
-
-                                let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
-                                stats_mapped_files.remove(&k);
-                            }
                         }
                     }
                 }
@@ -592,7 +550,6 @@ impl IOtracePrefetcher {
                                                     }
                                                 };
 
-                                                let our_mapped_files = self.mapped_files.clone();
                                                 let prefetched_programs = self.prefetched_programs.clone();
 
                                                 // distribute prefetching work evenly across the prefetcher threads
@@ -600,21 +557,13 @@ impl IOtracePrefetcher {
                                                 let max = prefetch_pool.max_count();
                                                 let count_total = io_trace.trace_log.len();
 
-                                                let (sender, receiver): (
-                                                    Sender<HashMap<PathBuf, Option<util::MemoryMapping>>>,
-                                                    _,
-                                                ) = channel();
-
                                                 for n in 0..max {
-                                                    let sc = Mutex::new(sender.clone());
-
                                                     // calculate slice bounds for each thread
                                                     let low = (count_total / max) * n;
                                                     let high = (count_total / max) * n + (count_total / max);
 
                                                     let trace_log = io_trace.trace_log[low..high].to_vec();
 
-                                                    let our_mapped_files_c = our_mapped_files.clone();
                                                     // let system_mapped_files_c = system_mapped_files_histogram.clone();
                                                     let prefetched_programs_c = prefetched_programs.clone();
                                                     let static_blacklist_c = static_blacklist.clone();
@@ -624,26 +573,15 @@ impl IOtracePrefetcher {
 
                                                     // submit prefetching work to an idle thread
                                                     prefetch_pool.execute(move || {
-                                                        let mapped_files = Self::prefetch_data(
+                                                        Self::prefetch_data(
                                                             &trace_log,
-                                                            &our_mapped_files_c,
                                                             &prefetched_programs_c,
                                                             // &system_mapped_files_c,
                                                             &static_blacklist_c,
                                                             &static_whitelist_c,
                                                             &mut thread_state,
                                                         );
-
-                                                        sc.lock().unwrap().send(mapped_files).unwrap();
                                                     })
-                                                }
-
-                                                for _ in 0..max {
-                                                    // blocking call; wait for worker thread(s)
-                                                    let mapped_files = receiver.recv().unwrap();
-                                                    for (k, v) in mapped_files {
-                                                        self.mapped_files.insert(k, v);
-                                                    }
                                                 }
                                             } else {
                                                 // executable is already cached by "hot apps"

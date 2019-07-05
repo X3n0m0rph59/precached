@@ -72,7 +72,7 @@ pub fn check_expired_tracers(
     iotrace_dir: &Path,
     min_len: usize,
     min_prefetch_size: u64,
-    globals: &mut Globals,
+    _globals: &mut Globals,
 ) {
     for (pid, v) in active_tracers.iter_mut() {
         if Instant::now() - v.start_time > Duration::from_secs(constants::IO_TRACE_TIME_SECS) {
@@ -97,8 +97,8 @@ pub fn check_expired_tracers(
                     info!("Successfully saved I/O trace log for process '{}' with pid: {}", comm, pid);
 
                     // schedule an optimization pass for the newly saved trace log
-                    debug!("Queued an optimization request for {:?}", filename);
-                    events::queue_internal_event(EventType::OptimizeIOTraceLog(filename), globals);
+                    // debug!("Queued an optimization request for {:?}", filename);
+                    // events::queue_internal_event(EventType::OptimizeIOTraceLog(filename), globals);
                 }
             }
         }

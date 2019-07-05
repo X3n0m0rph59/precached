@@ -24,6 +24,8 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
 use std::sync::Mutex;
+use lockfree::map::Map;
+use lazy_static::lazy_static;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use crate::util;
 use crate::constants;
@@ -39,6 +41,10 @@ use crate::plugins::plugin::PluginDescription;
 static NAME: &str = "iotrace_log_cache";
 static DESCRIPTION: &str = "mlock() I/O trace log files";
 
+lazy_static! {
+    pub static ref MAPPED_FILES: Map<PathBuf, util::MemoryMapping> = Map::new();
+}
+
 /// Register this plugin implementation with the system
 pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
@@ -51,25 +57,16 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
 }
 
 #[derive(Debug, Clone)]
-pub struct IOtraceLogCache {
-    mapped_files: HashMap<PathBuf, util::MemoryMapping>,
-}
+pub struct IOtraceLogCache {}
 
 impl IOtraceLogCache {
     pub fn new(_globals: &Globals) -> IOtraceLogCache {
-        IOtraceLogCache {
-            mapped_files: HashMap::new(),
-        }
+        IOtraceLogCache {}
     }
 
     /// Cache and mlock() a single I/O trace log file `filename`
     pub fn cache_iotrace_log(&mut self, filename: &PathBuf, globals: &Globals, manager: &Manager) {
         trace!("Started caching of single I/O trace log file...");
-
-        let our_mapped_files = self.mapped_files.clone();
-
-        let (sender, receiver): (Sender<HashMap<PathBuf, util::MemoryMapping>>, _) = channel();
-        let sc = Mutex::new(sender.clone());
 
         match util::PREFETCH_POOL.lock() {
             Err(e) => error!(
@@ -92,8 +89,6 @@ impl IOtraceLogCache {
                 let abs_path = iotrace_dir.join(&filename);
 
                 thread_pool.submit_work(move || {
-                    let mut mapped_files = HashMap::new();
-
                     if !Self::check_available_memory(&globals_c, &manager_c) {
                         info!("Available memory exhausted, stopping prefetching!");
                         return;
@@ -101,29 +96,21 @@ impl IOtraceLogCache {
 
                     // mmap and mlock file, if it is not contained in the blacklist
                     // and if it was not already mapped by some of the plugins
-                    if Self::shall_we_map_file(&abs_path, &our_mapped_files) {
+                    if Self::shall_we_map_file(&abs_path) {
                         match util::cache_file(&abs_path, true) {
                             Err(s) => {
                                 error!("Could not cache file {:?}: {}", filename, s);
                             }
                             Ok(r) => {
                                 trace!("Successfully cached file {:?}", filename);
-                                mapped_files.insert(abs_path.to_path_buf(), r);
+                                MAPPED_FILES.insert(abs_path.to_path_buf(), r);
+
+                                statistics::MAPPED_FILES
+                                    .insert(abs_path.to_path_buf()).unwrap_or_else(|e| warn!("Element already in set: {:?}", e));
                             }
                         }
                     }
-
-                    sc.lock().unwrap().send(mapped_files).unwrap();
                 });
-
-                // blocking call; wait for worker thread
-                let result = receiver.recv().unwrap();
-                for (k, v) in result {
-                    self.mapped_files.insert(k.clone(), v);
-
-                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
-                    stats_mapped_files.insert(k.to_path_buf());
-                }
 
                 info!("Finished caching of single I/O trace log file {:?}", filename_c);
             }
@@ -140,20 +127,19 @@ impl IOtraceLogCache {
         let iotrace_dir = iotrace_dir.join(constants::IOTRACE_DIR);
         let abs_path = iotrace_dir.join(filename);
 
-        match self.mapped_files.get(&abs_path) {
+        match MAPPED_FILES.get(&abs_path) {
             None => {
                 error!("I/O trace log is not cached: {:?}", filename);
             }
 
             Some(mapping) => {
-                if !util::free_mapping(mapping) {
+                if !util::free_mapping(mapping.val()) {
                     error!("Could not free cached I/O trace log {:?}", filename);
                 } else {
                     info!("Removed single I/O trace log file from cache: {:?}", filename);
                 }
 
-                let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
-                stats_mapped_files.remove(&abs_path);
+                statistics::MAPPED_FILES.remove(&abs_path);
             }
         }
     }
@@ -161,11 +147,6 @@ impl IOtraceLogCache {
     /// Enumerate all existing I/O trace log files and cache and mlock() them
     pub fn cache_iotrace_log_files(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started caching of I/O trace log files...");
-
-        let our_mapped_files = self.mapped_files.clone();
-
-        let (sender, receiver): (Sender<HashMap<PathBuf, util::MemoryMapping>>, _) = channel();
-        let sc = Mutex::new(sender.clone());
 
         match util::PREFETCH_POOL.lock() {
             Err(e) => error!(
@@ -177,8 +158,6 @@ impl IOtraceLogCache {
                 let manager_c = manager.clone();
 
                 thread_pool.submit_work(move || {
-                    let mut mapped_files = HashMap::new();
-
                     let trace_log_path = vec![Path::new(constants::STATE_DIR).join(constants::IOTRACE_DIR)];
 
                     util::walk_directories(&trace_log_path, &mut |path| {
@@ -189,39 +168,34 @@ impl IOtraceLogCache {
 
                         // mmap and mlock file, if it is not contained in the blacklist
                         // and if it was not already mapped by some of the plugins
-                        if Self::shall_we_map_file(path, &our_mapped_files) {
+                        if Self::shall_we_map_file(path) {
                             match util::cache_file(path, true) {
                                 Err(s) => {
                                     error!("Could not cache file {:?}: {}", path, s);
 
-                                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
-                                    stats_mapped_files.remove(path);
+                                    statistics::MAPPED_FILES.remove(&path.to_path_buf());
                                 }
 
                                 Ok(r) => {
                                     trace!("Successfully cached file {:?}", path);
-                                    mapped_files.insert(path.to_path_buf(), r);
+                                    MAPPED_FILES.insert(path.to_path_buf(), r);
 
-                                    let mut stats_mapped_files = statistics::MAPPED_FILES.write().unwrap();
-                                    stats_mapped_files.insert(path.to_path_buf());
+                                    statistics::MAPPED_FILES
+                                        .insert(path.to_path_buf())
+                                        .unwrap_or_else(|e| warn!("Element already in set: {:?}", e));
                                 }
                             }
                         }
                     })
                     .unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
-
-                    sc.lock().unwrap().send(mapped_files).unwrap();
                 });
-
-                // blocking call; wait for worker thread
-                self.mapped_files = receiver.recv().unwrap();
 
                 info!("Finished caching of I/O trace log files");
             }
         }
     }
 
-    fn shall_we_map_file(filename: &Path, our_mapped_files: &HashMap<PathBuf, util::MemoryMapping>) -> bool {
+    fn shall_we_map_file(filename: &Path) -> bool {
         // Check if filename is valid
         if !util::is_filename_valid(filename) {
             return false;
@@ -233,7 +207,7 @@ impl IOtraceLogCache {
         }
 
         // Have we already mapped this file?
-        if our_mapped_files.contains_key(filename) {
+        if MAPPED_FILES.get(filename).is_some() {
             return false;
         }
 
@@ -270,14 +244,6 @@ impl IOtraceLogCache {
         }
 
         result
-    }
-
-    pub fn get_mapped_files(&self) -> &HashMap<PathBuf, util::MemoryMapping> {
-        &self.mapped_files
-    }
-
-    pub fn get_mapped_files_mut(&mut self) -> &mut HashMap<PathBuf, util::MemoryMapping> {
-        &mut self.mapped_files
     }
 }
 
