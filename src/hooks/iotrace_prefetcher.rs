@@ -147,7 +147,7 @@ impl IOtracePrefetcher {
                                 MAPPED_FILES
                                     .insert(file.to_path_buf(), mapping);
                                 statistics::MAPPED_FILES
-                                    .insert(file.to_path_buf()).unwrap_or_else(|e| warn!("Element already in set: {:?}", e));
+                                    .insert(file.to_path_buf()).unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
                             }
                         }
                     }
