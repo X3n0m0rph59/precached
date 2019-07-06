@@ -414,10 +414,7 @@ impl IpcServer {
             }
 
             Some(h) => {
-                let mut v = Vec::new();
-                for p in statistics::MAPPED_FILES.iter() {
-                    v.push(p.clone());
-                }
+                let v = statistics::MAPPED_FILES.iter().map(|f| f.clone()).collect();
 
                 let cmd = IpcMessage::new(IpcCommand::SendCachedFiles(v));
                 let buf = serde_json::to_string(&cmd).unwrap();
