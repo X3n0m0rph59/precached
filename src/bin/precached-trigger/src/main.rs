@@ -119,7 +119,7 @@ fn print_usage(config: &mut Config) {
 /// Print a status summary of the system
 fn print_system_status(_config: &Config) {}
 
-/// Read the pid of the precached daemon from the file `/run/precached.pid`
+/// Read the pid of the precached daemon from the file `/run/precached/precached.pid`
 fn read_daemon_pid() -> io::Result<String> {
     util::read_uncompressed_text_file(&Path::new(constants::DAEMON_PID_FILE))
 }
@@ -131,6 +131,7 @@ fn transition_profile(_config: &Config, _daemon_config: &util::ConfigFile) {
             println!("precached is NOT running, did not send signal");
         }
         Ok(pid_str) => {
+            let pid_str = pid_str.trim();
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGUSR2) {
                 Err(e) => {

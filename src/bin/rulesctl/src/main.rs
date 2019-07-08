@@ -352,6 +352,7 @@ fn daemon_reload(_config: &Config, _daemon_config: &util::ConfigFile) {
         }
 
         Ok(pid_str) => {
+            let pid_str = pid_str.trim();
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGHUP) {
                 Err(e) => {

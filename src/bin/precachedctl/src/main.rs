@@ -140,6 +140,7 @@ fn daemon_reload(_config: &Config, _daemon_config: util::ConfigFile) {
             println_tr!("precachedctl-daemon-not-running");
         }
         Ok(pid_str) => {
+            let pid_str = pid_str.trim();
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGHUP) {
                 Err(e) => {
@@ -160,6 +161,7 @@ fn daemon_shutdown(_config: &Config, _daemon_config: util::ConfigFile) {
             println_tr!("precachedctl-daemon-not-running");
         }
         Ok(pid_str) => {
+            let pid_str = pid_str.trim();
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGTERM) {
                 Err(e) => {
@@ -180,6 +182,7 @@ fn do_housekeeping(_config: &Config, _daemon_config: util::ConfigFile) {
             println_tr!("precachedctl-daemon-not-running");
         }
         Ok(pid_str) => {
+            let pid_str = pid_str.trim();
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGUSR1) {
                 Err(e) => {
@@ -200,6 +203,7 @@ fn do_prime_caches(_config: &Config, _daemon_config: util::ConfigFile) {
             println_tr!("precachedctl-daemon-not-running");
         }
         Ok(pid_str) => {
+            let pid_str = pid_str.trim();
             let pid = Pid::from_raw(pid_str.parse::<pid_t>().unwrap());
             match kill(pid, SIGUSR2) {
                 Err(e) => {
