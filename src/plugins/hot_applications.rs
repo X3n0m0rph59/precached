@@ -159,7 +159,9 @@ impl HotApplications {
                                     info!("Prefetching files for hash: '{}'", hash);
                                     iotrace_prefetcher_hook.prefetch_data_by_hash(hash, &globals_c, &manager_c);
 
-                                    CACHED_APPS.insert(hash_c).unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
+                                    CACHED_APPS
+                                        .insert(hash_c)
+                                        .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
                                 } else {
                                     debug!("Files for hash '{}' are already cached", hash);
                                 }

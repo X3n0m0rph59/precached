@@ -65,6 +65,10 @@ impl RuleEventBridge {
                 Self::rule_engine_fire_event(&rules::Event::Ping, globals, manager);
             }
 
+            events::EventType::DropPrivileges => {
+                Self::rule_engine_fire_event(&rules::Event::DropPrivileges, globals, manager);
+            }
+
             events::EventType::Startup => {
                 Self::rule_engine_fire_event(&rules::Event::Startup, globals, manager);
             }

@@ -2,7 +2,7 @@
 
 Name:    precached-git
 Version: 1.7.0
-Release: 15%{?dist}
+Release: 16%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.gitlab.io/precached/
 License: GPLv3+
@@ -15,6 +15,8 @@ BuildRoot: %{_tmppath}/%{name}-build
 BuildRequires: systemd
 BuildRequires: zeromq-devel
 BuildRequires: cargo
+
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent
 
 Requires: zeromq
 
@@ -104,6 +106,10 @@ install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/rulesctl %{bu
 install -Dp -m 4755 %{_builddir}/%{name}-%{version}/target/release/precached-trigger %{buildroot}%{_bindir}/precached-trigger
 install -Dp -m 0755 %{_builddir}/%{name}-%{version}/target/release/precached-debug %{buildroot}%{_sbindir}/precached-debug
 
+%pre
+/usr/bin/getent group precached > /dev/null  || /usr/sbin/groupadd -r precached
+/usr/bin/getent passwd precached > /dev/null || /usr/sbin/useradd -r -s /sbin/nologin -d /tmp -g precached precached
+
 %post
 case "$1" in
   2)
@@ -164,8 +170,8 @@ esac
 %{_userpresetdir}/50-precached.preset
 %{_datarootdir}/metainfo/org.precache.precached.appdata.xml
 %{_datarootdir}/metainfo/org.precache.precached-trigger.appdata.xml
-%{_sharedstatedir}/%{OrigName}/
-%{_sharedstatedir}/%{OrigName}/iotrace/
+%attr(775, precached, precached) %{_sharedstatedir}/%{OrigName}/
+%attr(775, precached, precached) %{_sharedstatedir}/%{OrigName}/iotrace/
 %{_sysconfdir}/xdg/autostart/precached-trigger.desktop
 %{_datarootdir}/icons/hicolor/scalable/apps/precached-trigger.svg
 %{_datarootdir}/bash-completion/completions/iotracectl
@@ -197,6 +203,9 @@ esac
 %{_datarootdir}/%{OrigName}/i18n/en_UK.utf8
 
 %changelog
+* Sun Jul 07 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-16
+- rebuilt
+
 * Sat Jul 06 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-15
 - rebuilt
 

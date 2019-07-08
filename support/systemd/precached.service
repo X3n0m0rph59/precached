@@ -18,9 +18,7 @@ LimitRSS=infinity
 LimitCORE=infinity
 LimitMEMLOCK=infinity
 LimitNOFILE=infinity
-#PrivateDevices=yes
-PrivateTmp=yes
-#ProtectSystem=full
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH,CAP_SYS_PTRACE
 KillMode=mixed
 TimeoutStopSec=15
 

@@ -87,7 +87,7 @@ impl IOtracePrefetcher {
             thread_states.push(Arc::new(RwLock::new(ThreadState::Uninitialized)));
         }
 
-        IOtracePrefetcher {            
+        IOtracePrefetcher {
             prefetched_programs: vec![],
 
             thread_states,
@@ -144,10 +144,10 @@ impl IOtracePrefetcher {
                                     *(thread_state.write().unwrap()) = ThreadState::PrefetchedFile(file.clone());
                                 }
 
-                                MAPPED_FILES
-                                    .insert(file.to_path_buf(), mapping);
+                                MAPPED_FILES.insert(file.to_path_buf(), mapping);
                                 statistics::MAPPED_FILES
-                                    .insert(file.to_path_buf()).unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
+                                    .insert(file.to_path_buf())
+                                    .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
                             }
                         }
                     }
@@ -158,10 +158,7 @@ impl IOtracePrefetcher {
         already_prefetched
     }
 
-    fn unmap_files(
-        io_trace: &[iotrace::TraceLogEntry],
-        thread_state: &mut Arc<RwLock<ThreadState>>,
-    ) -> Vec<PathBuf> {
+    fn unmap_files(io_trace: &[iotrace::TraceLogEntry], thread_state: &mut Arc<RwLock<ThreadState>>) -> Vec<PathBuf> {
         let mut result = vec![];
 
         for entry in io_trace {
@@ -312,7 +309,7 @@ impl IOtracePrefetcher {
                             // distribute prefetching work evenly across the prefetcher threads
                             let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
                             let max = prefetch_pool.max_count();
-                            let count_total = io_trace.trace_log.len();                            
+                            let count_total = io_trace.trace_log.len();
 
                             for n in 0..max {
                                 // calculate slice bounds for each thread
@@ -331,7 +328,7 @@ impl IOtracePrefetcher {
                                 prefetch_pool.execute(move || {
                                     // submit prefetching work to an idle thread
                                     Self::prefetch_data(
-                                        &trace_log,                                        
+                                        &trace_log,
                                         &prefetched_programs_c,
                                         // &system_mapped_files_c,
                                         &static_blacklist_c,

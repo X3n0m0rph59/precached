@@ -51,6 +51,8 @@ pub enum Event {
     // Map most InternalEvents
     /// occurs every n seconds
     Ping,
+    /// sent just before we drop privileges
+    DropPrivileges,
     /// sent on daemon startup (after initialization)
     Startup,
     /// sent on daemon shutdown (before finalization)
@@ -437,6 +439,8 @@ fn parse_event(event: &str) -> Result<Event, String> {
 
         // Internal Events
         "Ping" => Ok(Event::Ping),
+
+        "DropPrivileges" => Ok(Event::DropPrivileges),
 
         "Startup" => Ok(Event::Startup),
 

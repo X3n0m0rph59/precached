@@ -326,7 +326,7 @@ fn run() -> Result<(), failure::Error> {
     if daemonize {
         info!("Daemonizing...");
 
-        match util::daemonize(globals.clone()) {
+        match util::daemonize() {
             Err(e) => {
                 error!("Could not become a daemon: {}", e);
 
@@ -386,6 +386,13 @@ fn run() -> Result<(), failure::Error> {
             return Err(format_err!("An unrecoverable error occured!"));
         }
     }
+
+    // notify before imminent privilege drop
+    events::queue_internal_event(EventType::DropPrivileges, &mut globals);
+    process_internal_events(&mut globals, &manager)?;
+
+    // drop all unneeded privileges now
+    util::drop_privileges(&globals);
 
     let (sender, receiver) = channel();
 

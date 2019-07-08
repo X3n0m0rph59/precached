@@ -33,6 +33,8 @@ pub enum EventType {
     // Daemon related
     /// occurs every n seconds
     Ping,
+    /// sent just before we drop privileges
+    DropPrivileges,
     /// sent on daemon startup (after initialization)
     Startup,
     /// sent on daemon shutdown (before finalization)

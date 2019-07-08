@@ -53,6 +53,8 @@ static NAME: &str = "fanotify_logger";
 static DESCRIPTION: &str = "Trace filesystem activity of processes using fanotify";
 
 lazy_static! {
+    pub static ref FANOTIFY: fan::Fanotify = fan::Fanotify::new_nonblocking().expect("Could not initialize fanotify");
+
     /// HashMap containing all in-flight (tracked) processes "PerTracerData"
     /// Contains metadata about the trace as well as the IOTraceLog itself
     pub static ref ACTIVE_TRACERS: Arc<Mutex<HashMap<libc::pid_t, util::PerTracerData>>> = Arc::new(Mutex::new(HashMap::new()));
@@ -83,170 +85,163 @@ impl FanotifyLogger {
         let mut globals_c = globals.clone();
         let manager_c = manager.clone();
 
-        match fan::Fanotify::new_nonblocking() {
-            Ok(notify) => {
-                // register fanotify watch on root fs
-                notify
-                    .add_mount((FAN_OPEN).into(), "/".to_string())
-                    .unwrap_or_else(|e| error!("Could not add fanotify root filesystem watch: {}", e));
+        'FANOTIFY_EVENT_LOOP: loop {
+            match FANOTIFY.get_events() {
+                Ok(events) => {
+                    for event in events.iter() {
+                        if EXIT_NOW.load(Ordering::SeqCst) {
+                            debug!("Leaving the fanotify event loop...");
+                            break 'FANOTIFY_EVENT_LOOP;
+                        }
 
-                'FANOTIFY_EVENT_LOOP: loop {
-                    match notify.get_events() {
-                        Ok(events) => {
-                            for event in events.iter() {
-                                if EXIT_NOW.load(Ordering::SeqCst) {
-                                    debug!("Leaving the fanotify event loop...");
-                                    break 'FANOTIFY_EVENT_LOOP;
+                        let hm = manager.hook_manager.read().unwrap();
+
+                        match hm.get_hook_by_name(&String::from("process_tracker")) {
+                            None => {
+                                error!("Hook not loaded: 'process_tracker', skipped");
+                            }
+
+                            Some(h) => {
+                                let h = h.read().unwrap();
+                                let process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
+
+                                // comm is only used for the syslog output
+                                let mut comm = None;
+
+                                if let Some(process) = process_tracker.get_process(event.pid) {
+                                    comm = Some(process.comm.clone());
+                                } else if let Ok(process) = Process::new(event.pid) {
+                                    comm = process.get_comm().ok();
+                                } else {
+                                    warn!(
+                                        "Could net get process information for pid: {}, maybe inaccessible procfs?",
+                                        event.pid
+                                    );
                                 }
 
-                                let hm = manager.hook_manager.read().unwrap();
-
-                                match hm.get_hook_by_name(&String::from("process_tracker")) {
-                                    None => {
-                                        error!("Hook not loaded: 'process_tracker', skipped");
+                                // NOTE: We have to use `lock()` here instead of `try_lock()`
+                                //       because we don't want to miss events in any case
+                                match ACTIVE_TRACERS.lock() {
+                                    Err(e) => {
+                                        // Lock failed
+                                        error!(
+                                            "Could not take a lock on a shared data structure! Lost an I/O trace event! {}",
+                                            e
+                                        );
                                     }
 
-                                    Some(h) => {
-                                        let h = h.read().unwrap();
-                                        let process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
+                                    Ok(mut active_tracers) => {
+                                        let mut add_tracer = false;
 
-                                        // comm is only used for the syslog output
-                                        let mut comm = None;
+                                        // Lock succeeded
+                                        match active_tracers.entry(event.pid) {
+                                            Occupied(mut tracer_data) => {
+                                                // trace!("Found tracer_data");
 
-                                        if let Some(process) = process_tracker.get_process(event.pid) {
-                                            comm = Some(process.comm.clone());
-                                        } else if let Ok(process) = Process::new(event.pid) {
-                                            comm = process.get_comm().ok();
-                                        }
+                                                // We successfully found tracer data for process `pid`
+                                                // Add an event record to the I/O trace log of that process
+                                                let iotrace_log = &mut tracer_data.get_mut().trace_log;
 
-                                        // NOTE: We have to use `lock()` here instead of `try_lock()`
-                                        //       because we don't want to miss events in any case
-                                        match ACTIVE_TRACERS.lock() {
-                                            Err(e) => {
-                                                // Lock failed
-                                                error!("Could not take a lock on a shared data structure! Lost an I/O trace event! {}", e);
+                                                trace!(
+                                                    "Process: '{}' with pid {} opened file: {:?}",
+                                                    comm.clone().unwrap_or_else(|| String::from("<not available>")),
+                                                    event.pid,
+                                                    event.filename
+                                                );
+
+                                                if !Self::is_file_blacklisted(
+                                                    &PathBuf::from(event.filename.clone()),
+                                                    &mut globals_c,
+                                                    &manager_c,
+                                                ) {
+                                                    iotrace_log
+                                                        .add_event(IOOperation::Open(PathBuf::from(event.filename.clone())));
+                                                } else {
+                                                    // trace!("File is blacklisted!");
+                                                }
                                             }
 
-                                            Ok(mut active_tracers) => {
-                                                let mut add_tracer = false;
+                                            Vacant(_k) => {
+                                                // Our HashMap does not currently contain a "PerTracerData" for the
+                                                // process `pid`. That means that we didn't track this process from
+                                                // the beginning. Either we lost a process creation event, or maybe
+                                                // it was started before our daemon was running
 
-                                                // Lock succeeded
-                                                match active_tracers.entry(event.pid) {
-                                                    Occupied(mut tracer_data) => {
-                                                        // trace!("Found tracer_data");
-
-                                                        // We successfully found tracer data for process `pid`
-                                                        // Add an event record to the I/O trace log of that process
-                                                        let iotrace_log = &mut tracer_data.get_mut().trace_log;
-
-                                                        trace!(
-                                                            "Process: '{}' with pid {} opened file: {:?}",
-                                                            comm.clone().unwrap_or_else(|| String::from("<not available>")),
-                                                            event.pid,
-                                                            event.filename
-                                                        );
-
-                                                        if !Self::is_file_blacklisted(
-                                                            &PathBuf::from(event.filename.clone()),
-                                                            &mut globals_c,
-                                                            &manager_c,
-                                                        ) {
-                                                            iotrace_log.add_event(IOOperation::Open(PathBuf::from(
-                                                                event.filename.clone(),
-                                                            )));
-                                                        } else {
-                                                            // trace!("File is blacklisted!");
-                                                        }
-                                                    }
-
-                                                    Vacant(_k) => {
-                                                        // Our HashMap does not currently contain a "PerTracerData" for the
-                                                        // process `pid`. That means that we didn't track this process from
-                                                        // the beginning. Either we lost a process creation event, or maybe
-                                                        // it was started before our daemon was running
-
-                                                        debug!(
+                                                debug!(
                                                     "Spurious fanotify event for untracked process '{}' with pid {} processed!",
                                                     comm.clone().unwrap_or_else(|| String::from("<not available>")),
                                                     event.pid
                                                 );
 
-                                                        add_tracer = true;
-                                                    }
-                                                }
-
-                                                // Late-add tracers for processes for which we somehow
-                                                // missed their creation event, e.g. when precached daemon
-                                                // was started after the creation of the process
-                                                if add_tracer {
-                                                    // // Add the previously untracked process
-                                                    if let Ok(_result) =
-                                                        Self::shall_new_tracelog_be_created(event.pid, &mut globals_c, manager)
-                                                    {
-                                                        // Begin tracing the process `pid`.
-                                                        // Construct the "PerTracerData" and a companion IOTraceLog
-                                                        match iotrace::IOTraceLog::new(event.pid) {
-                                                            Err(e) => {
-                                                                info!("Process vanished during tracing! {}", e);
-                                                            }
-
-                                                            Ok(iotrace_log) => {
-                                                                let tracer_data = util::PerTracerData::new(iotrace_log);
-                                                                active_tracers.insert(event.pid, tracer_data);
-                                                            }
-                                                        }
-
-                                                        info!(
-                                                            "Added previously untracked process '{}' with pid: {}",
-                                                            comm.unwrap_or_else(|| String::from("<not available>")),
-                                                            event.pid
-                                                        );
-                                                    } else {
-                                                        debug!(
-                                                            "Could not add tracking entry for process with pid: {}",
-                                                            event.pid
-                                                        );
-                                                    }
-                                                }
-
-                                                let iotrace_dir = globals
-                                                    .get_config_file()
-                                                    .state_dir
-                                                    .clone()
-                                                    .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
-
-                                                let min_len = globals
-                                                    .get_config_file()
-                                                    .min_trace_log_length
-                                                    .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
-
-                                                let min_prefetch_size = globals
-                                                    .get_config_file()
-                                                    .min_trace_log_prefetch_size
-                                                    .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
-
-                                                check_expired_tracers(
-                                                    &mut active_tracers,
-                                                    &iotrace_dir,
-                                                    min_len,
-                                                    min_prefetch_size,
-                                                    globals,
-                                                );
+                                                add_tracer = true;
                                             }
                                         }
+
+                                        // Late-add tracers for processes for which we somehow
+                                        // missed their creation event, e.g. when precached daemon
+                                        // was started after the creation of the process
+                                        if add_tracer {
+                                            // // Add the previously untracked process
+                                            if let Ok(_result) =
+                                                Self::shall_new_tracelog_be_created(event.pid, &mut globals_c, manager)
+                                            {
+                                                // Begin tracing the process `pid`.
+                                                // Construct the "PerTracerData" and a companion IOTraceLog
+                                                match iotrace::IOTraceLog::new(event.pid) {
+                                                    Err(e) => {
+                                                        info!("Process vanished during tracing! {}", e);
+                                                    }
+
+                                                    Ok(iotrace_log) => {
+                                                        let tracer_data = util::PerTracerData::new(iotrace_log);
+                                                        active_tracers.insert(event.pid, tracer_data);
+                                                    }
+                                                }
+
+                                                info!(
+                                                    "Added previously untracked process '{}' with pid: {}",
+                                                    comm.unwrap_or_else(|| String::from("<not available>")),
+                                                    event.pid
+                                                );
+                                            } else {
+                                                debug!("Could not add tracking entry for process with pid: {}", event.pid);
+                                            }
+                                        }
+
+                                        let iotrace_dir = globals
+                                            .get_config_file()
+                                            .state_dir
+                                            .clone()
+                                            .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
+
+                                        let min_len = globals
+                                            .get_config_file()
+                                            .min_trace_log_length
+                                            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+
+                                        let min_prefetch_size = globals
+                                            .get_config_file()
+                                            .min_trace_log_prefetch_size
+                                            .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
+
+                                        check_expired_tracers(
+                                            &mut active_tracers,
+                                            &iotrace_dir,
+                                            min_len,
+                                            min_prefetch_size,
+                                            globals,
+                                        );
                                     }
                                 }
                             }
                         }
-
-                        Err(_e) => {
-                            thread::sleep(Duration::from_millis(constants::FANOTIFY_THREAD_YIELD_MILLIS));
-                        }
                     }
                 }
-            }
 
-            Err(e) => error!("Could not initialize fanotify: {}", e),
+                Err(_e) => {
+                    thread::sleep(Duration::from_millis(constants::FANOTIFY_THREAD_YIELD_MILLIS));
+                }
+            }
         }
 
         info!("Fanotify thread terminating now!");
@@ -503,6 +498,13 @@ impl hook::Hook for FanotifyLogger {
 
     fn internal_event(&mut self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
         match event.event_type {
+            events::EventType::DropPrivileges => {
+                // register fanotify watch on root fs
+                FANOTIFY
+                    .add_filesystem((FAN_OPEN).into(), "/".to_string())
+                    .unwrap_or_else(|e| error!("Could not add fanotify root filesystem watch: {}", e));
+            }
+
             events::EventType::Startup => {
                 let mut globals_c = globals.clone();
                 let manager_c = manager.clone();

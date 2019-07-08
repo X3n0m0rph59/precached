@@ -106,7 +106,8 @@ impl IOtraceLogCache {
                                 MAPPED_FILES.insert(abs_path.to_path_buf(), r);
 
                                 statistics::MAPPED_FILES
-                                    .insert(abs_path.to_path_buf()).unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
+                                    .insert(abs_path.to_path_buf())
+                                    .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
                             }
                         }
                     }
