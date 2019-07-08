@@ -209,7 +209,7 @@ where
 pub fn display_internal_state(config: &Config, _daemon_config: &util::ConfigFile) {
     let ctx = zmq::Context::new();
     let socket = ctx.socket(zmq::REQ).unwrap();
-    socket.connect("ipc:///run/precached.sock").unwrap();
+    socket.connect("ipc:///run/precached/precached.sock").unwrap();
 
     match socket.set_rcvtimeo(1000) {
         Ok(()) => {
@@ -362,7 +362,7 @@ pub fn display_internal_state(config: &Config, _daemon_config: &util::ConfigFile
 pub fn display_global_stats(config: &Config, _daemon_config: &util::ConfigFile) {
     let ctx = zmq::Context::new();
     let socket = ctx.socket(zmq::REQ).unwrap();
-    socket.connect("ipc:///run/precached.sock").unwrap();
+    socket.connect("ipc:///run/precached/precached.sock").unwrap();
 
     match socket.set_rcvtimeo(1000) {
         Ok(()) => {

@@ -43,7 +43,7 @@ pub const STATE_DIR: &str = "/var/lib/precached/";
 pub const RULES_DIR: &str = "/etc/precached/rules.d";
 
 /// PID file of the precached daemon
-pub const DAEMON_PID_FILE: &str = "/run/precached.pid";
+pub const DAEMON_PID_FILE: &str = "/run/precached/precached.pid";
 
 /// Default directory where I/O traces shall be saved
 pub const IOTRACE_DIR: &str = "iotrace/";

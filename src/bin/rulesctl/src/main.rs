@@ -131,7 +131,7 @@ fn map_bool_to_color(b: bool) -> Color {
     }
 }
 
-/// Read the pid of the precached daemon from the file `/run/precached.pid`
+/// Read the pid of the precached daemon from the file `/run/precached/precached.pid`
 fn read_daemon_pid() -> io::Result<String> {
     util::read_uncompressed_text_file(&Path::new(constants::DAEMON_PID_FILE))
 }

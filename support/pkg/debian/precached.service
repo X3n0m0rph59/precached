@@ -5,11 +5,14 @@ Wants=multi-user.target
 After=local-fs.target
 
 [Service]
-ExecStart=/usr/sbin/precached -c /etc/precached/precached.conf
+ExecStart=/usr/sbin/precached -fc /etc/precached/precached.conf
+ExecStartPost=/bin/sh -c 'umask 022; pgrep precached > /run/precached/precached.pid'
 ExecReload=/usr/sbin/precachedctl reload
 ExecStop=/usr/sbin/precachedctl stop
-PIDFile=/run/precached.pid
-Type=forking
+RuntimeDirectory=precached
+RuntimeDirectoryMode=0750
+PIDFile=/run/precached/precached.pid
+Type=exec
 Restart=no
 Nice=0
 IOSchedulingClass=idle
@@ -18,7 +21,6 @@ LimitRSS=infinity
 LimitCORE=infinity
 LimitMEMLOCK=infinity
 LimitNOFILE=infinity
-CapabilityBoundingSet=CAP_DAC_READ_SEARCH,CAP_SYS_PTRACE
 KillMode=mixed
 TimeoutStopSec=15
 

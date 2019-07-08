@@ -160,7 +160,7 @@ impl IpcServer {
             Err(e) => Err("Socket creation failed!"),
 
             Ok(socket) => {
-                socket.bind("ipc:///run/precached.sock");
+                socket.bind("ipc:///run/precached/precached.sock");
                 self.socket = Some(socket);
 
                 Ok(())
