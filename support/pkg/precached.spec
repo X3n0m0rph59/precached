@@ -13,12 +13,14 @@ Source0: https://gitlab.com/X3n0m0rph59/%{OrigName}/-/archive/master/%{OrigName}
 BuildRoot: %{_tmppath}/%{name}-build
 
 BuildRequires: systemd
+BuildRequires: libcap
 BuildRequires: zeromq-devel
 BuildRequires: cargo
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent
-
+Requires: libcap
 Requires: zeromq
+
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent
 
 Conflicts: precached
 
