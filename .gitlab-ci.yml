@@ -16,7 +16,7 @@ image: "rustlang/rust:nightly"
 # You will often need this when you (or any of your dependencies) depends on C code.
 before_script:
 - apt-get update -yqq
-- apt-get install -yqq libzmq3-dev libzmq5
+- apt-get install -yqq libcap2-dev libzmq3-dev libzmq5
 
 # Use cargo to test the project
 test:cargo:

@@ -2,7 +2,7 @@
 
 Name:    precached-git
 Version: 1.7.0
-Release: 17%{?dist}
+Release: 18%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.gitlab.io/precached/
 License: GPLv3+
@@ -12,10 +12,10 @@ Source0: https://gitlab.com/X3n0m0rph59/%{OrigName}/-/archive/master/%{OrigName}
 
 BuildRoot: %{_tmppath}/%{name}-build
 
-BuildRequires: systemd
-BuildRequires: libcap
-BuildRequires: zeromq-devel
 BuildRequires: cargo
+BuildRequires: systemd
+BuildRequires: libcap-devel
+BuildRequires: zeromq-devel
 
 Requires: libcap
 Requires: zeromq
@@ -205,6 +205,9 @@ esac
 %{_datarootdir}/%{OrigName}/i18n/en_UK.utf8
 
 %changelog
+* Mon Jul 08 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-18
+- rebuilt
+
 * Mon Jul 08 2019 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.0-17
 - rebuilt
 
