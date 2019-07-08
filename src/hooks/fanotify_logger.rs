@@ -114,7 +114,7 @@ impl FanotifyLogger {
                                     comm = process.get_comm().ok();
                                 } else {
                                     warn!(
-                                        "Could net get process information for pid: {}, maybe inaccessible procfs?",
+                                        "Could not get process information for pid: {}, maybe inaccessible procfs?",
                                         event.pid
                                     );
                                 }
