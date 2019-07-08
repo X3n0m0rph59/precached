@@ -5,12 +5,12 @@ Wants=multi-user.target
 After=local-fs.target
 
 [Service]
+RuntimeDirectory=precached
+RuntimeDirectoryMode=0750
 ExecStart=/usr/sbin/precached -fc /etc/precached/precached.conf
 ExecStartPost=/bin/sh -c 'umask 022; pgrep precached > /run/precached/precached.pid'
 ExecReload=/usr/sbin/precachedctl reload
 ExecStop=/usr/sbin/precachedctl stop
-RuntimeDirectory=precached
-RuntimeDirectoryMode=0750
 PIDFile=/run/precached/precached.pid
 Type=exec
 Restart=no
