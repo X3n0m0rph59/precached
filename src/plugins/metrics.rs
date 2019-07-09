@@ -166,7 +166,7 @@ impl Metrics {
 
                     self.available_mem_low_watermark_event_sent = false;
                     self.available_mem_high_watermark_event_sent = false;
-                    self.available_mem_critical_event_sent = false;
+                    // self.available_mem_critical_event_sent = false;
                 }
             } else {
                 self.available_mem_critical_event_sent = false;
