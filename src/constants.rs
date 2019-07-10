@@ -68,7 +68,7 @@ pub const WORKER_THREAD_NICENESS: i32 = 8;
 pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2000;
 
 /// Thread wait time (fanotify loop)
-pub const FANOTIFY_THREAD_YIELD_MILLIS: u64 = 1000;
+pub const FANOTIFY_THREAD_YIELD_MILLIS: u64 = 5000;
 
 /// Time that has to elapse before we may perform housekeeping after the precached process' startup
 pub const HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS: i64 = 5 * 60; // 5 Minutes
