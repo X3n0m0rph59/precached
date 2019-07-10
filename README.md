@@ -45,6 +45,14 @@ programs while the system is idle.
     $ systemctl --user enable --now precached-trigger.service
 ```
 
+### Enable service autostart
+
+```shell
+    $ sudo systemctl enable --now precached.service
+    $ sudo systemctl enable --now precached-prime-caches.timer
+    $ systemctl --user enable --now precached-trigger.service
+```
+
 ## Why You may want to use precached
 
 Precached tries to tackle some of the long standing performance issues
