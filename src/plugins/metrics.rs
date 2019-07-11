@@ -104,17 +104,21 @@ impl Metrics {
         }
     }
 
-    pub fn get_available_mem_percentage(&self) -> u8 {
+    pub fn get_mem_usage_percentage(&self) -> u8 {
         let mem_info = sys_info::mem_info().expect("Could not fetch memory status information!");
 
-        (mem_info.avail * 100 / mem_info.total) as u8
+        let mem_used = (mem_info.total - mem_info.avail) + (mem_info.swap_total - mem_info.swap_free);
+        let mem_total = mem_info.total + mem_info.swap_total;
+        let percentage = (mem_used * 100 / mem_total) as u8;
+
+        percentage
     }
 
-    pub fn get_free_mem_percentage(&self) -> u8 {
-        let mem_info = sys_info::mem_info().expect("Could not fetch memory status information!");
+    // pub fn get_free_mem_percentage(&self) -> u8 {
+    //     let mem_info = sys_info::mem_info().expect("Could not fetch memory status information!");
 
-        (mem_info.free * 100 / mem_info.total) as u8
-    }
+    //     (mem_info.free * 100 / mem_info.total) as u8
+    // }
 
     pub fn gather_metrics(&mut self, globals: &mut Globals, _manager: &Manager) {
         trace!("Gathering global performance metrics...");
@@ -126,29 +130,34 @@ impl Metrics {
 
         let available_mem_upper_threshold = globals.get_config_file().available_mem_upper_threshold.unwrap();
 
-        let available_mem_lower_threshold = globals.get_config_file().available_mem_lower_threshold.unwrap();
+        // let available_mem_lower_threshold = globals.get_config_file().available_mem_lower_threshold.unwrap();
 
         // *free* memory events
-        let free_percentage = (mem_info.free * 100 / mem_info.total) as u8;
-        if free_percentage <= constants::FREE_MEMORY_UPPER_THRESHOLD {
-            if self.free_mem_high_watermark_event_sent == false {
-                events::queue_internal_event(EventType::FreeMemoryHighWatermark, globals);
-                self.free_mem_high_watermark_event_sent = true;
-            }
-        } else if free_percentage >= constants::FREE_MEMORY_LOWER_THRESHOLD {
-            if self.free_mem_low_watermark_event_sent == false && self.system_was_idle_at_least_once {
-                events::queue_internal_event(EventType::FreeMemoryLowWatermark, globals);
-                self.free_mem_low_watermark_event_sent = true;
-            }
-        } else {
-            // rearm events
-            self.free_mem_low_watermark_event_sent = false;
-            self.free_mem_high_watermark_event_sent = false;
-        }
+        // let free_percentage = (mem_info.free * 100 / mem_info.total) as u8;
+        // if free_percentage <= constants::FREE_MEMORY_UPPER_THRESHOLD {
+        //     if self.free_mem_high_watermark_event_sent == false {
+        //         events::queue_internal_event(EventType::FreeMemoryHighWatermark, globals);
+        //         self.free_mem_high_watermark_event_sent = true;
+        //     }
+        // } else if free_percentage >= constants::FREE_MEMORY_LOWER_THRESHOLD {
+        //     if self.free_mem_low_watermark_event_sent == false && self.system_was_idle_at_least_once {
+        //         events::queue_internal_event(EventType::FreeMemoryLowWatermark, globals);
+        //         self.free_mem_low_watermark_event_sent = true;
+        //     }
+        // } else {
+        //     // rearm events
+        //     self.free_mem_low_watermark_event_sent = false;
+        //     self.free_mem_high_watermark_event_sent = false;
+        // }
 
         // *available* memory events
-        let avail_percentage = (mem_info.avail * 100 / mem_info.total) as u8;
-        if avail_percentage <= 100 - available_mem_upper_threshold {
+        let mem_used = (mem_info.total - mem_info.avail) + (mem_info.swap_total - mem_info.swap_free);
+        let mem_total = mem_info.total + mem_info.swap_total;
+        let percentage = (mem_used * 100 / mem_total) as u8;
+        
+        info!("Mem: {}%, {} KiB/{} KiB", percentage, mem_used, mem_total);
+
+        if percentage >= available_mem_upper_threshold {
             if self.available_mem_high_watermark_event_sent == false {
                 events::queue_internal_event(EventType::AvailableMemoryHighWatermark, globals);
                 self.available_mem_high_watermark_event_sent = true;
@@ -158,8 +167,8 @@ impl Metrics {
                 self.available_mem_critical_event_sent = false;
             }
 
-            // in addition, check if we have exhausted available memory and notify if applicable
-            if avail_percentage <= 100 - available_mem_critical_threshold {
+            // check if we have exhausted available memory and notify if applicable
+            if percentage >= available_mem_critical_threshold {
                 if self.available_mem_critical_event_sent == false {
                     events::queue_internal_event(EventType::AvailableMemoryCritical, globals);
                     self.available_mem_critical_event_sent = true;
@@ -171,7 +180,7 @@ impl Metrics {
             } else {
                 self.available_mem_critical_event_sent = false;
             }
-        } else if avail_percentage >= 100 - available_mem_lower_threshold {
+        } else if percentage <= available_mem_upper_threshold {
             if self.available_mem_low_watermark_event_sent == false && self.system_was_idle_at_least_once {
                 events::queue_internal_event(EventType::AvailableMemoryLowWatermark, globals);
                 self.available_mem_low_watermark_event_sent = true;

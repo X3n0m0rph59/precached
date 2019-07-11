@@ -569,10 +569,11 @@ fn run() -> Result<(), failure::Error> {
     // Clean up now
     trace!("Cleaning up...");
 
-    #[allow(unused_must_use)]
-    util::remove_file(Path::new(constants::DAEMON_PID_FILE), false).unwrap_or_else(|_| {
-        error!("Could not remove pid file!");
-    });
+    // handled by systemd service now...
+    // #[allow(unused_must_use)]
+    // util::remove_file(Path::new(constants::DAEMON_PID_FILE), false).unwrap_or_else(|_| {
+    //     error!("Could not remove pid file!");
+    // });
 
     // Unregister plugins and hooks
     plugins::unregister_plugins(&mut globals, &mut manager);

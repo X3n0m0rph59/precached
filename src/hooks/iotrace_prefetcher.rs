@@ -40,6 +40,7 @@ use crate::plugins::hot_applications::HotApplications;
 use crate::plugins::iotrace_log_manager::IOtraceLogManager;
 use crate::plugins::static_blacklist::StaticBlacklist;
 use crate::plugins::static_whitelist::StaticWhitelist;
+use crate::plugins::metrics::Metrics;
 use crate::plugins::statistics;
 use crate::process::Process;
 use crate::procmon;
@@ -101,13 +102,19 @@ impl IOtracePrefetcher {
         static_blacklist: &[PathBuf],
         static_whitelist: &HashMap<PathBuf, util::MemoryMapping>,
         thread_state: &mut Arc<RwLock<ThreadState>>,
-    ) -> HashMap<PathBuf, Option<util::MemoryMapping>> {
+        globals: &Globals, manager: &Manager,
+    ) -> Option<HashMap<PathBuf, Option<util::MemoryMapping>>> {
         let mut already_prefetched = HashMap::new();
         already_prefetched.reserve(io_trace.len());
 
         for entry in io_trace {
             match entry.operation {
                 iotrace::IOOperation::Open(ref file) => {
+                    if !Self::check_available_memory(&globals, &manager) {
+                        debug!("Low memory, skipped: {:?}", file);
+                        return None;
+                    }
+
                     trace!("Prefetching: {:?}", file);
 
                     // mmap and mlock file, if it is not contained in the blacklist
@@ -155,7 +162,7 @@ impl IOtracePrefetcher {
             }
         }
 
-        already_prefetched
+        Some(already_prefetched)
     }
 
     fn unmap_files(io_trace: &[iotrace::TraceLogEntry], thread_state: &mut Arc<RwLock<ThreadState>>) -> Vec<PathBuf> {
@@ -268,6 +275,38 @@ impl IOtracePrefetcher {
         true
     }
 
+    /// Check if we have enough available memory to perform prefetching
+    fn check_available_memory(globals: &Globals, manager: &Manager) -> bool {
+        let mut result = false;
+
+        let available_mem_upper_threshold = globals
+            .config
+            .clone()
+            .config_file
+            .unwrap_or_default()
+            .available_mem_upper_threshold
+            .unwrap();
+
+        let pm = manager.plugin_manager.read().unwrap();
+
+        match pm.get_plugin_by_name(&String::from("metrics")) {
+            None => {
+                warn!("Plugin not loaded: 'metrics', skipped");
+            }
+
+            Some(p) => {
+                let p = p.read().unwrap();
+                let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
+
+                if metrics_plugin.get_mem_usage_percentage() <= available_mem_upper_threshold {
+                    result = true;
+                }
+            }
+        }
+
+        result
+    }
+
     /// Replay the I/O trace of the I/O trace for `hashval` and cache all files into memory
     /// This is used for offline prefetching, when the system is idle
     pub fn prefetch_data_by_hash(&mut self, hashval: &str, globals: &Globals, manager: &Manager) {
@@ -311,7 +350,11 @@ impl IOtracePrefetcher {
                             let max = prefetch_pool.max_count();
                             let count_total = io_trace.trace_log.len();
 
+
                             for n in 0..max {
+                                let globals_c = globals.clone();
+                                let manager_c = manager.clone();
+
                                 // calculate slice bounds for each thread
                                 let low = (count_total / max) * n;
                                 let high = (count_total / max) * n + (count_total / max);
@@ -334,6 +377,8 @@ impl IOtracePrefetcher {
                                         &static_blacklist_c,
                                         &static_whitelist_c,
                                         &mut thread_state,
+                                        &globals_c, 
+                                        &manager_c,
                                     );
                                 })
                             }
@@ -555,6 +600,9 @@ impl IOtracePrefetcher {
                                                 let count_total = io_trace.trace_log.len();
 
                                                 for n in 0..max {
+                                                    let globals_c = globals.clone();
+                                                    let manager_c = manager.clone();
+
                                                     // calculate slice bounds for each thread
                                                     let low = (count_total / max) * n;
                                                     let high = (count_total / max) * n + (count_total / max);
@@ -577,6 +625,8 @@ impl IOtracePrefetcher {
                                                             &static_blacklist_c,
                                                             &static_whitelist_c,
                                                             &mut thread_state,
+                                                            &globals_c,
+                                                            &manager_c,
                                                         );
                                                     })
                                                 }

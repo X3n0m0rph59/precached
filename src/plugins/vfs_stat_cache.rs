@@ -242,8 +242,16 @@ impl VFSStatCache {
         info!("Finished reading of statx() metadata for most used applications");
     }
 
-    fn check_available_memory(_globals: &Globals, manager: &Manager) -> bool {
-        let mut result = true;
+    fn check_available_memory(globals: &Globals, manager: &Manager) -> bool {
+        let mut result = false;
+
+        let available_mem_upper_threshold = globals
+            .config
+            .clone()
+            .config_file
+            .unwrap_or_default()
+            .available_mem_upper_threshold
+            .unwrap();
 
         let pm = manager.plugin_manager.read().unwrap();
 
@@ -251,12 +259,13 @@ impl VFSStatCache {
             None => {
                 warn!("Plugin not loaded: 'metrics', skipped");
             }
+
             Some(p) => {
                 let p = p.read().unwrap();
                 let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
-                if metrics_plugin.get_available_mem_percentage() <= 1 {
-                    result = false;
+                if metrics_plugin.get_mem_usage_percentage() <= available_mem_upper_threshold {
+                    result = true;
                 }
             }
         }

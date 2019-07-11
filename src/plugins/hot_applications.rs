@@ -142,26 +142,26 @@ impl HotApplications {
                             let mut apps: Vec<(&String, &usize)> = app_histogram_c.par_iter().collect();
                             apps.par_sort_by(|a, b| b.1.cmp(a.1));
 
-                            for (hash, _count) in apps {
+                            'PREFETCH_LOOP: for (hash, _count) in apps {
                                 if Self::shall_cancel_prefetch(&globals_c, &manager_c) {
                                     warn!("Cancellation request received, stopping prefetching!");
-                                    break;
-                                }
-
-                                if !Self::check_available_memory(&globals_c, &manager_c) {
-                                    warn!("Available memory exhausted, stopping prefetching!");
-                                    break;
+                                    break 'PREFETCH_LOOP;
                                 }
 
                                 if !CACHED_APPS.get(hash).is_some() {
-                                    let hash_c = (*hash).clone();
+                                    if Self::check_available_memory(&globals_c, &manager_c) {
+                                        let hash_c = (*hash).clone();
 
-                                    info!("Prefetching files for hash: '{}'", hash);
-                                    iotrace_prefetcher_hook.prefetch_data_by_hash(hash, &globals_c, &manager_c);
+                                        info!("Prefetching files for hash: '{}'", hash);
+                                        iotrace_prefetcher_hook.prefetch_data_by_hash(hash, &globals_c, &manager_c);
 
-                                    CACHED_APPS
-                                        .insert(hash_c)
-                                        .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
+                                        CACHED_APPS
+                                            .insert(hash_c)
+                                            .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
+                                    } else {
+                                        warn!("Available memory exhausted, stopping prefetching!");
+                                        break 'PREFETCH_LOOP;
+                                    }
                                 } else {
                                     debug!("Files for hash '{}' are already cached", hash);
                                 }
@@ -211,7 +211,7 @@ impl HotApplications {
 
     /// Check if we have enough available memory to perform prefetching
     fn check_available_memory(globals: &Globals, manager: &Manager) -> bool {
-        let mut result = true;
+        let mut result = false;
 
         let available_mem_upper_threshold = globals
             .config
@@ -232,8 +232,8 @@ impl HotApplications {
                 let p = p.read().unwrap();
                 let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
-                if metrics_plugin.get_available_mem_percentage() <= 100 - available_mem_upper_threshold {
-                    result = false;
+                if metrics_plugin.get_mem_usage_percentage() <= available_mem_upper_threshold {
+                    result = true;
                 }
             }
         }
@@ -243,7 +243,7 @@ impl HotApplications {
 
     /// Check if the available memory is below the defined lower threshold
     fn available_memory_below_lower_threshold(globals: &Globals, manager: &Manager) -> bool {
-        let mut result = true;
+        let mut result = false;
 
         let available_mem_lower_threshold = globals
             .config
@@ -264,8 +264,8 @@ impl HotApplications {
                 let p = p.read().unwrap();
                 let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
-                if metrics_plugin.get_available_mem_percentage() <= 100 - available_mem_lower_threshold {
-                    result = false;
+                if metrics_plugin.get_mem_usage_percentage() <= available_mem_lower_threshold {
+                    result = true;
                 }
             }
         }
