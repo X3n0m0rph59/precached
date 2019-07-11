@@ -58,6 +58,10 @@ of the Linux desktop:
 * The system has unused (free) memory after a "memory hog" process quit.
   The system reacts sluggish until the caches are primed again
 
+## What is my ram doing?
+
+You can read about linux's memory managment here: https://www.linuxatemyram.com/index.html
+
 ## Use precached if
 
 You have a reasonably fast CPU and a slow disk drive (and an ample
