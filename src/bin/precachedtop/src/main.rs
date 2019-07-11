@@ -257,9 +257,9 @@ impl Application {
                             .direction(Direction::Vertical)
                             .constraints(
                                 [
-                                    Constraint::Percentage(35),
-                                    Constraint::Percentage(35),
-                                    Constraint::Percentage(12),
+                                    Constraint::Percentage(30),
+                                    Constraint::Percentage(32),
+                                    Constraint::Percentage(20),
                                     Constraint::Percentage(18),
                                 ]
                                 .as_ref(),
