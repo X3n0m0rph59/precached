@@ -113,11 +113,11 @@ impl FanotifyLogger {
                                 } else if let Ok(process) = Process::new(event.pid) {
                                     comm = process.get_comm().ok();
                                 } /* else {
-                                    warn!(
-                                        "Could not get process information for pid: {}, maybe inaccessible procfs?",
-                                        event.pid
-                                    );
-                                }*/
+                                      warn!(
+                                          "Could not get process information for pid: {}, maybe inaccessible procfs?",
+                                          event.pid
+                                      );
+                                  }*/
 
                                 // NOTE: We have to use `lock()` here instead of `try_lock()`
                                 //       because we don't want to miss events in any case

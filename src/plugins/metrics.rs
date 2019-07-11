@@ -154,7 +154,7 @@ impl Metrics {
         let mem_used = (mem_info.total - mem_info.avail) + (mem_info.swap_total - mem_info.swap_free);
         let mem_total = mem_info.total + mem_info.swap_total;
         let percentage = (mem_used * 100 / mem_total) as u8;
-        
+
         info!("Mem: {}%, {} KiB/{} KiB", percentage, mem_used, mem_total);
 
         if percentage >= available_mem_upper_threshold {

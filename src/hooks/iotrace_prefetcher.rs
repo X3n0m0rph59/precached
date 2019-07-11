@@ -102,7 +102,8 @@ impl IOtracePrefetcher {
         static_blacklist: &[PathBuf],
         static_whitelist: &HashMap<PathBuf, util::MemoryMapping>,
         thread_state: &mut Arc<RwLock<ThreadState>>,
-        globals: &Globals, manager: &Manager,
+        globals: &Globals,
+        manager: &Manager,
     ) -> Option<HashMap<PathBuf, Option<util::MemoryMapping>>> {
         let mut already_prefetched = HashMap::new();
         already_prefetched.reserve(io_trace.len());
@@ -350,7 +351,6 @@ impl IOtracePrefetcher {
                             let max = prefetch_pool.max_count();
                             let count_total = io_trace.trace_log.len();
 
-
                             for n in 0..max {
                                 let globals_c = globals.clone();
                                 let manager_c = manager.clone();
@@ -377,7 +377,7 @@ impl IOtracePrefetcher {
                                         &static_blacklist_c,
                                         &static_whitelist_c,
                                         &mut thread_state,
-                                        &globals_c, 
+                                        &globals_c,
                                         &manager_c,
                                     );
                                 })
