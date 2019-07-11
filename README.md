@@ -40,6 +40,12 @@ programs while the system is idle.
 
     # ... copy files ...
 
+
+```
+
+### Enable service autostart
+
+```shell
     $ sudo systemctl enable --now precached.service
     $ sudo systemctl enable --now precached-prime-caches.timer
     $ systemctl --user enable --now precached-trigger.service
