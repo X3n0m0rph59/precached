@@ -80,7 +80,13 @@ pub fn cache_file(filename: &Path, with_mlock: bool) -> Result<MemoryMapping> {
         libc::fstat(fd, &mut stat);
     };
 
-    if stat.st_size > constants::MAX_ALLOWED_PREFETCH_SIZE as StatSize {
+    if stat.st_mode & libc::S_ISUID == libc::S_ISUID || stat.st_mode & libc::S_ISGID == libc::S_ISGID {
+        // Try to close the file descriptor
+        unsafe { libc::close(fd) };
+
+        let custom_error = Error::new(ErrorKind::Other, "Not prefetching SUID/SGID files!");
+        Err(custom_error)
+    } else if stat.st_size > constants::MAX_ALLOWED_PREFETCH_SIZE as StatSize {
         // Try to close the file descriptor
         unsafe { libc::close(fd) };
 
