@@ -65,7 +65,7 @@ pub const PREFETCHER_THREAD_NICENESS: i32 = 4;
 pub const WORKER_THREAD_NICENESS: i32 = 8;
 
 /// Thread wait time (main loop)
-pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 2000;
+pub const EVENT_THREAD_TIMEOUT_MILLIS: u64 = 1000;
 
 /// Thread wait time (fanotify loop)
 pub const FANOTIFY_THREAD_YIELD_MILLIS: u64 = 5000;
@@ -75,6 +75,9 @@ pub const HOUSEKEEPING_DELAY_AFTER_STARTUP_SECS: i64 = 5 * 60; // 5 Minutes
 
 /// Time that has to elapse before we may perform housekeeping again
 pub const MIN_HOUSEKEEPING_INTERVAL_SECS: i64 = 60 * 60; // 60 Minutes
+
+/// `Ping` event timer timeout
+pub const METRICS_INTERVAL_MILLIS: u64 = 1000;
 
 /// `Ping` event timer timeout
 pub const PING_INTERVAL_MILLIS: u64 = 2500;

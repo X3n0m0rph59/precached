@@ -396,7 +396,9 @@ fn run() -> Result<(), failure::Error> {
 
     let (sender, receiver) = channel();
 
-    let mut last = Instant::now();
+    let mut last_metrics = Instant::now();
+    let mut last_ping = Instant::now();
+
     events::queue_internal_event(EventType::Startup, &mut globals);
     // events::queue_internal_event(EventType::PrimeCaches, &mut globals);
 
@@ -506,12 +508,18 @@ fn run() -> Result<(), failure::Error> {
         // Allow plugins to integrate into the main loop
         plugins::call_main_loop_hook(&mut globals, &mut manager);
 
+        // Update metrics every n seconds
+        if last_metrics.elapsed() > Duration::from_millis(constants::METRICS_INTERVAL_MILLIS) {
+            last_metrics = Instant::now();
+
+            events::queue_internal_event(EventType::GatherStatsAndMetrics, &mut globals);
+        }
+
         // Queue a "Ping" event every n seconds
-        if last.elapsed() > Duration::from_millis(constants::PING_INTERVAL_MILLIS) {
-            last = Instant::now();
+        if last_ping.elapsed() > Duration::from_millis(constants::PING_INTERVAL_MILLIS) {
+            last_ping = Instant::now();
 
             events::queue_internal_event(EventType::Ping, &mut globals);
-            events::queue_internal_event(EventType::GatherStatsAndMetrics, &mut globals);
         }
 
         // Dispatch procmon events
