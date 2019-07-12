@@ -49,7 +49,7 @@ use std::thread;
 use std::time::Duration;
 use term::color::*;
 use term::Attr;
-use termion::event::{Event, Key, MouseEvent};
+use termion::event::{Event, Key, MouseEvent, MouseButton};
 use termion::input::{MouseTerminal, TermRead};
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
@@ -711,6 +711,87 @@ fn process_message(app: &mut Application, msg: ipc::IpcMessage) {
 
 fn process_event(app: &mut Application, evt: Event) {
     match evt {
+        // handle mouse events
+        Event::Mouse(MouseEvent::Press(button, x, y)) => {
+            // println!("{:?}: {},{}", button, x, y);
+
+            if button == MouseButton::WheelUp {
+                match app.tab_index {
+                    // cursor up on main view
+                    0 => {
+                        if app.tracked_processes.len() > 0 {
+                            app.sel_index_processes = app.sel_index_processes.checked_sub(1).unwrap_or_else(|| 0);
+                        }
+                    }
+
+                    // cursor up on events view
+                    1 => {
+                        if app.events.len() > 0 {
+                            app.sel_index_events = app.sel_index_events.checked_sub(1).unwrap_or_else(|| 0);
+                        }
+                    }
+
+                    // cursor up on cached files view
+                    2 => {
+                        if app.cached_files.len() > 0 {
+                            app.sel_index_files = app.sel_index_files.checked_sub(1).unwrap_or_else(|| 0);
+                        }
+                    }
+
+                    _ => { /* Do nothing */ }
+                }
+            } else if button == MouseButton::WheelDown {
+                match app.tab_index {
+                    // cursor down on main view
+                    0 => {
+                        if app.tracked_processes.len() > 0 && app.sel_index_processes < app.tracked_processes.len() - 1 {
+                            if app.sel_index_processes > 0 {
+                                app.sel_index_processes += 1;
+                            } else {
+                                app.sel_index_processes = app.tracked_processes.len() - 1;
+                            }
+                        }
+                    }
+
+                    // cursor down on events view
+                    1 => {
+                        if app.events.len() > 0 && app.sel_index_events < app.events.len() - 1 {
+                            if app.sel_index_events > 0 {
+                                app.sel_index_events += 1;
+                            } else {
+                                app.sel_index_events = app.events.len() - 1;
+                            }
+                        }
+                    }
+
+                    // cursor down on cached files view
+                    2 => {
+                        if app.cached_files.len() > 0 && app.sel_index_files < app.cached_files.len() - 1 {
+                            if app.sel_index_files < app.cached_files.len() - 1 {
+                                app.sel_index_files += 1;
+                            } else {
+                                app.sel_index_files = app.cached_files.len() - 1;
+                            }
+                        }
+                    }
+
+                    _ => { /* Do nothing */ }
+                }
+            } else if y == 2 {
+                if x >= 2 && x <= 12 {
+                    app.tab_index = 0;
+                } else if x >= 14 && x <= 25 {
+                    app.tab_index = 1;
+                } else if x >= 28 && x <= 51 {
+                    app.tab_index = 2;
+                } else if x >= 53 && x <= 66 {
+                    app.tab_index = 3;
+                } else if x >= 68 && x <= 73 {
+                    app.tab_index = 4;
+                }
+            }
+        }
+
         // 'q' for quit
         Event::Key(Key::Char('q')) => {
             // request to quit
