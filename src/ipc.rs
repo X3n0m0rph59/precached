@@ -54,6 +54,7 @@ pub struct ProcessEntry {
     /// Holds the `pid` of the process
     pub pid: libc::pid_t,
     pub comm: String,
+    pub params: Vec<String>,
 }
 
 /// Represents an in-flight trace
@@ -325,9 +326,15 @@ impl IpcServer {
                 let v: Vec<ProcessEntry> = process_tracker
                     .tracked_processes
                     .values()
-                    .map(|v| ProcessEntry {
-                        pid: v.pid,
-                        comm: v.comm.to_string(),
+                    .map(|v| {
+                        let params = v.get_cmdline().unwrap_or_else(|_| "".to_owned());
+                        let params = params.split("\u{0}").map(|p| p.to_owned()).collect();
+
+                        ProcessEntry {
+                            pid: v.pid,
+                            comm: v.comm.to_string(),
+                            params,
+                        }
                     })
                     .collect();
 

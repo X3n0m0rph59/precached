@@ -28,6 +28,7 @@ use chrono::{DateTime, Local, TimeZone, Utc};
 pub struct Process {
     pub pid: libc::pid_t,
     pub comm: String,
+    pub params: Vec<String>,
 }
 
 /// Represents an in-flight trace

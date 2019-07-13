@@ -122,6 +122,7 @@ fn print_license_header() {
 struct ProcessListItem {
     pub pid: libc::pid_t,
     pub comm: String,
+    pub params: Vec<String>,
 }
 
 /// Represents an active trace
@@ -278,7 +279,13 @@ impl Application {
                                 .par_iter()
                                 .map(|v| {
                                     let v = v.clone();
-                                    format!("{} {}", v.pid, v.comm)
+
+                                    let params: String = v
+                                        .params
+                                        .into_iter()
+                                        .map(|p| if p != "" { format!("{} ", p) } else { "".into() })
+                                        .collect();
+                                    format!("{} {}", v.pid, params)
                                 })
                                 .collect();
                         }
@@ -649,6 +656,7 @@ fn process_message(app: &mut Application, msg: ipc::IpcMessage) {
                 let i = ProcessListItem {
                     pid: p.pid,
                     comm: p.comm,
+                    params: p.params,
                 };
 
                 tmp.push(i);
