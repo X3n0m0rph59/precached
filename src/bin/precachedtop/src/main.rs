@@ -283,7 +283,8 @@ impl Application {
                                     let params: String = v
                                         .params
                                         .into_iter()
-                                        .map(|p| if p != "" { format!("{} ", p) } else { "".into() })
+                                        .filter(|p| p.trim() != "")
+                                        .map(|p| format!("{} ", p))
                                         .collect();
                                     format!("{} {}", v.pid, params)
                                 })
@@ -561,7 +562,7 @@ fn main_loop(_config: &mut Config) {
                     request!(socket, ipc::IpcCommand::RequestCachedFiles);
                 }
 
-                thread::sleep(Duration::from_millis(constants::IPC_LOOP_DELAY_MILLIS));
+                socket.poll(zmq::POLLIN, constants::IPC_LOOP_DELAY_MILLIS).unwrap();
 
                 counter += 1;
             }
@@ -615,7 +616,7 @@ fn main_loop(_config: &mut Config) {
         }
 
         // Only render the TUI every nth iteration
-        if counter % 10 == 0 {
+        if counter % 8 == 0 {
             let size = terminal.size().unwrap();
             if size != app.size {
                 terminal.resize(size).unwrap();

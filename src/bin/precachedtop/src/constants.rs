@@ -43,10 +43,10 @@ pub const DATETIME_FORMAT_DEFAULT: &str = "%Y-%m-%d %H:%M:%S";
 pub const NUM_PREFETCHER_THREADS: usize = 4;
 
 /// Delay after each iteration of the main loop
-pub const MAIN_LOOP_DELAY_MILLIS: u64 = 25;
+pub const MAIN_LOOP_DELAY_MILLIS: u64 = 50;
 
 /// Delay after each iteration of the IPC loop
-pub const IPC_LOOP_DELAY_MILLIS: u64 = 400;
+pub const IPC_LOOP_DELAY_MILLIS: i64 = 800;
 
 /// Delay after each iteration of the input-events loop
 pub const INPUT_LOOP_DELAY_MILLIS: u64 = 25;
