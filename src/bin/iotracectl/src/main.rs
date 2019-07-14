@@ -230,7 +230,7 @@ fn get_io_trace_flags(io_trace: &iotrace::IOTraceLog) -> (String, bool, Color) {
     (result, err, color)
 }
 
-fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize, config: &Config, table: &mut Table) {
+fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, _index: usize, config: &Config, table: &mut Table) {
     let matches = config.matches.subcommand_matches("list").unwrap();
     let (flags, _err, color) = get_io_trace_flags(&io_trace);
 
@@ -273,11 +273,11 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
     {
         let (w, _h) = term_size::dimensions().unwrap();
 
-        let max_len = w / 4;
+        let max_len = w / 6;
 
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
-            Cell::new_align(&format!("{}", index), Alignment::RIGHT),
+            // Cell::new_align(&format!("{}", index), Alignment::RIGHT),
             Cell::new(
                 &util::ellipsize_filename(&io_trace.exe.to_string_lossy().into_owned(), max_len)
                     .unwrap_or(String::from("<error>")),
@@ -301,7 +301,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, index: usize,
     }
 }
 
-fn print_io_trace_msg(message: &str, index: usize, config: &Config, table: &mut Table) {
+fn print_io_trace_msg(message: &str, _index: usize, config: &Config, table: &mut Table) {
     let matches = config.matches.subcommand_matches("list").unwrap();
 
     if matches.is_present("full") {
@@ -318,7 +318,7 @@ fn print_io_trace_msg(message: &str, index: usize, config: &Config, table: &mut 
     {
         // Print in "tabular" format (the default)
         table.add_row(Row::new(vec![
-            Cell::new_align(&format!("{}", index), Alignment::RIGHT),
+            // Cell::new_align(&format!("{}", index), Alignment::RIGHT),
             Cell::new(&message)
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(RED)),
@@ -657,7 +657,7 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
 
     // Add table row header
     table.add_row(Row::new(vec![
-        Cell::new("#"),
+        // Cell::new("#"),
         Cell::new(tr!("iotracectl-executable")),
         Cell::new(tr!("iotracectl-hash")),
         Cell::new(tr!("iotracectl-creation-date")),
