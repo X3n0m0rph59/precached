@@ -21,9 +21,13 @@
 pub mod config_file;
 pub mod files;
 pub mod iotrace;
+pub mod mountinfo;
+pub mod namespace;
 pub mod vec;
 
 pub use self::config_file::*;
 pub use self::files::*;
 pub use self::iotrace::*;
 pub use self::vec::*;
+pub use self::mountinfo::*;
+pub use self::namespace::*;

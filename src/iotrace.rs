@@ -32,6 +32,7 @@ use crate::constants;
 use crate::i18n;
 use crate::process::Process;
 use crate::util;
+use crate::util::MountInfo;
 
 /// Represents an I/O operation in an I/O trace log entry
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Serialize, Deserialize)]
@@ -172,7 +173,19 @@ impl IOTraceLog {
         if process.is_ok() {
             let process = process.unwrap();
 
-            let exe = process.get_exe()?;
+            let exe;
+            if let Some(mountinfo) = process.mountinfo.as_ref() {
+                // find the canonical path of the exe, e.g. if the process runs
+                // in a different mount namespace the paths will be differing
+                if let Some(canonical_path) = util::find_source_path(&mountinfo, &PathBuf::from(process.get_exe()?)) {
+                    exe = canonical_path;
+                } else {
+                    exe = process.get_exe()?;
+                }
+            } else {
+                exe = process.get_exe()?;
+            }
+
             let comm = process.get_comm()?;
             let cmdline = process.get_cmdline()?;
 

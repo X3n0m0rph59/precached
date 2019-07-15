@@ -108,7 +108,7 @@ impl FanotifyLogger {
                                 // comm is only used for the syslog output
                                 let mut comm = None;
 
-                                if let Some(process) = process_tracker.get_process(event.pid) {
+                                if let Some(process) = process_tracker.get_process(event.pid).clone() {
                                     comm = Some(process.comm.clone());
                                 } else if let Ok(process) = Process::new(event.pid) {
                                     comm = process.get_comm().ok();
@@ -138,26 +138,47 @@ impl FanotifyLogger {
                                             Occupied(mut tracer_data) => {
                                                 // trace!("Found tracer_data");
 
-                                                // We successfully found tracer data for process `pid`
-                                                // Add an event record to the I/O trace log of that process
-                                                let iotrace_log = &mut tracer_data.get_mut().trace_log;
+                                                if let Some(process) = process_tracker.get_process(event.pid) {
+                                                    if let Some(mountinfo) = process.mountinfo.as_ref() {
+                                                        // find the canonical path of the event.filename, e.g. if the process runs
+                                                        // in a different mount namespace the paths (event and canonical) will be differing
+                                                        if let Some(canonical_path) = util::find_source_path(
+                                                            &mountinfo,
+                                                            &PathBuf::from(event.filename.clone()),
+                                                        ) {
+                                                            // We successfully found tracer data for process `pid`
+                                                            // Add an event record to the I/O trace log of that process
+                                                            let iotrace_log = &mut tracer_data.get_mut().trace_log;
 
-                                                trace!(
-                                                    "Process: '{}' with pid {} opened file: {:?}",
-                                                    comm.clone().unwrap_or_else(|| String::from("<not available>")),
-                                                    event.pid,
-                                                    event.filename
-                                                );
+                                                            trace!(
+                                                                "Process: '{}' with pid {} opened file: {:?}",
+                                                                comm.clone().unwrap_or_else(|| String::from("<not available>")),
+                                                                event.pid,
+                                                                &canonical_path,
+                                                            );
 
-                                                if !Self::is_file_blacklisted(
-                                                    &PathBuf::from(event.filename.clone()),
-                                                    &mut globals_c,
-                                                    &manager_c,
-                                                ) {
-                                                    iotrace_log
-                                                        .add_event(IOOperation::Open(PathBuf::from(event.filename.clone())));
+                                                            if !Self::is_file_blacklisted(
+                                                                &PathBuf::from(canonical_path.clone()),
+                                                                &mut globals_c,
+                                                                &manager_c,
+                                                            ) {
+                                                                iotrace_log.add_event(IOOperation::Open(PathBuf::from(
+                                                                    canonical_path.clone(),
+                                                                )));
+                                                            } else {
+                                                                // trace!("File is blacklisted!");
+                                                            }
+                                                        } else {
+                                                            error!(
+                                                                "Could not get the canonical file name of: {}",
+                                                                &event.filename
+                                                            );
+                                                        }
+                                                    } else {
+                                                        error!("Could not get mount info of process with pid: {}", &event.pid);
+                                                    }
                                                 } else {
-                                                    // trace!("File is blacklisted!");
+                                                    trace!("Could not get process' status of pid: {}", &event.pid);
                                                 }
                                             }
 

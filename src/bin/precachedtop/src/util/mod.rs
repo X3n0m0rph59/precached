@@ -20,6 +20,10 @@
 
 pub mod config_file;
 pub mod files;
+pub mod mountinfo;
+pub mod namespace;
 
 pub use self::config_file::*;
 pub use self::files::*;
+pub use self::mountinfo::*;
+pub use self::namespace::*;

@@ -25,6 +25,7 @@ use std::path::{Path, PathBuf};
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use lazy_static::lazy_static;
 use regex::*;
+use crate::util::MountInfo;
 use crate::util;
 
 lazy_static! {
@@ -59,6 +60,10 @@ pub struct Process {
     /// NOTE: This is not dynamically fetched (see above)
     pub exe_name: PathBuf,
 
+    /// The parsed content of `/proc/self/mountinfo`, used for mapping files between
+    /// different mount namespaces
+    pub mountinfo: Option<Vec<MountInfo>>,
+
     // Is the process alive or has it vanished?
     pub is_dead: bool,
 }
@@ -80,10 +85,13 @@ impl Process {
             Ok(r) => {
                 let exe_name = PathBuf::from(r.to_str().unwrap().trim());
 
+                let mountinfo = util::parse_proc_mountinfo(pid).ok();
+
                 Process {
                     pid,
                     comm: comm.clone(),
                     exe_name: exe_name.clone(),
+                    mountinfo,
                     is_dead: false,
                 }
             }
