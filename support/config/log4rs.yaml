@@ -22,7 +22,7 @@ appenders:
 
   # logfile:
   #   kind: file
-  #   path: "/var/log//precached/precached.log"
+  #   path: "/var/log/precached/precached.log"
   #   encoder:
   #     pattern: "{d(%Y-%m-%d %H:%M:%S %Z)} [{l}]: {M}:{L} - {m}{n}"
 
