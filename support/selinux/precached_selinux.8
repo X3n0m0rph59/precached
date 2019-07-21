@@ -1,4 +1,4 @@
-.TH  "precached_selinux"  "8"  "19-07-19" "precached" "SELinux Policy precached"
+.TH  "precached_selinux"  "8"  "19-07-21" "precached" "SELinux Policy precached"
 .SH "NAME"
 precached_selinux \- Security Enhanced Linux Policy for the precached processes
 .SH "DESCRIPTION"
@@ -18,7 +18,7 @@ The precached_t SELinux type can be entered via the \fBprecached_exec_t\fP file 
 
 The default entrypoint paths for the precached_t domain are the following:
 
-/usr/sbin/precached, /usr/bin/precachedtop, /usr/bin/precached-gui, /usr/sbin/precachedctl, /usr/sbin/precached-debug, /usr/bin/precached-trigger
+/usr/sbin/rulesctl, /usr/sbin/precached, /usr/sbin/iotracectl, /usr/bin/precachedtop, /usr/bin/precached-gui, /usr/sbin/precachedctl, /usr/sbin/precached-debug, /usr/bin/precached-trigger
 .SH PROCESS TYPES
 SELinux defines process types (domains) for each process running on the system
 .PP
@@ -236,7 +236,7 @@ Note: SELinux often uses regular expressions to specify labels that match multip
 .br
 .TP 5
 Paths:
-/usr/sbin/precached, /usr/bin/precachedtop, /usr/bin/precached-gui, /usr/sbin/precachedctl, /usr/sbin/precached-debug, /usr/bin/precached-trigger
+/usr/sbin/rulesctl, /usr/sbin/precached, /usr/sbin/iotracectl, /usr/bin/precachedtop, /usr/bin/precached-gui, /usr/sbin/precachedctl, /usr/sbin/precached-debug, /usr/bin/precached-trigger
 
 .EX
 .PP

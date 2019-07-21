@@ -5,6 +5,8 @@
 restorecon -R /usr/sbin/precached; \
 restorecon -R /usr/sbin/precachedctl; \
 restorecon -R /usr/sbin/precached-debug; \
+restorecon -R /usr/sbin/iotracectl; \
+restorecon -R /usr/sbin/rulesctl; \
 restorecon -R /usr/bin/precachedtop; \
 restorecon -R /usr/bin/precached-trigger; \
 restorecon -R /usr/bin/precached-gui; \
@@ -12,10 +14,10 @@ restorecon -R /var/lib/precached; \
 restorecon -R /var/run/precached; \
 restorecon -R /var/log/precached; \
 
-%define selinux_policyver 1.2.1
+%define selinux_policyver 1.3.1
 
 Name:   precached_selinux
-Version:	1.2
+Version:	1.3
 Release:	1%{?dist}
 Summary:	SELinux policy module for precached
 
@@ -74,6 +76,8 @@ exit 0
 
 
 %changelog
+* Thu Jul 21 2019 Ivo Damjanovic <ivo@damjanovic.it> 1.3-1
+- added iotracectl rulesctl to binaries
 * Thu Jul 19 2019 Ivo Damjanovic <ivo@damjanovic.it> 1.2-1
 - added var_run_t var_lib_t to allow rules
 * Thu Jul 19 2019 Ivo Damjanovic <ivo@damjanovic.it> 1.1-1
