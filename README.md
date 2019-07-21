@@ -22,6 +22,7 @@ programs while the system is idle.
 ```shell
     $ sudo dnf copr enable x3n0m0rph59/precached
     $ sudo dnf install precached
+    $ sudo dnf install precached_selinux
 ```
 
 ### Install on Ubuntu
