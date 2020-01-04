@@ -3,9 +3,9 @@ Upstream-Name: precached
 Source: <url://example.com>
 
 Files: *
-Copyright: 2017-2019 the precached team
+Copyright: 2017-2020 the precached team
 License: GPL-3+
 
 Files: debian/*
-Copyright: 2017-2019 the precached team
+Copyright: 2017-2020 the precached team
 License: GPL-3+

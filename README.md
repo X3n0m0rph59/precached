@@ -133,4 +133,4 @@ If you are new to Open Source software, you may want to read
 
 ### Authors
 
-precached - Copyright (C) 2017-2019 the precached developers
+precached - Copyright (C) 2017-2020 the precached developers
