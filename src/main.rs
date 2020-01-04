@@ -51,6 +51,7 @@ use ansi_term::Style;
 use nix::sys::signal;
 use failure::{Error, Fail, format_err};
 use failure_derive::*;
+use crate::i18n::initialize_i18n;
 
 mod config;
 mod config_file;
@@ -345,6 +346,7 @@ fn run() -> Result<(), failure::Error> {
     // Register signal handlers
     setup_signal_handlers()?;
 
+    // create the process monitor instance
     let procmon = match ProcMon::new() {
         Ok(inst) => inst,
         Err(s) => {

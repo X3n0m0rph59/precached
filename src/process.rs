@@ -76,8 +76,7 @@ impl Process {
 
         let tmp = format!("/proc/{}/exe", pid);
         let filename = Path::new(&tmp);
-        let mut buffer: [u8; 8192] = [0; 8192];
-        let result = nix::fcntl::readlink(filename, &mut buffer);
+        let result = nix::fcntl::readlink(filename);
 
         let process = match result {
             Err(_e) => return Err(io::Error::new(ErrorKind::Other, "Could not get process' executable name")),
@@ -150,8 +149,7 @@ impl Process {
         let tmp = format!("/proc/{}/exe", self.pid);
         let filename = Path::new(&tmp);
 
-        let mut buffer: [u8; 8192] = [0; 8192];
-        let result = nix::fcntl::readlink(filename, &mut buffer);
+        let result = nix::fcntl::readlink(filename);
 
         match result {
             Err(_e) => Err("Could not get executable file name!"),

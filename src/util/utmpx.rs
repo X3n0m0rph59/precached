@@ -24,7 +24,6 @@ use std::path::{Path, PathBuf};
 use std::result::Result;
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt, WriteBytesExt};
 use enum_primitive::*;
-use time::Timespec;
 
 enum_from_primitive! {
     #[derive(Debug, Clone, Copy, PartialEq)]
