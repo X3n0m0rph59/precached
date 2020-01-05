@@ -175,7 +175,7 @@ fn filter_matches(matches: &ArgMatches, _filename: &String, io_trace: &iotrace::
         if let Some(flags) = matches.value_of("flags") {
             let (result, _err, _color) = util::get_io_trace_flags_and_err(io_trace);
 
-            let value = flags.to_lowercase();
+            let value = &flags.to_lowercase();
 
             if result.contains(&IOTraceLogFlag::Valid) && value == tr!("filter-valid") {
                 return true;
@@ -219,7 +219,7 @@ fn get_io_trace_flags(io_trace: &iotrace::IOTraceLog) -> (String, bool, Color) {
     let mut index = 0;
     let len = flags.len();
     for e in flags {
-        result += iotrace::map_io_trace_flag_to_string(e);
+        result += &iotrace::map_io_trace_flag_to_string(e);
 
         if index < len - 1 {
             result += ", ";
@@ -301,6 +301,7 @@ fn print_io_trace(filename: &Path, io_trace: &iotrace::IOTraceLog, _index: usize
     }
 }
 
+#[allow(clippy::if_same_then_else)]
 fn print_io_trace_msg(message: &str, _index: usize, config: &Config, table: &mut Table) {
     let matches = config.matches.subcommand_matches("list").unwrap();
 
@@ -322,13 +323,13 @@ fn print_io_trace_msg(message: &str, _index: usize, config: &Config, table: &mut
             Cell::new(&message)
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(RED)),
-            Cell::new(&tr!("na")),
-            Cell::new(&tr!("na")),
-            Cell::new(&tr!("na")),
-            Cell::new(&tr!("na")),
-            Cell::new(&tr!("na")),
-            Cell::new(&tr!("na")),
-            Cell::new(&tr!("na")),
+            Cell::new(tr!("na")),
+            Cell::new(tr!("na")),
+            Cell::new(tr!("na")),
+            Cell::new(tr!("na")),
+            Cell::new(tr!("na")),
+            Cell::new(tr!("na")),
+            Cell::new(tr!("na")),
         ]));
     }
 }
@@ -373,37 +374,37 @@ fn print_io_trace_subsystem_status(config: &Config, daemon_config: util::ConfigF
 
     // Print in "tabular" format (the default)
     table.add_row(Row::new(vec![
-        Cell::new(&tr!("iotracectl-fanotify-trace-logger")).with_style(Attr::Bold),
-        Cell::new(&tr!("iotracectl-fanotify-trace-logger-desc")).with_style(Attr::Italic(true)),
-        Cell::new(&tr!("iotracectl-type-1")),
-        Cell::new(&tr!(&format!("{}", fanotify_logger_enabled)))
+        Cell::new(tr!("iotracectl-fanotify-trace-logger")).with_style(Attr::Bold),
+        Cell::new(tr!("iotracectl-fanotify-trace-logger-desc")).with_style(Attr::Italic(true)),
+        Cell::new(tr!("iotracectl-type-1")),
+        Cell::new(tr!(&format!("{}", fanotify_logger_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(fanotify_logger_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&tr!("iotracectl-prefetcher")).with_style(Attr::Bold),
-        Cell::new(&tr!("iotracectl-replay")).with_style(Attr::Italic(true)),
-        Cell::new(&tr!("iotracectl-hook")),
-        Cell::new(&tr!(&format!("{}", iotrace_prefetcher_enabled)))
+        Cell::new(tr!("iotracectl-prefetcher")).with_style(Attr::Bold),
+        Cell::new(tr!("iotracectl-replay")).with_style(Attr::Italic(true)),
+        Cell::new(tr!("iotracectl-hook")),
+        Cell::new(tr!(&format!("{}", iotrace_prefetcher_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(iotrace_prefetcher_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&tr!("iotracectl-trace-log-manager")).with_style(Attr::Bold),
-        Cell::new(&tr!("iotracectl-manage-trace-logs")).with_style(Attr::Italic(true)),
-        Cell::new(&tr!("iotracectl-plugin")),
-        Cell::new(&tr!(&format!("{}", iotrace_log_manager_enabled)))
+        Cell::new(tr!("iotracectl-trace-log-manager")).with_style(Attr::Bold),
+        Cell::new(tr!("iotracectl-manage-trace-logs")).with_style(Attr::Italic(true)),
+        Cell::new(tr!("iotracectl-plugin")),
+        Cell::new(tr!(&format!("{}", iotrace_log_manager_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(iotrace_log_manager_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&tr!("iotracectl-trace-log-cache")).with_style(Attr::Bold),
-        Cell::new(&tr!("iotracectl-cache-lock")).with_style(Attr::Italic(true)),
-        Cell::new(&tr!("iotracectl-plugin")),
-        Cell::new(&tr!(&format!("{}", iotrace_log_cache_enabled)))
+        Cell::new(tr!("iotracectl-trace-log-cache")).with_style(Attr::Bold),
+        Cell::new(tr!("iotracectl-cache-lock")).with_style(Attr::Italic(true)),
+        Cell::new(tr!("iotracectl-plugin")),
+        Cell::new(tr!(&format!("{}", iotrace_log_cache_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(iotrace_log_cache_enabled))),
     ]));
@@ -456,6 +457,7 @@ fn parse_sort_field(matches: &clap::ArgMatches) -> SortField {
     }
 }
 
+#[allow(clippy::if_same_then_else)]
 fn parse_sort_order(matches: &clap::ArgMatches) -> SortOrder {
     match matches.value_of("order") {
         None => SortOrder::Ascending,
@@ -661,8 +663,8 @@ fn list_io_traces(config: &Config, daemon_config: util::ConfigFile) {
         Cell::new(tr!("iotracectl-executable")),
         Cell::new(tr!("iotracectl-hash")),
         Cell::new(tr!("iotracectl-creation-date")),
-        // Cell::new(tr!("Trace End Date")),
-        // Cell::new(tr!("Compression")),
+        //  Cell::new(tr!("Trace End Date")),
+        //  Cell::new(tr!("Compression")),
         Cell::new(tr!("iotracectl-num-files")),
         Cell::new(tr!("iotracectl-num-ioops")),
         Cell::new(tr!("iotracectl-iosize")),
@@ -887,7 +889,7 @@ fn get_io_trace_entry_flags(entry: &iotrace::TraceLogEntry) -> (String, bool, Co
     let mut index = 0;
     let len = flags.len();
     for e in flags {
-        result += iotrace::map_io_trace_log_entry_flag_to_string(e);
+        result += &iotrace::map_io_trace_log_entry_flag_to_string(e);
 
         if index < len - 1 {
             result += ", ";
@@ -1215,7 +1217,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&tr!("iotracectl-failed"))
+                    Cell::new(tr!("iotracectl-failed"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(RED)),
                 ]));
@@ -1228,7 +1230,7 @@ fn optimize_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&tr!("iotracectl-optimized"))
+                    Cell::new(tr!("iotracectl-optimized"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN)),
                 ]));
@@ -1328,7 +1330,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&tr!("iotracectl-error"))
+                    Cell::new(tr!("iotracectl-error"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(RED)),
                 ]));
@@ -1341,7 +1343,7 @@ fn remove_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&tr!("removed"))
+                    Cell::new(tr!("removed"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN)),
                 ]));
@@ -1407,8 +1409,8 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
     // Add table row header
     table.add_row(Row::new(vec![
         Cell::new("#"),
-        Cell::new(&tr!("iotracectl-io-trace-log")),
-        Cell::new(&tr!("status")),
+        Cell::new(tr!("iotracectl-io-trace-log")),
+        Cell::new(tr!("status")),
     ]));
 
     match util::walk_directories(&[traces_path], &mut |path| {
@@ -1420,7 +1422,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&path.to_string_lossy()).with_style(Attr::Bold),
-                    Cell::new(&tr!("error"))
+                    Cell::new(tr!("error"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(RED)),
                 ]));
@@ -1431,7 +1433,7 @@ fn clear_io_traces(config: &Config, daemon_config: util::ConfigFile) {
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&path.to_string_lossy()).with_style(Attr::Bold),
-                    Cell::new(&tr!("removed"))
+                    Cell::new(tr!("removed"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN)),
                 ]));

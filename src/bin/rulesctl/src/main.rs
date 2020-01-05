@@ -156,27 +156,27 @@ fn display_status(config: &Config, daemon_config: &util::ConfigFile) {
     // Print in "tabular" format (the default)
     table.add_row(Row::new(vec![
         Cell::new(&"precached").with_style(Attr::Bold),
-        Cell::new(&tr!("precached-description")).with_style(Attr::Italic(true)),
-        Cell::new(&tr!("daemon")),
+        Cell::new(tr!("precached-description")).with_style(Attr::Italic(true)),
+        Cell::new(tr!("daemon")),
         Cell::new(tr!(&format!("{}", is_precached_running)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(is_precached_running))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&tr!("rule-engine")).with_style(Attr::Bold),
-        Cell::new(&tr!("rulesctl-manage-rules-files")).with_style(Attr::Italic(true)),
-        Cell::new(&tr!("plugin")),
-        Cell::new(&tr!(&format!("{}", rules_engine_enabled)))
+        Cell::new(tr!("rule-engine")).with_style(Attr::Bold),
+        Cell::new(tr!("rulesctl-manage-rules-files")).with_style(Attr::Italic(true)),
+        Cell::new(tr!("plugin")),
+        Cell::new(tr!(&format!("{}", rules_engine_enabled)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(rules_engine_enabled))),
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new(&tr!("rule-hook")).with_style(Attr::Bold),
-        Cell::new(&tr!("rulesctl-rule-hook-desc")).with_style(Attr::Italic(true)),
-        Cell::new(&tr!("hook")),
-        Cell::new(&tr!(&format!("{}", true)))
+        Cell::new(tr!("rule-hook")).with_style(Attr::Bold),
+        Cell::new(tr!("rulesctl-rule-hook-desc")).with_style(Attr::Italic(true)),
+        Cell::new(tr!("hook")),
+        Cell::new(tr!(&format!("{}", true)))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(map_bool_to_color(true))),
     ]));

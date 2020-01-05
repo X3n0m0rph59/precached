@@ -64,8 +64,6 @@ impl Globals {
     // }
 
     pub fn get_config_file(&self) -> &ConfigFile {
-        let config_file = self.config.config_file.as_ref().unwrap();
-
-        config_file
+        self.config.config_file.as_ref().unwrap()
     }
 }

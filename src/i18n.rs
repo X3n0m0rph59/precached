@@ -26,105 +26,96 @@ use std::io::{self, Write};
 use std::cell::RefCell;
 use std::thread;
 use std::boxed;
+use std::borrow::Borrow;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use lazy_static::lazy_static;
-use fluent::{FluentResource, FluentBundle};
+use fluent_bundle::{FluentResource, FluentBundle, FluentValue, FluentError};
+use unic_langid::{LanguageIdentifier, langid};
 
-static LOCALES: &[&'static str] = &["locale"];
+static LOCALES: &[&str] = &["locale"];
 
 lazy_static! {
     pub static ref LANG: String = env::var("LANG").unwrap_or_else(|_| "C".to_string());
-}
-
-thread_local! {
-    pub static I18N_STATE: RefCell<FluentBundle<'static>> = RefCell::new(initialize_i18n());
+    pub static ref I18N_STATE: Box<FluentBundle<FluentResource>> = initialize_i18n();
 }
 
 #[macro_export]
 macro_rules! tr {
-    ($msgid:expr) => ({
-        use crate::i18n::I18N_STATE;
-        I18N_STATE.with(|s| {
-            let bundle = s.borrow();
+    ($msgid:expr) => {{
+        match crate::i18n::I18N_STATE.get_message($msgid) {
+            None => panic!("Could not translate: '{}'", $msgid),
 
-            match bundle.format($msgid, None) {
-                None => panic!("Could not translate: '{}'", $msgid),
+            Some(msg) => {
+                let mut errors: Vec<fluent_bundle::FluentError> = vec![];
+                let result = crate::i18n::I18N_STATE
+                    .format_pattern(&msg.value.unwrap(), None, &mut errors)
+                    .to_string();
 
-                Some((msg, _errors)) => {
-                    let b = Box::new(msg.clone());
-
-                    Box::leak(b).as_str()
-                }
+                let b = Box::new(result.clone());
+                Box::leak(b).as_str()
             }
-        })
-    });
+        }
+    }};
 
-    ($msgid:expr, $($k: expr => $v: expr),*) => ({
-        use crate::i18n::I18N_STATE;
-        I18N_STATE.with(|s| {
-            let bundle = s.borrow();
+    ($msgid:expr, $($k: expr => $v: expr),*) => {{
+         let mut args = std::collections::HashMap::new();
 
-            let mut args = std::collections::HashMap::new();
+         $(
+             args.insert($k, fluent_bundle::FluentValue::from($v));
+          )*
 
-            $(
-                args.insert($k, fluent::FluentValue::from($v));
-            )*
+        match crate::i18n::I18N_STATE.get_message($msgid) {
+            None => panic!("Could not translate: '{}'", $msgid),
 
-            match bundle.format($msgid, Some(&args)) {
-                None => panic!("Could not translate: '{}'", $msgid),
+            Some(msg) => {
+                let mut errors: Vec<fluent_bundle::FluentError> = vec![];
+                let result = crate::i18n::I18N_STATE
+                    .format_pattern(&msg.value.unwrap(), Some(&args), &mut errors)
+                    .to_string();
 
-                Some((msg, _errors)) => {
-                    let b = Box::new(msg.clone());
-
-                    Box::leak(b).as_str()
-                }
+                let b = Box::new(result.clone());
+                Box::leak(b).as_str()
             }
-        })
-    });
+        }
+    }};
 }
 
 #[macro_export]
 macro_rules! println_tr {
-    ($msgid:expr) => ({
-        use crate::i18n::I18N_STATE;
-        I18N_STATE.with(|s| {
-            let bundle = s.borrow();
+    ($msgid:expr) => {{
+        match crate::i18n::I18N_STATE.get_message($msgid) {
+            None => panic!("Could not translate: '{}'", $msgid),
 
-            match bundle.format($msgid, None) {
-                None => panic!("Could not translate: '{}'", $msgid),
+            Some(msg) => {
+                let mut errors: Vec<fluent_bundle::FluentError> = vec![];
+                let msg = crate::i18n::I18N_STATE.format_pattern(&msg.value.unwrap(), None, &mut errors);
 
-                Some((msg, _errors)) => {
-                    println!("{}", msg.clone().as_str());
-                }
+                println!("{}", &msg);
             }
-        })
-    });
+        }
+    }};
 
-    ($msgid:expr, $($k: expr => $v: expr),*) => ({
-        use crate::i18n::I18N_STATE;
-        I18N_STATE.with(|s| {
-            let bundle = s.borrow();
+    ($msgid:expr, $($k: expr => $v: expr),*) => {{
+         let mut args = std::collections::HashMap::new();
 
-            let mut args = std::collections::HashMap::new();
+         $(
+             args.insert($k, fluent_bundle::FluentValue::from($v));
+          )*
 
-            $(
-                args.insert($k, fluent::FluentValue::from($v));
-            )*
+        match crate::i18n::I18N_STATE.get_message($msgid) {
+            None => panic!("Could not translate: '{}'", $msgid),
 
-            match bundle.format($msgid, Some(&args)) {
-                None => panic!("Could not translate: '{}'", $msgid),
+            Some(msg) => {
+                let mut errors: Vec<fluent_bundle::FluentError> = vec![];
+                let msg = crate::i18n::I18N_STATE.format_pattern(&msg.value.unwrap(), Some(&args), &mut errors);
 
-                Some((msg, _errors)) => {
-                    println!("{}", msg.clone().as_str());
-                }
+                println!("{}", &msg);
             }
-        })
-    });
+        }
+    }};
 }
 
-pub fn initialize_i18n() -> FluentBundle<'static> {
-    let bundle = FluentBundle::new(LOCALES);
-
+pub fn initialize_i18n() -> Box<FluentBundle<FluentResource>> {
     // release builds shall use system dirs
     #[cfg(not(debug_assertions))]
     let prefix = "/usr/share/precached/";
@@ -145,31 +136,24 @@ pub fn initialize_i18n() -> FluentBundle<'static> {
                 }
 
                 Ok(msgs) => {
-                    let mut bundle = FluentBundle::new(LOCALES);
+                    let mut bundle = Box::new(FluentBundle::new(&[LanguageIdentifier::from(langid!("en_US"))]));
                     let res = Box::new(FluentResource::try_new(msgs.to_string()).expect("Could not parse translations!"));
 
-                    bundle.add_resource(Box::leak(res)).expect("Could not add translation message!");
+                    bundle.add_resource(*res).expect("Could not add translation message!");
 
-                    I18N_STATE.with(|r| {
-                        let mut o = r.borrow_mut();
-                        *o = bundle;
-                    });
+                    Box::from(bundle)
                 }
             }
         }
 
         Ok(msgs) => {
-            let mut bundle = FluentBundle::new(LOCALES);
+            let li: LanguageIdentifier = LANG.parse().unwrap();
+            let mut bundle = Box::new(FluentBundle::new(&[LanguageIdentifier::from(li)]));
             let res = Box::new(FluentResource::try_new(msgs.to_string()).expect("Could not parse translations!"));
 
-            bundle.add_resource(Box::leak(res)).expect("Could not add translation message!");
+            bundle.add_resource(*res).expect("Could not add translation message!");
 
-            I18N_STATE.with(|r| {
-                let mut o = r.borrow_mut();
-                *o = bundle;
-            });        
+            Box::from(bundle)
         }
     }
-
-    bundle
 }

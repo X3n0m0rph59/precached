@@ -49,14 +49,12 @@ where
                 .help(tr!("precachedtop-output-verbosity")),
         )
         .subcommand(
-            SubCommand::with_name("help")
-                .setting(AppSettings::DeriveDisplayOrder)
-                .about(tr!("precachedtop-help")),
+            SubCommand::with_name("help").setting(AppSettings::DeriveDisplayOrder), // .about(tr!("precachedtop-help")),
         )
         .subcommand(
             SubCommand::with_name("completions")
                 .setting(AppSettings::Hidden)
-                .about(tr!("precachedtop-completions"))
+                // .about(tr!("precachedtop-completions"))
                 .arg(
                     Arg::with_name("SHELL")
                         .required(true)

@@ -148,7 +148,7 @@ pub fn blacklist_io_traces(config: &Config, daemon_config: util::ConfigFile, bla
                 table.add_row(Row::new(vec![
                     Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
                     Cell::new(&filename).with_style(Attr::Bold),
-                    Cell::new(&tr!("iotracectl-failed"))
+                    Cell::new(tr!("iotracectl-failed"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(RED)),
                 ]));
@@ -158,11 +158,11 @@ pub fn blacklist_io_traces(config: &Config, daemon_config: util::ConfigFile, bla
 
             Ok(_) => {
                 let cell = if blacklist {
-                    Cell::new(&tr!("iotracectl-blacklisted"))
+                    Cell::new(tr!("iotracectl-blacklisted"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW))
                 } else {
-                    Cell::new(&tr!("iotracectl-unblacklisted"))
+                    Cell::new(tr!("iotracectl-unblacklisted"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN))
                 };

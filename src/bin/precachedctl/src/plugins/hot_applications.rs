@@ -104,9 +104,9 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
 
             table.add_row(Row::new(vec![
                 Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                Cell::new(&tr!("executable")),
-                Cell::new(&tr!("hash")),
-                Cell::new_align(&tr!("count"), Alignment::RIGHT),
+                Cell::new(tr!("executable")),
+                Cell::new(tr!("hash")),
+                Cell::new_align(tr!("count"), Alignment::RIGHT),
             ]));
 
             let mut index = 0;
@@ -119,7 +119,7 @@ pub fn list(config: &Config, daemon_config: util::ConfigFile, show_all: bool) {
                     Err(_) => {
                         table.add_row(Row::new(vec![
                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
-                            Cell::new(&tr!("precachedctl-missing-io-trace-log")).with_style(Attr::Italic(true)),
+                            Cell::new(tr!("precachedctl-missing-io-trace-log")).with_style(Attr::Italic(true)),
                             Cell::new(&hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
                         ]));
@@ -208,10 +208,10 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
             table.add_row(Row::new(vec![
                 Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                Cell::new(&tr!("executable")),
-                Cell::new(&tr!("hash")),
-                Cell::new_align(&tr!("count"), Alignment::RIGHT),
-                Cell::new(&tr!("status")),
+                Cell::new(tr!("executable")),
+                Cell::new(tr!("hash")),
+                Cell::new_align(tr!("count"), Alignment::RIGHT),
+                Cell::new(tr!("status")),
             ]));
 
             let mut index = 0;
@@ -226,10 +226,10 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
 
                         table.add_row(Row::new(vec![
                             Cell::new_align(&format!("{}", index + 1), Alignment::RIGHT),
-                            Cell::new(&tr!("precachedctl-missing-io-trace-log")).with_style(Attr::Italic(true)),
+                            Cell::new(tr!("precachedctl-missing-io-trace-log")).with_style(Attr::Italic(true)),
                             Cell::new(&hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
-                            Cell::new(&tr!("removed"))
+                            Cell::new(tr!("removed"))
                                 .with_style(Attr::Bold)
                                 .with_style(Attr::ForegroundColor(RED)),
                         ]));
@@ -249,7 +249,7 @@ pub fn optimize(config: &Config, daemon_config: util::ConfigFile) {
                             Cell::new(&filename).with_style(Attr::Bold),
                             Cell::new(&iotrace.hash).with_style(Attr::Bold),
                             Cell::new_align(&format!("{}", count), Alignment::RIGHT).with_style(Attr::Bold),
-                            Cell::new(&tr!("valid").to_string())
+                            Cell::new(tr!("valid"))
                                 .with_style(Attr::Bold)
                                 .with_style(Attr::ForegroundColor(GREEN)),
                         ]));

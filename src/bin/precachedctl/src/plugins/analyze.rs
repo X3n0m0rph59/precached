@@ -113,30 +113,30 @@ where
     T: Display + PartialOrd,
 {
     match r {
-        None => Cell::new(&tr!("valid"))
+        None => Cell::new(tr!("valid"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(GREEN)),
 
         Some(range) => match o {
-            None => Cell::new(&tr!("missing"))
+            None => Cell::new(tr!("missing"))
                 .with_style(Attr::Bold)
                 .with_style(Attr::ForegroundColor(YELLOW)),
 
             Some(ref val) => {
                 if range.err_range.contains_val(val) {
-                    Cell::new(&tr!("error").to_string())
+                    Cell::new(tr!("error"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(RED))
                 } else if range.warn_range.contains_val(val) {
-                    Cell::new(&tr!("warn").to_string())
+                    Cell::new(tr!("warn"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW))
                 } else if range.valid_range.contains_val(val) {
-                    Cell::new(&tr!("valid").to_string())
+                    Cell::new(tr!("valid"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN))
                 } else {
-                    Cell::new(&tr!("out-of-range").to_string())
+                    Cell::new(tr!("out-of-range"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW))
                 }
@@ -147,28 +147,28 @@ where
 
 fn fmt_cell_bool(o: Option<bool>, r: Option<bool>) -> Cell {
     match r {
-        None => Cell::new(&tr!("valid").to_string())
+        None => Cell::new(tr!("valid"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(GREEN)),
 
         Some(range) => {
             if range {
                 match o {
-                    None => Cell::new(&tr!("missing"))
+                    None => Cell::new(tr!("missing"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW)),
 
-                    Some(_) => Cell::new(&tr!("warn"))
+                    Some(_) => Cell::new(tr!("warn"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW)),
                 }
             } else {
                 match o {
-                    None => Cell::new(&tr!("missing"))
+                    None => Cell::new(tr!("missing"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(YELLOW)),
 
-                    Some(_) => Cell::new(&tr!("valid"))
+                    Some(_) => Cell::new(tr!("valid"))
                         .with_style(Attr::Bold)
                         .with_style(Attr::ForegroundColor(GREEN)),
                 }
@@ -178,7 +178,7 @@ fn fmt_cell_bool(o: Option<bool>, r: Option<bool>) -> Cell {
 }
 
 fn fmt_cell_datetime(_o: Option<DateTime<Utc>>) -> Cell {
-    Cell::new(&tr!("valid"))
+    Cell::new(tr!("valid"))
         .with_style(Attr::Bold)
         .with_style(Attr::ForegroundColor(GREEN))
 }
@@ -188,19 +188,19 @@ where
     T: PartialOrd + PartialEq,
 {
     if r.is_none() {
-        Cell::new(&tr!("out-of-range"))
+        Cell::new(tr!("out-of-range"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(YELLOW))
     } else if o.is_none() {
-        Cell::new(&tr!("missing"))
+        Cell::new(tr!("missing"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(YELLOW))
     } else if o.unwrap() >= r.unwrap() {
-        Cell::new(&tr!("valid"))
+        Cell::new(tr!("valid"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(GREEN))
     } else {
-        Cell::new(&tr!("warn"))
+        Cell::new(tr!("warn"))
             .with_style(Attr::Bold)
             .with_style(Attr::ForegroundColor(YELLOW))
     }
@@ -229,9 +229,9 @@ pub fn display_internal_state(config: &Config, _daemon_config: &util::ConfigFile
 
                                     table.add_row(Row::new(vec![
                                         Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                                        Cell::new(&tr!("key")),
-                                        Cell::new(&tr!("value")),
-                                        Cell::new(&tr!("status")),
+                                        Cell::new(tr!("key")),
+                                        Cell::new(tr!("value")),
+                                        Cell::new(tr!("status")),
                                     ]));
 
                                     let field_defs = vec![
@@ -382,9 +382,9 @@ pub fn display_global_stats(config: &Config, _daemon_config: &util::ConfigFile) 
 
                                     table.add_row(Row::new(vec![
                                         Cell::new_align(&String::from("#"), Alignment::RIGHT),
-                                        Cell::new(&tr!("key")),
-                                        Cell::new(&tr!("value")),
-                                        Cell::new(&tr!("status")),
+                                        Cell::new(tr!("key")),
+                                        Cell::new(tr!("value")),
+                                        Cell::new(tr!("status")),
                                     ]));
 
                                     let field_defs = vec![(

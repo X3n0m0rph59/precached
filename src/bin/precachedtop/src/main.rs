@@ -203,7 +203,7 @@ impl Application {
             sel_index_events: 0,
             events: vec![EventListItem {
                 datetime: Utc::now(),
-                msg: String::from(tr!("beginning-of-log")),
+                msg: tr!("beginning-of-log").to_owned(),
             }],
 
             sel_index_files: 0,
@@ -337,7 +337,7 @@ impl Application {
                                 ctr += 1;
                             }
                         } else {
-                            prefetcher.push(String::from(tr!("no-data")));
+                            prefetcher.push(tr!("no-data").to_owned());
                         }
 
                         SelectableList::default()
@@ -437,7 +437,7 @@ impl Application {
 
                         Block::default().title(tr!("help")).render(&mut f, chunks[0]);
 
-                        let text = [Text::raw(tr!("license-text"))];
+                        let text = [Text::raw(tr!("license-text").to_owned())];
                         Paragraph::new(text.iter()).render(&mut f, chunks[1]);
                     }
 

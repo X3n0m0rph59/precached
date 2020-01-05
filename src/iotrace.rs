@@ -80,13 +80,13 @@ pub enum IOTraceLogEntryFlag {
     MissingFile,
 }
 
-pub fn map_io_trace_log_entry_flag_to_string(flag: IOTraceLogEntryFlag) -> &'static str {
+pub fn map_io_trace_log_entry_flag_to_string(flag: IOTraceLogEntryFlag) -> String {
     match flag {
-        IOTraceLogEntryFlag::Unknown => tr!("unknown"),
-        IOTraceLogEntryFlag::Valid => tr!("valid"),
-        IOTraceLogEntryFlag::Invalid => tr!("invalid"),
-        IOTraceLogEntryFlag::OK => tr!("ok"),
-        IOTraceLogEntryFlag::MissingFile => tr!("missing-file"),
+        IOTraceLogEntryFlag::Unknown => tr!("unknown").to_owned(),
+        IOTraceLogEntryFlag::Valid => tr!("valid").to_owned(),
+        IOTraceLogEntryFlag::Invalid => tr!("invalid").to_owned(),
+        IOTraceLogEntryFlag::OK => tr!("ok").to_owned(),
+        IOTraceLogEntryFlag::MissingFile => tr!("missing-file").to_owned(),
     }
 }
 
@@ -115,16 +115,16 @@ pub enum IOTraceLogFlag {
     MissingBinary,
 }
 
-pub fn map_io_trace_flag_to_string(flag: IOTraceLogFlag) -> &'static str {
+pub fn map_io_trace_flag_to_string(flag: IOTraceLogFlag) -> String {
     match flag {
-        IOTraceLogFlag::Unknown => tr!("unknown"),
-        IOTraceLogFlag::Valid => tr!("valid"),
-        IOTraceLogFlag::Invalid => tr!("invalid"),
-        IOTraceLogFlag::Fresh => tr!("fresh"),
-        IOTraceLogFlag::Expired => tr!("expired"),
-        IOTraceLogFlag::Current => tr!("current"),
-        IOTraceLogFlag::Outdated => tr!("binary-newer"),
-        IOTraceLogFlag::MissingBinary => tr!("missing-binary"),
+        IOTraceLogFlag::Unknown => tr!("unknown").to_string(),
+        IOTraceLogFlag::Valid => tr!("valid").to_string(),
+        IOTraceLogFlag::Invalid => tr!("invalid").to_string(),
+        IOTraceLogFlag::Fresh => tr!("fresh").to_string(),
+        IOTraceLogFlag::Expired => tr!("expired").to_string(),
+        IOTraceLogFlag::Current => tr!("current").to_string(),
+        IOTraceLogFlag::Outdated => tr!("binary-newer").to_string(),
+        IOTraceLogFlag::MissingBinary => tr!("missing-binary").to_string(),
     }
 }
 
