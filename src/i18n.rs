@@ -130,13 +130,13 @@ pub fn initialize_i18n() -> Box<FluentBundle<FluentResource>> {
 
             // error loading translations, so switch to the "C"
             // fallback locale and try again
-            match fs::read_to_string(format!("{}/i18n/{}/messages.fluent", prefix, "C")) {
+            match fs::read_to_string(format!("{}/i18n/{}/messages.fluent", prefix, "c")) {
                 Err(e) => {
                     panic!("Could not load translations: {}", e);
                 }
 
                 Ok(msgs) => {
-                    let mut bundle = Box::new(FluentBundle::new(&[LanguageIdentifier::from(langid!("en_US"))]));
+                    let mut bundle = Box::new(FluentBundle::new(&[LanguageIdentifier::from(langid!("en_us"))]));
                     let res = Box::new(FluentResource::try_new(msgs.to_string()).expect("Could not parse translations!"));
 
                     bundle.add_resource(*res).expect("Could not add translation message!");
@@ -147,7 +147,8 @@ pub fn initialize_i18n() -> Box<FluentBundle<FluentResource>> {
         }
 
         Ok(msgs) => {
-            let li: LanguageIdentifier = LANG.parse().unwrap();
+            let li = LANG.split('.').collect::<Vec<&str>>();
+            let li: LanguageIdentifier = li[0].parse().unwrap();
             let mut bundle = Box::new(FluentBundle::new(&[LanguageIdentifier::from(li)]));
             let res = Box::new(FluentResource::try_new(msgs.to_string()).expect("Could not parse translations!"));
 
