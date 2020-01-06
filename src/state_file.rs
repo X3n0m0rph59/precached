@@ -41,5 +41,4 @@ pub fn deserialize<T>(_t: &T, _globals: &mut Globals)
 where
     T: Serialize,
 {
-
 }

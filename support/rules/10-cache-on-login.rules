@@ -5,10 +5,10 @@
 !Description: Prime the caches on user login
 # =============================================================================
 # =============================================================================
-# Event-Name              Filter            Action      	Arguments
-  UserLogin		  Noop              Log                 Severity:Info,Message:"User $user logged in! Priming caches now..."
-  UserLogin               Noop              CacheMetadataRecursive   Directory:"$home_dir/.config"
-# UserLogin               Noop              CacheMetadataRecursive   Directory:"$home_dir/.cache"
-# UserLogin               Noop              CacheMetadataRecursive   Directory:"$home_dir/.local"
-# UserLogin               Noop              CacheMetadataRecursive   Directory:"$home_dir/.thumbnails"
+# Event-Name              Filter            Action      	            Arguments
+  UserLogin		            Noop              Log                       Severity:Info,Message:"User $user logged in! Priming caches now..."
+  UserLogin               Noop              CacheMetadataRecursive    Directory:"$home_dir/.config"
+# UserLogin               Noop              CacheMetadataRecursive    Directory:"$home_dir/.cache"
+# UserLogin               Noop              CacheMetadataRecursive    Directory:"$home_dir/.local"
+# UserLogin               Noop              CacheMetadataRecursive    Directory:"$home_dir/.thumbnails"
 # =============================================================================

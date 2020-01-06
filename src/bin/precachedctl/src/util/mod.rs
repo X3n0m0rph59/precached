@@ -21,8 +21,8 @@
 pub mod config_file;
 pub mod files;
 pub mod mountinfo;
-pub mod value_range;
 pub mod namespace;
+pub mod value_range;
 
 pub use self::config_file::*;
 pub use self::files::*;
