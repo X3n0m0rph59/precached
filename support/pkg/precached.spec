@@ -190,7 +190,7 @@ esac
 %{_datarootdir}/zsh/site-functions/_precached-debug
 %{_docdir}/%{OrigName}/examples/
 #%{_datadir}/%{OrigName}/
-%{_datarootdir}/%{OrigName}/i18n/C
+%{_datarootdir}/%{OrigName}/i18n/c
 %{_datarootdir}/%{OrigName}/i18n/de_at
 %{_datarootdir}/%{OrigName}/i18n/de_at.utf-8
 %{_datarootdir}/%{OrigName}/i18n/de_at.utf8
@@ -202,7 +202,7 @@ esac
 %{_datarootdir}/%{OrigName}/i18n/en_us/messages.fluent
 %{_datarootdir}/%{OrigName}/i18n/en_uk
 %{_datarootdir}/%{OrigName}/i18n/en_uk.utf-8
-%{_datarootdir}/%{OrigName}/i18n/en_UK.utf8
+%{_datarootdir}/%{OrigName}/i18n/en_uk.utf8
 
 %changelog
 * Mon Jan 06 2020 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.1-6
