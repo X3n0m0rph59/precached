@@ -4,6 +4,7 @@ addons:
   apt:
     packages:
       - libzmq3-dev
+      - libcap-dev
 language: rust
 cache: cargo
 rust:
