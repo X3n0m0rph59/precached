@@ -35,7 +35,7 @@ use unic_langid::{LanguageIdentifier, langid};
 static LOCALES: &[&str] = &["locale"];
 
 lazy_static! {
-    pub static ref LANG: String = env::var("LANG").unwrap_or_else(|_| "C".to_string());
+    pub static ref LANG: String = env::var("LANG").unwrap_or_else(|_| "C".to_string()).to_lowercase();
     pub static ref I18N_STATE: Box<FluentBundle<FluentResource>> = initialize_i18n();
 }
 
