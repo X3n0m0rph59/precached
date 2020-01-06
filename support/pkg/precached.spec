@@ -2,7 +2,7 @@
 
 Name:    precached-git
 Version: 1.7.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
 URL:     https://x3n0m0rph59.gitlab.io/precached/
 License: GPLv3+
@@ -191,17 +191,17 @@ esac
 %{_docdir}/%{OrigName}/examples/
 #%{_datadir}/%{OrigName}/
 %{_datarootdir}/%{OrigName}/i18n/C
-%{_datarootdir}/%{OrigName}/i18n/de_AT
-%{_datarootdir}/%{OrigName}/i18n/de_AT.UTF-8
-%{_datarootdir}/%{OrigName}/i18n/de_AT.utf8
-%{_datarootdir}/%{OrigName}/i18n/de_DE.UTF-8
-%{_datarootdir}/%{OrigName}/i18n/de_DE.utf8
-%{_datarootdir}/%{OrigName}/i18n/de_DE/messages.fluent
-%{_datarootdir}/%{OrigName}/i18n/en_US.UTF-8
-%{_datarootdir}/%{OrigName}/i18n/en_US.utf8
-%{_datarootdir}/%{OrigName}/i18n/en_US/messages.fluent
-%{_datarootdir}/%{OrigName}/i18n/en_UK
-%{_datarootdir}/%{OrigName}/i18n/en_UK.UTF-8
+%{_datarootdir}/%{OrigName}/i18n/de_at
+%{_datarootdir}/%{OrigName}/i18n/de_at.utf-8
+%{_datarootdir}/%{OrigName}/i18n/de_at.utf8
+%{_datarootdir}/%{OrigName}/i18n/de_de.utf-8
+%{_datarootdir}/%{OrigName}/i18n/de_de.utf8
+%{_datarootdir}/%{OrigName}/i18n/de_de/messages.fluent
+%{_datarootdir}/%{OrigName}/i18n/en_us.utf-8
+%{_datarootdir}/%{OrigName}/i18n/en_us.utf8
+%{_datarootdir}/%{OrigName}/i18n/en_us/messages.fluent
+%{_datarootdir}/%{OrigName}/i18n/en_uk
+%{_datarootdir}/%{OrigName}/i18n/en_uk.utf-8
 %{_datarootdir}/%{OrigName}/i18n/en_UK.utf8
 
 %changelog
