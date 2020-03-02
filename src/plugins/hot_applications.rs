@@ -26,7 +26,8 @@ use std::io::Result;
 use std::path::Path;
 use std::sync::atomic::Ordering;
 use std::sync::mpsc::channel;
-use std::sync::{Arc, RwLock};
+use parking_lot::RwLock;
+use std::sync::Arc;
 use std::thread;
 use lockfree::set::Set;
 use lazy_static::lazy_static;
@@ -65,7 +66,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(HotApplications::new());
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -114,7 +115,7 @@ impl HotApplications {
 
     /// Prefetch the I/O traces of the most often used programs on the system
     pub fn prefetch_data(&mut self, globals: &mut Globals, manager: &Manager) {
-        let hm = manager.hook_manager.read().unwrap();
+        let hm = manager.hook_manager.read();
 
         match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
             None => {
@@ -122,7 +123,7 @@ impl HotApplications {
             }
 
             Some(h) => {
-                let mut h = h.write().unwrap();
+                let mut h = h.write();
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
                 let mut iotrace_prefetcher_hook = iotrace_prefetcher_hook.clone();
 
@@ -131,44 +132,36 @@ impl HotApplications {
                 let globals_c = globals.clone();
                 let manager_c = manager.clone();
 
-                match util::POOL.lock() {
-                    Err(e) => error!(
-                        "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                        e
-                    ),
+                let thread_pool = util::POOL.lock();
+                thread_pool.submit_work(move || {
+                    let mut apps: Vec<(&String, &usize)> = app_histogram_c.par_iter().collect();
+                    apps.par_sort_by(|a, b| b.1.cmp(a.1));
 
-                    Ok(thread_pool) => {
-                        thread_pool.submit_work(move || {
-                            let mut apps: Vec<(&String, &usize)> = app_histogram_c.par_iter().collect();
-                            apps.par_sort_by(|a, b| b.1.cmp(a.1));
+                    'PREFETCH_LOOP: for (hash, _count) in apps {
+                        if Self::shall_cancel_prefetch(&globals_c, &manager_c) {
+                            warn!("Cancellation request received, stopping prefetching!");
+                            break 'PREFETCH_LOOP;
+                        }
 
-                            'PREFETCH_LOOP: for (hash, _count) in apps {
-                                if Self::shall_cancel_prefetch(&globals_c, &manager_c) {
-                                    warn!("Cancellation request received, stopping prefetching!");
-                                    break 'PREFETCH_LOOP;
-                                }
+                        if !CACHED_APPS.get(hash).is_some() {
+                            if Self::check_available_memory(&globals_c, &manager_c) {
+                                let hash_c = (*hash).clone();
 
-                                if !CACHED_APPS.get(hash).is_some() {
-                                    if Self::check_available_memory(&globals_c, &manager_c) {
-                                        let hash_c = (*hash).clone();
+                                info!("Prefetching files for hash: '{}'", hash);
+                                iotrace_prefetcher_hook.prefetch_data_by_hash(hash, &globals_c, &manager_c);
 
-                                        info!("Prefetching files for hash: '{}'", hash);
-                                        iotrace_prefetcher_hook.prefetch_data_by_hash(hash, &globals_c, &manager_c);
-
-                                        CACHED_APPS
-                                            .insert(hash_c)
-                                            .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
-                                    } else {
-                                        warn!("Available memory exhausted, stopping prefetching!");
-                                        break 'PREFETCH_LOOP;
-                                    }
-                                } else {
-                                    debug!("Files for hash '{}' are already cached", hash);
-                                }
+                                CACHED_APPS
+                                    .insert(hash_c)
+                                    .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
+                            } else {
+                                warn!("Available memory exhausted, stopping prefetching!");
+                                break 'PREFETCH_LOOP;
                             }
-                        });
+                        } else {
+                            debug!("Files for hash '{}' are already cached", hash);
+                        }
                     }
-                }
+                });
             }
         };
     }
@@ -176,7 +169,7 @@ impl HotApplications {
     pub fn free_memory(&mut self, _emergency: bool, globals: &Globals, manager: &Manager) {
         warn!("Available memory critical threshold reached, freeing memory now!");
 
-        let hm = manager.hook_manager.read().unwrap();
+        let hm = manager.hook_manager.read();
 
         match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
             None => {
@@ -184,7 +177,7 @@ impl HotApplications {
             }
 
             Some(h) => {
-                let mut h = h.write().unwrap();
+                let mut h = h.write();
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
 
                 let reverse_app_vec = self.get_app_vec_ordered_reverse();
@@ -221,7 +214,7 @@ impl HotApplications {
             .available_mem_upper_threshold
             .unwrap();
 
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("metrics")) {
             None => {
@@ -229,7 +222,7 @@ impl HotApplications {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 if metrics_plugin.get_mem_usage_percentage() <= available_mem_upper_threshold {
@@ -253,7 +246,7 @@ impl HotApplications {
             .available_mem_lower_threshold
             .unwrap();
 
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("metrics")) {
             None => {
@@ -261,7 +254,7 @@ impl HotApplications {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 if metrics_plugin.get_mem_usage_percentage() <= available_mem_lower_threshold {
@@ -467,7 +460,7 @@ impl Plugin for HotApplications {
             }
 
             events::EventType::AvailableMemoryLowWatermark => {
-                let pm = manager.plugin_manager.read().unwrap();
+                let pm = manager.plugin_manager.read();
 
                 match pm.get_plugin_by_name(&String::from("profiles")) {
                     None => {
@@ -475,7 +468,7 @@ impl Plugin for HotApplications {
                     }
 
                     Some(p) => {
-                        let p = p.read().unwrap();
+                        let p = p.read();
                         let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
                         if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
@@ -496,7 +489,7 @@ impl Plugin for HotApplications {
             //     self.free_memory(true, globals, manager);
             // }
             events::EventType::IdlePeriod => {
-                let pm = manager.plugin_manager.read().unwrap();
+                let pm = manager.plugin_manager.read();
 
                 match pm.get_plugin_by_name(&String::from("profiles")) {
                     None => {
@@ -504,7 +497,7 @@ impl Plugin for HotApplications {
                     }
 
                     Some(p) => {
-                        let p = p.read().unwrap();
+                        let p = p.read();
                         let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
                         if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {

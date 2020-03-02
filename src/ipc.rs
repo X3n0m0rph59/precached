@@ -27,7 +27,8 @@ use std::io::prelude;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, RwLock};
+use parking_lot::RwLock;
+use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
@@ -310,7 +311,7 @@ impl IpcServer {
     fn handle_request_tracked_processes(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
         trace!("IPC client command: RequestTrackedProcesses");
 
-        let hm = manager.hook_manager.read().unwrap();
+        let hm = manager.hook_manager.read();
 
         match hm.get_hook_by_name(&String::from("process_tracker")) {
             None => {
@@ -320,7 +321,7 @@ impl IpcServer {
             }
 
             Some(h) => {
-                let h = h.read().unwrap();
+                let h = h.read();
                 let mut process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
                 let v: Vec<ProcessEntry> = process_tracker
@@ -351,7 +352,7 @@ impl IpcServer {
     fn handle_request_inflight_tracers(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
         trace!("IPC client command: RequestInFlightTracers");
 
-        let active_tracers = ACTIVE_TRACERS.lock().unwrap();
+        let active_tracers = ACTIVE_TRACERS.lock();
 
         let mut result: Vec<TracerEntry> = vec![];
         for trace in active_tracers.values() {
@@ -374,7 +375,7 @@ impl IpcServer {
     }
 
     fn handle_request_prefetch_status(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
-        let hm = manager.hook_manager.read().unwrap();
+        let hm = manager.hook_manager.read();
 
         match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
             None => {
@@ -384,12 +385,12 @@ impl IpcServer {
             }
 
             Some(h) => {
-                let h = h.read().unwrap();
+                let h = h.read();
                 let mut iotrace_prefetcher = h.as_any().downcast_ref::<IOtracePrefetcher>().unwrap();
 
                 let mut v: Vec<ThreadState> = vec![];
                 for s in &iotrace_prefetcher.thread_states {
-                    let val = s.read().unwrap();
+                    let val = s.read();
                     v.push((*val).clone());
                 }
 
@@ -411,7 +412,7 @@ impl IpcServer {
     fn handle_request_cached_files(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
         trace!("IPC client command: RequestCachedFiles");
 
-        let hm = manager.hook_manager.read().unwrap();
+        let hm = manager.hook_manager.read();
 
         match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
             None => {
@@ -482,7 +483,7 @@ impl IpcServer {
     }
 
     fn handle_request_internal_state(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("introspection")) {
             None => {
@@ -492,7 +493,7 @@ impl IpcServer {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let mut introspection = p.as_any().downcast_ref::<plugins::introspection::Introspection>().unwrap();
 
                 let data = introspection.get_internal_state(manager);
@@ -508,7 +509,7 @@ impl IpcServer {
     }
 
     fn handle_request_global_statistics(socket: &zmq::Socket, manager: &Manager) -> Result<(), zmq::Error> {
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("statistics")) {
             None => {
@@ -518,7 +519,7 @@ impl IpcServer {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let mut statistics = p.as_any().downcast_ref::<plugins::statistics::Statistics>().unwrap();
 
                 let data = statistics.get_global_statistics(manager);

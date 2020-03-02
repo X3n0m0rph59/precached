@@ -18,7 +18,8 @@
     along with Precached.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use parking_lot::RwLock;
 use indexmap::map::Entry::{Occupied, Vacant};
 use indexmap::IndexMap;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
@@ -44,14 +45,13 @@ impl HookManager {
         hook.register();
         self.hooks
             .write()
-            .unwrap()
             .insert(String::from(hook.get_name()), Arc::new(RwLock::new(hook)));
     }
 
     pub fn unregister_hook(&self, name: &str) {
         match self.get_hook_by_name(name) {
             Some(h) => {
-                h.write().unwrap().unregister();
+                h.write().unregister();
             }
             None => {
                 error!("No hook with name '{}' found!", name);
@@ -60,24 +60,24 @@ impl HookManager {
     }
 
     pub fn unregister_all_hooks(&self) {
-        for (_, h) in self.hooks.read().unwrap().iter() {
-            h.write().unwrap().unregister();
+        for (_, h) in self.hooks.read().iter() {
+            h.write().unregister();
         }
     }
 
     pub fn get_hook_by_name(&self, name: &str) -> Option<Arc<RwLock<Box<dyn Hook + Sync + Send>>>> {
-        self.hooks.read().unwrap().get(name).cloned()
+        self.hooks.read().get(name).cloned()
     }
 
     pub fn dispatch_event(&self, event: &procmon::Event, globals: &mut Globals, manager: &Manager) {
-        for (_, h) in self.hooks.read().unwrap().iter() {
-            h.write().unwrap().process_event(event, globals, manager);
+        for (_, h) in self.hooks.read().iter() {
+            h.write().process_event(event, globals, manager);
         }
     }
 
     pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
-        for (_, h) in self.hooks.read().unwrap().iter() {
-            h.write().unwrap().internal_event(event, globals, manager);
+        for (_, h) in self.hooks.read().iter() {
+            h.write().internal_event(event, globals, manager);
         }
     }
 }

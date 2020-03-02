@@ -19,7 +19,8 @@
 */
 
 use std::cell::RefCell;
-use std::sync::{Arc, RwLock};
+use parking_lot::{RwLock};
+use std::sync::Arc;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use crate::hooks::HookManager;
 use crate::plugins::PluginManager;

@@ -19,7 +19,8 @@
 */
 
 use std::cell::RefCell;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use parking_lot::RwLock;
 use rayon::prelude::*;
 use indexmap::map::Entry::{Occupied, Vacant};
 use indexmap::IndexMap;
@@ -46,14 +47,13 @@ impl PluginManager {
         plugin.register();
         self.plugins
             .write()
-            .unwrap()
             .insert(String::from(plugin.get_name()), Arc::new(RwLock::new(plugin)));
     }
 
     pub fn unregister_plugin(&self, name: &String) {
         match self.get_plugin_by_name(name) {
             Some(p) => {
-                p.write().unwrap().unregister();
+                p.write().unregister();
             }
             None => {
                 error!("No plugin with name '{}' found!", name);
@@ -62,30 +62,30 @@ impl PluginManager {
     }
 
     pub fn unregister_all_plugins(&self) {
-        for (_, p) in self.plugins.read().unwrap().iter() {
-            p.write().unwrap().unregister();
+        for (_, p) in self.plugins.read().iter() {
+            p.write().unregister();
         }
     }
 
     pub fn get_plugin_by_name(&self, name: &String) -> Option<Arc<RwLock<Box<dyn Plugin + Sync + Send>>>> {
-        self.plugins.read().unwrap().get(name).cloned()
+        self.plugins.read().get(name).cloned()
     }
 
     pub fn dispatch_internal_event(&self, event: &events::InternalEvent, globals: &mut Globals, manager: &Manager) {
-        for (_, p) in self.plugins.read().unwrap().iter() {
-            p.write().unwrap().internal_event(event, globals, manager);
+        for (_, p) in self.plugins.read().iter() {
+            p.write().internal_event(event, globals, manager);
         }
     }
 
     pub fn call_main_loop_hooks(&self, globals: &mut Globals) {
-        for (_, p) in self.plugins.read().unwrap().iter() {
-            p.write().unwrap().main_loop_hook(globals);
+        for (_, p) in self.plugins.read().iter() {
+            p.write().main_loop_hook(globals);
         }
     }
 }
 
 pub fn call_main_loop_hook(globals: &mut Globals, manager: &mut Manager) {
-    let m = manager.plugin_manager.read().unwrap();
+    let m = manager.plugin_manager.read();
 
     m.call_main_loop_hooks(globals);
 }

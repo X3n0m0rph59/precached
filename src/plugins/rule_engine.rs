@@ -42,7 +42,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(RuleEngine::new());
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -173,14 +173,14 @@ impl RuleEngine {
         //     }
         // };
 
-        // let pm = manager.plugin_manager.read().unwrap();
+        // let pm = manager.plugin_manager.read();
 
         // match pm.get_plugin_by_name(&String::from("notifications")) {
         //     None => {
         //         warn!("Plugin not loaded: 'notifications', skipped");
         //     }
         //     Some(p) => {
-        //         let p = p.read().unwrap();
+        //         let p = p.read();
         //         let notifications = p.as_any().downcast_ref::<Notifications>().unwrap();
 
         //         notifications.notify(&message);
@@ -209,7 +209,7 @@ impl RuleEngine {
     ) {
         trace!("Rule Action: CacheMetadataRecursive");
 
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("profiles")) {
             None => {
@@ -217,7 +217,7 @@ impl RuleEngine {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
                 if profiles_plugin.get_current_profile() == SystemProfile::UpAndRunning {
@@ -237,14 +237,14 @@ impl RuleEngine {
                                         &[(&"$user".to_string(), user), (&"$home_dir".to_string(), home_dir_str)],
                                     );
 
-                                    let pm = manager.plugin_manager.read().unwrap();
+                                    let pm = manager.plugin_manager.read();
 
                                     match pm.get_plugin_by_name(&String::from("vfs_stat_cache")) {
                                         None => {
                                             warn!("Plugin not loaded: 'vfs_stat_cache', skipped");
                                         }
                                         Some(p) => {
-                                            let p = p.read().unwrap();
+                                            let p = p.read();
                                             let vfs_stat_cache = p.as_any().downcast_ref::<VFSStatCache>().unwrap();
 
                                             let paths = vec![PathBuf::from(&path)];

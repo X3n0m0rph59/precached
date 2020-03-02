@@ -45,7 +45,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Introspection::new());
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -85,7 +85,7 @@ impl Introspection {
     }
 
     pub fn get_internal_state(&self, manager: &Manager) -> InternalState {
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         // Plugin: Profiles
         let mut profiles_current_profile = None;
@@ -96,7 +96,7 @@ impl Introspection {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let profiles_plugin = p.as_any().downcast_ref::<Profiles>().unwrap();
 
                 profiles_current_profile = Some(profiles_plugin.get_current_profile());
@@ -115,7 +115,7 @@ impl Introspection {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let janitor_plugin = p.as_any().downcast_ref::<Janitor>().unwrap();
 
                 janitor_janitor_needs_to_run = Some(janitor_plugin.janitor_needs_to_run);
@@ -135,7 +135,7 @@ impl Introspection {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let hot_applications_plugin = p.as_any().downcast_ref::<HotApplications>().unwrap();
 
                 hot_applications_app_histogram_entries_count = Some(hot_applications_plugin.app_histogram.len());
@@ -153,7 +153,7 @@ impl Introspection {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
                 static_blacklist_blacklist_entries_count = Some(static_blacklist_plugin.blacklist.len());
@@ -172,7 +172,7 @@ impl Introspection {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let static_whitelist_plugin = p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
                 static_whitelist_mapped_files_count = Some(static_whitelist_plugin.get_mapped_files_count());

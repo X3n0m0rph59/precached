@@ -39,8 +39,6 @@ programs while the system is idle.
     $ cargo build --release
 
     # ... copy files ...
-
-
 ```
 
 ### Enable service autostart
@@ -56,7 +54,7 @@ programs while the system is idle.
 Precached tries to tackle some of the long standing performance issues
 of the Linux desktop:
 
-* The system has unused (free) memory directly after bootup. Therefore programs
+* The system has unused (free) memory directly after boot-up. Therefore programs
   take a longer time to start up, cache cold start is way slower than cache hot
   start
 * A Cron-Job evicts many important pages from the page cache. The system feels
@@ -64,9 +62,9 @@ of the Linux desktop:
 * The system has unused (free) memory after a "memory hog" process quit.
   The system reacts sluggish until the caches are primed again
 
-## What is my ram doing?
+## What is my RAM doing?
 
-You can read about linux's memory managment here: https://www.linuxatemyram.com/index.html
+You can read about Linux's memory managment here: https://www.linuxatemyram.com/index.html
 
 ## Use precached if
 
@@ -92,13 +90,13 @@ ran some benchmarks on it:
 
 The benchmarks confirmed that precached is able to speed up load times of
 mid-sized and huge applications on Linux. We nearly achieve cache hot load
-times on first run (after system bootup) of applications like e.g. LibreOffice
+times on first run (after system boot-up) of applications like e.g. LibreOffice
 and Firefox. After a memory hog process exited we need a short amount of idle
 time (roughly ~30 secs) to re-prime the caches, after that we achieve
 cache hot load times again. We did not discover any corner cases at which
 the system performed significantly worse than without precached running.
 The system feels much more ‘snappier’ even directly after login.
-Bootup is slowed down somewhat though, since we read approximately 2GB of
+Boot-up is slowed down somewhat though, since we read approximately 2GB of
 additional data into the RAM cache (in our test setup).
 This happens with a raised nice level and mostly during the GDM greeter’s
 password prompt and thereafter. We are investigating the possibility to

@@ -42,7 +42,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Janitor::new());
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -78,7 +78,7 @@ impl Janitor {
     pub fn perform_housekeeping(globals: &Globals, manager: &Manager) {
         info!("Janitor performs housekeeping now!");
 
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         // Optimize I/O trace logs
         info!("Janitor optimizing: I/O trace logs...");
@@ -89,7 +89,7 @@ impl Janitor {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 iotrace_log_manager_plugin.do_housekeeping(globals, manager);
@@ -105,7 +105,7 @@ impl Janitor {
             }
 
             Some(p) => {
-                let mut p = p.write().unwrap();
+                let mut p = p.write();
                 let hot_applications_plugin = p.as_any_mut().downcast_mut::<HotApplications>().unwrap();
 
                 hot_applications_plugin.do_housekeeping(globals, manager);
@@ -174,46 +174,35 @@ impl Plugin for Janitor {
                     || Utc::now().signed_duration_since(self.last_housekeeping_performed)
                         >= Duration::seconds(constants::MIN_HOUSEKEEPING_INTERVAL_SECS)
                 {
-                    match util::SCHEDULER.lock() {
-                        Err(e) => {
-                            error!("Could not lock the global task scheduler! {}", e);
-                        }
+                    let mut scheduler = util::SCHEDULER.lock();
 
-                        Ok(mut scheduler) => {
-                            let globals_c = globals.clone();
-                            let manager_c = manager.clone();
-
-                            (*scheduler).schedule_job(move || {
-                                Self::perform_housekeeping(&globals_c, &manager_c);
-                            });
-
-                            self.last_housekeeping_performed = Utc::now();
-                            self.janitor_ran_once = true;
-
-                            self.janitor_needs_to_run = false;
-                        }
-                    }
-                }
-            }
-
-            // Allow admins to force housekeeping anytime
-            events::EventType::DoHousekeeping => match util::SCHEDULER.lock() {
-                Err(e) => {
-                    error!("Could not lock the global task scheduler! {}", e);
-                }
-
-                Ok(mut scheduler) => {
                     let globals_c = globals.clone();
                     let manager_c = manager.clone();
 
-                    (*scheduler).schedule_job(move || {
+                    scheduler.schedule_job(move || {
                         Self::perform_housekeeping(&globals_c, &manager_c);
                     });
 
                     self.last_housekeeping_performed = Utc::now();
                     self.janitor_ran_once = true;
+
+                    self.janitor_needs_to_run = false;
                 }
-            },
+            }
+
+            // Allow admins to force housekeeping anytime
+            events::EventType::DoHousekeeping => {
+                let mut scheduler = util::SCHEDULER.lock();
+                let globals_c = globals.clone();
+                let manager_c = manager.clone();
+
+                scheduler.schedule_job(move || {
+                    Self::perform_housekeeping(&globals_c, &manager_c);
+                });
+
+                self.last_housekeeping_performed = Utc::now();
+                self.janitor_ran_once = true;
+            }
 
             events::EventType::OptimizeIOTraceLog(_) => {
                 // When an I/O trace log got created, we need to run at the next time slot

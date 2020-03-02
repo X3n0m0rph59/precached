@@ -61,6 +61,7 @@ pub fn drop_privileges(globals: &globals::Globals) {
         &[
             capabilities::Capability::CAP_DAC_READ_SEARCH,
             capabilities::Capability::CAP_SYS_PTRACE,
+            capabilities::Capability::CAP_SYS_ADMIN, // fanotify needs this
         ],
         capabilities::Flag::Permitted,
         true,
@@ -69,6 +70,7 @@ pub fn drop_privileges(globals: &globals::Globals) {
         &[
             capabilities::Capability::CAP_DAC_READ_SEARCH,
             capabilities::Capability::CAP_SYS_PTRACE,
+            capabilities::Capability::CAP_SYS_ADMIN, // fanotify needs this
         ],
         capabilities::Flag::Effective,
         true,

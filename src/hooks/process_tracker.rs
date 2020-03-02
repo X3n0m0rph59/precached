@@ -36,7 +36,7 @@ static DESCRIPTION: &str = "Tracks system-wide process events like fork()/exec()
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
     let hook = Box::new(ProcessTracker::new());
 
-    let m = manager.hook_manager.read().unwrap();
+    let m = manager.hook_manager.read();
 
     m.register_hook(hook);
 }

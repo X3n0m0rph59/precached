@@ -28,7 +28,8 @@ use std::io::BufReader;
 use std::io::ErrorKind;
 use std::path;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use parking_lot::Mutex;
+use std::sync::Arc;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use globset::{Glob, GlobSetBuilder};
 use rayon::prelude::*;
@@ -184,34 +185,26 @@ pub fn is_file_valid(filename: &Path) -> bool {
 /// Returns `true` if `filename` matches a pattern in `pattern`, otherwise returns `false`.
 /// The Vec<String> may contain any POSIX compatible glob pattern.
 pub fn is_file_blacklisted(filename: &Path, pattern: &[PathBuf]) -> bool {
-    match GLOB_SET.lock() {
-        Err(e) => {
-            error!("Could not lock a shared data structure! {}", e);
-            false
+    let mut gs_opt = GLOB_SET.lock();
+    if gs_opt.is_none() {
+        // construct a glob set at the first iteration
+        let mut builder = GlobSetBuilder::new();
+        for p in pattern.iter() {
+            builder.add(Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap());
         }
+        let set = builder.build().unwrap();
 
-        Ok(mut gs_opt) => {
-            if gs_opt.is_none() {
-                // construct a glob set at the first iteration
-                let mut builder = GlobSetBuilder::new();
-                for p in pattern.iter() {
-                    builder.add(Glob::new(p.to_string_lossy().into_owned().as_str()).unwrap());
-                }
-                let set = builder.build().unwrap();
+        *gs_opt = Some(set.clone());
 
-                *gs_opt = Some(set.clone());
+        // glob_set already available
+        let matches = set.matches(&filename.to_string_lossy().into_owned());
 
-                // glob_set already available
-                let matches = set.matches(&filename.to_string_lossy().into_owned());
+        !matches.is_empty()
+    } else {
+        // glob_set already available
+        let matches = gs_opt.clone().unwrap().matches(&filename.to_string_lossy().into_owned());
 
-                !matches.is_empty()
-            } else {
-                // glob_set already available
-                let matches = gs_opt.clone().unwrap().matches(&filename.to_string_lossy().into_owned());
-
-                !matches.is_empty()
-            }
-        }
+        !matches.is_empty()
     }
 }
 

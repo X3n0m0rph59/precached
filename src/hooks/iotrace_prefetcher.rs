@@ -23,7 +23,8 @@ use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Sender};
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::Arc;
+use parking_lot::{Mutex, RwLock};
 use lockfree::map::Map;
 use lazy_static::lazy_static;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
@@ -68,7 +69,7 @@ pub enum ThreadState {
 pub fn register_hook(_globals: &mut Globals, manager: &mut Manager) {
     let hook = Box::new(IOtracePrefetcher::new());
 
-    let m = manager.hook_manager.read().unwrap();
+    let m = manager.hook_manager.read();
 
     m.register_hook(hook);
 }
@@ -136,7 +137,7 @@ impl IOtracePrefetcher {
                                 already_prefetched.insert(file.clone(), None);
 
                                 {
-                                    *(thread_state.write().unwrap()) = ThreadState::Error(file.clone());
+                                    *(thread_state.write()) = ThreadState::Error(file.clone());
                                 }
 
                                 MAPPED_FILES.remove(&file.to_path_buf());
@@ -149,7 +150,7 @@ impl IOtracePrefetcher {
                                 already_prefetched.insert(file.clone(), Some(mapping.clone()));
 
                                 {
-                                    *(thread_state.write().unwrap()) = ThreadState::PrefetchedFile(file.clone());
+                                    *(thread_state.write()) = ThreadState::PrefetchedFile(file.clone());
                                 }
 
                                 MAPPED_FILES.insert(file.to_path_buf(), mapping);
@@ -181,7 +182,7 @@ impl IOtracePrefetcher {
                             result.push(mapping.0.clone());
 
                             {
-                                *(thread_state.write().unwrap()) = ThreadState::UnmappedFile(file.clone());
+                                *(thread_state.write()) = ThreadState::UnmappedFile(file.clone());
                             }
                         } else {
                             error!("Could not unmap file: {:?}", file);
@@ -224,7 +225,7 @@ impl IOtracePrefetcher {
                     let _metadata = path.metadata();
 
                     {
-                        *(thread_state.write().unwrap()) = ThreadState::PrefetchedFileMetadata(file.clone());
+                        *(thread_state.write()) = ThreadState::PrefetchedFileMetadata(file.clone());
                     }
                 } // _ => { /* Do nothing */ }
             }
@@ -288,7 +289,7 @@ impl IOtracePrefetcher {
             .available_mem_upper_threshold
             .unwrap();
 
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("metrics")) {
             None => {
@@ -296,7 +297,7 @@ impl IOtracePrefetcher {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 if metrics_plugin.get_mem_usage_percentage() <= available_mem_upper_threshold {
@@ -311,14 +312,14 @@ impl IOtracePrefetcher {
     /// Replay the I/O trace of the I/O trace for `hashval` and cache all files into memory
     /// This is used for offline prefetching, when the system is idle
     pub fn prefetch_data_by_hash(&mut self, hashval: &str, globals: &Globals, manager: &Manager) {
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
             None => {
                 trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
             }
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
@@ -337,7 +338,7 @@ impl IOtracePrefetcher {
                                     trace!("Plugin not loaded: 'static_blacklist', skipped");
                                 }
                                 Some(p) => {
-                                    let p = p.read().unwrap();
+                                    let p = p.read();
                                     let static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
                                     static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
@@ -347,7 +348,7 @@ impl IOtracePrefetcher {
                             let prefetched_programs = self.prefetched_programs.clone();
 
                             // distribute prefetching work evenly across the prefetcher threads
-                            let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
+                            let prefetch_pool = util::PREFETCH_POOL.lock();
                             let max = prefetch_pool.max_count();
                             let count_total = io_trace.trace_log.len();
 
@@ -391,21 +392,21 @@ impl IOtracePrefetcher {
 
     /// Free memory of a previously replayed I/O trace `hashval` and remove all cached files from memory
     pub fn free_memory_by_hash(&mut self, hashval: &str, globals: &Globals, manager: &Manager) {
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
             None => {
                 trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
             }
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
                     Err(e) => trace!("I/O trace '{}' not available: {}", hashval, e),
                     Ok(io_trace) => {
                         // distribute prefetching work evenly across the prefetcher threads
-                        let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
+                        let prefetch_pool = util::PREFETCH_POOL.lock();
                         let max = prefetch_pool.max_count();
                         let count_total = io_trace.trace_log.len();
 
@@ -433,14 +434,14 @@ impl IOtracePrefetcher {
     /// I/O trace specified by the parameter `hashval`
     /// This is used for offline prefetching, when the system is idle
     pub fn prefetch_statx_metadata_by_hash(&mut self, hashval: &str, globals: &Globals, manager: &Manager) {
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
             None => {
                 trace!("Plugin not loaded: 'iotrace_log_manager', prefetching disabled");
             }
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                 match iotrace_log_manager_plugin.get_trace_log_by_hash(hashval, globals) {
@@ -455,7 +456,7 @@ impl IOtracePrefetcher {
                                     trace!("Plugin not loaded: 'static_blacklist', skipped");
                                 }
                                 Some(p) => {
-                                    let p = p.read().unwrap();
+                                    let p = p.read();
                                     let static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
                                     static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
@@ -463,7 +464,7 @@ impl IOtracePrefetcher {
                             };
 
                             // distribute prefetching work evenly across the prefetcher threads
-                            let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
+                            let prefetch_pool = util::PREFETCH_POOL.lock();
                             let max = prefetch_pool.max_count();
                             let count_total = io_trace.trace_log.len();
 
@@ -493,7 +494,7 @@ impl IOtracePrefetcher {
     /// Replay the I/O trace of the program identified by `event.pid` and cache all files into memory
     /// This is used for online prefetching during program startup
     pub fn replay_process_io(&mut self, event: &procmon::Event, globals: &Globals, manager: &Manager) {
-        let hm = manager.hook_manager.read().unwrap();
+        let hm = manager.hook_manager.read();
 
         match hm.get_hook_by_name(&String::from("process_tracker")) {
             None => {
@@ -501,7 +502,7 @@ impl IOtracePrefetcher {
             }
 
             Some(h) => {
-                let h = h.read().unwrap();
+                let h = h.read();
                 let process_tracker = h.as_any().downcast_ref::<ProcessTracker>().unwrap();
 
                 let process = process_tracker.get_process(event.pid);
@@ -516,7 +517,7 @@ impl IOtracePrefetcher {
 
                         trace!("Prefetching data for process '{}' with pid: {}", process_comm, event.pid);
 
-                        let pm = manager.plugin_manager.read().unwrap();
+                        let pm = manager.plugin_manager.read();
 
                         match pm.get_plugin_by_name(&String::from("iotrace_log_manager")) {
                             None => {
@@ -524,7 +525,7 @@ impl IOtracePrefetcher {
                             }
 
                             Some(p) => {
-                                let p = p.read().unwrap();
+                                let p = p.read();
                                 let iotrace_log_manager_plugin = p.as_any().downcast_ref::<IOtraceLogManager>().unwrap();
 
                                 match iotrace_log_manager_plugin.get_trace_log(
@@ -553,7 +554,7 @@ impl IOtracePrefetcher {
                                                     // trace!("Plugin not loaded: 'hot_applications', skipped");
                                                 }
                                                 Some(p) => {
-                                                    let p = p.read().unwrap();
+                                                    let p = p.read();
                                                     let hot_applications_plugin =
                                                         p.as_any().downcast_ref::<HotApplications>().unwrap();
 
@@ -569,7 +570,7 @@ impl IOtracePrefetcher {
                                                         trace!("Plugin not loaded: 'static_whitelist', skipped");
                                                     }
                                                     Some(p) => {
-                                                        let p = p.read().unwrap();
+                                                        let p = p.read();
                                                         let static_whitelist_plugin =
                                                             p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
@@ -583,7 +584,7 @@ impl IOtracePrefetcher {
                                                         trace!("Plugin not loaded: 'static_blacklist', skipped");
                                                     }
                                                     Some(p) => {
-                                                        let p = p.read().unwrap();
+                                                        let p = p.read();
                                                         let static_blacklist_plugin =
                                                             p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
@@ -595,7 +596,7 @@ impl IOtracePrefetcher {
                                                 let prefetched_programs = self.prefetched_programs.clone();
 
                                                 // distribute prefetching work evenly across the prefetcher threads
-                                                let prefetch_pool = util::PREFETCH_POOL.lock().unwrap();
+                                                let prefetch_pool = util::PREFETCH_POOL.lock();
                                                 let max = prefetch_pool.max_count();
                                                 let count_total = io_trace.trace_log.len();
 
@@ -665,7 +666,7 @@ impl hook::Hook for IOtracePrefetcher {
                 // when the system is idle, set thread states to idle too
                 // TODO: Verify that this is correct
                 for s in &mut self.thread_states {
-                    let mut s = s.write().unwrap();
+                    let mut s = s.write();
                     *s = ThreadState::Idle;
                 }
             }

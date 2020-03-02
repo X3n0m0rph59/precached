@@ -19,7 +19,8 @@
 */
 
 use std::result::Result;
-use std::sync::{Arc, Mutex};
+use parking_lot::Mutex;
+use std::sync::Arc;
 use std::thread;
 use tokio::prelude::*;
 use tokio;

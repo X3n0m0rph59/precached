@@ -46,7 +46,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(StaticBlacklist::new(globals));
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }

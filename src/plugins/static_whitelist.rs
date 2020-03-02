@@ -23,7 +23,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
-use std::sync::Mutex;
+use parking_lot::Mutex;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use crate::events;
 use crate::config_file;
@@ -44,7 +44,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(StaticWhitelist::new(globals));
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -99,7 +99,7 @@ impl StaticWhitelist {
     pub fn cache_whitelisted_files(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started caching of statically whitelisted files...");
 
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         let mut static_blacklist = Vec::new();
         match pm.get_plugin_by_name(&String::from("static_blacklist")) {
@@ -107,7 +107,7 @@ impl StaticWhitelist {
                 trace!("Plugin not loaded: 'static_blacklist', skipped");
             }
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let static_blacklist_plugin = p.as_any().downcast_ref::<StaticBlacklist>().unwrap();
 
                 static_blacklist.append(&mut static_blacklist_plugin.get_blacklist().clone());
@@ -120,63 +120,56 @@ impl StaticWhitelist {
         let (sender, receiver): (Sender<HashMap<PathBuf, util::MemoryMapping>>, _) = channel();
         let sc = Mutex::new(sender.clone());
 
-        match util::PREFETCH_POOL.lock() {
-            Err(e) => error!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
-            Ok(thread_pool) => {
-                let globals_c = globals.clone();
-                let manager_c = manager.clone();
+        let thread_pool = util::PREFETCH_POOL.lock();
+        let globals_c = globals.clone();
+        let manager_c = manager.clone();
 
-                thread_pool.submit_work(move || {
-                    let mut mapped_files = HashMap::new();
+        thread_pool.submit_work(move || {
+            let mut mapped_files = HashMap::new();
 
-                    util::walk_directories(&whitelist, &mut |path| {
-                        if !Self::check_available_memory(&globals_c, &manager_c) {
-                            info!("Available memory exhausted, stopping prefetching!");
-                            return;
+            util::walk_directories(&whitelist, &mut |path| {
+                if !Self::check_available_memory(&globals_c, &manager_c) {
+                    info!("Available memory exhausted, stopping prefetching!");
+                    return;
+                }
+
+                // mmap and mlock file, if it is not contained in the blacklist
+                // and if it was not already mapped by some of the plugins
+                if Self::shall_we_map_file(path, &static_blacklist, &our_mapped_files) {
+                    match util::cache_file(path, true) {
+                        Err(s) => {
+                            error!("Could not cache file {:?}: {}", path, s);
                         }
-
-                        // mmap and mlock file, if it is not contained in the blacklist
-                        // and if it was not already mapped by some of the plugins
-                        if Self::shall_we_map_file(path, &static_blacklist, &our_mapped_files) {
-                            match util::cache_file(path, true) {
-                                Err(s) => {
-                                    error!("Could not cache file {:?}: {}", path, s);
-                                }
-                                Ok(r) => {
-                                    trace!("Successfully cached file {:?}", path);
-                                    mapped_files.insert(path.to_path_buf(), r);
-                                }
-                            }
+                        Ok(r) => {
+                            trace!("Successfully cached file {:?}", path);
+                            mapped_files.insert(path.to_path_buf(), r);
                         }
-                    })
-                    .unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
+                    }
+                }
+            })
+            .unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
 
-                    sc.lock().unwrap().send(mapped_files).unwrap();
-                });
+            sc.lock().send(mapped_files).unwrap();
+        });
 
-                // blocking call; wait for worker thread
-                self.mapped_files = receiver.recv().unwrap();
+        // blocking call; wait for worker thread
+        self.mapped_files = receiver.recv().unwrap();
 
-                info!("Finished caching of statically whitelisted files");
-            }
-        }
+        info!("Finished caching of statically whitelisted files");
     }
 
     /// Performs offline prefetching of whitelisted programs
     pub fn prefetch_whitelisted_programs(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started prefetching of statically whitelisted programs...");
 
-        let hm = manager.hook_manager.read().unwrap();
+        let hm = manager.hook_manager.read();
 
         match hm.get_hook_by_name(&String::from("iotrace_prefetcher")) {
             None => {
                 trace!("Plugin not loaded: 'iotrace_prefetcher', skipped");
             }
             Some(h) => {
-                let mut h = h.write().unwrap();
+                let mut h = h.write();
                 let iotrace_prefetcher_hook = h.as_any_mut().downcast_mut::<IOtracePrefetcher>().unwrap();
 
                 let program_whitelist = self.program_whitelist.clone();
@@ -236,7 +229,7 @@ impl StaticWhitelist {
             .available_mem_upper_threshold
             .unwrap();
 
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("metrics")) {
             None => {
@@ -244,7 +237,7 @@ impl StaticWhitelist {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 if metrics_plugin.get_mem_usage_percentage() >= available_mem_upper_threshold {

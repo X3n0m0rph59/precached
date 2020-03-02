@@ -1,5 +1,5 @@
 .\" Manpage for .rules file format.
-.TH man 5 "16. February 2018" "1.7.1" ".rules file format man page"
+.TH man 5 "02. March 2020" "1.7.2" ".rules file format man page"
 .SH NAME
  Overview of the precached .rules file format
 .SH SYNOPSIS
@@ -26,7 +26,7 @@
    * Arguments - Arguments for the specified action
 
  Supported Events:
-   * Noop - No-operation, does nothing; just a placeholder 
+   * Noop - No-operation, does nothing; just a placeholder
    * Timer - A timer that fires every 5 seconds
    * UserLogin - System user logged in
    * Ping - A ping event (currently fires every 5 seconds)
@@ -48,7 +48,7 @@
    # Event-Name              Filter            Action      	       Arguments
      UserLogin		         Noop              Log                 Severity:Warn,Message:"User $user logged in! ($home_dir)"
      UserLogin               Noop              CacheMetadataRecursive   Directory:"$home_dir/.gnome"
-     UserLogin               Noop              CacheMetadataRecursive   Directory:"/home/$user/.gnome2"   
+     UserLogin               Noop              CacheMetadataRecursive   Directory:"/home/$user/.gnome2"
    # =============================================================================
 
 

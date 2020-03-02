@@ -37,7 +37,8 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::channel;
-use std::sync::{Arc, Mutex, RwLock};
+use parking_lot::{Mutex, RwLock};
+use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 use log::{trace, debug, info, warn, error, log, LevelFilter};
@@ -220,19 +221,19 @@ fn process_internal_events(globals: &mut Globals, manager: &Manager) -> Result<(
     while let Some(internal_event) = globals.event_queue.pop_front() {
         {
             // dispatch daemon internal events to plugins
-            let plugin_manager = manager.plugin_manager.read().expect("Could not get a lock!");
+            let plugin_manager = manager.plugin_manager.read();
             plugin_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
 
         {
             // dispatch daemon internal events to hooks
-            let hook_manager = manager.hook_manager.read().expect("Could not get a lock!");
+            let hook_manager = manager.hook_manager.read();
             hook_manager.dispatch_internal_event(&internal_event, globals, manager);
         }
 
         {
             // dispatch daemon internal events to connected IPC clients
-            let mut ipc_queue = globals.ipc_event_queue.write().expect("Could not get a lock!");
+            let mut ipc_queue = globals.ipc_event_queue.write();
             ipc_queue.push_back(internal_event);
 
             // limit the size of the ipc event queue to a reasonable amount
@@ -248,7 +249,7 @@ fn process_procmon_event(event: &procmon::Event, globals: &mut Globals, manager:
     trace!("Processing procmon event...");
 
     // dispatch the procmon event to all registered hooks
-    let m = manager.hook_manager.read().expect("Could not get a lock!");
+    let m = manager.hook_manager.read();
 
     m.dispatch_event(event, globals, manager);
 
@@ -270,6 +271,9 @@ use failure_derive::*;
 
 /// Initialize and run the main loop
 fn run() -> Result<(), failure::Error> {
+    // Initialize deadlock detector
+    util::thread::deadlock_detector()?;
+
     // Initialize translations
     initialize_i18n();
 
@@ -405,26 +409,24 @@ fn run() -> Result<(), failure::Error> {
     // events::queue_internal_event(EventType::PrimeCaches, &mut globals);
 
     // spawn the event loop thread
-    let _handle = thread::Builder::new()
-        .name("precached/event-loop".to_string())
-        .spawn(move || {
-            'EVENT_LOOP: loop {
-                if EXIT_NOW.load(Ordering::SeqCst) {
-                    trace!("Leaving the event loop...");
-                    break 'EVENT_LOOP;
-                }
-
-                // blocking call into procmon_sys
-                let event = procmon.wait_for_event();
-                sender.send(event).unwrap();
+    let _handle = thread::Builder::new().name("event-loop".to_string()).spawn(move || {
+        'EVENT_LOOP: loop {
+            if EXIT_NOW.load(Ordering::SeqCst) {
+                trace!("Leaving the event loop...");
+                break 'EVENT_LOOP;
             }
-        })?;
+
+            // blocking call into procmon_sys
+            let event = procmon.wait_for_event();
+            sender.send(event).unwrap();
+        }
+    })?;
 
     // spawn the IPC event loop thread
     let queue_c = globals.ipc_event_queue.clone();
     let manager_c = manager.clone();
 
-    let _handle_ipc = thread::Builder::new().name("precached/ipc".to_string()).spawn(move || {
+    let _handle_ipc = thread::Builder::new().name("ipc".to_string()).spawn(move || {
         'EVENT_LOOP: loop {
             if EXIT_NOW.load(Ordering::SeqCst) {
                 trace!("Leaving the IPC event loop...");
@@ -435,15 +437,10 @@ fn run() -> Result<(), failure::Error> {
             let event = ipc_server.listen();
 
             // we got an event, try to lock the shared data structure...
-            match queue_c.write() {
-                Ok(mut queue) => match event {
-                    Err(e) => error!("Invalid IPC request: {}", e),
-                    Ok(event) => ipc_server.process_messages(&event, &mut queue, &manager_c),
-                },
-
-                Err(e) => {
-                    warn!("Could not lock a shared data structure: {}", e);
-                }
+            let mut queue = queue_c.write();
+            match event {
+                Err(e) => error!("Invalid IPC request: {}", e),
+                Ok(event) => ipc_server.process_messages(&event, &mut queue, &manager_c),
             }
         }
     })?;
@@ -535,15 +532,8 @@ fn run() -> Result<(), failure::Error> {
         process_internal_events(&mut globals, &manager)?;
 
         // Let the task scheduler run it's queued jobs
-        match util::SCHEDULER.lock() {
-            Err(e) => error!(
-                "Could not take a lock on the global task scheduler! Postponing work until later. {}",
-                e
-            ),
-            Ok(ref mut scheduler) => {
-                scheduler.run_jobs();
-            }
-        }
+        let mut scheduler = util::SCHEDULER.lock();
+        scheduler.run_jobs();
 
         if EXIT_NOW.load(Ordering::SeqCst) {
             trace!("Leaving the main loop...");
@@ -555,33 +545,8 @@ fn run() -> Result<(), failure::Error> {
         }
     }
 
-    // main thread blocks here
-    // match handle.join() {
-    //     Ok(_) => {
-    //         trace!("Successfully joined the event loop thread!");
-    //     }
-    //     Err(_) => {
-    //         error!("Could not join the event loop thread!");
-    //     }
-    // };
-
-    // match handle_ipc.join() {
-    //     Ok(_) => {
-    //         trace!("Successfully joined the IPC event loop thread!");
-    //     }
-    //     Err(_) => {
-    //         error!("Could not join the IPC event loop thread!");
-    //     }
-    // };
-
     // Clean up now
     trace!("Cleaning up...");
-
-    // handled by systemd service now...
-    // #[allow(unused_must_use)]
-    // util::remove_file(Path::new(constants::DAEMON_PID_FILE), false).unwrap_or_else(|_| {
-    //     error!("Could not remove pid file!");
-    // });
 
     // Unregister plugins and hooks
     plugins::unregister_plugins(&mut globals, &mut manager);

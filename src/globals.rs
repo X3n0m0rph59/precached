@@ -20,7 +20,8 @@
 
 use std::cell::RefCell;
 use std::collections::VecDeque;
-use std::sync::{Arc, RwLock};
+use parking_lot::RwLock;
+use std::sync::Arc;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use crate::config::Config;
 use crate::config_file::ConfigFile;

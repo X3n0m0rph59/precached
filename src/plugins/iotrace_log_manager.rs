@@ -44,7 +44,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(IOtraceLogManager::new());
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -317,29 +317,22 @@ impl Plugin for IOtraceLogManager {
             EventType::OptimizeIOTraceLog(ref filename) => {
                 warn!("Optimizing: {:?}", filename);
 
-                match util::SCHEDULER.lock() {
-                    Err(e) => {
-                        error!("Could not lock the global task scheduler! {}", e);
-                    }
+                let mut scheduler = util::SCHEDULER.lock();
+                let filename_c = filename.clone();
 
-                    Ok(mut scheduler) => {
-                        let filename_c = filename.clone();
+                let min_len = globals
+                    .get_config_file()
+                    .min_trace_log_length
+                    .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
 
-                        let min_len = globals
-                            .get_config_file()
-                            .min_trace_log_length
-                            .unwrap_or(constants::MIN_TRACE_LOG_LENGTH);
+                let min_prefetch_size = globals
+                    .get_config_file()
+                    .min_trace_log_prefetch_size
+                    .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
 
-                        let min_prefetch_size = globals
-                            .get_config_file()
-                            .min_trace_log_prefetch_size
-                            .unwrap_or(constants::MIN_TRACE_LOG_PREFETCH_SIZE_BYTES);
-
-                        (*scheduler).schedule_job(move || {
-                            Self::optimize_single_trace_log(&filename_c, min_len, min_prefetch_size);
-                        });
-                    }
-                }
+                (*scheduler).schedule_job(move || {
+                    Self::optimize_single_trace_log(&filename_c, min_len, min_prefetch_size);
+                });
             }
 
             EventType::DoHousekeeping => { /* Handled by the plugin 'janitor' now */ }

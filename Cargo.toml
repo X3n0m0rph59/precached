@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "precached"
-version = "1.7.1"
+version = "1.7.2"
 build = "build.rs"
 authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
 description = "A Linux process monitor and pre-caching daemon"
@@ -27,6 +27,7 @@ zmq = { version = "*", git = "https://gitlab.com/X3n0m0rph59/rust-zmq", branch =
 # zmq = { version = "*", path = "vendor/zmq" }
 chrono = { version = "0.4.10", features = ["serde", "rustc-serialize"] }
 chrono-tz = { version = "0.5.1", features = ["serde"] }
+parking_lot = { version = "0.10.0", features = ["deadlock_detection"] }
 crossbeam = "0.7.3"
 rayon = "1.2.1"
 indexmap = "1.3.0"
@@ -35,14 +36,14 @@ systemstat = "0.1.5"
 users = "0.9.1"
 term_size = "1.0.0-beta1"
 libc = "0.2.66"
-nix = "0.16.1"
+nix = "0.17.0"
 num_cpus = "1.11.1"
 log = "0.4.8"
 log4rs = "0.8.3"
 log4rs-syslog = "3.0.3"
 log-panics = "2.0.0"
 syslog = "5.0.0"
-pretty_env_logger = "0.3.1"
+pretty_env_logger = "0.4.0"
 ansi_term = "0.12.1"
 lazy_static = "1.4.0"
 enum_primitive = "0.1.1"
@@ -64,9 +65,9 @@ pbr = "1.0.2"
 prettytable-rs = "0.8.0"
 daemonize = "0.4.1"
 inotify = "0.8.0"
-unic-langid = { version = "0.7.1", features = ["macros"] }
+unic-langid = { version = "0.8.0", features = ["macros"] }
 fluent-syntax= "0.9.1"
-fluent-bundle = "0.9.1"
+fluent-bundle = "0.10.2"
 failure = "0.1.6"
 failure_derive = "0.1.6"
 futures = "0.3.1"
@@ -75,8 +76,8 @@ prctl = "1.0.0"
 privdrop = "0.3.3"
 capabilities = "0.3.0"
 tokio = { version = "0.2.6", optional = true }
-warp = { version = "0.1.20", optional = true }
-handlebars = { version = "2.0.2", optional = true }
+warp = { version = "0.2.1", optional = true }
+handlebars = { version = "3.0.1", optional = true }
 
 # [replace]
 # sys-info = { version = "*", path = "vendor/" }

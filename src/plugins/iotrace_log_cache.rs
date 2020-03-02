@@ -23,7 +23,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
-use std::sync::Mutex;
+use parking_lot::Mutex;
 use lockfree::map::Map;
 use lazy_static::lazy_static;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
@@ -50,7 +50,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(IOtraceLogCache::new(globals));
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -68,54 +68,47 @@ impl IOtraceLogCache {
     pub fn cache_iotrace_log(&mut self, filename: &PathBuf, globals: &Globals, manager: &Manager) {
         trace!("Started caching of single I/O trace log file...");
 
-        match util::PREFETCH_POOL.lock() {
-            Err(e) => error!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
-            Ok(thread_pool) => {
-                let globals_c = globals.clone();
-                let manager_c = manager.clone();
+        let thread_pool = util::PREFETCH_POOL.lock();
+        let globals_c = globals.clone();
+        let manager_c = manager.clone();
 
-                let filename = filename.clone();
-                let filename_c = filename.clone();
+        let filename = filename.clone();
+        let filename_c = filename.clone();
 
-                let iotrace_dir = globals
-                    .get_config_file()
-                    .state_dir
-                    .clone()
-                    .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
-                let iotrace_dir = iotrace_dir.join(constants::IOTRACE_DIR);
-                let abs_path = iotrace_dir.join(&filename);
+        let iotrace_dir = globals
+            .get_config_file()
+            .state_dir
+            .clone()
+            .unwrap_or_else(|| Path::new(constants::STATE_DIR).to_path_buf());
+        let iotrace_dir = iotrace_dir.join(constants::IOTRACE_DIR);
+        let abs_path = iotrace_dir.join(&filename);
 
-                thread_pool.submit_work(move || {
-                    if !Self::check_available_memory(&globals_c, &manager_c) {
-                        info!("Available memory exhausted, stopping prefetching!");
-                        return;
-                    }
-
-                    // mmap and mlock file, if it is not contained in the blacklist
-                    // and if it was not already mapped by some of the plugins
-                    if Self::shall_we_map_file(&abs_path) {
-                        match util::cache_file(&abs_path, true) {
-                            Err(s) => {
-                                error!("Could not cache file {:?}: {}", filename, s);
-                            }
-                            Ok(r) => {
-                                trace!("Successfully cached file {:?}", filename);
-                                MAPPED_FILES.insert(abs_path.to_path_buf(), r);
-
-                                statistics::MAPPED_FILES
-                                    .insert(abs_path.to_path_buf())
-                                    .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
-                            }
-                        }
-                    }
-                });
-
-                info!("Finished caching of single I/O trace log file {:?}", filename_c);
+        thread_pool.submit_work(move || {
+            if !Self::check_available_memory(&globals_c, &manager_c) {
+                info!("Available memory exhausted, stopping prefetching!");
+                return;
             }
-        }
+
+            // mmap and mlock file, if it is not contained in the blacklist
+            // and if it was not already mapped by some of the plugins
+            if Self::shall_we_map_file(&abs_path) {
+                match util::cache_file(&abs_path, true) {
+                    Err(s) => {
+                        error!("Could not cache file {:?}: {}", filename, s);
+                    }
+                    Ok(r) => {
+                        trace!("Successfully cached file {:?}", filename);
+                        MAPPED_FILES.insert(abs_path.to_path_buf(), r);
+
+                        statistics::MAPPED_FILES
+                            .insert(abs_path.to_path_buf())
+                            .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
+                    }
+                }
+            }
+        });
+
+        info!("Finished caching of single I/O trace log file {:?}", filename_c);
     }
 
     /// Remove a single I/O trace log file `filename` from the caches
@@ -149,51 +142,44 @@ impl IOtraceLogCache {
     pub fn cache_iotrace_log_files(&mut self, globals: &Globals, manager: &Manager) {
         info!("Started caching of I/O trace log files...");
 
-        match util::PREFETCH_POOL.lock() {
-            Err(e) => error!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
-            Ok(thread_pool) => {
-                let globals_c = globals.clone();
-                let manager_c = manager.clone();
+        let thread_pool = util::PREFETCH_POOL.lock();
+        let globals_c = globals.clone();
+        let manager_c = manager.clone();
 
-                thread_pool.submit_work(move || {
-                    let trace_log_path = vec![Path::new(constants::STATE_DIR).join(constants::IOTRACE_DIR)];
+        thread_pool.submit_work(move || {
+            let trace_log_path = vec![Path::new(constants::STATE_DIR).join(constants::IOTRACE_DIR)];
 
-                    util::walk_directories(&trace_log_path, &mut |path| {
-                        if !Self::check_available_memory(&globals_c, &manager_c) {
-                            info!("Available memory exhausted, stopping prefetching!");
-                            return;
+            util::walk_directories(&trace_log_path, &mut |path| {
+                if !Self::check_available_memory(&globals_c, &manager_c) {
+                    info!("Available memory exhausted, stopping prefetching!");
+                    return;
+                }
+
+                // mmap and mlock file, if it is not contained in the blacklist
+                // and if it was not already mapped by some of the plugins
+                if Self::shall_we_map_file(path) {
+                    match util::cache_file(path, true) {
+                        Err(s) => {
+                            error!("Could not cache file {:?}: {}", path, s);
+
+                            statistics::MAPPED_FILES.remove(&path.to_path_buf());
                         }
 
-                        // mmap and mlock file, if it is not contained in the blacklist
-                        // and if it was not already mapped by some of the plugins
-                        if Self::shall_we_map_file(path) {
-                            match util::cache_file(path, true) {
-                                Err(s) => {
-                                    error!("Could not cache file {:?}: {}", path, s);
+                        Ok(r) => {
+                            trace!("Successfully cached file {:?}", path);
+                            MAPPED_FILES.insert(path.to_path_buf(), r);
 
-                                    statistics::MAPPED_FILES.remove(&path.to_path_buf());
-                                }
-
-                                Ok(r) => {
-                                    trace!("Successfully cached file {:?}", path);
-                                    MAPPED_FILES.insert(path.to_path_buf(), r);
-
-                                    statistics::MAPPED_FILES
-                                        .insert(path.to_path_buf())
-                                        .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
-                                }
-                            }
+                            statistics::MAPPED_FILES
+                                .insert(path.to_path_buf())
+                                .unwrap_or_else(|e| trace!("Element already in set: {:?}", e));
                         }
-                    })
-                    .unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
-                });
+                    }
+                }
+            })
+            .unwrap_or_else(|e| error!("Unhandled error occurred during processing of files and directories! {}", e));
+        });
 
-                info!("Finished caching of I/O trace log files");
-            }
-        }
+        info!("Finished caching of I/O trace log files");
     }
 
     fn shall_we_map_file(filename: &Path) -> bool {
@@ -228,14 +214,14 @@ impl IOtraceLogCache {
             .available_mem_upper_threshold
             .unwrap();
 
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("metrics")) {
             None => {
                 warn!("Plugin not loaded: 'metrics', skipped");
             }
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let metrics_plugin = p.as_any().downcast_ref::<Metrics>().unwrap();
 
                 if metrics_plugin.get_mem_usage_percentage() >= available_mem_upper_threshold {

@@ -39,7 +39,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(RuleEventBridge::new());
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -174,7 +174,7 @@ impl RuleEventBridge {
     }
 
     fn rule_engine_fire_event(event: &rules::Event, globals: &mut Globals, manager: &Manager) {
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         match pm.get_plugin_by_name(&String::from("rule_engine")) {
             None => {
@@ -182,7 +182,7 @@ impl RuleEventBridge {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let rule_engine = p.as_any().downcast_ref::<RuleEngine>().unwrap();
 
                 rule_engine.process_event(&event, globals, manager);

@@ -19,6 +19,19 @@
 */
 
 use std::ptr;
+use log::*;
+use failure::Fail;
+use parking_lot::deadlock;
+use std::thread;
+use std::time::Duration;
+
+pub type Result<T> = std::result::Result<T, ThreadError>;
+
+#[derive(Debug, Fail)]
+pub enum ThreadError {
+    #[fail(display = "Could not spawn a thread: {}", description)]
+    SpawnError { description: String },
+}
 
 pub fn set_realtime_priority() {
     let tid = nix::unistd::gettid();
@@ -35,4 +48,31 @@ pub fn set_realtime_priority() {
 
 pub fn set_nice_level(nice: i32) {
     unsafe { libc::nice(nice) };
+}
+
+/// Creates a background thread which checks for deadlocks every 5 seconds
+pub fn deadlock_detector() -> Result<()> {
+    thread::Builder::new()
+        .name("deadlockd".to_owned())
+        .spawn(move || loop {
+            thread::sleep(Duration::from_secs(5));
+            let deadlocks = deadlock::check_deadlock();
+            if !deadlocks.is_empty() {
+                error!("{} deadlocks detected", deadlocks.len());
+
+                for (i, threads) in deadlocks.iter().enumerate() {
+                    error!("Deadlock #{}", i);
+
+                    for t in threads {
+                        error!("Thread Id {:#?}", t.thread_id());
+                        error!("{:#?}", t.backtrace());
+                    }
+                }
+            }
+        })
+        .map_err(|e| ThreadError::SpawnError {
+            description: format!("{}", e),
+        })?;
+
+    Ok(())
 }

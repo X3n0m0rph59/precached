@@ -47,7 +47,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(UserSession::new(globals));
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -82,7 +82,7 @@ impl UserSession {
                 self.logged_in_users.insert(uid, home_dir.clone());
 
                 // Notify rules engine of the login event
-                let pm = manager.plugin_manager.read().unwrap();
+                let pm = manager.plugin_manager.read();
 
                 match pm.get_plugin_by_name(&String::from("rule_event_bridge")) {
                     None => {
@@ -90,7 +90,7 @@ impl UserSession {
                     }
 
                     Some(p) => {
-                        let p = p.read().unwrap();
+                        let p = p.read();
                         let rule_event_bridge = p.as_any().downcast_ref::<RuleEventBridge>().unwrap();
 
                         rule_event_bridge.fire_event(&rules::Event::UserLogin(Some(u), Some(home_dir)), globals, manager);
@@ -114,7 +114,7 @@ impl UserSession {
                 self.logged_in_users.remove(&uid);
 
                 // Notify rules engine of the logout event
-                let pm = manager.plugin_manager.read().unwrap();
+                let pm = manager.plugin_manager.read();
 
                 match pm.get_plugin_by_name(&String::from("rule_event_bridge")) {
                     None => {
@@ -122,7 +122,7 @@ impl UserSession {
                     }
 
                     Some(p) => {
-                        let p = p.read().unwrap();
+                        let p = p.read();
                         let rule_event_bridge = p.as_any().downcast_ref::<RuleEventBridge>().unwrap();
 
                         rule_event_bridge.fire_event(&rules::Event::UserLogout(Some(u)), globals, manager);

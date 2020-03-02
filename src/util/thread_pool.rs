@@ -19,7 +19,7 @@
 */
 
 use std::sync::Arc;
-use std::sync::Mutex;
+use parking_lot::Mutex;
 use lazy_static::lazy_static;
 use crate::constants;
 
@@ -33,7 +33,7 @@ impl WorkerThreadPool {
         WorkerThreadPool {
             pool: threadpool::Builder::new()
                 .num_threads(2)
-                .thread_name(String::from("precached/worker"))
+                .thread_name(String::from("worker"))
                 .thread_scheduling_class(threadpool::SchedulingClass::Normal(constants::WORKER_THREAD_NICENESS))
                 .build(),
         }
@@ -58,7 +58,7 @@ impl PrefetchThreadPool {
             pool: threadpool::Builder::new()
                 .num_threads(constants::NUM_PREFETCHER_THREADS)
                 //.num_threads(num_cpus::get())
-                .thread_name(String::from("precached/prefetch"))
+                .thread_name(String::from("prefetch"))
                 // .thread_scheduling_class(threadpool::SchedulingClass::Realtime)
                 .thread_scheduling_class(threadpool::SchedulingClass::Normal(constants::PREFETCHER_THREAD_NICENESS))
                 .spread_affinity(true)

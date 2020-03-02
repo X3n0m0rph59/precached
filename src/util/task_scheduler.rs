@@ -19,7 +19,7 @@
 */
 
 use std::sync::Arc;
-use std::sync::Mutex;
+use parking_lot::Mutex;
 use lazy_static::lazy_static;
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use crate::util;
@@ -68,21 +68,14 @@ impl TaskScheduler {
         trace!("Scheduler running queued jobs now...");
 
         // NOTE: Block here until we have got the lock
-        match util::POOL.lock() {
-            Err(e) => error!(
-                "Could not take a lock on a shared data structure! Postponing work until later. {}",
-                e
-            ),
-            Ok(thread_pool) => {
-                for j in self.backlog.clone() {
-                    thread_pool.submit_work(move || {
-                        j();
-                    });
-                }
-
-                self.backlog.clear();
-            }
+        let thread_pool = util::POOL.lock();
+        for j in self.backlog.clone() {
+            thread_pool.submit_work(move || {
+                j();
+            });
         }
+
+        self.backlog.clear();
 
         // run local backlog on main thread
         for j in &self.main_backlog {

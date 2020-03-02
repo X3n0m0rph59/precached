@@ -21,7 +21,8 @@
 use std::any::Any;
 use std::time::{Duration, Instant};
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use parking_lot::RwLock;
 use lockfree::set::Set;
 use lazy_static::lazy_static;
 use serde_derive::{Serialize, Deserialize};
@@ -48,7 +49,7 @@ pub fn register_plugin(globals: &mut Globals, manager: &mut Manager) {
     if !config_file::get_disabled_plugins(globals).contains(&String::from(NAME)) {
         let plugin = Box::new(Statistics::new());
 
-        let m = manager.plugin_manager.read().unwrap();
+        let m = manager.plugin_manager.read();
 
         m.register_plugin(plugin);
     }
@@ -82,7 +83,7 @@ impl Statistics {
     }
 
     pub fn get_global_statistics(&self, manager: &Manager) -> GlobalStatistics {
-        let pm = manager.plugin_manager.read().unwrap();
+        let pm = manager.plugin_manager.read();
 
         let mut static_whitelist_mapped_files_count = None;
         let mut static_whitelist_whitelist_entries_count = None;
@@ -94,7 +95,7 @@ impl Statistics {
             }
 
             Some(p) => {
-                let p = p.read().unwrap();
+                let p = p.read();
                 let static_whitelist_plugin = p.as_any().downcast_ref::<StaticWhitelist>().unwrap();
 
                 static_whitelist_mapped_files_count = Some(static_whitelist_plugin.get_mapped_files_count());
