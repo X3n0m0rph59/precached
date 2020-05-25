@@ -1,6 +1,6 @@
 %global OrigName precached
 
-Name:    precached-git
+Name:    precached
 Version: 1.7.3
 Release: 0%{?dist}
 Summary: precached - A Linux process monitor and pre-caching daemon
@@ -205,6 +205,9 @@ esac
 %{_datarootdir}/%{OrigName}/i18n/en_uk.utf8
 
 %changelog
+* Mon May 25 2020 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.3-0
+- rebuilt
+
 * Mon Mar 02 2020 X3n0m0rph59 <x3n0m0rph59@gmail.com> - 1.7.2-1
 - rebuilt
 
