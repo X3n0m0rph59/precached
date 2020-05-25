@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "precached"
-version = "1.7.2"
+version = "1.7.3"
 build = "build.rs"
 authors = ["X3n0m0rph59 <x3n0m0rph59@gmail.com>"]
 description = "A Linux process monitor and pre-caching daemon"
@@ -25,19 +25,19 @@ zmq = { version = "*", git = "https://gitlab.com/X3n0m0rph59/rust-zmq", branch =
 # sys-info = { version = "*", path = "vendor/sys-info" }
 # threadpool = { version = "*", path = "vendor/threadpool" }
 # zmq = { version = "*", path = "vendor/zmq" }
-chrono = { version = "0.4.10", features = ["serde", "rustc-serialize"] }
+chrono = { version = "0.4.11", features = ["serde", "rustc-serialize"] }
 chrono-tz = { version = "0.5.1", features = ["serde"] }
-parking_lot = { version = "0.10.0", features = ["deadlock_detection"] }
+parking_lot = { version = "0.10.2", features = ["deadlock_detection"] }
 crossbeam = "0.7.3"
-rayon = "1.2.1"
-indexmap = "1.3.0"
-time = "0.2.1"
+rayon = "1.3.0"
+indexmap = "1.3.2"
+time = "0.2.16"
 systemstat = "0.1.5"
-users = "0.9.1"
-term_size = "1.0.0-beta1"
-libc = "0.2.66"
+users = "0.10.0"
+term_size = "0.3.2"
+libc = "0.2.70"
 nix = "0.17.0"
-num_cpus = "1.11.1"
+num_cpus = "1.13.0"
 log = "0.4.8"
 log4rs = "0.8.3"
 log4rs-syslog = "3.0.3"
@@ -47,36 +47,36 @@ pretty_env_logger = "0.4.0"
 ansi_term = "0.12.1"
 lazy_static = "1.4.0"
 enum_primitive = "0.1.1"
-regex = "1.3.1"
-fnv = "1.0.6"
-globset = "0.4.4"
-byteorder = "1.3.2"
+regex = "1.3.7"
+fnv = "1.0.7"
+globset = "0.4.5"
+byteorder = "1.3.4"
 bytevec = "0.2.0"
-toml = "0.5.5"
-clap = "2.33.0"
-serde = "1.0.104"
-serde_derive = "1.0.104"
-serde_json = "1.0.44"
-zstd = "0.5.1"
+toml = "0.5.6"
+clap = "2.33.1"
+serde = "1.0.110"
+serde_derive = "1.0.110"
+serde_json = "1.0.53"
+zstd = "0.5.2"
 tui = "0.8.0"
-termion = "1.5.4"
-term = "0.5.2"
+termion = "1.5.5"
+term = "0.5.1"
 pbr = "1.0.2"
 prettytable-rs = "0.8.0"
 daemonize = "0.4.1"
-inotify = "0.8.0"
+inotify = "0.8.2"
 unic-langid = { version = "0.8.0", features = ["macros"] }
-fluent-syntax= "0.9.1"
+fluent-syntax= "0.9.3"
 fluent-bundle = "0.10.2"
-failure = "0.1.6"
-failure_derive = "0.1.6"
-futures = "0.3.1"
+failure = "0.1.8"
+failure_derive = "0.1.8"
+futures = "0.3.5"
 lockfree = "0.5.1"
 prctl = "1.0.0"
-privdrop = "0.3.3"
+privdrop = "0.3.4"
 capabilities = "0.3.0"
-tokio = { version = "0.2.6", optional = true }
-warp = { version = "0.2.1", optional = true }
+tokio = { version = "0.2.21", optional = true }
+warp = { version = "0.2.3", optional = true }
 handlebars = { version = "3.0.1", optional = true }
 
 # [replace]

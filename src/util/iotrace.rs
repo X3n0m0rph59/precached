@@ -24,7 +24,7 @@ use std::io::Result;
 use std::path::{Path, PathBuf};
 use term::color::*;
 use term::Attr;
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, NaiveDateTime, Duration, Utc, offset::TimeZone};
 use log::{trace, debug, info, warn, error, log, LevelFilter};
 use crate::iotrace::{IOTraceLog, IOTraceLogFlag, TraceLogEntry, IOTraceLogEntryFlag, IOOperation};
 use crate::constants;
@@ -124,7 +124,7 @@ pub fn get_io_trace_flags_and_err(io_trace: &IOTraceLog) -> (Vec<IOTraceLogFlag>
             Ok(m) => {
                 let binary_created = m.modified().unwrap();
 
-                if io_trace.created_at <= DateTime::from(binary_created) {
+                if io_trace.created_at <= system_time_to_date_time(binary_created) {
                     flags.push(IOTraceLogFlag::Outdated);
                     color = RED;
                     err = true;
@@ -188,4 +188,21 @@ pub fn get_io_trace_log_entry_flags_and_err(entry: &TraceLogEntry) -> (Vec<IOTra
     flags.reverse();
 
     (flags, err, color)
+}
+
+pub fn system_time_to_date_time(t: std::time::SystemTime) -> DateTime<Utc> {
+    let (sec, nsec) = match t.duration_since(std::time::UNIX_EPOCH) {
+        Ok(dur) => (dur.as_secs() as i64, dur.subsec_nanos()),
+        Err(e) => { // unlikely but should be handled
+            let dur = e.duration();
+            let (sec, nsec) = (dur.as_secs() as i64, dur.subsec_nanos());
+            if nsec == 0 {
+                (-sec, 0)
+            } else {
+                (-sec - 1, 1_000_000_000 - nsec)
+            }
+        },
+    };
+
+    Utc.timestamp(sec, nsec)
 }
