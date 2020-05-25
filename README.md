@@ -11,7 +11,7 @@ programs while the system is idle.
 
 ## Quick Installation Guide
 
-### Install on Manjaro or other Arch Linux based Distros
+### Install on ArcoLinux/Manjaro or other Arch Linux based Distros
 
 ```shell
     $ yay -Sy precached
@@ -64,7 +64,7 @@ of the Linux desktop:
 
 ## What is my RAM doing?
 
-You can read about Linux's memory managment here: https://www.linuxatemyram.com/index.html
+You can read about Linux's memory management here: https://www.linuxatemyram.com/index.html
 
 ## Use precached if
 
@@ -75,7 +75,7 @@ CPU (fast) and the I/O subsystem (slow), the more you gain by running precached.
 
 ### Only marginal improvements by using precached if
 
-* You have a fast NVME SSD drive
+* You have a fast NVMe SSD drive
 * You have less than ~2GBs of RAM installed
   (and want to use a modern Linux desktop)
 
