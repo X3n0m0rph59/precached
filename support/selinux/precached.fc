@@ -1,0 +1,16 @@
+/usr/sbin/precached		--	gen_context(system_u:object_r:precached_exec_t,s0)
+/usr/sbin/precachedctl		--	gen_context(system_u:object_r:precached_exec_t,s0)
+/usr/sbin/precached-debug	--	gen_context(system_u:object_r:precached_exec_t,s0)
+/usr/sbin/iotracectl		--	gen_context(system_u:object_r:precached_exec_t,s0)
+/usr/sbin/rulesctl		--	gen_context(system_u:object_r:precached_exec_t,s0)
+/usr/bin/precachedtop		--	gen_context(system_u:object_r:precached_exec_t,s0)
+/usr/bin/precached-trigger	--	gen_context(system_u:object_r:precached_exec_t,s0)
+/usr/bin/precached-gui		--	gen_context(system_u:object_r:precached_exec_t,s0)
+
+/var/lib/precached(/.*)?                gen_context(system_u:object_r:precached_var_lib_t,s0)
+
+/var/run/precached(/.*)?		gen_context(system_u:object_r:precached_var_run_t,s0)
+
+/etc/precached(/.*)?                    gen_context(system_u:object_r:precached_etc_t,s0)
+
+/var/log/precached(/.*)?                gen_context(system_u:object_r:precached_log_t,s0)

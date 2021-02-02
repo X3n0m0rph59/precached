@@ -1,0 +1,91 @@
+policy_module(precached, 1.3.1)
+
+########################################
+#
+# Declarations
+#
+
+type precached_t;
+type precached_exec_t;
+init_daemon_domain(precached_t, precached_exec_t)
+
+permissive precached_t;
+
+type precached_var_run_t;
+files_pid_file(precached_var_run_t)
+
+type precached_etc_t;
+files_type(precached_etc_t)
+
+type precached_var_lib_t;
+files_type(precached_var_lib_t)
+
+type precached_log_t;
+logging_log_file(precached_log_t)
+
+# Network label
+type precached_webapp_port_t;
+corenet_port(precached_webapp_port_t);
+
+# other
+type default_context_t;
+type proc_t;
+type var_lib_t;
+type var_run_t;
+type unconfined_service_t;
+type unconfined_t;
+
+########################################
+#
+# precached local policy
+#
+allow precached_t self:capability { chown setgid setuid sys_chroot };
+allow precached_t self:process { fork };
+allow precached_t self:fifo_file rw_fifo_file_perms;
+allow precached_t self:unix_stream_socket create_stream_socket_perms;
+allow precached_t self:capability { dac_read_search kill sys_ptrace };
+allow precached_t self:capability { dac_read_search sys_ptrace };
+allow precached_t self:netlink_connector_socket { bind create };
+allow precached_t self:process setcap;
+
+allow precached_t default_context_t:file { open read };
+allow precached_t proc_t:file { open read };
+allow precached_t var_lib_t:file { open read };
+allow precached_t var_run_t:sock_file create;
+allow precached_t unconfined_service_t:dir search;
+allow precached_t unconfined_service_t:file { open read };
+allow precached_t unconfined_service_t:lnk_file read;
+allow precached_t unconfined_service_t:process signal;
+allow precached_t unconfined_t:dir search;
+allow precached_t unconfined_t:file { open read };
+allow precached_t unconfined_t:lnk_file read;
+
+manage_dirs_pattern(precached_t, precached_var_run_t, precached_var_run_t)
+manage_files_pattern(precached_t, precached_var_run_t, precached_var_run_t)
+manage_lnk_files_pattern(precached_t, precached_var_run_t, precached_var_run_t)
+files_pid_filetrans(precached_t, precached_var_run_t, { dir file lnk_file })
+
+manage_dirs_pattern(precached_t, precached_etc_t, precached_etc_t)
+manage_files_pattern(precached_t, precached_etc_t, precached_etc_t)
+manage_lnk_files_pattern(precached_t, precached_etc_t, precached_etc_t)
+files_etc_filetrans(precached_t, precached_etc_t, { dir file lnk_file })
+
+manage_dirs_pattern(precached_t, precached_var_lib_t, precached_var_lib_t)
+manage_files_pattern(precached_t, precached_var_lib_t, precached_var_lib_t)
+manage_lnk_files_pattern(precached_t, precached_var_lib_t, precached_var_lib_t)
+files_var_lib_filetrans(precached_t, precached_var_lib_t, { dir file lnk_file })
+
+manage_dirs_pattern(precached_t, precached_log_t, precached_log_t)
+manage_files_pattern(precached_t, precached_log_t, precached_log_t)
+manage_lnk_files_pattern(precached_t, precached_log_t, precached_log_t)
+logging_log_filetrans(precached_t, precached_log_t, { dir file lnk_file })
+
+domain_use_interactive_fds(precached_t)
+
+files_read_etc_files(precached_t)
+
+auth_use_nsswitch(precached_t)
+
+logging_send_syslog_msg(precached_t)
+
+miscfiles_read_localization(precached_t)
