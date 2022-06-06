@@ -75,7 +75,7 @@ lockfree = "0.5.1"
 prctl = "1.0.0"
 privdrop = "0.3.4"
 capabilities = "0.3.0"
-tokio = { version = "0.2.21", optional = true }
+tokio = { version = "1.8.4", optional = true }
 warp = { version = "0.2.3", optional = true }
 handlebars = { version = "3.0.1", optional = true }
 
