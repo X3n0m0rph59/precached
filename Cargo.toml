@@ -31,7 +31,7 @@ parking_lot = { version = "0.10.2", features = ["deadlock_detection"] }
 crossbeam = "0.7.3"
 rayon = "1.3.0"
 indexmap = "1.3.2"
-time = "0.2.16"
+time = "0.2.23"
 systemstat = "0.1.5"
 users = "0.10.0"
 term_size = "0.3.2"
